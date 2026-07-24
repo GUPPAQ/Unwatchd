@@ -46,12 +46,9 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
   .execute-btn { transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease, transform 0.1s ease; }
   @media (hover: hover) and (pointer: fine) { .execute-btn:hover:not(:disabled) { box-shadow: 0 10px 24px rgba(255, 255, 255, 0.18); } }
   .execute-btn:active:not(:disabled) { transform: scale(0.98); opacity: 0.92; } .execute-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  select.filter-select, select.region-select { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; outline: none; cursor: pointer; color: white; }
-  select.filter-select { background-color: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; padding: 0.6rem 2.5rem 0.6rem 1rem; border-radius: 0.75rem; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
-  @media (hover: hover) and (pointer: fine) {
-    select.filter-select:hover { border-color: rgba(255,255,255,0.3); }
-    select.filter-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
-  }
+  select.filter-select, select.region-select { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; outline: none !important; cursor: pointer; color: white; touch-action: manipulation; -webkit-tap-highlight-color: transparent !important; }
+  select.filter-select { background-color: rgba(0,0,0,0.4) !important; border: 1px solid rgba(255,255,255,0.1) !important; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; padding: 0.6rem 2.5rem 0.6rem 1rem; border-radius: 0.75rem !important; -webkit-border-radius: 0.75rem !important; -webkit-mask-image: -webkit-radial-gradient(white, black); transition: none !important; }
+  select.filter-select:focus, select.filter-select:active, select.filter-select:hover, select.filter-select:focus-visible { border-radius: 0.75rem !important; -webkit-border-radius: 0.75rem !important; outline: none !important; box-shadow: none !important; border: 1px solid rgba(255,255,255,0.1) !important; background-color: rgba(0,0,0,0.4) !important; color: #9ca3af !important; }
   select.filter-select option, select.region-select option { background: #0f172a; color: white; }
   @media (max-width: 639px) { select.filter-select { width: 100%; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.6rem 1.6rem 0.6rem 0.65rem; background-position: right 0.6rem center; background-size: 0.85em; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; } }
   select.region-select { background-color: transparent; border: none; font-size: 0.875rem; font-weight: 700; padding: 0.75rem 2.5rem 0.75rem 0.5rem; border-radius: 99px; } select.region-select:disabled { cursor: not-allowed; }
@@ -363,7 +360,7 @@ if (REGION_META.NO) REGION_META.NO.flag = '🇳🇴'; // Safe fallback
 const GENRE_MAP = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western' };
 function openStreamingService(webUrl, appUrl = null) { if (!isMobile || !appUrl || appUrl === 'null') { window.open(webUrl, "_blank"); return; } window.location.href = appUrl; setTimeout(() => { window.open(webUrl, "_blank"); }, 1200); }
 const CORS_PROXIES = [ (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`, (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}` ];
-const TMDB_PROVIDER_CACHE_KEY = (region) => `ps_providers_${region}_v10`;
+const TMDB_PROVIDER_CACHE_KEY = (region) => `ps_providers_${region}_v11`;
 const TMDB_PROVIDER_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Text-normalisering som tar bort mellanslag, specialtecken och ersätter "+" med "plus"
@@ -664,6 +661,13 @@ async function fetchProvidersForRegion(region) {
   const res = await fetch(url);
   const data = await res.json().catch(() => ({}));
   const rawList = data.results || [];
+  
+  if (region === 'SE') {
+    const hasSVT = rawList.some(p => cleanNormalize(p.provider_name) === 'svtplay');
+    if (!hasSVT) {
+      rawList.push({ provider_id: 385, provider_name: 'SVT Play', display_priority: 11 });
+    }
+  }
   
   const JUNK_SUFFIX_RE = /\b(channel|app ?store|amazon channel|store)\b/i;
   
