@@ -48,16 +48,13 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
   .execute-btn:active:not(:disabled) { transform: scale(0.98); opacity: 0.92; } .execute-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .filter-select-wrapper {
     position: relative;
-    border-radius: 0.75rem !important;
-    -webkit-border-radius: 0.75rem !important;
-    background-color: rgba(0,0,0,0.4) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    overflow: hidden !important;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    border-radius: 0.75rem;
+    background-color: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    -webkit-clip-path: inset(0 round 0.75rem);
+    clip-path: inset(0 round 0.75rem);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    isolation: isolate;
   }
   select.filter-select, select.region-select { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; outline: none !important; cursor: pointer; color: white; touch-action: manipulation; -webkit-tap-highlight-color: transparent !important; }
   select.filter-select { background-color: transparent !important; border: none !important; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; padding: 0.6rem 2.5rem 0.6rem 1rem; transition: none !important; }
@@ -98,11 +95,14 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
   }
   @media (hover: none), (pointer: coarse) {
     #vpnToggleBtn, #regionContainer, .tab-btn, .service-btn, .execute-btn, .page-btn, #statsBtn, #rouletteBtn, #vpnToggleBtnInline, select.filter-select, #categoriesBar { transition: none !important; -webkit-tap-highlight-color: transparent !important; }
-    select.filter-select:focus, select.filter-select:active, select.filter-select:focus-visible {
+    #statsBtn:focus, #statsBtn:active,
+    #vpnToggleBtnInline:focus:not(.vpn-active), #vpnToggleBtnInline:active:not(.vpn-active),
+    #rouletteBtn:focus, #rouletteBtn:active {
+      background-color: rgba(0,0,0,0.4) !important;
+      border-color: rgba(255,255,255,0.1) !important;
+      color: #9ca3af !important;
       outline: none !important;
       box-shadow: none !important;
-      border-color: rgba(255,255,255,0.1) !important;
-      background-color: rgba(0,0,0,0.4) !important;
     }
   }
 
@@ -876,13 +876,13 @@ function updateVpnToggleVisual() {
 }
 updateVpnToggleVisual();
 if (el.vpnToggleBtn) el.vpnToggleBtn.addEventListener('click', () => setVpnMode(!vpnModeEnabled));
-if (el.vpnToggleBtnInline) el.vpnToggleBtnInline.addEventListener('click', () => setVpnMode(!vpnModeEnabled));
+if (el.vpnToggleBtnInline) el.vpnToggleBtnInline.addEventListener('click', () => { setVpnMode(!vpnModeEnabled); el.vpnToggleBtnInline.blur(); });
 const savedUsername = localStorage.getItem('ps_username'); if (savedUsername && el.usernameInput) el.usernameInput.value = savedUsername;
 const savedFriend = localStorage.getItem('ps_friend_username'); if (savedFriend && el.friendInput) { el.friendInput.value = savedFriend; if(el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if(el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if(el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); }
 if (el.toggleFriendBtn) { el.toggleFriendBtn.addEventListener('click', () => { if(el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if(el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if(el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if(el.friendInput) el.friendInput.focus(); }); }
 if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if(el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if(el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if(el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if(el.formError){ el.formError.classList.add('hidden'); el.formError.textContent=''; } if (isFriendMatchActive){ if(el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies=[]; localStorage.removeItem('ps_last_scan'); localStorage.removeItem('ps_is_friend_match_active'); isFriendMatchActive=false; if(el.activeGridContainer) el.activeGridContainer.innerHTML=''; if(el.statsBar) el.statsBar.classList.add('hidden'); if(el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
 if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
-if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { if (scannedMovies.length > 0 && el.statsBar) { const isHidden = el.statsBar.classList.contains('hidden'); if (isHidden) { el.statsBar.classList.remove('hidden'); el.statsBar.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.add('vpn-active'); el.statsBar.scrollIntoView({behavior:'smooth', block:'nearest'}); } else { el.statsBar.classList.add('hidden'); el.statsBar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.remove('vpn-active'); } } }); }
+if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { if (scannedMovies.length > 0 && el.statsBar) { const isHidden = el.statsBar.classList.contains('hidden'); if (isHidden) { el.statsBar.classList.remove('hidden'); el.statsBar.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.add('vpn-active'); el.statsBar.scrollIntoView({behavior:'smooth', block:'nearest'}); } else { el.statsBar.classList.add('hidden'); el.statsBar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.remove('vpn-active'); } } el.statsBtn.blur(); }); }
 if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { const currentList = currentGroupedResults[activeTab] || []; if (currentList.length === 0) return; const randomIndex = Math.floor(Math.random() * currentList.length); openMovieModal(currentList[randomIndex]); }); }
 document.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if(el.quickSearchInput) el.quickSearchInput.focus(); } const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden'); if (e.key === 'Escape') { if(el.searchDropdown) el.searchDropdown.classList.add('hidden'); if(isModalOpen) document.getElementById('closeModalBtn')?.click(); } if (isModalOpen) { if (e.key === 'ArrowLeft') { document.getElementById('modalPrevBtn')?.click(); } if (e.key === 'ArrowRight') { document.getElementById('modalNextBtn')?.click(); } } });
 let searchTimeout; if (el.quickSearchInput) { el.quickSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(searchTimeout); if(el.searchDropdown) el.searchDropdown.classList.add('hidden'); if(el.quickSearchBtn) el.quickSearchBtn.click(); } }); }
