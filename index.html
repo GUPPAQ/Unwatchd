@@ -37,7 +37,7 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
     .service-btn:not(.selected):not(.locked):hover { filter: grayscale(30%) opacity(0.85); }
     .service-btn:not(.selected):not(.locked):hover .logo-wrapper { box-shadow: 0 0 14px rgba(255, 255, 255, 0.15); }
   }
-  .service-btn.selected { filter: none; } .service-btn.selected .logo-wrapper { transform: scale(1.04); box-shadow: 0 0 0 2px #3b82f6, 0 0 12px rgba(59, 130, 246, 0.45); } .service-btn.locked { opacity: 0.2; cursor: not-allowed; pointer-events: none; filter: grayscale(100%); }
+  .service-btn.selected { filter: none; } .service-btn.selected .logo-wrapper { box-shadow: 0 0 0 2px #3b82f6, 0 0 12px rgba(59, 130, 246, 0.45); } .service-btn.locked { opacity: 0.2; cursor: not-allowed; pointer-events: none; filter: grayscale(100%); }
   
   /* Hover Overlay for + and X */
   .hover-action-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); border-radius: inherit; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; z-index: 20; pointer-events: none; }
@@ -75,8 +75,7 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
     #vpnToggleBtn:hover:not(.vpn-active) { border-color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.4) !important; color: rgba(255,255,255,0.8) !important; }
     #regionContainer:hover { border-color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.4) !important; }
   }
-  @media (hover: none), (pointer: coarse) {
-    #vpnToggleBtn, #regionContainer, .tab-btn, .service-btn, .execute-btn, .page-btn, #statsBtn, #rouletteBtn, #vpnToggleBtnInline, select.filter-select, #categoriesBar { transition: none !important; -webkit-tap-highlight-color: transparent !important; }
+  @media (hover: hover) and (pointer: fine) {
     #vpnToggleBtnInline:hover:not(.vpn-active),
     #statsBtn:hover:not(.vpn-active),
     #rouletteBtn:hover,
@@ -84,13 +83,22 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
       background-color: rgba(0,0,0,0.4) !important;
       color: #9ca3af !important;
     }
+    .add-services-btn:hover { border-color: rgba(59,130,246,0.35); background: rgba(59,130,246,0.06); transform: translateY(-1px); }
+    #serviceAllGrid .service-tile:hover { transform: translateY(-2px); }
+  }
+  @media (hover: none), (pointer: coarse) {
+    #vpnToggleBtn, #regionContainer, .tab-btn, .service-btn, .execute-btn, .page-btn, #statsBtn, #rouletteBtn, #vpnToggleBtnInline, select.filter-select, #categoriesBar { transition: none !important; -webkit-tap-highlight-color: transparent !important; }
+    select.filter-select:focus, select.filter-select:active, select.filter-select:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+      border-color: rgba(255,255,255,0.1) !important;
+      background-color: rgba(0,0,0,0.4) !important;
+    }
   }
 
   /* Inline Service Browser Styles */
   .add-services-btn { border: 2px dashed rgba(255,255,255,0.12); background: rgba(255,255,255,0.02); border-radius: 1.5rem; padding: 2.5rem 1.5rem; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.9rem; transition: all 0.25s ease; cursor: pointer; }
-  .add-services-btn:hover { border-color: rgba(59,130,246,0.35); background: rgba(59,130,246,0.06); transform: translateY(-1px); }
   #serviceAllGrid .service-tile { transition: all 0.2s ease; }
-  #serviceAllGrid .service-tile:hover { transform: translateY(-2px); }
 </style>
 </head>
 <body>
@@ -1176,14 +1184,14 @@ if (el.clearResultsBtn) { el.clearResultsBtn.addEventListener('click', () => { i
     sel.addEventListener('change', (e) => { 
       currentPage = 1; 
       applyFiltersAndRender(); 
-      setTimeout(() => { try { e.target.blur(); } catch(err){} }, 100);
+      try { e.target.blur(); } catch(err){}
     });
   }
 });
 [el.statsBtn, el.rouletteBtn, el.vpnToggleBtnInline].forEach(btn => {
   if (btn) {
     btn.addEventListener('click', (e) => {
-      setTimeout(() => { try { e.currentTarget.blur(); } catch(err){} }, 100);
+      try { e.currentTarget.blur(); } catch(err){}
     });
   }
 });
