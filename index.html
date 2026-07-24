@@ -51,16 +51,44 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
     border-radius: 0.75rem;
     background-color: rgba(0,0,0,0.4);
     border: 1px solid rgba(255,255,255,0.1);
-    -webkit-clip-path: inset(0 round 0.75rem);
-    clip-path: inset(0 round 0.75rem);
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+    -webkit-tap-highlight-color: transparent;
   }
-  select.filter-select, select.region-select { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; outline: none !important; cursor: pointer; color: white; touch-action: manipulation; -webkit-tap-highlight-color: transparent !important; }
-  select.filter-select { background-color: transparent !important; border: none !important; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; padding: 0.6rem 2.5rem 0.6rem 1rem; transition: none !important; }
-  select.filter-select:focus, select.filter-select:active, select.filter-select:hover, select.filter-select:focus-visible { outline: none !important; box-shadow: none !important; border: none !important; background-color: transparent !important; color: #9ca3af !important; }
+  .filter-select-wrapper .filter-select-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    padding: 0.6rem 2.5rem 0.6rem 1rem;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+  }
+  select.filter-select {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0 !important;
+    cursor: pointer !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    border: none !important;
+    background: none !important;
+    font-size: 16px !important;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  select.region-select { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; outline: none !important; cursor: pointer; color: white; touch-action: manipulation; -webkit-tap-highlight-color: transparent !important; }
   select.filter-select option, select.region-select option { background: #0f172a; color: white; }
-  @media (max-width: 639px) { select.filter-select { width: 100%; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.6rem 1.6rem 0.6rem 0.65rem; background-position: right 0.6rem center; background-size: 0.85em; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; } }
+  @media (max-width: 639px) { .filter-select-wrapper .filter-select-label { font-size: 0.7rem; letter-spacing: 0.06em; padding: 0.6rem 1.6rem 0.6rem 0.65rem; background-position: right 0.6rem center; background-size: 0.85em; } }
   select.region-select { background-color: transparent; border: none; font-size: 0.875rem; font-weight: 700; padding: 0.75rem 2.5rem 0.75rem 0.5rem; border-radius: 99px; } select.region-select:disabled { cursor: not-allowed; }
   @media (max-width: 1023px) { #modalPrevBtn, #modalNextBtn { display: none !important; } }
   .tab-btn { flex: 1; padding: 0.75rem 1rem; font-size: 0.75rem; font-weight: 700; text-align: center; border-radius: 0.75rem; transition: all 0.2s ease; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
@@ -81,14 +109,15 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
   @media (hover: hover) and (pointer: fine) {
     #vpnToggleBtn:hover:not(.vpn-active) { border-color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.4) !important; color: rgba(255,255,255,0.8) !important; }
     #regionContainer:hover { border-color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.4) !important; }
-  }
-  @media (hover: hover) and (pointer: fine) {
     #vpnToggleBtnInline:hover:not(.vpn-active),
-    #statsBtn:hover:not(.vpn-active),
-    #rouletteBtn:hover,
-    .tab-btn:hover:not(.active) {
-      background-color: rgba(0,0,0,0.4) !important;
-      color: #9ca3af !important;
+    #statsBtn:hover:not(.vpn-active) {
+      background-color: rgba(255,255,255,0.1) !important;
+      color: white !important;
+    }
+    #rouletteBtn:hover {
+      background-color: rgba(59,130,246,0.2) !important;
+      border-color: rgba(59,130,246,0.3) !important;
+      color: rgb(147,197,253) !important;
     }
     .add-services-btn:hover { border-color: rgba(59,130,246,0.35); background: rgba(59,130,246,0.06); transform: translateY(-1px); }
     #serviceAllGrid .service-tile:hover { transform: translateY(-2px); }
@@ -289,9 +318,9 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
         </button>
       </div>
       <div class="grid grid-cols-3 gap-2 w-full lg:w-auto lg:flex lg:items-center">
-        <div class="filter-select-wrapper w-full lg:w-auto"><select id="resultsSort" class="filter-select w-full lg:w-auto"><option value="az">A-Z</option><option value="za">Z-A</option><option value="rating_desc">Highest Rated</option><option value="rating_asc">Lowest Rated</option><option value="year_desc">Newest First</option><option value="year_asc">Oldest First</option></select></div>
-        <div class="filter-select-wrapper w-full lg:w-auto"><select id="resultsGenre" class="filter-select w-full lg:w-auto"><option value="all">All Genres</option></select></div>
-        <div class="filter-select-wrapper w-full lg:w-auto"><select id="resultsDecade" class="filter-select w-full lg:w-auto"><option value="all">All Decades</option></select></div>
+        <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="sortLabel">A-Z</span><select id="resultsSort" class="filter-select w-full lg:w-auto"><option value="az">A-Z</option><option value="za">Z-A</option><option value="rating_desc">Highest Rated</option><option value="rating_asc">Lowest Rated</option><option value="year_desc">Newest First</option><option value="year_asc">Oldest First</option></select></div>
+        <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="genreLabel">All Genres</span><select id="resultsGenre" class="filter-select w-full lg:w-auto"><option value="all">All Genres</option></select></div>
+        <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="decadeLabel">All Decades</span><select id="resultsDecade" class="filter-select w-full lg:w-auto"><option value="all">All Decades</option></select></div>
       </div>
     </div>
     <div id="categoriesBar" class="glass-panel rounded-2xl p-2.5 sm:p-3 mb-6 flex flex-col xl:flex-row gap-3 xl:gap-4 xl:items-center animate-fade relative" style="animation-delay: 0.1s;">
@@ -303,15 +332,15 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
       </div>
       <div class="hidden xl:block w-px h-8 bg-white/10 mx-1 self-center"></div>
       <div class="grid grid-cols-3 gap-2 w-full xl:flex xl:w-auto">
-        <button id="vpnToggleBtnInline" title="Also show VPN unlocks" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all">
+        <button id="vpnToggleBtnInline" title="Also show VPN unlocks" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-black/40 border border-white/10 text-gray-400 text-xs font-bold uppercase tracking-widest rounded-xl transition-all">
           <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           VPN <span id="vpnToggleDotInline" class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
         </button>
-        <button id="statsBtn" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all" title="Insights">
+        <button id="statsBtn" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-black/40 border border-white/10 text-gray-400 text-xs font-bold uppercase tracking-widest rounded-xl transition-all" title="Insights">
           <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
           Insights
         </button>
-        <button id="rouletteBtn" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-black/40 hover:bg-blue-500/20 border border-white/10 hover:border-blue-500/30 text-gray-400 hover:text-blue-300 text-xs font-bold uppercase tracking-widest rounded-xl transition-all" title="Roulette">
+        <button id="rouletteBtn" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-black/40 border border-white/10 text-gray-400 text-xs font-bold uppercase tracking-widest rounded-xl transition-all" title="Roulette">
           <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <circle cx="12" cy="12" r="9"></circle>
             <circle cx="12" cy="12" r="3"></circle>
@@ -1196,11 +1225,20 @@ loadAndRenderProviders();
 
 if (el.filterSearch) { el.filterSearch.addEventListener('input', (e) => { if(el.clearResultsBtn) el.clearResultsBtn.classList.toggle('hidden', e.target.value.trim().length === 0); currentPage = 1; applyFiltersAndRender(); }); }
 if (el.clearResultsBtn) { el.clearResultsBtn.addEventListener('click', () => { if(el.filterSearch) el.filterSearch.value = ''; if(el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden'); currentPage = 1; applyFiltersAndRender(); if(el.filterSearch) el.filterSearch.focus(); }); }
+function syncFilterLabel(sel) {
+  const labelMap = { resultsSort: 'sortLabel', resultsGenre: 'genreLabel', resultsDecade: 'decadeLabel' };
+  const labelId = labelMap[sel.id];
+  if (labelId) {
+    const label = document.getElementById(labelId);
+    if (label) label.textContent = sel.options[sel.selectedIndex]?.text || sel.value;
+  }
+}
 [el.filterSort, el.filterGenre, el.filterDecade, el.regionSelect].forEach(sel => { 
   if (sel) {
     sel.addEventListener('change', (e) => { 
       currentPage = 1; 
       applyFiltersAndRender(); 
+      syncFilterLabel(e.target);
       try { e.target.blur(); } catch(err){}
     });
   }
@@ -1444,7 +1482,7 @@ if (modalContentEl) {
 function createMovieCard(movieObj, delayIndex = 0) { const safeTitle = escapeHTML(movieObj.title); const safeSubtext = escapeHTML(movieObj.subtext); const wrapper = document.createElement('div'); wrapper.className = `tilt-card animate-fade h-full cursor-pointer z-10 hover:z-30 relative`; wrapper.style.animationDelay = `${delayIndex * 0.02}s`; const a = document.createElement('a'); a.href = movieObj.url; a.addEventListener('click', (e) => { e.preventDefault(); openMovieModal(movieObj); }); a.className = 'tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 hover:border-blue-500/50 h-full transition-colors'; if (movieObj.poster) { a.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">`; } else { a.innerHTML = `<div class="absolute inset-0 flex items-center justify-center p-4 text-center font-bold text-gray-500 text-sm">${safeTitle}</div>`; } const glare = document.createElement('div'); glare.className = 'glare'; a.appendChild(glare); const gradient = document.createElement('div'); gradient.className = 'absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90'; a.appendChild(gradient); if (movieObj.rating && movieObj.rating > 0) { const badge = document.createElement('div'); badge.className = 'absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black text-yellow-400 border border-yellow-500/20 shadow-lg flex items-center gap-1 z-20'; badge.innerHTML = `★ ${movieObj.rating}`; a.appendChild(badge); } if (movieObj.vpnInfo) { const vpnBadge = document.createElement('div'); vpnBadge.className = 'absolute top-3 left-3 bg-blue-600/80 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-black text-white border border-blue-400/30 shadow-lg flex items-center gap-1 z-20'; vpnBadge.title = `Requires switching your VPN to ${REGION_META[movieObj.vpnInfo.region].name}`; vpnBadge.innerHTML = `${REGION_META[movieObj.vpnInfo.region].flag} VPN`; a.appendChild(vpnBadge); } const textDiv = document.createElement('div'); textDiv.className = 'absolute bottom-0 left-0 w-full p-4 z-20'; textDiv.innerHTML = `<h4 class="text-white font-bold text-sm leading-tight drop-shadow-md line-clamp-2 mb-1">${safeTitle}</h4> ${safeSubtext ? `<p class="text-[10px] text-gray-400 font-medium truncate">${safeSubtext}</p>` : ''}`; a.appendChild(textDiv); wrapper.appendChild(a); apply3DTilt(wrapper); return wrapper; }
 function renderPagination(maxPage) { const pagDiv = el.paginationControls; if(!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/15 text-white font-bold text-sm transition-all border border-white/10 hover:border-white/30'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
 function updateStats() { if(scannedMovies.length === 0) { if(el.statsBar) el.statsBar.classList.add('hidden'); return; } document.getElementById('stat-total').textContent = scannedMovies.length; let genreCounts = {}; let decadeCounts = {}; let totalRating = 0; let ratedCount = 0; scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if(GENRE_MAP[id]) genreCounts[GENRE_MAP[id]] = (genreCounts[GENRE_MAP[id]] || 0) + 1; }); if (m.releaseDate) { const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10; if(!isNaN(dec)) decadeCounts[dec] = (decadeCounts[dec] || 0) + 1; } if (m.rating) { const r = parseFloat(m.rating); if(!isNaN(r) && r>0){ totalRating+=r; ratedCount++; } } }); const topG = Object.keys(genreCounts).sort((a,b)=>genreCounts[b]-genreCounts[a])[0] || '-'; const topD = Object.keys(decadeCounts).sort((a,b)=>decadeCounts[b]-decadeCounts[a])[0]; const avg = ratedCount ? (totalRating/ratedCount).toFixed(1) : '-'; document.getElementById('stat-genre').textContent = topG; document.getElementById('stat-decade').innerHTML = topD ? `${topD}S` : '-'; const avgEl = document.getElementById('stat-avg'); if(avgEl) avgEl.textContent = avg; }
-function populateFilterDropdowns() { const genresSet = new Set(); const decadesSet = new Set(); scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genresSet.add(GENRE_MAP[id]); }); if (m.releaseDate) decadesSet.add(Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10); }); if(el.filterGenre) { el.filterGenre.innerHTML = '<option value="all">All Genres</option>'; Array.from(genresSet).sort().forEach(g => { el.filterGenre.innerHTML += `<option value="${g}">${g}</option>`; }); } if(el.filterDecade) { el.filterDecade.innerHTML = '<option value="all">All Decades</option>'; Array.from(decadesSet).sort((a,b)=>b-a).forEach(d => { if(!isNaN(d)) el.filterDecade.innerHTML += `<option value="${d}">${d}s</option>`; }); } }
+function populateFilterDropdowns() { const genresSet = new Set(); const decadesSet = new Set(); scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genresSet.add(GENRE_MAP[id]); }); if (m.releaseDate) decadesSet.add(Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10); }); if(el.filterGenre) { el.filterGenre.innerHTML = '<option value="all">All Genres</option>'; Array.from(genresSet).sort().forEach(g => { el.filterGenre.innerHTML += `<option value="${g}">${g}</option>`; }); syncFilterLabel(el.filterGenre); } if(el.filterDecade) { el.filterDecade.innerHTML = '<option value="all">All Decades</option>'; Array.from(decadesSet).sort((a,b)=>b-a).forEach(d => { if(!isNaN(d)) el.filterDecade.innerHTML += `<option value="${d}">${d}s</option>`; }); syncFilterLabel(el.filterDecade); } }
 function applyFiltersAndRender() {
   const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : ''; const sort = el.filterSort ? el.filterSort.value : 'az'; const genre = el.filterGenre ? el.filterGenre.value : 'all'; const decade = el.filterDecade ? el.filterDecade.value : 'all';
   const qNormFilter = normalizeTitle(query);
