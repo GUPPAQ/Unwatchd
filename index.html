@@ -885,13 +885,15 @@ function createSelectedTile(provider) {
   const hoverOverlay = `<div class="hover-action-overlay"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></div>`;
   btn.innerHTML = `<div class="logo-wrapper">${img}${hoverOverlay}</div>`;
   
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
     if (isScanning) return;
     selectedServiceIds.delete(provider.id);
     localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds]));
     saveSelectedProviderData();
     toggleClearSyncBtn();
-    renderSelectedView();
+    btn.remove();
+    if (selectedServiceIds.size === 0) renderSelectedView();
     if (scannedMovies.length > 0) applyFiltersAndRender();
   });
   return btn;
@@ -910,13 +912,20 @@ function createBrowserTile(provider) {
   const hoverOverlay = `<div class="hover-action-overlay"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">${iconSvg}</svg></div>`;
   btn.innerHTML = `<div class="logo-wrapper">${img}${hoverOverlay}</div>`;
   
-  btn.addEventListener('click', () => {
-    if (pendingSelectedIds.has(provider.id)) {
-      pendingSelectedIds.delete(provider.id);
-    } else {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const nowSelected = !pendingSelectedIds.has(provider.id);
+    if (nowSelected) {
       pendingSelectedIds.add(provider.id);
+      btn.classList.add('selected');
+    } else {
+      pendingSelectedIds.delete(provider.id);
+      btn.classList.remove('selected');
     }
-    renderBrowserGrid();
+    const svgPath = btn.querySelector('.hover-action-overlay svg path');
+    if (svgPath) {
+      svgPath.setAttribute('d', nowSelected ? 'M6 18L18 6M6 6l12 12' : 'M12 4v16m8-8H4');
+    }
     updateBrowserSaveBtn();
   });
   return btn;
