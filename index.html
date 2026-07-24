@@ -1213,6 +1213,7 @@ if (cachedScan) {
         window.addEventListener('load', renderCachedGallery, { once: true });
       }
     }
+  } catch(e) { localStorage.removeItem('ps_last_scan'); }
 }
 function apply3DTilt(cardElement) { cardElement.addEventListener('mousemove', (e) => { const rect = cardElement.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const rotateX = ((y - (rect.height / 2)) / (rect.height / 2)) * -12; const rotateY = ((x - (rect.width / 2)) / (rect.width / 2)) * 12; cardElement.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`; }); cardElement.addEventListener('mouseleave', () => { cardElement.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`; }); }
 const movieDetailsCache = new Map();
