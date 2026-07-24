@@ -1215,8 +1215,50 @@ if (cachedScan) {
     }
   } catch(e) { localStorage.removeItem('ps_last_scan'); }
 }
-function apply3DTilt(cardElement) { cardElement.addEventListener('mousemove', (e) => { const rect = cardElement.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const rotateX = ((y - (rect.height / 2)) / (rect.height / 2)) * -12; const rotateY = ((x - (rect.width / 2)) / (rect.width / 2)) * 12; cardElement.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`; }); cardElement.addEventListener('mouseleave', () => { cardElement.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`; }); }
-async function getFullMovieDetails(movieId, mediaType = 'movie') { const url = `https://api.themoviedb.org/3/${mediaType === 'tv' ? 'tv' : 'movie'}/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos,external_ids`; const res = await fetch(url); return await res.json().catch(() => null); }
+const movieDetailsCache = new Map();
+const preloadedImagesSet = new Set();
+
+function preloadImage(url) {
+  if (!url || preloadedImagesSet.has(url)) return;
+  preloadedImagesSet.add(url);
+  const img = new Image();
+  img.src = url;
+}
+
+async function getFullMovieDetails(movieId, mediaType = 'movie') {
+  const cacheKey = `${mediaType}_${movieId}`;
+  if (movieDetailsCache.has(cacheKey)) {
+    return movieDetailsCache.get(cacheKey);
+  }
+  const url = `https://api.themoviedb.org/3/${mediaType === 'tv' ? 'tv' : 'movie'}/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos,external_ids`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data && data.id) {
+      movieDetailsCache.set(cacheKey, data);
+      if (data.backdrop_path) preloadImage(`https://image.tmdb.org/t/p/w1280${data.backdrop_path}`);
+      if (data.poster_path) preloadImage(`https://image.tmdb.org/t/p/w500${data.poster_path}`);
+    }
+    return data;
+  } catch(e) {
+    return null;
+  }
+}
+
+function preloadAdjacentMovies(currentList, currentIndex) {
+  if (!Array.isArray(currentList) || currentIndex === -1) return;
+  const indices = [currentIndex - 1, currentIndex + 1, currentIndex + 2];
+  indices.forEach(idx => {
+    if (idx >= 0 && idx < currentList.length) {
+      const m = currentList[idx];
+      if (m) {
+        if (m.poster) preloadImage(m.poster);
+        if (m.backdrop) preloadImage(m.backdrop);
+        getFullMovieDetails(m.id, m.mediaType);
+      }
+    }
+  });
+}
 
 function generateFullMovieHTML(movieObj, details, isModal = false, context = 'lookup') {
   const safeTitle = escapeHTML(movieObj.title); const year = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : 'N/A'; const runtime = details && details.runtime ? `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m` : ''; const genres = details && details.genres ? details.genres.map(g => escapeHTML(g.name)).slice(0,3).join(' • ') : ''; const overview = details && details.overview ? escapeHTML(details.overview) : 'No synopsis available.';
@@ -1305,7 +1347,16 @@ function generateFullMovieHTML(movieObj, details, isModal = false, context = 'lo
 
 async function openMovieModal(movieObj) {
   const modal = document.getElementById('movieModal'); const backdrop = document.getElementById('modalBackdrop'); const content = document.getElementById('modalContent'); const prevBtn = document.getElementById('modalPrevBtn'); const nextBtn = document.getElementById('modalNextBtn');
-  if (!modal || !content) return; content.dataset.movieId = movieObj.id; content.innerHTML = `<div class="p-20 flex flex-col items-center justify-center w-full min-h-[300px]"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-blue-400 font-bold uppercase tracking-widest text-xs animate-pulse">Decrypting Data...</p></div>`;
+  if (!modal || !content) return;
+  
+  const cacheKey = `${movieObj.mediaType === 'tv' ? 'tv' : 'movie'}_${movieObj.id}`;
+  const isAlreadyCached = movieDetailsCache.has(cacheKey);
+
+  content.dataset.movieId = movieObj.id;
+  if (!isAlreadyCached) {
+    content.innerHTML = `<div class="p-20 flex flex-col items-center justify-center w-full min-h-[300px]"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-blue-400 font-bold uppercase tracking-widest text-xs animate-pulse">Decrypting Data...</p></div>`;
+  }
+
   modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.classList.add('modal-open'); requestAnimationFrame(() => { backdrop.classList.remove('opacity-0'); content.classList.remove('translate-y-8', 'opacity-0'); });
   let currentList = currentGroupedResults[activeTab] || []; let currentIndex = currentList.findIndex(m => m.id === movieObj.id);
   if (currentIndex !== -1 && currentList.length > 1) { 
@@ -1329,6 +1380,9 @@ async function openMovieModal(movieObj) {
     if (prevBtn) { prevBtn.classList.add('hidden', 'opacity-0'); } 
     if (nextBtn) { nextBtn.classList.add('hidden', 'opacity-0'); } 
   }
+
+  preloadAdjacentMovies(currentList, currentIndex);
+
   const closeModal = () => { backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); if (prevBtn) prevBtn.classList.add('opacity-0'); if (nextBtn) nextBtn.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('modal-open'); if (prevBtn) prevBtn.classList.add('hidden'); if (nextBtn) nextBtn.classList.add('hidden'); }, 300); }; backdrop.onclick = closeModal; window.closeModal = closeModal;
   try { const details = await getFullMovieDetails(movieObj.id, movieObj.mediaType); content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync'); document.getElementById('closeModalBtn').onclick = closeModal; } catch (e) { content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
 }
