@@ -73,26 +73,11 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
   @media (hover: none), (pointer: coarse) {
     #vpnToggleBtn, #regionContainer, .tab-btn, .service-btn, .execute-btn, .page-btn, #statsBtn, #rouletteBtn, #vpnToggleBtnInline, select.filter-select, #categoriesBar { transition: none !important; -webkit-tap-highlight-color: transparent !important; }
     #vpnToggleBtnInline:hover:not(.vpn-active),
-    #vpnToggleBtnInline:focus:not(.vpn-active),
-    #vpnToggleBtnInline:active:not(.vpn-active),
     #statsBtn:hover:not(.vpn-active),
-    #statsBtn:focus:not(.vpn-active),
-    #statsBtn:active:not(.vpn-active),
     #rouletteBtn:hover,
-    #rouletteBtn:focus,
-    #rouletteBtn:active,
-    select.filter-select:hover,
-    select.filter-select:focus,
-    select.filter-select:active,
-    select.filter-select:focus-visible,
-    .tab-btn:hover:not(.active),
-    .tab-btn:focus:not(.active),
-    .tab-btn:active:not(.active) {
+    .tab-btn:hover:not(.active) {
       background-color: rgba(0,0,0,0.4) !important;
-      border-color: rgba(255,255,255,0.1) !important;
       color: #9ca3af !important;
-      box-shadow: none !important;
-      outline: none !important;
     }
   }
 
@@ -395,6 +380,7 @@ const cleanNormalize = (name) => {
   if (norm.startsWith('teliaplay') || norm === 'telia') norm = 'teliaplay';
   if (norm.startsWith('tele2') || norm.startsWith('comhem')) norm = 'tele2play';
   if (norm === 'bfiplayer' || norm === 'bfiplayeramazonchannel') norm = 'bfiplayer';
+  if (norm.startsWith('svt')) norm = 'svtplay';
   return norm;
 };
 
@@ -493,6 +479,9 @@ function getRegionServiceUrl(providerName, region = 'SE', movieTitle = '') {
   }
   if (norm === 'tele2play') {
     return `https://www.tele2play.se`;
+  }
+  if (norm === 'svtplay') {
+    return `https://www.svtplay.se`;
   }
   if (norm === 'triartplay') {
     return `https://www.triartplay.se/home?locale=${r === 'se' ? 'sv' : 'en'}`;
@@ -1168,15 +1157,20 @@ loadAndRenderProviders();
 
 if (el.filterSearch) { el.filterSearch.addEventListener('input', (e) => { if(el.clearResultsBtn) el.clearResultsBtn.classList.toggle('hidden', e.target.value.trim().length === 0); currentPage = 1; applyFiltersAndRender(); }); }
 if (el.clearResultsBtn) { el.clearResultsBtn.addEventListener('click', () => { if(el.filterSearch) el.filterSearch.value = ''; if(el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden'); currentPage = 1; applyFiltersAndRender(); if(el.filterSearch) el.filterSearch.focus(); }); }
-[el.filterSort, el.filterGenre, el.filterDecade, el.regionSelect, el.statsBtn, el.rouletteBtn, el.vpnToggleBtnInline].forEach(input => { 
-  if (input) {
-    const doBlur = (e) => { try { (e.target || e.currentTarget).blur(); } catch(err){} };
-    if (input.tagName === 'SELECT') {
-      input.addEventListener('change', (e) => { currentPage = 1; applyFiltersAndRender(); doBlur(e); });
-    }
-    input.addEventListener('click', (e) => { setTimeout(() => doBlur(e), 50); });
-    input.addEventListener('touchend', (e) => { setTimeout(() => doBlur(e), 100); });
-    input.addEventListener('blur', doBlur);
+[el.filterSort, el.filterGenre, el.filterDecade, el.regionSelect].forEach(sel => { 
+  if (sel) {
+    sel.addEventListener('change', (e) => { 
+      currentPage = 1; 
+      applyFiltersAndRender(); 
+      setTimeout(() => { try { e.target.blur(); } catch(err){} }, 100);
+    });
+  }
+});
+[el.statsBtn, el.rouletteBtn, el.vpnToggleBtnInline].forEach(btn => {
+  if (btn) {
+    btn.addEventListener('click', (e) => {
+      setTimeout(() => { try { e.currentTarget.blur(); } catch(err){} }, 100);
+    });
   }
 });
 document.addEventListener('click', (e) => {
