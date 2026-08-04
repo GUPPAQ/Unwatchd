@@ -2146,7 +2146,7 @@
       const ytVideos = details.videos.results.filter(v => v.site === 'YouTube' && v.key);
       if (ytVideos.length === 0) return null;
 
-      const badWords = /\b(lego|fan|parody|honest|concept|recap|review|blooper|spoof|behind the scenes|featurette|interview|b-roll)\b/i;
+      const badWords = /\b(audio description|audio described|descriptive audio|described video|\bad\b|commentary|narration|reaction|review|blooper|spoof|behind the scenes|featurette|interview|b-roll|lego|fan|parody|honest|concept|recap|dubbed)\b/i;
       const candidates = ytVideos.filter(v => !badWords.test(v.name || ''));
       const list = candidates.length > 0 ? candidates : ytVideos;
 
@@ -2166,6 +2166,10 @@
         if (nameB.includes('official')) scoreB += 5;
         if (a.iso_639_1 === 'en') scoreA += 3;
         if (b.iso_639_1 === 'en') scoreB += 3;
+
+        // Heavily penalize audio descriptions or commentary if any slipped through
+        if (nameA.includes('audio description') || nameA.includes('descriptive') || /\bad\b/i.test(nameA)) scoreA -= 50;
+        if (nameB.includes('audio description') || nameB.includes('descriptive') || /\bad\b/i.test(nameB)) scoreB -= 50;
 
         return scoreB - scoreA;
       });
