@@ -2246,8 +2246,11 @@
       };
 
       let streamingHtml = '';
-      const cleanFlatrate = filterAndDeduplicateProviders(movieObj.regionData?.flatrate || []);
+      const regionProviders = movieObj.regionData
+        || (movieObj.allProviders && movieObj.allProviders[currentRegion])
+        || (details && details['watch/providers'] && details['watch/providers'].results ? details['watch/providers'].results[currentRegion] : null);
 
+      const cleanFlatrate = filterAndDeduplicateProviders(regionProviders?.flatrate || []);
       const isAvailableOnSelected = cleanFlatrate.some(p => selectedServiceIds.has(p.provider_id));
 
       if (cleanFlatrate.length > 0) {
@@ -2257,8 +2260,8 @@
       }
 
       let rentBuyDropdownHtml = '';
-      const rent = filterAndDeduplicateProviders(movieObj.regionData?.rent || [], true);
-      const buy = filterAndDeduplicateProviders(movieObj.regionData?.buy || [], true);
+      const rent = filterAndDeduplicateProviders(regionProviders?.rent || [], true);
+      const buy = filterAndDeduplicateProviders(regionProviders?.buy || [], true);
       const rbMap = new Map();
 
       rent.forEach(p => {
@@ -3236,7 +3239,7 @@
             });
           }
 
-          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="openMovieModalFromActor(this.dataset.movieObj, '${safeName.replace(/'/g, "\\'")}', '${roleHint.replace(/'/g, "\\'")}')" data-movie-obj='${movieJson}'>
+          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="handleActorFilmClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}')">
             <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
               ${mPoster ? `<img src="${mPoster}" alt="${mTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-4 text-center font-bold text-gray-500 text-sm">${mTitle}</div>`}
               <div class="glare"></div>
