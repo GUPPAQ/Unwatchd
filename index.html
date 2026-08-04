@@ -2431,6 +2431,18 @@
     const quickSearchHistoryStack = [];
     const watchlistModalHistoryStack = [];
 
+    function pushToHistoryStack(stack, entry) {
+      if (!entry || !entry.data) return;
+      if (stack.length > 0) {
+        const top = stack[stack.length - 1];
+        if (top.type === entry.type) {
+          if (entry.type === 'movie' && top.data.id === entry.data.id) return;
+          if (entry.type === 'actor' && top.data.id === entry.data.id) return;
+        }
+      }
+      stack.push(entry);
+    }
+
     window.closeQuickSearchInline = function() {
       stopHeroVideo();
       if (el.quickSearchResult) {
@@ -2479,9 +2491,9 @@
         if (!isNavigatingBack) {
           if (currentActorId) {
             const person = actorDetailsCache.get(currentActorId);
-            quickSearchHistoryStack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+            pushToHistoryStack(quickSearchHistoryStack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
           } else if (window.currentActiveMovieObj && window.currentActiveMovieObj.id !== movieObj.id) {
-            quickSearchHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
+            pushToHistoryStack(quickSearchHistoryStack, { type: 'movie', data: window.currentActiveMovieObj });
           }
         }
         currentActorId = null;
@@ -2505,6 +2517,15 @@
         return;
       }
 
+      if (!isNavigatingBack) {
+        if (currentActorId) {
+          const person = actorDetailsCache.get(currentActorId);
+          pushToHistoryStack(watchlistModalHistoryStack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+        } else if (window.currentActiveMovieObj && window.currentActiveMovieObj.id !== movieObj.id) {
+          pushToHistoryStack(watchlistModalHistoryStack, { type: 'movie', data: window.currentActiveMovieObj });
+        }
+      }
+      currentActorId = null;
       window.currentActiveMovieObj = movieObj;
       const modal = document.getElementById('movieModal'); const backdrop = document.getElementById('modalBackdrop'); const content = document.getElementById('modalContent'); const prevBtn = document.getElementById('modalPrevBtn'); const nextBtn = document.getElementById('modalNextBtn');
       if (!modal || !content) return;
@@ -3483,10 +3504,10 @@
       if (isInlineCall) {
         if (!isNavigatingBack) {
           if (window.currentActiveMovieObj) {
-            quickSearchHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
+            pushToHistoryStack(quickSearchHistoryStack, { type: 'movie', data: window.currentActiveMovieObj });
           } else if (currentActorId && currentActorId !== actorId) {
             const person = actorDetailsCache.get(currentActorId);
-            quickSearchHistoryStack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+            pushToHistoryStack(quickSearchHistoryStack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
           }
         }
         window.currentActiveMovieObj = null;
@@ -3517,10 +3538,10 @@
 
       if (!isNavigatingBack) {
         if (window.currentActiveMovieObj) {
-          watchlistModalHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
+          pushToHistoryStack(watchlistModalHistoryStack, { type: 'movie', data: window.currentActiveMovieObj });
         } else if (currentActorId && currentActorId !== actorId) {
           const person = actorDetailsCache.get(currentActorId);
-          watchlistModalHistoryStack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+          pushToHistoryStack(watchlistModalHistoryStack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
         }
       }
       window.currentActiveMovieObj = null;
@@ -3884,8 +3905,8 @@
       const isInline = forceInline !== null ? forceInline : isQuickSearchContext();
       const stack = isInline ? quickSearchHistoryStack : watchlistModalHistoryStack;
 
-      if (window.currentActiveMovieObj) {
-        stack.push({ type: 'movie', data: window.currentActiveMovieObj });
+      if (!isNavigatingBack && window.currentActiveMovieObj) {
+        pushToHistoryStack(stack, { type: 'movie', data: window.currentActiveMovieObj });
       }
       const watchlistMovie = scannedMovies.find(m => m.id === movieId);
       if (watchlistMovie) {
@@ -3926,9 +3947,9 @@
       const isInline = forceInline !== null ? forceInline : isQuickSearchContext();
       const stack = isInline ? quickSearchHistoryStack : watchlistModalHistoryStack;
 
-      if (currentActorId) {
+      if (!isNavigatingBack && currentActorId) {
         const person = actorDetailsCache.get(currentActorId);
-        stack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+        pushToHistoryStack(stack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
       }
 
       const watchlistMovie = scannedMovies.find(m => m.id === movieId);
