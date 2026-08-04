@@ -2476,13 +2476,15 @@
       stopHeroVideo();
       const isInlineCall = forceInline !== null ? forceInline : isQuickSearchContext();
       if (isInlineCall) {
-        if (currentActorId) {
-          const person = actorDetailsCache.get(currentActorId);
-          quickSearchHistoryStack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
-          currentActorId = null;
-        } else if (window.currentActiveMovieObj && window.currentActiveMovieObj.id !== movieObj.id) {
-          quickSearchHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
+        if (!isNavigatingBack) {
+          if (currentActorId) {
+            const person = actorDetailsCache.get(currentActorId);
+            quickSearchHistoryStack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+          } else if (window.currentActiveMovieObj && window.currentActiveMovieObj.id !== movieObj.id) {
+            quickSearchHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
+          }
         }
+        currentActorId = null;
         window.currentActiveMovieObj = movieObj;
 
         el.quickSearchResult.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center flex flex-col items-center justify-center min-h-[250px]"><div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div><p class="text-blue-400 text-xs font-bold uppercase tracking-widest animate-pulse">Loading ${escapeHTML(movieObj.title)}...</p></div>`;
@@ -3479,13 +3481,15 @@
       stopHeroVideo();
       const isInlineCall = forceInline !== null ? forceInline : isQuickSearchContext();
       if (isInlineCall) {
-        if (window.currentActiveMovieObj) {
-          quickSearchHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
-          window.currentActiveMovieObj = null;
-        } else if (currentActorId && currentActorId !== actorId) {
-          const person = actorDetailsCache.get(currentActorId);
-          quickSearchHistoryStack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+        if (!isNavigatingBack) {
+          if (window.currentActiveMovieObj) {
+            quickSearchHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
+          } else if (currentActorId && currentActorId !== actorId) {
+            const person = actorDetailsCache.get(currentActorId);
+            quickSearchHistoryStack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+          }
         }
+        window.currentActiveMovieObj = null;
         currentActorId = actorId;
         currentActorRoleHint = roleHint;
         actorModalWatchlistMode = true;
@@ -3511,13 +3515,15 @@
         return;
       }
 
-      if (window.currentActiveMovieObj) {
-        watchlistModalHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
-        window.currentActiveMovieObj = null;
-      } else if (currentActorId && currentActorId !== actorId) {
-        const person = actorDetailsCache.get(currentActorId);
-        watchlistModalHistoryStack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+      if (!isNavigatingBack) {
+        if (window.currentActiveMovieObj) {
+          watchlistModalHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
+        } else if (currentActorId && currentActorId !== actorId) {
+          const person = actorDetailsCache.get(currentActorId);
+          watchlistModalHistoryStack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+        }
       }
+      window.currentActiveMovieObj = null;
       currentActorId = actorId;
       currentActorRoleHint = roleHint;
       actorModalWatchlistMode = true;
@@ -3566,6 +3572,8 @@
       }, 300);
     }
 
+    let isNavigatingBack = false;
+
     function navGoBack() {
       const actorModal = document.getElementById('actorModal');
       const movieModal = document.getElementById('movieModal');
@@ -3573,24 +3581,30 @@
       const isMovieModalOpen = movieModal && !movieModal.classList.contains('hidden');
       const isModalActive = isActorModalOpen || isMovieModalOpen;
 
-      if (isModalActive) {
-        if (watchlistModalHistoryStack.length === 0) return;
-        const prev = watchlistModalHistoryStack.pop();
-        if (movieModal) { movieModal.classList.add('hidden'); movieModal.classList.remove('flex'); }
-        if (actorModal) { actorModal.classList.add('hidden'); actorModal.classList.remove('flex'); }
-        if (prev.type === 'movie') {
-          openMovieModal(prev.data, false);
-        } else if (prev.type === 'actor') {
-          openActorModal(prev.data.id, prev.data.name, prev.data.roleHint || '', false);
+      const stack = isModalActive ? watchlistModalHistoryStack : quickSearchHistoryStack;
+      if (stack.length === 0) return;
+
+      const prev = stack.pop();
+      isNavigatingBack = true;
+
+      try {
+        if (isModalActive) {
+          if (movieModal) { movieModal.classList.add('hidden'); movieModal.classList.remove('flex'); }
+          if (actorModal) { actorModal.classList.add('hidden'); actorModal.classList.remove('flex'); }
+          if (prev.type === 'movie') {
+            openMovieModal(prev.data, false);
+          } else if (prev.type === 'actor') {
+            openActorModal(prev.data.id, prev.data.name, prev.data.roleHint || '', false);
+          }
+        } else {
+          if (prev.type === 'movie') {
+            openMovieModal(prev.data, true);
+          } else if (prev.type === 'actor') {
+            openActorModal(prev.data.id, prev.data.name, prev.data.roleHint || '', true);
+          }
         }
-      } else {
-        if (quickSearchHistoryStack.length === 0) return;
-        const prev = quickSearchHistoryStack.pop();
-        if (prev.type === 'movie') {
-          openMovieModal(prev.data, true);
-        } else if (prev.type === 'actor') {
-          openActorModal(prev.data.id, prev.data.name, prev.data.roleHint || '', true);
-        }
+      } finally {
+        isNavigatingBack = false;
       }
     }
 
