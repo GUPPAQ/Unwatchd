@@ -3903,7 +3903,41 @@
 
       if (currentActorId) {
         const person = actorDetailsCache.get(currentActorId);
-          setTimeout(() => openMovieModal(movieObj), 50);
+        stack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+      }
+
+      const watchlistMovie = scannedMovies.find(m => m.id === movieId);
+      if (watchlistMovie) {
+        openMovieModal(watchlistMovie, isInline);
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`);
+        const movie = await res.json();
+        if (movie && movie.id) {
+          const movieObj = {
+            id: movie.id,
+            mediaType: 'movie',
+            title: movie.title || movieTitle,
+            poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+            backdrop: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null,
+            rating: movie.vote_average ? movie.vote_average.toFixed(1) : null,
+            releaseDate: movie.release_date || null,
+            genreIds: movie.genre_ids || (movie.genres ? movie.genres.map(g => g.id) : []),
+            url: `https://www.themoviedb.org/movie/${movie.id}`,
+            regionData: null,
+            allProviders: null
+          };
+          try {
+            const pRes = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
+            const pData = await pRes.json();
+            if (pData && pData.results) {
+              movieObj.regionData = pData.results[currentRegion] || null;
+              movieObj.allProviders = pData.results;
+            }
+          } catch (pe) { }
+          openMovieModal(movieObj, isInline);
         }
       } catch (e) { console.error('Failed to load movie from actor filmography:', e); }
     }
