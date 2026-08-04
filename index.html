@@ -2436,9 +2436,15 @@
     function isInlineSearchContext() {
       if (!isInlineSearchActive()) return false;
       if (window.event && window.event.target) {
-        return el.quickSearchResult.contains(window.event.target);
+        const target = window.event.target;
+        const mainGrid = document.getElementById('moviesContainer');
+        if (mainGrid && mainGrid.contains(target)) return false;
+        const modalContent = document.getElementById('modalContent');
+        const movieModal = document.getElementById('movieModal');
+        if (modalContent && modalContent.contains(target) && movieModal && !movieModal.classList.contains('hidden')) return false;
+        if (el.quickSearchResult.contains(target)) return true;
       }
-      return false;
+      return isCurrentContextInline;
     }
 
     function scrollToQuickSearchResult() {
