@@ -2430,6 +2430,16 @@
       return el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden') && el.quickSearchResult.children.length > 0;
     }
 
+    function scrollToQuickSearchResult() {
+      if (!el.quickSearchResult) return;
+      requestAnimationFrame(() => {
+        const rect = el.quickSearchResult.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const targetY = rect.top + scrollTop - 32;
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+      });
+    }
+
     async function openMovieModal(movieObj) {
       stopHeroVideo();
       if (isInlineSearchActive()) {
@@ -2454,7 +2464,7 @@
           checkOverviewOverflow();
           applyTiltToSimilarGrid();
           bindCastCrewDrag();
-          try { el.quickSearchResult.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
+          scrollToQuickSearchResult();
         });
         return;
       }
@@ -2846,7 +2856,7 @@
         const backBtn = document.getElementById('movieBackBtn');
         if (backBtn) backBtn.onclick = navGoBack;
         checkOverviewOverflow();
-        try { el.quickSearchResult.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
+        scrollToQuickSearchResult();
       } catch (err) { el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Network Interface Error.</p></div>`; }
     }
     if (el.quickSearchBtn) { el.quickSearchBtn.addEventListener('click', async () => { if (!el.quickSearchInput) return; const query = el.quickSearchInput.value.trim(); if (!query) return; const results = await searchBothMedia(query); if (results.length === 0) { if (el.quickSearchResult) { el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`; el.quickSearchResult.classList.remove('hidden'); } return; } results.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0)); renderSingleMovieResult(results[0]); }); }
@@ -3367,7 +3377,7 @@
           if (backBtn) backBtn.onclick = navGoBack;
           bindActorFilmControls();
           applyTiltToActorGrid();
-          try { el.quickSearchResult.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
+          scrollToQuickSearchResult();
         });
         return;
       }
