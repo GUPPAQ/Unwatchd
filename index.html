@@ -3654,6 +3654,20 @@
       if (!currentActorId) return;
       const person = actorDetailsCache.get(currentActorId);
       if (!person) return;
+
+      if (isCurrentContextInline && isInlineSearchActive()) {
+        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint)}</div>`;
+        const closeBtn = document.getElementById('closeActorModalBtn');
+        if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; navHistoryStack.length = 0; currentActorId = null; isCurrentContextInline = false; };
+        const backBtnRefresh = document.getElementById('backToMovieBtn');
+        if (backBtnRefresh) backBtnRefresh.onclick = navGoBack;
+        bindActorFilmControls();
+        applyTiltToActorGrid();
+        const inp = document.getElementById('actorFilmSearch');
+        if (inp && actorFilterQuery) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+        return;
+      }
+
       const content = document.getElementById('actorModalContent');
       if (!content) return;
       const scrollTop = content.scrollTop;
@@ -3664,7 +3678,6 @@
       bindActorFilmControls();
       applyTiltToActorGrid();
       content.scrollTop = scrollTop;
-      // Re-focus search input
       const inp = document.getElementById('actorFilmSearch');
       if (inp && actorFilterQuery) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
     }
