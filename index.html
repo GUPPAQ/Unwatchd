@@ -1635,7 +1635,7 @@
     if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if (el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if (el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } if (isFriendMatchActive) { if (el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies = []; clearScanStorage(); isFriendMatchActive = false; if (el.activeGridContainer) el.activeGridContainer.innerHTML = ''; if (el.statsBar) el.statsBar.classList.add('hidden'); if (el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
     if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
     if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { if (scannedMovies.length > 0 && el.statsBar) { const isHidden = el.statsBar.classList.contains('hidden'); if (isHidden) { el.statsBar.classList.remove('hidden'); el.statsBar.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.add('vpn-active'); el.statsBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else { el.statsBar.classList.add('hidden'); el.statsBar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.remove('vpn-active'); } } el.statsBtn.blur(); }); }
-    if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { const currentList = currentGroupedResults[activeTab] || []; if (currentList.length === 0) return; const randomIndex = Math.floor(Math.random() * currentList.length); openMovieModal(currentList[randomIndex]); }); }
+    if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { const currentList = currentGroupedResults[activeTab] || []; if (currentList.length === 0) return; const randomIndex = Math.floor(Math.random() * currentList.length); openMovieModal(currentList[randomIndex], false, true); }); }
     document.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if (el.quickSearchInput) el.quickSearchInput.focus(); } const trailerModal = document.getElementById('trailerModal'); const trailerModalOpen = trailerModal && !trailerModal.classList.contains('hidden'); if (trailerModalOpen) { if (e.key === 'Escape') { closeTrailerModal(); return; } const iframe = document.querySelector('#trailerIframeWrapper iframe'); if (iframe) { iframe.focus(); try { iframe.contentWindow.focus(); } catch (err) { console.warn('[Trailer Iframe Focus]', err); } } return; } const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden'); if (e.key === 'Escape') { if (actorModalOpen) { closeActorModal(); return; } if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (isModalOpen) document.getElementById('closeModalBtn')?.click(); } if (isModalOpen && !actorModalOpen) {
         const activeEl = document.activeElement;
         const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
@@ -2726,8 +2726,8 @@
             const currentId = content.dataset.movieId;
             const curIdx = currentList.findIndex(m => m.id == currentId);
             if (curIdx === -1) return;
-            if (deltaX < 0 && curIdx < currentList.length - 1) { openMovieModal(currentList[curIdx + 1]); }
-            else if (deltaX > 0 && curIdx > 0) { openMovieModal(currentList[curIdx - 1]); }
+            if (deltaX < 0 && curIdx < currentList.length - 1) { openMovieModal(currentList[curIdx + 1], false, true); }
+            else if (deltaX > 0 && curIdx > 0) { openMovieModal(currentList[curIdx - 1], false, true); }
           }
         }
       }, { passive: true });
@@ -2890,7 +2890,7 @@
       wrapper.style.animationDelay = `${delayIndex * 0.02}s`;
       const a = document.createElement('a');
       a.href = movieObj.url;
-      a.addEventListener('click', (e) => { e.preventDefault(); openMovieModal(movieObj, false); });
+      a.addEventListener('click', (e) => { e.preventDefault(); openMovieModal(movieObj, false, true); });
       a.className = 'tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 hover:border-blue-500/50 h-full transition-colors';
       if (movieObj.poster) {
         a.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
