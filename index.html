@@ -3328,7 +3328,7 @@
     let actorFilterGenre = 'all';
     let actorFilterDecade = 'all';
     let actorCurrentPage = 1;
-    const ACTOR_ITEMS_PER_PAGE = 24;
+    const ACTOR_ITEMS_PER_PAGE = 60;
 
 
     async function getActorDetails(actorId) {
@@ -3460,7 +3460,7 @@
       const { allMovies, watchlistMovies, moviesToShow } = getActorMoviesList(person, showWatchlistOnly, roleHint);
       const watchlistIds = new Set(scannedMovies.map(m => m.id));
 
-      const ACTOR_ITEMS_PER_PAGE = 24;
+      const ACTOR_ITEMS_PER_PAGE = 60;
       const maxActorPage = Math.ceil(moviesToShow.length / ACTOR_ITEMS_PER_PAGE) || 1;
       if (actorCurrentPage > maxActorPage) actorCurrentPage = maxActorPage;
       const startIdx = (actorCurrentPage - 1) * ACTOR_ITEMS_PER_PAGE;
