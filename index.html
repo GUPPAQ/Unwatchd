@@ -3035,6 +3035,7 @@
           if (html) { rawPageResults.push(html); anySuccess = true; }
         });
         if (!anySuccess && chunk[0] > 1) break;
+        await new Promise(r => setTimeout(r, 100));
       }
 
       const extracted = [];
