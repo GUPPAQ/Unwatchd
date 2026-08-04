@@ -2026,6 +2026,7 @@
           const compact = movies.map(m => ({
             id: m.id, mediaType: m.mediaType, title: m.title, poster: m.poster,
             backdrop: m.backdrop, rating: m.rating, releaseDate: m.releaseDate,
+            popularity: m.popularity || 0, vote_count: m.vote_count || 0,
             genreIds: m.genreIds, url: m.url, allProviders: m.allProviders
           }));
           localStorage.setItem('ps_last_scan', JSON.stringify(compact));
@@ -3223,7 +3224,7 @@
                 }
                 const bestTitle = getResultTitle(best);
                 const bestDate = getResultDate(best);
-                scannedMovies.push({ id: best.id, mediaType, title: bestTitle, poster: best.poster_path ? `https://image.tmdb.org/t/p/w500${best.poster_path}` : null, backdrop: best.backdrop_path ? `https://image.tmdb.org/t/p/w1280${best.backdrop_path}` : null, rating: best.vote_average ? best.vote_average.toFixed(1) : null, releaseDate: bestDate, genreIds: best.genre_ids || [], url: (optimizedProviders[currentRegion] && optimizedProviders[currentRegion].link) ? optimizedProviders[currentRegion].link : `https://www.themoviedb.org/${mediaType}/${best.id}`, allProviders: optimizedProviders });
+                scannedMovies.push({ id: best.id, mediaType, title: bestTitle, poster: best.poster_path ? `https://image.tmdb.org/t/p/w500${best.poster_path}` : null, backdrop: best.backdrop_path ? `https://image.tmdb.org/t/p/w1280${best.backdrop_path}` : null, rating: best.vote_average ? best.vote_average.toFixed(1) : null, releaseDate: bestDate, popularity: typeof best.popularity === 'number' ? best.popularity : 0, vote_count: typeof best.vote_count === 'number' ? best.vote_count : 0, genreIds: best.genre_ids || [], url: (optimizedProviders[currentRegion] && optimizedProviders[currentRegion].link) ? optimizedProviders[currentRegion].link : `https://www.themoviedb.org/${mediaType}/${best.id}`, allProviders: optimizedProviders });
               } catch (e) { }
             })); await new Promise(r => setTimeout(r, TMDB_REQUEST_DELAY_MS));
           }
