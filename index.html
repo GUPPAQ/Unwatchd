@@ -2280,8 +2280,8 @@
         rentBuyDropdownHtml = `<details class="group pt-3 border-t border-blue-500/20"><summary class="text-xs font-extrabold uppercase tracking-widest text-gray-400 cursor-pointer flex items-center gap-2 hover:text-white transition-colors list-none outline-none select-none"><svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>Rent · Buy Options <span class="text-gray-500 font-bold">(${rbMap.size})</span></summary><div class="pt-3 flex flex-wrap gap-3">${rbLinksHtml}</div></details>`;
       }
 
-      const movieBackBtn = (isModal && navHistoryStack.length > 0) ? `<button id="movieBackBtn" aria-label="Go back" class="pointer-events-auto mt-4 ml-4 w-10 h-10 flex items-center justify-center bg-black/50 hover:bg-black/80 backdrop-blur-md text-white rounded-full transition-colors border border-white/10 shadow-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
-      const closeBtn = isModal ? `<div class="sticky top-0 z-[60] w-full h-0 flex ${movieBackBtn ? 'justify-between' : 'justify-end'} pointer-events-none">${movieBackBtn}<button id="closeModalBtn" aria-label="Close" class="pointer-events-auto mt-4 mr-4 w-10 h-10 flex items-center justify-center bg-black/50 hover:bg-black/80 backdrop-blur-md text-white rounded-full transition-colors border border-white/10 shadow-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>` : '';
+      const movieBackBtn = navHistoryStack.length > 0 ? `<button id="movieBackBtn" aria-label="Go back" class="pointer-events-auto mt-4 ml-4 w-10 h-10 flex items-center justify-center bg-black/50 hover:bg-black/80 backdrop-blur-md text-white rounded-full transition-colors border border-white/10 shadow-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
+      const closeBtn = `<div class="sticky top-0 z-[60] w-full h-0 flex ${movieBackBtn ? 'justify-between' : 'justify-end'} pointer-events-none">${movieBackBtn}<button id="closeModalBtn" aria-label="Close" class="pointer-events-auto mt-4 mr-4 w-10 h-10 flex items-center justify-center bg-black/50 hover:bg-black/80 backdrop-blur-md text-white rounded-full transition-colors border border-white/10 shadow-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>`;
       const letterboxdBtn = movieObj.mediaType !== 'tv' ? `<a href="https://letterboxd.com/tmdb/${movieObj.id}" target="_blank" class="${btnClass}"><div style="width: 20px; height: 20px; flex-shrink: 0; position: relative; overflow: hidden; border-radius: 22.5%; display: grid; place-items: center;"><img src="./icons/letterboxd.png" alt="Letterboxd" style="width: 100%; height: 100%; display: block; object-fit: cover;"></div>Letterboxd</a>` : '';
       const imdbBtn = imdbId ? `<a href="https://www.imdb.com/title/${escapeHTML(imdbId)}/" target="_blank" class="${btnClass}"><div style="width: 20px; height: 20px; flex-shrink: 0; position: relative; overflow: hidden; border-radius: 22.5%; display: grid; place-items: center;"><img src="./icons/imdb.png" alt="IMDb" style="width: 100%; height: 100%; display: block; object-fit: cover;"></div>IMDb</a>` : '';
       const trailerHeaderBtn = bestTrailer
@@ -2454,6 +2454,7 @@
           checkOverviewOverflow();
           applyTiltToSimilarGrid();
           bindCastCrewDrag();
+          try { el.quickSearchResult.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
         });
         return;
       }
@@ -2845,6 +2846,7 @@
         const backBtn = document.getElementById('movieBackBtn');
         if (backBtn) backBtn.onclick = navGoBack;
         checkOverviewOverflow();
+        try { el.quickSearchResult.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
       } catch (err) { el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Network Interface Error.</p></div>`; }
     }
     if (el.quickSearchBtn) { el.quickSearchBtn.addEventListener('click', async () => { if (!el.quickSearchInput) return; const query = el.quickSearchInput.value.trim(); if (!query) return; const results = await searchBothMedia(query); if (results.length === 0) { if (el.quickSearchResult) { el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`; el.quickSearchResult.classList.remove('hidden'); } return; } results.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0)); renderSingleMovieResult(results[0]); }); }
@@ -3365,6 +3367,7 @@
           if (backBtn) backBtn.onclick = navGoBack;
           bindActorFilmControls();
           applyTiltToActorGrid();
+          try { el.quickSearchResult.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
         });
         return;
       }
