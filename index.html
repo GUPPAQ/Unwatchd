@@ -2437,14 +2437,16 @@
       if (!isInlineSearchActive()) return false;
       if (window.event && window.event.target) {
         const target = window.event.target;
-        const mainGrid = document.getElementById('moviesContainer');
-        if (mainGrid && mainGrid.contains(target)) return false;
+        const resultsSection = document.getElementById('resultsSection');
+        if (resultsSection && resultsSection.contains(target)) return false;
+        const activeGridContainer = document.getElementById('activeGridContainer');
+        if (activeGridContainer && activeGridContainer.contains(target)) return false;
         const modalContent = document.getElementById('modalContent');
         const movieModal = document.getElementById('movieModal');
         if (modalContent && modalContent.contains(target) && movieModal && !movieModal.classList.contains('hidden')) return false;
-        if (el.quickSearchResult.contains(target)) return true;
+        if (el.quickSearchResult && el.quickSearchResult.contains(target)) return true;
       }
-      return isCurrentContextInline;
+      return false;
     }
 
     function scrollToQuickSearchResult() {
