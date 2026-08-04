@@ -1117,7 +1117,7 @@
     let currentRegion = localStorage.getItem('ps_region') || 'SE';
     let vpnModeEnabled = localStorage.getItem('ps_vpn_mode') === 'true';
     const encodeTitle = (title) => encodeURIComponent(title);
-    const MAX_WATCHLIST_PAGES = 100; const BATCH_SIZE = 12; const TMDB_REQUEST_DELAY_MS = 80;
+    const MAX_WATCHLIST_PAGES = 100; const BATCH_SIZE = 30; const TMDB_REQUEST_DELAY_MS = 0;
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const REGION_META = { SE: { name: 'Sweden', flag: '🇸🇪' }, US: { name: 'United States', flag: '🇺🇸' }, GB: { name: 'United Kingdom', flag: '🇬🇧' }, CA: { name: 'Canada', flag: '🇨🇦' }, AU: { name: 'Australia', flag: '🇦🇺' }, IE: { name: 'Ireland', flag: '🇮🇪' }, NZ: { name: 'New Zealand', flag: '🇳🇿' }, DE: { name: 'Germany', flag: '🇩🇪' }, FR: { name: 'France', flag: '🇫🇷' }, IT: { name: 'Italy', flag: '🇮🇹' }, ES: { name: 'Spain', flag: '🇪🇸' }, NL: { name: 'Netherlands', flag: '🇳🇱' }, PL: { name: 'Poland', flag: '🇵🇱' }, BR: { name: 'Brazil', flag: '🇧🇷' }, MX: { name: 'Mexico', flag: '🇲🇽' }, IN: { name: 'India', flag: '🇮🇳' }, JP: { name: 'Japan', flag: '🇯🇵' }, KR: { name: 'South Korea', flag: '🇰🇷' }, NO: { name: 'Norway', flag: '🇳🇴' }, DK: { name: 'Denmark', flag: '🇩🇰' }, FI: { name: 'Finland', flag: '🇫🇮' } };
     if (REGION_META.NO) REGION_META.NO.flag = '🇳🇴'; // Safe fallback
@@ -2945,7 +2945,25 @@
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
       return [...movieResults, ...tvResults];
     }
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v2';
+    let tmdbMatchCache = new Map();
+    try {
+      const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
+      if (stored) tmdbMatchCache = new Map(JSON.parse(stored));
+    } catch (e) {}
+
+    function saveTmdbMatchCache() {
+      try {
+        const entries = Array.from(tmdbMatchCache.entries()).slice(-1500);
+        localStorage.setItem(TMDB_MATCH_CACHE_KEY, JSON.stringify(entries));
+      } catch (e) {}
+    }
+
     async function findBestMediaMatch(qObj) {
+      const key = getFilmKey(qObj);
+      if (tmdbMatchCache.has(key)) {
+        return tmdbMatchCache.get(key);
+      }
       let combined = await searchBothMedia(qObj.title);
       if (combined.length === 0 && /\b\d{4}\b/.test(qObj.title)) {
         const noYearLike = qObj.title.replace(/\b\d{4}\b/g, ' ').replace(/\s+/g, ' ').trim();
@@ -2959,7 +2977,12 @@
           combined = await searchBothMedia(shortTitle);
         }
       }
-      return findBestTmdbMatch(qObj, combined);
+      const best = findBestTmdbMatch(qObj, combined);
+      if (best) {
+        tmdbMatchCache.set(key, best);
+        saveTmdbMatchCache();
+      }
+      return best;
     }
     const fetchWatchlist = async (targetUser, labelPrefix) => {
       let page1Html = null; let successfulProxy = false; if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
@@ -2967,10 +2990,58 @@
         try { const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/1/`)); if (res.ok) { const txt = await res.text(); if (txt && txt.includes('letterboxd.com')) { if (txt.includes('Page not found') || txt.includes('404 Not Found')) { throw new Error(`USER_NOT_FOUND:${targetUser}`); } if (!isGenuineWatchlistPage(txt, targetUser)) continue; page1Html = txt; successfulProxy = true; break; } } } catch (e) { if (e.message.startsWith('USER_NOT_FOUND')) throw e; }
       }
       if (!successfulProxy || !page1Html) { throw new Error(`Profile not found: ${targetUser}.`); }
+
+      let totalPages = 1;
+      try {
+        const doc1 = new DOMParser().parseFromString(page1Html, 'text/html');
+        const pageLinks = Array.from(doc1.querySelectorAll('.paginate-pages li a, .pagination a'));
+        pageLinks.forEach(a => {
+          const txt = a.textContent.trim();
+          const pNum = parseInt(txt, 10);
+          if (!isNaN(pNum) && pNum > totalPages) totalPages = pNum;
+        });
+      } catch(e) {}
+      totalPages = Math.min(MAX_WATCHLIST_PAGES, totalPages);
+
+      const fetchSinglePage = async (page) => {
+        if (page === 1) return page1Html;
+        for (const proxy of CORS_PROXIES) {
+          try {
+            const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/${page}/`));
+            if (res.ok) {
+              const txt = await res.text();
+              if (txt && txt.includes('letterboxd.com') && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser)) {
+                return txt;
+              }
+            }
+          } catch (e) {}
+        }
+        return null;
+      };
+
+      const pagesToFetch = [];
+      for (let p = 2; p <= totalPages; p++) pagesToFetch.push(p);
+
+      const rawPageResults = [page1Html];
+      const PARALLEL_PAGE_BATCH = 5;
+
+      for (let i = 0; i < pagesToFetch.length; i += PARALLEL_PAGE_BATCH) {
+        if (cancelRequested) break;
+        const chunk = pagesToFetch.slice(i, i + PARALLEL_PAGE_BATCH);
+        if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Pages ${chunk[0]}-${chunk[chunk.length - 1]} of ${totalPages})...`;
+        const chunkHtmls = await Promise.all(chunk.map(p => fetchSinglePage(p)));
+        let anySuccess = false;
+        chunkHtmls.forEach(html => {
+          if (html) { rawPageResults.push(html); anySuccess = true; }
+        });
+        if (!anySuccess && chunk[0] > 1) break;
+      }
+
       const extracted = [];
-      for (let page = 1; page <= MAX_WATCHLIST_PAGES; page++) {
-        if (cancelRequested) break; if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Page ${page})...`;
-        let html = page1Html; if (page > 1) { html = null; let pSuccess = false; for (const proxy of CORS_PROXIES) { try { const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/${page}/`)); if (res.ok) { const txt = await res.text(); if (txt && txt.includes('letterboxd.com') && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser)) { html = txt; pSuccess = true; break; } } } catch (e) { } } if (!pSuccess || !html || html.length < 200) break; }
+      for (let pageIdx = 0; pageIdx < rawPageResults.length; pageIdx++) {
+        if (cancelRequested) break;
+        const html = rawPageResults[pageIdx];
+        if (!html) continue;
         const doc = new DOMParser().parseFromString(html, 'text/html');
         let candidatePosters = [];
         const allLists = Array.from(doc.querySelectorAll('ul.poster-list')).filter(ul => {
@@ -3018,7 +3089,6 @@
           return false;
         };
         candidatePosters = candidatePosters.filter(elem => !looksLikeAd(elem));
-        let foundOnPage = 0;
         candidatePosters.forEach(element => {
           let title = element.getAttribute('data-film-name');
           let year = element.getAttribute('data-film-release-year') || element.getAttribute('data-film-year') || null;
@@ -3034,11 +3104,8 @@
           }
           if (title && title.toLowerCase() !== 'film poster' && title.trim().length > 0) {
             extracted.push({ title: title.trim(), year: year ? String(year).trim() : null, slug: slug ? String(slug).trim() : null });
-            foundOnPage++;
           }
         });
-        if (foundOnPage === 0) break;
-        if (page > 1) await new Promise(r => setTimeout(r, 100));
       }
       const seen = new Set(); const deduped = [];
       for (const obj of extracted) { const k = getFilmKey(obj); if (!seen.has(k)) { seen.add(k); deduped.push(obj); } }
