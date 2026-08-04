@@ -2426,8 +2426,38 @@
     function checkOverviewOverflow() {}
     function checkBioOverflow() {}
 
+    function isInlineSearchActive() {
+      return el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden') && el.quickSearchResult.children.length > 0;
+    }
+
     async function openMovieModal(movieObj) {
       stopHeroVideo();
+      if (isInlineSearchActive()) {
+        if (currentActorId) {
+          const person = actorDetailsCache.get(currentActorId);
+          navHistoryStack.push({ type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+          currentActorId = null;
+        } else if (window.currentActiveMovieObj && window.currentActiveMovieObj.id !== movieObj.id) {
+          navHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
+        }
+        window.currentActiveMovieObj = movieObj;
+
+        el.quickSearchResult.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center flex flex-col items-center justify-center min-h-[250px]"><div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div><p class="text-blue-400 text-xs font-bold uppercase tracking-widest animate-pulse">Loading ${escapeHTML(movieObj.title)}...</p></div>`;
+
+        getFullMovieDetails(movieObj.id, movieObj.mediaType).then(details => {
+          if (!window.currentActiveMovieObj || window.currentActiveMovieObj.id !== movieObj.id) return;
+          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup')}</div>`;
+          const closeBtn = document.getElementById('closeModalBtn');
+          if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; navHistoryStack.length = 0; window.currentActiveMovieObj = null; };
+          const backBtn = document.getElementById('movieBackBtn');
+          if (backBtn) backBtn.onclick = navGoBack;
+          checkOverviewOverflow();
+          applyTiltToSimilarGrid();
+          bindCastCrewDrag();
+        });
+        return;
+      }
+
       window.currentActiveMovieObj = movieObj;
       const modal = document.getElementById('movieModal'); const backdrop = document.getElementById('modalBackdrop'); const content = document.getElementById('modalContent'); const prevBtn = document.getElementById('modalPrevBtn'); const nextBtn = document.getElementById('modalNextBtn');
       if (!modal || !content) return;
@@ -2805,8 +2835,15 @@
             }
           }
         }
-        const movieObjForInline = { id: movie.id, mediaType, title: displayTitle, poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null, backdrop: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null, rating: movie.vote_average ? movie.vote_average.toFixed(1) : null, releaseDate: displayDate, url: regionData?.link || `https://www.themoviedb.org/${mediaType}/${movie.id}`, allProviders, regionData, vpnInfo };
-        const details = await getFullMovieDetails(movie.id, mediaType); el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateFullMovieHTML(movieObjForInline, details, false, 'lookup')}</div>`; checkOverviewOverflow();
+        window.currentActiveMovieObj = movieObjForInline;
+        currentActorId = null;
+        navHistoryStack.length = 0;
+        const details = await getFullMovieDetails(movie.id, mediaType); el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateFullMovieHTML(movieObjForInline, details, false, 'lookup')}</div>`;
+        const closeBtn = document.getElementById('closeModalBtn');
+        if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; navHistoryStack.length = 0; window.currentActiveMovieObj = null; };
+        const backBtn = document.getElementById('movieBackBtn');
+        if (backBtn) backBtn.onclick = navGoBack;
+        checkOverviewOverflow();
       } catch (err) { el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Network Interface Error.</p></div>`; }
     }
     if (el.quickSearchBtn) { el.quickSearchBtn.addEventListener('click', async () => { if (!el.quickSearchInput) return; const query = el.quickSearchInput.value.trim(); if (!query) return; const results = await searchBothMedia(query); if (results.length === 0) { if (el.quickSearchResult) { el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`; el.quickSearchResult.classList.remove('hidden'); } return; } results.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0)); renderSingleMovieResult(results[0]); }); }
@@ -3302,6 +3339,35 @@
 
     async function openActorModal(actorId, actorName = '', roleHint = '') {
       stopHeroVideo();
+
+      if (isInlineSearchActive()) {
+        if (window.currentActiveMovieObj) {
+          navHistoryStack.push({ type: 'movie', data: window.currentActiveMovieObj });
+          window.currentActiveMovieObj = null;
+        }
+        currentActorId = actorId;
+        currentActorRoleHint = roleHint;
+        actorModalWatchlistMode = true;
+        actorFilterQuery = '';
+        actorFilterGenre = 'all';
+        actorFilterDecade = 'all';
+        actorFilterSort = 'popularity';
+
+        el.quickSearchResult.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center flex flex-col items-center justify-center min-h-[250px]"><div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div><p class="text-blue-400 text-xs font-bold uppercase tracking-widest animate-pulse">${actorName ? 'Loading ' + escapeHTML(actorName) + '...' : 'Loading Details...'}</p></div>`;
+
+        getActorDetails(actorId).then(person => {
+          if (!person || currentActorId !== actorId) return;
+          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint)}</div>`;
+          const closeBtn = document.getElementById('closeActorModalBtn');
+          if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; navHistoryStack.length = 0; currentActorId = null; };
+          const backBtn = document.getElementById('backToMovieBtn');
+          if (backBtn) backBtn.onclick = navGoBack;
+          bindActorFilmControls();
+          applyTiltToActorGrid();
+        });
+        return;
+      }
+
       currentActorId = actorId;
       currentActorRoleHint = roleHint;
       actorModalWatchlistMode = true;
@@ -3371,6 +3437,16 @@
     function navGoBack() {
       if (navHistoryStack.length === 0) return;
       const prev = navHistoryStack.pop();
+
+      if (isInlineSearchActive()) {
+        if (prev.type === 'movie') {
+          openMovieModal(prev.data);
+        } else if (prev.type === 'actor') {
+          openActorModal(prev.data.id, prev.data.name, prev.data.roleHint || '');
+        }
+        return;
+      }
+
       const movieModal = document.getElementById('movieModal');
       const actorModal = document.getElementById('actorModal');
 
