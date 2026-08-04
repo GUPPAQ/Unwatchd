@@ -2714,7 +2714,6 @@
 
     function getMoviePopularity(m) {
       if (!m) return 0;
-      if (typeof m.popularity === 'number' && m.popularity > 0) return m.popularity;
       const yearStr = m.releaseDate ? String(m.releaseDate).split('-')[0] : (m.release_date ? String(m.release_date).split('-')[0] : '');
       const title = m.title;
       const imdbId = m.imdbId || m.imdb_id;
@@ -2723,7 +2722,8 @@
         const val = omdbCache.get(cacheKey);
         if (typeof val === 'object' && val.votes > 0) return val.votes;
       }
-      return m.vote_count || 0;
+      if (typeof m.vote_count === 'number' && m.vote_count > 0) return m.vote_count;
+      return m.popularity || 0;
     }
 
     async function fetchImdbRating(imdbId, title, year, tmdbFallback) {
