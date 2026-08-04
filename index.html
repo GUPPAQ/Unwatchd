@@ -2835,8 +2835,9 @@
           const isRealImdb = data.imdbRating && data.imdbRating !== "N/A";
           const ratingVal = isRealImdb ? parseFloat(data.imdbRating).toFixed(1) : fallbackStr;
           const votesVal = (data.imdbVotes && data.imdbVotes !== "N/A") ? parseInt(data.imdbVotes.replace(/,/g, ''), 10) : 0;
+          const awardsVal = (data.Awards && data.Awards !== "N/A") ? data.Awards : null;
           const src = isRealImdb ? 'omdb' : 'tmdb';
-          const cacheObj = { rating: ratingVal, votes: votesVal, source: src };
+          const cacheObj = { rating: ratingVal, votes: votesVal, source: src, awards: awardsVal };
           if (cacheKey) omdbCache.set(cacheKey, cacheObj);
           if (imdbId && normT) omdbCache.set(`${normT}_${yearStr}`, cacheObj);
           saveOmdbCache();
@@ -3502,7 +3503,7 @@
       const targetEl = document.getElementById(`actorAwardsText_${person.id}`);
       if (!targetEl) return;
 
-      const topMovies = [...allMovies].sort((a, b) => getMoviePopularity(b) - getMoviePopularity(a)).slice(0, 8);
+      const topMovies = [...allMovies].sort((a, b) => getMoviePopularity(b) - getMoviePopularity(a)).slice(0, 10);
       let totalOscars = 0;
       let totalOscarNoms = 0;
       let totalWins = 0;
@@ -3513,22 +3514,23 @@
         if (!m.title) return;
         const yearStr = m.release_date ? m.release_date.split('-')[0] : '';
         const normT = normalizeTitle(m.title);
-        const cacheKey = `${normT}_${yearStr}`;
-        let cacheVal = omdbCache.get(cacheKey);
+        const cacheKey = m.imdb_id || (normT ? `${normT}_${yearStr}` : null);
+        let cacheVal = cacheKey ? omdbCache.get(cacheKey) : null;
         let awardsStr = (cacheVal && typeof cacheVal === 'object') ? cacheVal.awards : null;
 
         if (!awardsStr && OMDB_API_KEY) {
           try {
-            const url = `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(m.title)}${yearStr ? `&y=${yearStr}` : ''}`;
+            const url = m.imdb_id
+              ? `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${encodeURIComponent(m.imdb_id)}`
+              : `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(m.title.replace(/\(.*?\)/g, '').trim())}${yearStr ? `&y=${yearStr}` : ''}`;
             const res = await fetch(url);
             const data = await res.json();
-            if (data && data.Awards && data.Awards !== 'N/A') {
+            if (data && data.Response === "True" && data.Awards && data.Awards !== 'N/A') {
               awardsStr = data.Awards;
-              if (cacheVal && typeof cacheVal === 'object') {
-                cacheVal.awards = awardsStr;
-              } else {
-                omdbCache.set(cacheKey, { rating: data.imdbRating || 'NR', votes: parseInt((data.imdbVotes || '0').replace(/,/g, '')) || 0, source: 'omdb', awards: awardsStr });
-              }
+              const cacheObj = { rating: data.imdbRating || 'NR', votes: parseInt((data.imdbVotes || '0').replace(/,/g, '')) || 0, source: 'omdb', awards: awardsStr };
+              if (cacheKey) omdbCache.set(cacheKey, cacheObj);
+              if (normT) omdbCache.set(`${normT}_${yearStr}`, cacheObj);
+              saveOmdbCache();
             }
           } catch (e) {}
         }
@@ -3569,8 +3571,9 @@
         parts.push(`<span class="text-gray-300">for major projects including <strong class="text-white">${titleList}</strong></span>`);
       }
 
-      if (parts.length > 0) {
-        targetEl.innerHTML = parts.join(' &bull; ');
+      const currEl = document.getElementById(`actorAwardsText_${person.id}`);
+      if (currEl && parts.length > 0) {
+        currEl.innerHTML = parts.join(' &bull; ');
       }
     }
 
@@ -3814,6 +3817,8 @@
         const person = await getActorDetails(actorId);
         if (currentActorId !== actorId) return;
         content.innerHTML = generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, true);
+        const { allMovies: modalMovies } = getActorMoviesList(person, actorModalWatchlistMode, currentActorRoleHint);
+        loadRealActorAwards(person, modalMovies);
         const closeActorBtn = document.getElementById('closeActorModalBtn');
         const closeActorModal = () => { stopHeroVideo(); currentActorId = null; watchlistModalHistoryStack.length = 0; backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); setTimeout(() => { actorModal.classList.add('hidden'); actorModal.classList.remove('flex'); document.body.classList.remove('modal-open'); }, 300); };
         if (closeActorBtn) closeActorBtn.onclick = closeActorModal;
