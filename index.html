@@ -2390,10 +2390,23 @@
       }
     }
 
+    function stopHeroVideo() {
+      const iframe = document.getElementById('heroVideoIframe');
+      if (iframe) {
+        try {
+          iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+          iframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+        } catch (e) {}
+        iframe.src = '';
+        iframe.remove();
+      }
+    }
+
     function checkOverviewOverflow() {}
     function checkBioOverflow() {}
 
     async function openMovieModal(movieObj) {
+      stopHeroVideo();
       window.currentActiveMovieObj = movieObj;
       const modal = document.getElementById('movieModal'); const backdrop = document.getElementById('modalBackdrop'); const content = document.getElementById('modalContent'); const prevBtn = document.getElementById('modalPrevBtn'); const nextBtn = document.getElementById('modalNextBtn');
       if (!modal || !content) return;
@@ -2437,11 +2450,12 @@
 
       preloadAdjacentMovies(currentList, currentIndex);
 
-      const closeModal = () => { window.currentActiveMovieObj = null; navHistoryStack.length = 0; backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); if (prevBtn) prevBtn.classList.add('opacity-0'); if (nextBtn) nextBtn.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('modal-open'); if (prevBtn) prevBtn.classList.add('hidden'); if (nextBtn) nextBtn.classList.add('hidden'); }, 300); }; backdrop.onclick = closeModal; window.closeModal = closeModal;
+      const closeModal = () => { stopHeroVideo(); window.currentActiveMovieObj = null; navHistoryStack.length = 0; backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); if (prevBtn) prevBtn.classList.add('opacity-0'); if (nextBtn) nextBtn.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('modal-open'); if (prevBtn) prevBtn.classList.add('hidden'); if (nextBtn) nextBtn.classList.add('hidden'); }, 300); }; backdrop.onclick = closeModal; window.closeModal = closeModal;
       try { const details = await getFullMovieDetails(movieObj.id, movieObj.mediaType); content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync'); document.getElementById('closeModalBtn').onclick = closeModal; const movieBack = document.getElementById('movieBackBtn'); if (movieBack) movieBack.onclick = navGoBack; checkOverviewOverflow(); applyTiltToSimilarGrid(); bindCastCrewDrag(); const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0; const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0; content.scrollTop = 0; } catch (e) { content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
     }
 
     function openTrailerModal(videoKey, movieTitle) {
+      stopHeroVideo();
       const modal = document.getElementById('trailerModal');
       const backdrop = document.getElementById('trailerModalBackdrop');
       const container = document.getElementById('trailerModalContainer');
@@ -3266,6 +3280,7 @@
     const navHistoryStack = [];
 
     async function openActorModal(actorId, actorName = '', roleHint = '') {
+      stopHeroVideo();
       currentActorId = actorId;
       currentActorRoleHint = roleHint;
       actorModalWatchlistMode = true;
