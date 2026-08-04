@@ -1421,7 +1421,7 @@
         if (cached && cached.fetchedAt && (Date.now() - cached.fetchedAt) < TMDB_PROVIDER_CACHE_TTL_MS && Array.isArray(cached.providers) && cached.providers.length > 0) {
           return cached.providers;
         }
-      } catch (e) { }
+      } catch (e) { console.warn('[TMDB Provider Cache Read]', e); }
       const url = `https://api.themoviedb.org/3/watch/providers/movie?api_key=${TMDB_API_KEY}&watch_region=${region}`;
       const res = await fetch(url);
       const data = await res.json().catch(() => ({}));
@@ -1509,7 +1509,7 @@
       if (providers.length > 0) {
         try {
           localStorage.setItem(cacheKey, JSON.stringify({ fetchedAt: Date.now(), providers }));
-        } catch (e) { }
+        } catch (e) { console.warn('[TMDB Provider Cache Write]', e); }
       }
       return providers;
     }
@@ -1531,7 +1531,7 @@
     let scannedMovies = [];
     let selectedServiceIds = new Set((JSON.parse(localStorage.getItem('ps_services') || '[]')).map(id => Number(id)).filter(id => !isNaN(id) && id > 0));
     let cachedSelectedProviders = [];
-    try { cachedSelectedProviders = JSON.parse(localStorage.getItem('ps_selected_providers') || '[]'); } catch (e) { cachedSelectedProviders = []; }
+    try { cachedSelectedProviders = JSON.parse(localStorage.getItem('ps_selected_providers') || '[]'); } catch (e) { console.warn('[Selected Providers Cache Read]', e); cachedSelectedProviders = []; }
     let currentProviders = [];
     let isScanning = false; let cancelRequested = false;
     let activeTab = 'stream'; let currentPage = 1; let currentGroupedResults = { stream: [], other: [], rentbuy: [], unavailable: [] }; let isFriendMatchActive = false;
@@ -1636,7 +1636,7 @@
     if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
     if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { if (scannedMovies.length > 0 && el.statsBar) { const isHidden = el.statsBar.classList.contains('hidden'); if (isHidden) { el.statsBar.classList.remove('hidden'); el.statsBar.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.add('vpn-active'); el.statsBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else { el.statsBar.classList.add('hidden'); el.statsBar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.remove('vpn-active'); } } el.statsBtn.blur(); }); }
     if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { const currentList = currentGroupedResults[activeTab] || []; if (currentList.length === 0) return; const randomIndex = Math.floor(Math.random() * currentList.length); openMovieModal(currentList[randomIndex]); }); }
-    document.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if (el.quickSearchInput) el.quickSearchInput.focus(); } const trailerModal = document.getElementById('trailerModal'); const trailerModalOpen = trailerModal && !trailerModal.classList.contains('hidden'); if (trailerModalOpen) { if (e.key === 'Escape') { closeTrailerModal(); return; } const iframe = document.querySelector('#trailerIframeWrapper iframe'); if (iframe) { iframe.focus(); try { iframe.contentWindow.focus(); } catch (err) { } } return; } const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden'); if (e.key === 'Escape') { if (actorModalOpen) { closeActorModal(); return; } if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (isModalOpen) document.getElementById('closeModalBtn')?.click(); } if (isModalOpen && !actorModalOpen) {
+    document.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if (el.quickSearchInput) el.quickSearchInput.focus(); } const trailerModal = document.getElementById('trailerModal'); const trailerModalOpen = trailerModal && !trailerModal.classList.contains('hidden'); if (trailerModalOpen) { if (e.key === 'Escape') { closeTrailerModal(); return; } const iframe = document.querySelector('#trailerIframeWrapper iframe'); if (iframe) { iframe.focus(); try { iframe.contentWindow.focus(); } catch (err) { console.warn('[Trailer Iframe Focus]', err); } } return; } const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden'); if (e.key === 'Escape') { if (actorModalOpen) { closeActorModal(); return; } if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (isModalOpen) document.getElementById('closeModalBtn')?.click(); } if (isModalOpen && !actorModalOpen) {
         const activeEl = document.activeElement;
         const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
         if (!isInputFocused) {
@@ -1765,7 +1765,7 @@
         });
 
         selectedServiceIds = newSelectedIds;
-        try { localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds])); } catch (e) { }
+        try { localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds])); } catch (e) { console.warn('[Service IDs Storage Save]', e); }
       }
     }
 
@@ -1773,7 +1773,7 @@
       const providerData = currentProviders.filter(p => selectedServiceIds.has(p.id));
       if (providerData.length > 0) {
         cachedSelectedProviders = providerData;
-        try { localStorage.setItem('ps_selected_providers', JSON.stringify(providerData)); } catch (e) { }
+        try { localStorage.setItem('ps_selected_providers', JSON.stringify(providerData)); } catch (e) { console.warn('[Selected Providers Storage Save]', e); }
       }
     }
 
@@ -1874,7 +1874,7 @@
       if (browser) {
         browser.classList.remove('hidden');
         setTimeout(() => {
-          try { browser.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { }
+          try { browser.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { console.warn('[Browser Scroll Into View]', e); }
         }, 100);
       }
 
@@ -1953,7 +1953,7 @@
           if (fallbackProviders.length > 0) {
             currentProviders = fallbackProviders;
           }
-        } catch (e) { }
+        } catch (e) { console.warn('[Fallback Providers Fetch]', e); }
       }
       cleanSelectedServicesForRegion();
       saveSelectedProviderData();
@@ -1980,21 +1980,21 @@
           }
           applyFiltersAndRender();
           syncFilterLabel(e.target);
-          try { e.target.blur(); } catch (err) { }
+          try { e.target.blur(); } catch (err) { console.warn('[Select Element Blur]', err); }
         });
       }
     });
     [el.statsBtn, el.rouletteBtn, el.vpnToggleBtnInline].forEach(btn => {
       if (btn) {
         btn.addEventListener('click', (e) => {
-          try { e.currentTarget.blur(); } catch (err) { }
+          try { e.currentTarget.blur(); } catch (err) { console.warn('[Button Element Blur]', err); }
         });
       }
     });
     document.addEventListener('click', (e) => {
       [el.filterSort, el.filterGenre, el.filterDecade, el.regionSelect].forEach(sel => {
         if (sel && sel !== e.target) {
-          try { sel.blur(); } catch (err) { }
+          try { sel.blur(); } catch (err) { console.warn('[Document Click Select Blur]', err); }
         }
       });
     });
@@ -2004,8 +2004,8 @@
     const sharedMovieId = urlParams.get('movie');
     const sharedTvId = urlParams.get('tv');
     const sharedActorId = urlParams.get('actor') || urlParams.get('person');
-    if (sharedMovieId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/movie/${sharedMovieId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(movie => { if (movie.id) { movie.__mediaType = 'movie'; el.quickSearchInput.value = movie.title; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(movie); window.history.replaceState({}, document.title, window.location.pathname); } }).catch(() => { }); }
-    else if (sharedTvId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/tv/${sharedTvId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(show => { if (show.id) { show.__mediaType = 'tv'; el.quickSearchInput.value = show.name; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(show); window.history.replaceState({}, document.title, window.location.pathname); } }).catch(() => { }); }
+    if (sharedMovieId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/movie/${sharedMovieId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(movie => { if (movie.id) { movie.__mediaType = 'movie'; el.quickSearchInput.value = movie.title; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(movie); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared Movie URL Fetch]', e); }); }
+    else if (sharedTvId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/tv/${sharedTvId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(show => { if (show.id) { show.__mediaType = 'tv'; el.quickSearchInput.value = show.name; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(show); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared TV URL Fetch]', e); }); }
     else if (sharedActorId) { openActorModal(Number(sharedActorId)); window.history.replaceState({}, document.title, window.location.pathname); }
     const DB_NAME = 'UnwatchdDB';
     const DB_VERSION = 1;
@@ -2048,7 +2048,7 @@
             genreIds: m.genreIds, url: m.url, allProviders: m.allProviders
           }));
           localStorage.setItem('ps_last_scan', JSON.stringify(compact));
-        } catch (e2) {}
+        } catch (e2) { console.warn('[Compact Scan Storage localStorage Write]', e2); }
       }
     }
 
@@ -2067,7 +2067,7 @@
             return data;
           }
         }
-      } catch (err) {}
+      } catch (err) { console.warn('[Scan Storage IndexedDB Read]', err); }
 
       const cachedScan = localStorage.getItem('ps_last_scan');
       if (cachedScan) {
@@ -2076,7 +2076,7 @@
           if (Array.isArray(movies) && movies.length > 0) {
             return { movies, isFriendMatch: localStorage.getItem('ps_is_friend_match_active') === 'true' };
           }
-        } catch (e) {}
+        } catch (e) { console.warn('[Scan Storage localStorage Read]', e); }
       }
       return null;
     }
@@ -2089,7 +2089,7 @@
           const store = tx.objectStore(STORE_NAME);
           store.delete('last_scan');
         }
-      } catch (err) {}
+      } catch (err) { console.warn('[Scan Storage Clear]', err); }
       localStorage.removeItem('ps_last_scan');
       localStorage.removeItem('ps_is_friend_match_active');
     }
@@ -2103,11 +2103,13 @@
           isFriendMatchActive = localStorage.getItem('ps_is_friend_match_active') === 'true';
         }
         const renderCachedGallery = () => {
-          populateFilterDropdowns();
-          updateStats();
-          applyFiltersAndRender();
-          if (el.resultsSection) el.resultsSection.classList.remove('hidden');
-          toggleClearSyncBtn();
+          try {
+            populateFilterDropdowns();
+            updateStats();
+            applyFiltersAndRender();
+            if (el.resultsSection) el.resultsSection.classList.remove('hidden');
+            toggleClearSyncBtn();
+          } catch (e) { console.warn('[Cached Gallery Render]', e); }
         };
         if (document.readyState === 'complete') {
           renderCachedGallery();
@@ -2142,7 +2144,7 @@
           if (data.poster_path) preloadImage(`https://image.tmdb.org/t/p/w500${data.poster_path}`);
         }
         return data;
-      } catch (e) {
+      } catch (e) { console.warn('[Full Movie Details Fetch]', e);
         return null;
       }
     }
@@ -2389,7 +2391,7 @@
           try {
             iframeEl.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
             iframeEl.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
-          } catch (err) {}
+          } catch (err) { console.warn('[Hero Video Unmute PostMessage]', err); }
         }
       }, 500);
     };
@@ -2400,11 +2402,11 @@
       if (document.hidden) {
         try {
           iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-        } catch (e) {}
+        } catch (e) { console.warn('[Hero Video Pause]', e); }
       } else {
         try {
           iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-        } catch (e) {}
+        } catch (e) { console.warn('[Hero Video Play]', e); }
       }
     });
     function toggleHeroVideoSound() {
@@ -2438,7 +2440,7 @@
         try {
           iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
           iframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
-        } catch (e) {}
+        } catch (e) { console.warn('[Hero Video Stop]', e); }
         iframe.src = '';
         iframe.remove();
       }
@@ -2591,7 +2593,7 @@
       preloadAdjacentMovies(currentList, currentIndex);
 
       const closeModal = () => { stopHeroVideo(); window.currentActiveMovieObj = null; watchlistModalHistoryStack.length = 0; backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); if (prevBtn) prevBtn.classList.add('opacity-0'); if (nextBtn) nextBtn.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('modal-open'); if (prevBtn) prevBtn.classList.add('hidden'); if (nextBtn) nextBtn.classList.add('hidden'); }, 300); }; backdrop.onclick = closeModal; window.closeModal = closeModal;
-      try { const details = await getFullMovieDetails(movieObj.id, movieObj.mediaType); content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync'); document.getElementById('closeModalBtn').onclick = closeModal; const movieBack = document.getElementById('movieBackBtn'); if (movieBack) movieBack.onclick = navGoBack; checkOverviewOverflow(); applyTiltToSimilarGrid(); bindCastCrewDrag(); const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0; const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0; content.scrollTop = 0; } catch (e) { content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
+      try { const details = await getFullMovieDetails(movieObj.id, movieObj.mediaType); content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync'); document.getElementById('closeModalBtn').onclick = closeModal; const movieBack = document.getElementById('movieBackBtn'); if (movieBack) movieBack.onclick = navGoBack; checkOverviewOverflow(); applyTiltToSimilarGrid(); bindCastCrewDrag(); const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0; const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0; content.scrollTop = 0; } catch (e) { console.warn('[Modal Detail Load]', e); content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
     }
 
     function openTrailerModal(videoKey, movieTitle) {
@@ -2621,7 +2623,7 @@
         const iframe = wrapper.querySelector('iframe');
         if (iframe) {
           iframe.focus();
-          try { iframe.contentWindow.focus(); } catch (err) { }
+          try { iframe.contentWindow.focus(); } catch (err) { console.warn('[Trailer Modal Iframe Focus]', err); }
         }
       }, 150);
 
@@ -2706,14 +2708,14 @@
         const parsed = JSON.parse(savedOmdb);
         Object.keys(parsed).forEach(k => omdbCache.set(k, parsed[k]));
       }
-    } catch (e) { }
+    } catch (e) { console.warn('[OMDb Cache Read]', e); }
 
     function saveOmdbCache() {
       try {
         const obj = {};
         omdbCache.forEach((v, k) => obj[k] = v);
         localStorage.setItem('unwatchd_omdb_cache', JSON.stringify(obj));
-      } catch (e) { }
+      } catch (e) { console.warn('[OMDb Cache Write]', e); }
     }
 
     function getCachedRating(movieObj) {
@@ -2767,6 +2769,7 @@
 
       try {
         const res = await fetch(url);
+        if (!res.ok) return fallbackStr;
         const data = await res.json();
         if (data && data.Response === "True") {
           const ratingVal = (data.imdbRating && data.imdbRating !== "N/A") ? parseFloat(data.imdbRating).toFixed(1) : fallbackStr;
@@ -2777,7 +2780,7 @@
           saveOmdbCache();
           return ratingVal;
         }
-      } catch (e) { }
+      } catch (e) { console.warn('[OMDb Rating Fetch]', e); }
 
       if (cacheKey && fallbackStr) {
         const cacheObj = { rating: fallbackStr, votes: 0 };
@@ -2947,7 +2950,7 @@
       const maxPage = Math.ceil(currentData.length / ITEMS_PER_PAGE); if (currentPage > maxPage) currentPage = maxPage || 1; const start = (currentPage - 1) * ITEMS_PER_PAGE; const pageMovies = currentData.slice(start, start + ITEMS_PER_PAGE); pageMovies.forEach((m, idx) => container.appendChild(createMovieCard(m, idx))); renderPagination(maxPage);
     }
     document.addEventListener('click', (e) => { if (el.quickSearchInput && el.searchDropdown) { if (!el.quickSearchInput.contains(e.target) && !el.searchDropdown.contains(e.target)) el.searchDropdown.classList.add('hidden'); } });
-    if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) el.quickSearchResult.classList.add('hidden'); } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) { el.searchDropdown.innerHTML = ''; results.sort((a, b) => (b.popularity || b.vote_count || 0) - (a.popularity || a.vote_count || 0)).slice(0, 6).forEach(item => { const isPerson = item.__mediaType === 'person'; const displayTitle = getResultTitle(item); const date = getResultDate(item); const year = date ? date.split('-')[0] : ''; const imagePath = isPerson ? item.profile_path : item.poster_path; const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : ''; const row = document.createElement('div'); row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0'; const safeTitle = escapeHTML(displayTitle); let badgeLabel = ''; let badgeColor = ''; if (item.__mediaType === 'tv') { badgeLabel = 'TV'; badgeColor = 'text-blue-400 border-blue-500/30'; } else if (item.__mediaType === 'person') { badgeLabel = item.known_for_department === 'Directing' ? 'DIRECTOR' : 'ACTOR'; badgeColor = 'text-purple-400 border-purple-500/30'; } else { badgeLabel = 'MOVIE'; badgeColor = 'text-gray-400 border-gray-500/30'; } const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average ? `IMDb ${item.vote_average.toFixed(1)}` : 'NR'); row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="text-yellow-400 text-[10px] font-bold">${escapeHTML(ratingOrDept)}</span></div>`; row.addEventListener('click', () => { el.quickSearchInput.value = displayTitle; el.searchDropdown.classList.add('hidden'); if (item.__mediaType === 'person') { openActorModal(item.id, item.name, item.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(item); } }); el.searchDropdown.appendChild(row); }); el.searchDropdown.classList.remove('hidden'); } }, 400); }); }
+    if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) { el.searchDropdown.innerHTML = ''; results.sort((a, b) => (b.popularity || b.vote_count || 0) - (a.popularity || a.vote_count || 0)).slice(0, 6).forEach(item => { const isPerson = item.__mediaType === 'person'; const displayTitle = getResultTitle(item); const date = getResultDate(item); const year = date ? date.split('-')[0] : ''; const imagePath = isPerson ? item.profile_path : item.poster_path; const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : ''; const row = document.createElement('div'); row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0'; const safeTitle = escapeHTML(displayTitle); let badgeLabel = ''; let badgeColor = ''; if (item.__mediaType === 'tv') { badgeLabel = 'TV'; badgeColor = 'text-blue-400 border-blue-500/30'; } else if (item.__mediaType === 'person') { badgeLabel = item.known_for_department === 'Directing' ? 'DIRECTOR' : 'ACTOR'; badgeColor = 'text-purple-400 border-purple-500/30'; } else { badgeLabel = 'MOVIE'; badgeColor = 'text-gray-400 border-gray-500/30'; } const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average ? `IMDb ${item.vote_average.toFixed(1)}` : 'NR'); row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="text-yellow-400 text-[10px] font-bold">${escapeHTML(ratingOrDept)}</span></div>`; row.addEventListener('click', () => { el.quickSearchInput.value = displayTitle; el.searchDropdown.classList.add('hidden'); if (item.__mediaType === 'person') { openActorModal(item.id, item.name, item.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(item); } }); el.searchDropdown.appendChild(row); }); el.searchDropdown.classList.remove('hidden'); } }, 400); }); }
     async function renderSingleMovieResult(movie) {
       if (!el.quickSearchResult) return; el.quickSearchResult.innerHTML = `<div class="glass-panel p-5 rounded-2xl text-center"><p class="text-blue-400 text-sm font-bold uppercase tracking-widest animate-pulse">Scanning Global Database...</p></div>`; el.quickSearchResult.classList.remove('hidden');
       try {
@@ -2983,7 +2986,7 @@
         if (backBtn) backBtn.onclick = navGoBack;
         checkOverviewOverflow();
         scrollToQuickSearchResult();
-      } catch (err) { el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Network Interface Error.</p></div>`; }
+      } catch (err) { console.warn('[Single Movie Result Fetch]', err); el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Network Interface Error.</p></div>`; }
     }
     if (el.quickSearchBtn) { el.quickSearchBtn.addEventListener('click', async () => { if (!el.quickSearchInput) return; const query = el.quickSearchInput.value.trim(); if (!query) return; const results = await searchMultiMedia(query); if (results.length === 0) { if (el.quickSearchResult) { el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`; el.quickSearchResult.classList.remove('hidden'); } return; } results.sort((a, b) => (b.popularity || b.vote_count || 0) - (a.popularity || a.vote_count || 0)); const topResult = results[0]; if (topResult.__mediaType === 'person') { openActorModal(topResult.id, topResult.name, topResult.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(topResult); } }); }
     if (el.stopButton) el.stopButton.addEventListener('click', () => { if (isScanning) { cancelRequested = true; if (el.progressLabel) el.progressLabel.textContent = "Aborting search..."; } });
@@ -3043,6 +3046,7 @@
         }));
         return results;
       } catch (e) {
+        console.warn('[TMDB Search Multi Fallback]', e);
         return searchBothMedia(titleQuery);
       }
     }
@@ -3050,8 +3054,8 @@
       const movieUrl = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}`;
       const tvUrl = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}`;
       const [movieRes, tvRes] = await Promise.all([
-        fetch(movieUrl).then(r => r.json()).catch(() => ({})),
-        fetch(tvUrl).then(r => r.json()).catch(() => ({}))
+        fetch(movieUrl).then(r => r.json()).catch((e) => { console.warn('[TMDB Search Movie Catch]', e); return {}; }),
+        fetch(tvUrl).then(r => r.json()).catch((e) => { console.warn('[TMDB Search TV Catch]', e); return {}; })
       ]);
       const movieResults = (movieRes.results || []).map(r => ({ ...r, __mediaType: 'movie' }));
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
@@ -3062,13 +3066,13 @@
     try {
       const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
       if (stored) tmdbMatchCache = new Map(JSON.parse(stored));
-    } catch (e) {}
+    } catch (e) { console.warn('[TMDB Match Cache Read]', e); }
 
     function saveTmdbMatchCache() {
       try {
         const entries = Array.from(tmdbMatchCache.entries()).slice(-1500);
         localStorage.setItem(TMDB_MATCH_CACHE_KEY, JSON.stringify(entries));
-      } catch (e) {}
+      } catch (e) { console.warn('[TMDB Match Cache Write]', e); }
     }
 
     async function findBestMediaMatch(qObj) {
@@ -3099,9 +3103,9 @@
     const fetchWatchlist = async (targetUser, labelPrefix) => {
       let page1Html = null; let successfulProxy = false; if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
       for (const proxy of CORS_PROXIES) {
-        try { const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/1/`)); if (res.ok) { const txt = await res.text(); if (txt && txt.includes('letterboxd.com')) { if (txt.includes('Page not found') || txt.includes('404 Not Found')) { throw new Error(`USER_NOT_FOUND:${targetUser}`); } if (!isGenuineWatchlistPage(txt, targetUser)) continue; page1Html = txt; successfulProxy = true; break; } } } catch (e) { if (e.message.startsWith('USER_NOT_FOUND')) throw e; }
+        try { const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/1/`)); if (res.ok) { const txt = await res.text(); if (txt && txt.includes('letterboxd.com')) { if (txt.includes('Page not found') || txt.includes('404 Not Found')) { throw new Error(`USER_NOT_FOUND:${targetUser}`); } if (!isGenuineWatchlistPage(txt, targetUser)) continue; page1Html = txt; successfulProxy = true; break; } } } catch (e) { console.warn('[Letterboxd Page 1 Fetch]', e); if (e.message.startsWith('USER_NOT_FOUND')) throw e; }
       }
-      if (!successfulProxy || !page1Html) { throw new Error(`Profile not found: ${targetUser}.`); }
+      if (!successfulProxy || !page1Html) { throw new Error(`PROXY_FAILURE:${targetUser}`); }
 
       let totalPages = 1;
       try {
@@ -3112,7 +3116,7 @@
           const pNum = parseInt(txt, 10);
           if (!isNaN(pNum) && pNum > totalPages) totalPages = pNum;
         });
-      } catch(e) {}
+      } catch(e) { console.warn('[Letterboxd Total Pages Parse]', e); }
       totalPages = Math.min(MAX_WATCHLIST_PAGES, totalPages);
 
       const fetchSinglePage = async (page) => {
@@ -3126,7 +3130,7 @@
                 return txt;
               }
             }
-          } catch (e) {}
+          } catch (e) { console.warn('[Letterboxd Page Proxy Fetch]', e); }
         }
         return null;
       };
@@ -3293,7 +3297,7 @@
                 const bestTitle = getResultTitle(best);
                 const bestDate = getResultDate(best);
                 scannedMovies.push({ id: best.id, mediaType, title: bestTitle, poster: best.poster_path ? `https://image.tmdb.org/t/p/w500${best.poster_path}` : null, backdrop: best.backdrop_path ? `https://image.tmdb.org/t/p/w1280${best.backdrop_path}` : null, rating: best.vote_average ? best.vote_average.toFixed(1) : null, releaseDate: bestDate, popularity: typeof best.popularity === 'number' ? best.popularity : 0, vote_count: typeof best.vote_count === 'number' ? best.vote_count : 0, genreIds: best.genre_ids || [], url: (optimizedProviders[currentRegion] && optimizedProviders[currentRegion].link) ? optimizedProviders[currentRegion].link : `https://www.themoviedb.org/${mediaType}/${best.id}`, allProviders: optimizedProviders });
-              } catch (e) { }
+              } catch (e) { console.warn('[TMDB Watch Provider Scan Fetch]', e); }
             })); await new Promise(r => setTimeout(r, TMDB_REQUEST_DELAY_MS));
           }
           if (cancelRequested) throw new Error('Scan aborted by user.');
@@ -3310,10 +3314,10 @@
               applyFiltersAndRender();
               preloadOmdbForWatchlist();
               updateStats();
-            } catch (err) { console.error("Render error:", err); }
+            } catch (err) { console.warn('[Post-Scan Render]', err); }
             resetUI();
           }, 600);
-        } catch (err) { if (el.progressSection) el.progressSection.classList.add('hidden'); let msg = err.message; if (msg.startsWith('USER_NOT_FOUND:')) { const u = msg.split(':')[1]; msg = `Profile not found: ${u}. Make sure the username is spelled correctly and is public.`; } if (el.formError) { el.formError.textContent = msg; el.formError.classList.remove('hidden'); } resetUI(); }
+        } catch (err) { if (el.progressSection) el.progressSection.classList.add('hidden'); let msg = err.message || ''; if (msg.startsWith('USER_NOT_FOUND:')) { const u = msg.split(':')[1]; msg = `Profile not found: ${u}. Make sure the username is spelled correctly and is public.`; } else if (msg.startsWith('PROXY_FAILURE:')) { msg = `Network proxy connection failed while connecting to Letterboxd. Please check your internet connection or try again later.`; } if (el.formError) { el.formError.textContent = msg; el.formError.classList.remove('hidden'); } resetUI(); }
       });
     }
     // ── Actor Modal ──────────────────────────────────────────────────────────────
@@ -3335,7 +3339,7 @@
         const data = await res.json();
         if (data && data.id) actorDetailsCache.set(actorId, data);
         return data;
-      } catch (e) { return null; }
+      } catch (e) { console.warn('[Actor Details Fetch]', e); return null; }
     }
 
     function isPersonDirector(person, roleHint = '') {
@@ -3646,7 +3650,7 @@
         bindActorFilmControls();
         applyTiltToActorGrid();
         content.scrollTop = 0;
-      } catch (e) { content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading actor details.</div>`; }
+      } catch (e) { console.warn('[Actor Modal Load]', e); content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading actor details.</div>`; }
     }
 
     function closeActorModal() {
@@ -3731,7 +3735,7 @@
           actorCurrentPage = 1;
           if (sortLabel) sortLabel.textContent = e.target.options[e.target.selectedIndex]?.text || e.target.value;
           refreshActorFilmographyGrid();
-          try { e.target.blur(); } catch (err) { }
+          try { e.target.blur(); } catch (err) { console.warn('[Actor Filter Sort Blur]', err); }
         });
       }
       if (genreSelect) {
@@ -3740,7 +3744,7 @@
           actorCurrentPage = 1;
           if (genreLabel) genreLabel.textContent = e.target.options[e.target.selectedIndex]?.text || e.target.value;
           refreshActorFilmographyGrid();
-          try { e.target.blur(); } catch (err) { }
+          try { e.target.blur(); } catch (err) { console.warn('[Actor Filter Genre Blur]', err); }
         });
       }
       if (decadeSelect) {
@@ -3749,7 +3753,7 @@
           actorCurrentPage = 1;
           if (decadeLabel) decadeLabel.textContent = e.target.options[e.target.selectedIndex]?.text || e.target.value;
           refreshActorFilmographyGrid();
-          try { e.target.blur(); } catch (err) { }
+          try { e.target.blur(); } catch (err) { console.warn('[Actor Filter Decade Blur]', err); }
         });
       }
     }
@@ -3896,7 +3900,7 @@
       applyTiltToActorGrid();
       content.scrollTop = scrollTop;
       const inp = document.getElementById('actorFilmSearch');
-      if (inp && actorFilterQuery) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+      if (inp && actorFilterQuery) { try { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } catch (err) { console.warn('[Actor Filter Focus]', err); } }
     }
 
     async function refreshActorFilmography(isModal) {
@@ -3971,18 +3975,25 @@
       }
     }
 
-    async function handleSimilarMovieClick(movieId, movieTitle, forceInline = null) {
+    async function handleMovieClickFromContext(movieId, movieTitle, contextType, forceInline = null) {
       const isInline = forceInline !== null ? forceInline : isQuickSearchContext();
       const stack = isInline ? quickSearchHistoryStack : watchlistModalHistoryStack;
 
-      if (!isNavigatingBack && window.currentActiveMovieObj) {
-        pushToHistoryStack(stack, { type: 'movie', data: window.currentActiveMovieObj });
+      if (!isNavigatingBack) {
+        if (contextType === 'movie' && window.currentActiveMovieObj) {
+          pushToHistoryStack(stack, { type: 'movie', data: window.currentActiveMovieObj });
+        } else if (contextType === 'actor' && currentActorId) {
+          const person = actorDetailsCache.get(currentActorId);
+          pushToHistoryStack(stack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+        }
       }
+
       const watchlistMovie = scannedMovies.find(m => m.id === movieId);
       if (watchlistMovie) {
         openMovieModal(watchlistMovie, isInline);
         return;
       }
+
       try {
         const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`);
         const movie = await res.json();
@@ -4007,55 +4018,18 @@
               movieObj.regionData = pData.results[currentRegion] || null;
               movieObj.allProviders = pData.results;
             }
-          } catch (pe) { }
+          } catch (pe) { console.warn('[Movie Watch Providers Fetch]', pe); }
           openMovieModal(movieObj, isInline);
         }
-      } catch (e) { console.error('Failed to load similar movie:', e); }
+      } catch (e) { console.error('Failed to load movie:', e); }
+    }
+
+    async function handleSimilarMovieClick(movieId, movieTitle, forceInline = null) {
+      return handleMovieClickFromContext(movieId, movieTitle, 'movie', forceInline);
     }
 
     async function handleActorFilmClick(movieId, movieTitle, forceInline = null) {
-      const isInline = forceInline !== null ? forceInline : isQuickSearchContext();
-      const stack = isInline ? quickSearchHistoryStack : watchlistModalHistoryStack;
-
-      if (!isNavigatingBack && currentActorId) {
-        const person = actorDetailsCache.get(currentActorId);
-        pushToHistoryStack(stack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
-      }
-
-      const watchlistMovie = scannedMovies.find(m => m.id === movieId);
-      if (watchlistMovie) {
-        openMovieModal(watchlistMovie, isInline);
-        return;
-      }
-
-      try {
-        const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`);
-        const movie = await res.json();
-        if (movie && movie.id) {
-          const movieObj = {
-            id: movie.id,
-            mediaType: 'movie',
-            title: movie.title || movieTitle,
-            poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-            backdrop: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null,
-            rating: movie.vote_average ? movie.vote_average.toFixed(1) : null,
-            releaseDate: movie.release_date || null,
-            genreIds: movie.genre_ids || (movie.genres ? movie.genres.map(g => g.id) : []),
-            url: `https://www.themoviedb.org/movie/${movie.id}`,
-            regionData: null,
-            allProviders: null
-          };
-          try {
-            const pRes = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
-            const pData = await pRes.json();
-            if (pData && pData.results) {
-              movieObj.regionData = pData.results[currentRegion] || null;
-              movieObj.allProviders = pData.results;
-            }
-          } catch (pe) { }
-          openMovieModal(movieObj, isInline);
-        }
-      } catch (e) { console.error('Failed to load movie from actor filmography:', e); }
+      return handleMovieClickFromContext(movieId, movieTitle, 'actor', forceInline);
     }
   </script>
 </body>
