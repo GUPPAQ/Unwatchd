@@ -2205,15 +2205,15 @@
       const validLogos = details.images.logos.filter(l => l.file_path && (l.aspect_ratio == null || l.aspect_ratio > 1.1));
       if (validLogos.length === 0) return null;
 
-      const engOrSv = validLogos.filter(l => l.iso_639_1 === 'en' || l.iso_639_1 === 'sv' || !l.iso_639_1);
-      const candidates = engOrSv.length > 0 ? engOrSv : validLogos;
+      const englishLogos = validLogos.filter(l => l.iso_639_1 === 'en');
+      const candidates = englishLogos.length > 0 ? englishLogos : validLogos;
 
       candidates.sort((a, b) => {
         let scoreA = 0;
         let scoreB = 0;
 
-        if (a.iso_639_1 === 'en' || a.iso_639_1 === 'sv') scoreA += 50;
-        if (b.iso_639_1 === 'en' || b.iso_639_1 === 'sv') scoreB += 50;
+        if (a.iso_639_1 === 'en') scoreA += 100;
+        if (b.iso_639_1 === 'en') scoreB += 100;
 
         if (a.aspect_ratio && a.aspect_ratio > 1.8 && a.aspect_ratio < 6.0) scoreA += 30;
         if (b.aspect_ratio && b.aspect_ratio > 1.8 && b.aspect_ratio < 6.0) scoreB += 30;
