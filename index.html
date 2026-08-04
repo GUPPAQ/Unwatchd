@@ -2339,10 +2339,10 @@
       const safe = escapeHTML(text);
       const isLong = text.length > 195;
       if (!isLong) {
-        return `<p ${id ? `id="${id}"` : ''} class="text-gray-300 text-base leading-relaxed font-medium max-w-2xl sm:max-w-3xl">${safe}</p>`;
+        return `<p ${id ? `id="${id}"` : ''} class="text-gray-300 text-base leading-relaxed font-medium w-full pr-2 sm:pr-4">${safe}</p>`;
       }
       const shortText = escapeHTML(getShortText(text, 195));
-      return `<p ${id ? `id="${id}"` : ''} class="text-gray-300 text-base leading-relaxed font-medium max-w-2xl sm:max-w-3xl" data-full="${safe}" data-short="${shortText}">${shortText}... <button type="button" onclick="toggleExpandableText(this)" class="inline text-blue-400 text-xs font-extrabold uppercase tracking-wider hover:text-blue-300 transition-colors ml-0.5 cursor-pointer">more</button></p>`;
+      return `<p ${id ? `id="${id}"` : ''} class="text-gray-300 text-base leading-relaxed font-medium w-full pr-2 sm:pr-4" data-full="${safe}" data-short="${shortText}">${shortText}... <button type="button" onclick="toggleExpandableText(this)" class="inline text-blue-400 text-xs font-extrabold uppercase tracking-wider hover:text-blue-300 transition-colors ml-0.5 cursor-pointer">more</button></p>`;
     }
 
     function toggleExpandableText(btn) {
