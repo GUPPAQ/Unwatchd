@@ -30,6 +30,7 @@
     }
 
     .ytp-pause-overlay, .ytp-scroll-min, .ytp-impression-link, .ytp-chrome-top, .ytp-chrome-bottom { display: none !important; }
+    #heroVideoIframe { pointer-events: none !important; user-select: none !important; -webkit-user-select: none !important; }
 
     html {
       scrollbar-width: none;
@@ -2366,7 +2367,7 @@
             iframeEl.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
           } catch (err) {}
         }
-      }, 200);
+      }, 500);
     };
 
     document.addEventListener('visibilitychange', () => {
