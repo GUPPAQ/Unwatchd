@@ -2835,6 +2835,7 @@
             }
           }
         }
+        const movieObjForInline = { id: movie.id, mediaType, title: displayTitle, poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null, backdrop: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null, rating: movie.vote_average ? movie.vote_average.toFixed(1) : null, releaseDate: displayDate, url: regionData?.link || `https://www.themoviedb.org/${mediaType}/${movie.id}`, allProviders, regionData, vpnInfo };
         window.currentActiveMovieObj = movieObjForInline;
         currentActorId = null;
         navHistoryStack.length = 0;
