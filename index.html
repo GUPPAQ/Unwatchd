@@ -948,6 +948,7 @@
           <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="sortLabel">Newest
               First</span><select id="resultsSort" class="filter-select w-full lg:w-auto">
               <option value="year_desc" selected>Newest First</option>
+              <option value="popularity">Popular</option>
               <option value="az">A-Z</option>
               <option value="za">Z-A</option>
               <option value="rating_desc">Highest Rated</option>
@@ -2765,7 +2766,7 @@
       const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : ''; const sort = el.filterSort ? el.filterSort.value : 'year_desc'; const genre = el.filterGenre ? el.filterGenre.value : 'all'; const decade = el.filterDecade ? el.filterDecade.value : 'all';
       const qNormFilter = normalizeTitle(query);
       let filtered = scannedMovies.filter(m => { const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter); const matchG = genre === 'all' || (m.genreIds && m.genreIds.some(id => GENRE_MAP[id] === genre)); const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade)); return matchQ && matchG && matchD; });
-      filtered.sort((a, b) => { if (sort === 'az') return a.title.localeCompare(b.title); if (sort === 'za') return b.title.localeCompare(a.title); if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || 0)) - (parseFloat(getCachedRating(a) || 0)); if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || 0)) - (parseFloat(getCachedRating(b) || 0)); if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0'); if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999'); return 0; });
+      filtered.sort((a, b) => { if (sort === 'popularity') return (b.popularity || b.vote_count || 0) - (a.popularity || a.vote_count || 0); if (sort === 'az') return a.title.localeCompare(b.title); if (sort === 'za') return b.title.localeCompare(a.title); if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || 0)) - (parseFloat(getCachedRating(a) || 0)); if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || 0)) - (parseFloat(getCachedRating(b) || 0)); if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0'); if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(a.releaseDate || '9999'); return 0; });
       currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
       filtered.forEach(movie => {
         let regionData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData; let vpnInfo = null;
