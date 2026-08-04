@@ -2438,7 +2438,7 @@
       if (window.event && window.event.target) {
         return el.quickSearchResult.contains(window.event.target);
       }
-      return isCurrentContextInline;
+      return false;
     }
 
     function scrollToQuickSearchResult() {
@@ -2483,6 +2483,7 @@
       }
 
       isCurrentContextInline = false;
+      navHistoryStack.length = 0;
       window.currentActiveMovieObj = movieObj;
       const modal = document.getElementById('movieModal'); const backdrop = document.getElementById('modalBackdrop'); const content = document.getElementById('modalContent'); const prevBtn = document.getElementById('modalPrevBtn'); const nextBtn = document.getElementById('modalNextBtn');
       if (!modal || !content) return;
@@ -3490,6 +3491,7 @@
       }
 
       isCurrentContextInline = false;
+      navHistoryStack.length = 0;
       currentActorId = actorId;
       currentActorRoleHint = roleHint;
       actorModalWatchlistMode = true;
