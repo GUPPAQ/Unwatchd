@@ -2296,15 +2296,22 @@
         const recCards = recs.map((m, idx) => {
           const mTitle = escapeHTML(m.title);
           const mPoster = `https://image.tmdb.org/t/p/w500${m.poster_path}`;
-          const mRating = m.vote_average ? m.vote_average.toFixed(1) : null;
           const mYear = m.release_date ? m.release_date.split('-')[0] : '';
+          const cacheKey = m.imdb_id || (mTitle ? `${normalizeTitle(mTitle)}_${mYear}` : null);
+          let mRating = cacheKey && omdbCache.has(cacheKey) ? omdbCache.get(cacheKey) : null;
+          if (!mRating && m.title) {
+            fetchImdbRating(m.imdb_id, m.title, mYear).then(r => {
+              const el = document.getElementById(`recRating_${m.id}`);
+              if (el && r) { el.innerHTML = `IMDb ${r}`; el.classList.remove('hidden'); }
+            });
+          }
           const isInWatchlist = watchlistIds.has(m.id);
           return `<div class="tilt-card animate-fade shrink-0 w-28 sm:w-36 cursor-pointer z-10 hover:z-30 relative" onclick="handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}')">
             <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
               <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
               <div class="glare"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
-              ${mRating && parseFloat(mRating) > 0 ? `<div class="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black text-yellow-400 border border-yellow-500/20 shadow-lg z-20">IMDb ${mRating}</div>` : ''}
+              <div id="recRating_${m.id}" class="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black text-yellow-400 border border-yellow-500/20 shadow-lg z-20 ${mRating ? '' : 'hidden'}">${mRating ? `IMDb ${mRating}` : ''}</div>
               ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-blue-600/80 backdrop-blur-md px-2 py-0.5 rounded-lg text-[10px] font-black text-white border border-blue-400/30 shadow-lg flex items-center gap-1 z-20">✓ Watchlist</div>` : ''}
               <div class="absolute bottom-0 left-0 w-full p-3 z-20">
                 <h4 class="text-white font-bold text-xs leading-tight drop-shadow-md line-clamp-1 mb-0.5">${mTitle}</h4>
@@ -2603,7 +2610,7 @@
       if (cacheKey && omdbCache.has(cacheKey)) {
         return omdbCache.get(cacheKey);
       }
-      return movieObj.rating || (movieObj.vote_average ? movieObj.vote_average.toFixed(1) : null);
+      return movieObj.rating && movieObj.rating !== 'NR' ? movieObj.rating : null;
     }
 
     async function fetchImdbRating(imdbId, title, year, tmdbFallback) {
@@ -2777,7 +2784,7 @@
       const maxPage = Math.ceil(currentData.length / ITEMS_PER_PAGE); if (currentPage > maxPage) currentPage = maxPage || 1; const start = (currentPage - 1) * ITEMS_PER_PAGE; const pageMovies = currentData.slice(start, start + ITEMS_PER_PAGE); pageMovies.forEach((m, idx) => container.appendChild(createMovieCard(m, idx))); renderPagination(maxPage);
     }
     document.addEventListener('click', (e) => { if (el.quickSearchInput && el.searchDropdown) { if (!el.quickSearchInput.contains(e.target) && !el.searchDropdown.contains(e.target)) el.searchDropdown.classList.add('hidden'); } });
-    if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) el.quickSearchResult.classList.add('hidden'); } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchBothMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) { el.searchDropdown.innerHTML = ''; results.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0)).slice(0, 5).forEach(item => { const displayTitle = getResultTitle(item); const date = getResultDate(item); const year = date ? date.split('-')[0] : 'N/A'; const poster = item.poster_path ? `https://image.tmdb.org/t/p/w92${item.poster_path}` : ''; const row = document.createElement('div'); row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0'; const safeTitle = escapeHTML(displayTitle); const badgeLabel = item.__mediaType === 'tv' ? 'TV' : ''; row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10">${poster ? `<img src="${poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : ''}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} <span class="text-gray-500 font-normal ml-1">(${year})</span>${badgeLabel ? ` <span class="text-blue-400 font-bold text-[9px] uppercase tracking-widest border border-blue-500/30 rounded px-1 py-0.5 ml-1">${badgeLabel}</span>` : ''}</h4><span class="text-yellow-400 text-[10px] font-bold">IMDb ${item.vote_average?.toFixed(1) || 'NR'}</span></div>`; row.addEventListener('click', () => { el.quickSearchInput.value = displayTitle; el.searchDropdown.classList.add('hidden'); renderSingleMovieResult(item); }); el.searchDropdown.appendChild(row); }); el.searchDropdown.classList.remove('hidden'); } }, 400); }); }
+    if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) el.quickSearchResult.classList.add('hidden'); } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchBothMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) { el.searchDropdown.innerHTML = ''; results.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0)).slice(0, 5).forEach(item => { const displayTitle = getResultTitle(item); const date = getResultDate(item); const year = date ? date.split('-')[0] : 'N/A'; const poster = item.poster_path ? `https://image.tmdb.org/t/p/w92${item.poster_path}` : ''; const row = document.createElement('div'); row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0'; const safeTitle = escapeHTML(displayTitle); const badgeLabel = item.__mediaType === 'tv' ? 'TV' : ''; const normT = displayTitle ? normalizeTitle(displayTitle) : ''; const cacheKey = item.imdb_id || (normT ? `${normT}_${year}` : null); let cachedR = cacheKey && omdbCache.has(cacheKey) ? omdbCache.get(cacheKey) : null; if (!cachedR && displayTitle) { fetchImdbRating(item.imdb_id, displayTitle, year).then(r => { const rEl = document.getElementById(`searchRating_${item.id}`); if (rEl && r) rEl.innerHTML = `IMDb ${r}`; }); } row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10">${poster ? `<img src="${poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : ''}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} <span class="text-gray-500 font-normal ml-1">(${year})</span>${badgeLabel ? ` <span class="text-blue-400 font-bold text-[9px] uppercase tracking-widest border border-blue-500/30 rounded px-1 py-0.5 ml-1">${badgeLabel}</span>` : ''}</h4><span id="searchRating_${item.id}" class="text-yellow-400 text-[10px] font-bold">${cachedR ? `IMDb ${cachedR}` : ''}</span></div>`; row.addEventListener('click', () => { el.quickSearchInput.value = displayTitle; el.searchDropdown.classList.add('hidden'); renderSingleMovieResult(item); }); el.searchDropdown.appendChild(row); }); el.searchDropdown.classList.remove('hidden'); } }, 400); }); }
     async function renderSingleMovieResult(movie) {
       if (!el.quickSearchResult) return; el.quickSearchResult.innerHTML = `<div class="glass-panel p-5 rounded-2xl text-center"><p class="text-blue-400 text-sm font-bold uppercase tracking-widest animate-pulse">Scanning Global Database...</p></div>`; el.quickSearchResult.classList.remove('hidden');
       try {
@@ -3150,13 +3157,13 @@
         case 'az': moviesToShow.sort((a, b) => a.title.localeCompare(b.title)); break;
         case 'za': moviesToShow.sort((a, b) => b.title.localeCompare(a.title)); break;
         case 'rating_desc': moviesToShow.sort((a, b) => {
-          const rA = parseFloat(getCachedRating(a) || a.vote_average || 0);
-          const rB = parseFloat(getCachedRating(b) || b.vote_average || 0);
+          const rA = parseFloat(getCachedRating(a) || 0);
+          const rB = parseFloat(getCachedRating(b) || 0);
           return rB - rA;
         }); break;
         case 'rating_asc': moviesToShow.sort((a, b) => {
-          const rA = parseFloat(getCachedRating(a) || a.vote_average || 0);
-          const rB = parseFloat(getCachedRating(b) || b.vote_average || 0);
+          const rA = parseFloat(getCachedRating(a) || 0);
+          const rB = parseFloat(getCachedRating(b) || 0);
           return rA - rB;
         }); break;
         case 'year_desc': moviesToShow.sort((a, b) => (b.release_date || '0').localeCompare(a.release_date || '0')); break;
@@ -3213,20 +3220,28 @@
               const badgeEl = document.getElementById(`actorFilmRating_${m.id}`);
               if (badgeEl && r) badgeEl.innerHTML = `★ ${r}`;
             });
-          }
-
+          const movieJson = JSON.stringify(m).replace(/'/g, "\\'");
           const mPoster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null;
           const mChar = m.character ? escapeHTML(m.character) : '';
           const isInWatchlist = watchlistIds.has(m.id);
           const roleStr = isDirector ? 'Director' : (mChar ? mChar : '');
           const subtext = roleStr ? `${mYear ? mYear + ' · ' : ''}${roleStr}` : (mYear || '');
 
-          filmographyHtml += `<div class="tilt-card animate-fade h-full cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="handleActorFilmClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}')">
-            <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
+          const cacheKey = m.imdb_id || (mTitle ? `${normalizeTitle(mTitle)}_${mYear}` : null);
+          let mRating = cacheKey && omdbCache.has(cacheKey) ? omdbCache.get(cacheKey) : null;
+          if (!mRating && mTitle) {
+            fetchImdbRating(m.imdb_id, mTitle, mYear).then(r => {
+              const badgeEl = document.getElementById(`actorFilmRating_${m.id}`);
+              if (badgeEl && r) { badgeEl.innerHTML = `IMDb ${r}`; badgeEl.classList.remove('hidden'); }
+            });
+          }
+
+          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="openMovieModalFromActor(this.dataset.movieObj, '${safeName.replace(/'/g, "\\'")}', '${roleHint.replace(/'/g, "\\'")}')" data-movie-obj='${movieJson}'>
+            <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
               ${mPoster ? `<img src="${mPoster}" alt="${mTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-4 text-center font-bold text-gray-500 text-sm">${mTitle}</div>`}
               <div class="glare"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
-              ${mRating && parseFloat(mRating) > 0 ? `<div id="actorFilmRating_${m.id}" class="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black text-yellow-400 border border-yellow-500/20 shadow-lg z-20">IMDb ${mRating}</div>` : ''}
+              <div id="actorFilmRating_${m.id}" class="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black text-yellow-400 border border-yellow-500/20 shadow-lg z-20 ${mRating ? '' : 'hidden'}">${mRating ? `IMDb ${mRating}` : ''}</div>
               ${isInWatchlist ? `<div class="absolute top-3 left-3 bg-blue-600/80 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-black text-white border border-blue-400/30 shadow-lg flex items-center gap-1 z-20">✓ Watchlist</div>` : ''}
               <div class="absolute bottom-0 left-0 w-full p-4 z-20">
                 <h4 class="text-white font-bold text-sm leading-tight drop-shadow-md line-clamp-2 mb-1">${mTitle}</h4>
