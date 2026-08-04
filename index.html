@@ -2582,15 +2582,15 @@
       }
 
       if (!isNavigatingBack && !isWatchlistFlip) {
-        if (currentActorId) {
-          const person = actorDetailsCache.get(currentActorId);
-          pushToHistoryStack(watchlistModalHistoryStack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
-        } else if (window.currentActiveMovieObj && window.currentActiveMovieObj.id !== movieObj.id) {
-          pushToHistoryStack(watchlistModalHistoryStack, { type: 'movie', data: window.currentActiveMovieObj });
+        if (modalActiveActorId) {
+          const person = actorDetailsCache.get(modalActiveActorId);
+          pushToHistoryStack(watchlistModalHistoryStack, { type: 'actor', data: { id: modalActiveActorId, name: person ? person.name : '', roleHint: modalActiveActorRoleHint } });
+        } else if (modalActiveMovieObj && modalActiveMovieObj.id !== movieObj.id) {
+          pushToHistoryStack(watchlistModalHistoryStack, { type: 'movie', data: modalActiveMovieObj });
         }
       }
-      currentActorId = null;
-      window.currentActiveMovieObj = movieObj;
+      modalActiveActorId = null;
+      modalActiveMovieObj = movieObj;
       const modal = document.getElementById('movieModal'); const backdrop = document.getElementById('modalBackdrop'); const content = document.getElementById('modalContent'); const prevBtn = document.getElementById('modalPrevBtn'); const nextBtn = document.getElementById('modalNextBtn');
       if (!modal || !content) return;
 
@@ -2632,7 +2632,7 @@
 
       preloadAdjacentMovies(currentList, currentIndex);
 
-      const closeModal = () => { stopHeroVideo(); window.currentActiveMovieObj = null; watchlistModalHistoryStack.length = 0; backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); if (prevBtn) prevBtn.classList.add('opacity-0'); if (nextBtn) nextBtn.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('modal-open'); if (prevBtn) prevBtn.classList.add('hidden'); if (nextBtn) nextBtn.classList.add('hidden'); }, 300); }; backdrop.onclick = closeModal; window.closeModal = closeModal;
+      const closeModal = () => { stopHeroVideo(); modalActiveMovieObj = null; modalActiveActorId = null; watchlistModalHistoryStack.length = 0; backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); if (prevBtn) prevBtn.classList.add('opacity-0'); if (nextBtn) nextBtn.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('modal-open'); if (prevBtn) prevBtn.classList.add('hidden'); if (nextBtn) nextBtn.classList.add('hidden'); }, 300); }; backdrop.onclick = closeModal; window.closeModal = closeModal;
       try { const details = await getFullMovieDetails(movieObj.id, movieObj.mediaType); content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync'); document.getElementById('closeModalBtn').onclick = closeModal; const movieBack = document.getElementById('movieBackBtn'); if (movieBack) movieBack.onclick = navGoBack; checkOverviewOverflow(); applyTiltToSimilarGrid(); bindCastCrewDrag(); const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0; const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0; content.scrollTop = 0; } catch (e) { console.warn('[Modal Detail Load]', e); content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
     }
 
@@ -3643,6 +3643,10 @@
     let currentActorId = null;
     let currentActorRoleHint = '';
 
+    let modalActiveMovieObj = null;
+    let modalActiveActorId = null;
+    let modalActiveActorRoleHint = '';
+
     async function openActorModal(actorId, actorName = '', roleHint = '', forceInline = null) {
       stopHeroVideo();
       const isInlineCall = forceInline !== null ? forceInline : isQuickSearchContext();
@@ -3682,16 +3686,16 @@
       }
 
       if (!isNavigatingBack) {
-        if (window.currentActiveMovieObj) {
-          pushToHistoryStack(watchlistModalHistoryStack, { type: 'movie', data: window.currentActiveMovieObj });
-        } else if (currentActorId && currentActorId !== actorId) {
-          const person = actorDetailsCache.get(currentActorId);
-          pushToHistoryStack(watchlistModalHistoryStack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+        if (modalActiveMovieObj) {
+          pushToHistoryStack(watchlistModalHistoryStack, { type: 'movie', data: modalActiveMovieObj });
+        } else if (modalActiveActorId && modalActiveActorId !== actorId) {
+          const person = actorDetailsCache.get(modalActiveActorId);
+          pushToHistoryStack(watchlistModalHistoryStack, { type: 'actor', data: { id: modalActiveActorId, name: person ? person.name : '', roleHint: modalActiveActorRoleHint } });
         }
       }
-      window.currentActiveMovieObj = null;
-      currentActorId = actorId;
-      currentActorRoleHint = roleHint;
+      modalActiveMovieObj = null;
+      modalActiveActorId = actorId;
+      modalActiveActorRoleHint = roleHint;
       actorModalWatchlistMode = true;
       actorFilterQuery = '';
       actorFilterGenre = 'all';
@@ -3710,11 +3714,11 @@
 
       try {
         const person = await getActorDetails(actorId);
-        if (currentActorId !== actorId) return;
-        content.innerHTML = generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, true);
-        const { allMovies: modalMovies } = getActorMoviesList(person, actorModalWatchlistMode, currentActorRoleHint);
+        if (modalActiveActorId !== actorId) return;
+        content.innerHTML = generateActorHTML(person, actorModalWatchlistMode, modalActiveActorRoleHint, true);
+        const { allMovies: modalMovies } = getActorMoviesList(person, actorModalWatchlistMode, modalActiveActorRoleHint);
         const closeActorBtn = document.getElementById('closeActorModalBtn');
-        const closeActorModal = () => { stopHeroVideo(); currentActorId = null; watchlistModalHistoryStack.length = 0; backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); setTimeout(() => { actorModal.classList.add('hidden'); actorModal.classList.remove('flex'); document.body.classList.remove('modal-open'); }, 300); };
+        const closeActorModal = () => { stopHeroVideo(); modalActiveActorId = null; modalActiveMovieObj = null; watchlistModalHistoryStack.length = 0; backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); setTimeout(() => { actorModal.classList.add('hidden'); actorModal.classList.remove('flex'); document.body.classList.remove('modal-open'); }, 300); };
         if (closeActorBtn) closeActorBtn.onclick = closeActorModal;
         backdrop.onclick = closeActorModal; window.closeActorModal = closeActorModal;
         const backBtn = document.getElementById('backToMovieBtn');
@@ -3731,6 +3735,8 @@
       const backdrop = document.getElementById('actorModalBackdrop');
       const content = document.getElementById('actorModalContent');
       if (!modal) return;
+      modalActiveActorId = null;
+      modalActiveMovieObj = null;
       watchlistModalHistoryStack.length = 0;
       backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0');
       setTimeout(() => {
@@ -3941,13 +3947,16 @@
     }
 
     function refreshActorFilmographyGrid() {
-      if (!currentActorId) return;
-      const person = actorDetailsCache.get(currentActorId);
-      if (!person) return;
-
       const actorModal = document.getElementById('actorModal');
       const isModalOpen = actorModal && !actorModal.classList.contains('hidden');
       const isInline = !isModalOpen && el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden');
+      const activeActorId = isInline ? currentActorId : modalActiveActorId;
+      const activeRoleHint = isInline ? currentActorRoleHint : modalActiveActorRoleHint;
+
+      if (!activeActorId) return;
+      const person = actorDetailsCache.get(activeActorId);
+      if (!person) return;
+
       if (isInline) {
         el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
         const closeBtn = document.getElementById('closeActorModalBtn');
@@ -3964,7 +3973,7 @@
       const content = document.getElementById('actorModalContent');
       if (!content) return;
       const scrollTop = content.scrollTop;
-      content.innerHTML = generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, true);
+      content.innerHTML = generateActorHTML(person, actorModalWatchlistMode, modalActiveActorRoleHint, true);
       document.getElementById('closeActorModalBtn').onclick = closeActorModal;
       const backBtnRefresh = document.getElementById('backToMovieBtn');
       if (backBtnRefresh) backBtnRefresh.onclick = navGoBack;
@@ -4051,12 +4060,16 @@
       const isInline = forceInline !== null ? forceInline : isQuickSearchContext();
       const stack = isInline ? quickSearchHistoryStack : watchlistModalHistoryStack;
 
+      const activeMovieObj = isInline ? window.currentActiveMovieObj : modalActiveMovieObj;
+      const activeActorId = isInline ? currentActorId : modalActiveActorId;
+      const activeRoleHint = isInline ? currentActorRoleHint : modalActiveActorRoleHint;
+
       if (!isNavigatingBack) {
-        if (contextType === 'movie' && window.currentActiveMovieObj) {
-          pushToHistoryStack(stack, { type: 'movie', data: window.currentActiveMovieObj });
-        } else if (contextType === 'actor' && currentActorId) {
-          const person = actorDetailsCache.get(currentActorId);
-          pushToHistoryStack(stack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
+        if (contextType === 'movie' && activeMovieObj) {
+          pushToHistoryStack(stack, { type: 'movie', data: activeMovieObj });
+        } else if (contextType === 'actor' && activeActorId) {
+          const person = actorDetailsCache.get(activeActorId);
+          pushToHistoryStack(stack, { type: 'actor', data: { id: activeActorId, name: person ? person.name : '', roleHint: activeRoleHint } });
         }
       }
 
