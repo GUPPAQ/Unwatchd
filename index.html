@@ -1983,9 +1983,6 @@
       if (sel) {
         sel.addEventListener('change', (e) => {
           currentPage = 1;
-          if (sel === el.filterSort && sel.value === 'popularity') {
-            preloadOmdbForWatchlist();
-          }
           applyFiltersAndRender();
           syncFilterLabel(e.target);
           try { e.target.blur(); } catch (err) { console.warn('[Select Element Blur]', err); }
@@ -2241,32 +2238,11 @@
       const titleHeaderHtml = titleLogo
         ? `<img src="${titleLogo}" alt="${safeTitle}" loading="lazy" decoding="async" class="max-h-20 sm:max-h-28 max-w-[280px] sm:max-w-[440px] object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] mb-2 shrink-0">`
         : `<h2 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] leading-tight">${safeTitle}</h2>`;
-      const imdbId = details && details.external_ids && details.external_ids.imdb_id ? details.external_ids.imdb_id : (movieObj.imdbId || null);
-      const normT = movieObj.title ? normalizeTitle(movieObj.title) : '';
-      const cacheKey = imdbId || (normT ? `${normT}_${year}` : null);
-      const ratingInfo = getRatingInfo(movieObj);
-      const displayRating = ratingInfo.rating;
-      const ratingLabel = ratingInfo.label;
-      const ratingBadgeColor = ratingInfo.source === 'omdb' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30';
-      const modalRatingBadgeHtml = displayRating ? `<span id="modalRatingBadge" class="${ratingBadgeColor} px-3 py-1 rounded-lg shadow-sm text-xs font-black">${ratingLabel} ${displayRating}</span>` : `<span id="modalRatingBadge" class="hidden"></span>`;
+      const tmdbRating = getTmdbRating(movieObj) || (details && details.vote_average ? details.vote_average.toFixed(1) : null);
+      const modalRatingBadgeHtml = tmdbRating ? `<span id="modalRatingBadge" class="bg-[#01b4e4]/15 text-[#01b4e4] border border-[#01b4e4]/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black">TMDB ${tmdbRating}</span>` : '';
 
       const requestId = movieObj.id;
       window.currentModalMovieId = requestId;
-
-      if ((!cacheKey || !omdbCache.has(cacheKey) || !isOmdbCacheValid(omdbCache.get(cacheKey))) && (imdbId || movieObj.title)) {
-        fetchImdbRating(imdbId, movieObj.title, year, movieObj.rating).then(res => {
-          if (window.currentModalMovieId !== requestId) return;
-          const b = document.getElementById('modalRatingBadge');
-          if (b && res && res.rating) {
-            const rVal = res.rating;
-            const rSrc = res.source || 'omdb';
-            const rLabel = rSrc === 'omdb' ? 'IMDb' : 'TMDB';
-            b.innerHTML = `${rLabel} ${rVal}`;
-            b.className = rSrc === 'omdb' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black';
-            b.classList.remove('hidden');
-          }
-        });
-      }
       const directors = details && details.credits && details.credits.crew ? details.credits.crew.filter(c => c.job === 'Director') : [];
       const topCast = details && details.credits && details.credits.cast ? details.credits.cast.slice(0, 15) : [];
       const crewAndCast = [...directors.map(d => ({ ...d, _role: 'Director' })), ...topCast.map(c => ({ ...c, _role: c.character || '' }))];
@@ -2375,14 +2351,13 @@
           const mRating = m.vote_average ? m.vote_average.toFixed(1) : null;
           const mYear = m.release_date ? m.release_date.split('-')[0] : '';
           const isInWatchlist = watchlistIds.has(m.id);
-          const recRatingInfo = getRatingInfo(m);
-          const recBadgeColor = recRatingInfo.source === 'omdb' ? 'text-yellow-400 border-yellow-500/20' : 'text-sky-400 border-sky-500/20';
+          const recRating = getTmdbRating(m);
           return `<div class="tilt-card animate-fade shrink-0 w-28 sm:w-36 cursor-pointer z-10 hover:z-30 relative" onclick="handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})">
             <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
               <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
               <div class="glare"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
-              ${recRatingInfo.rating && parseFloat(recRatingInfo.rating) > 0 ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black ${recBadgeColor} border shadow-lg z-20">${recRatingInfo.label} ${recRatingInfo.rating}</div>` : ''}
+              ${recRating ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black text-[#01b4e4] border border-[#01b4e4]/35 shadow-lg z-20">TMDB ${recRating}</div>` : ''}
               ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-blue-600/80 backdrop-blur-md px-2 py-0.5 rounded-lg text-[10px] font-black text-white border border-blue-400/30 shadow-lg flex items-center gap-1 z-20">✓ Watchlist</div>` : ''}
               <div class="absolute bottom-0 left-0 w-full p-3 z-20">
                 <h4 class="text-white font-bold text-xs leading-tight drop-shadow-md line-clamp-1 mb-0.5">${mTitle}</h4>
@@ -2768,174 +2743,31 @@
         trailerModalEl.addEventListener(evt, (e) => { e.stopPropagation(); }, { passive: true });
       });
     }
-    // ── OMDb / IMDb Rating Integration ──────────────────────────────────────────
-    const OMDB_API_KEY = "5029a8ad";
-    const omdbCache = new Map();
-    const OMDB_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days for real IMDb rating
-    const TMDB_FALLBACK_TTL = 12 * 60 * 60 * 1000;   // 12 hours for temporary fallback
-
-    function isOmdbCacheValid(val) {
-      if (!val) return false;
-      if (typeof val === 'string' || typeof val === 'number') return true;
-      const now = Date.now();
-      const ts = val.ts || val.timestamp || 0;
-      if (!ts) return true;
-      const ttl = (val.source === 'tmdb') ? TMDB_FALLBACK_TTL : OMDB_CACHE_TTL;
-      return (now - ts) < ttl;
-    }
-
-    try {
-      const savedOmdb = localStorage.getItem('unwatchd_omdb_cache');
-      if (savedOmdb) {
-        const parsed = JSON.parse(savedOmdb);
-        Object.keys(parsed).forEach(k => {
-          if (isOmdbCacheValid(parsed[k])) {
-            omdbCache.set(k, parsed[k]);
-          }
-        });
+    // ── TMDB Rating System ──────────────────────────────────────────
+    function getTmdbRating(movieObj) {
+      if (!movieObj) return null;
+      const raw = movieObj.vote_average ?? movieObj.rating ?? movieObj.voteAverage;
+      if (typeof raw === 'number' && raw > 0) return raw.toFixed(1);
+      if (typeof raw === 'string') {
+        const parsed = parseFloat(raw);
+        if (!isNaN(parsed) && parsed > 0) return parsed.toFixed(1);
       }
-    } catch (e) { console.warn('[OMDb Cache Read]', e); }
-
-    function saveOmdbCache() {
-      try {
-        const obj = {};
-        omdbCache.forEach((v, k) => obj[k] = v);
-        localStorage.setItem('unwatchd_omdb_cache', JSON.stringify(obj));
-      } catch (e) { console.warn('[OMDb Cache Write]', e); }
+      return null;
     }
 
     function getRatingInfo(movieObj) {
-      if (!movieObj) return { rating: null, label: 'TMDB', source: 'tmdb' };
-      const yearStr = movieObj.releaseDate ? String(movieObj.releaseDate).split('-')[0] : (movieObj.release_date ? String(movieObj.release_date).split('-')[0] : '');
-      const title = movieObj.title;
-      const imdbId = movieObj.imdbId || movieObj.imdb_id;
-      const cacheKey = imdbId || (title ? `${normalizeTitle(title)}_${yearStr}` : null);
-      if (cacheKey && omdbCache.has(cacheKey)) {
-        const val = omdbCache.get(cacheKey);
-        if (isOmdbCacheValid(val)) {
-          if (typeof val === 'object' && val !== null) {
-            const src = val.source || (val.votes > 0 ? 'omdb' : 'tmdb');
-            return { rating: val.rating, label: src === 'omdb' ? 'IMDb' : 'TMDB', source: src };
-          }
-          return { rating: String(val), label: 'IMDb', source: 'omdb' };
-        }
-      }
-      const tmdbRaw = movieObj.rating || movieObj.vote_average;
-      let tmdbVal = null;
-      if (typeof tmdbRaw === 'number' && tmdbRaw > 0) {
-        tmdbVal = tmdbRaw.toFixed(1);
-      } else if (typeof tmdbRaw === 'string' && parseFloat(tmdbRaw) > 0) {
-        tmdbVal = parseFloat(tmdbRaw).toFixed(1);
-      }
-      return { rating: tmdbVal, label: 'TMDB', source: 'tmdb' };
+      const rating = getTmdbRating(movieObj);
+      return { rating, label: 'TMDB', source: 'tmdb' };
     }
 
     function getCachedRating(movieObj) {
-      const info = getRatingInfo(movieObj);
-      return info.rating;
+      return getTmdbRating(movieObj);
     }
 
     function getMoviePopularity(m) {
       if (!m) return 0;
-      const yearStr = m.releaseDate ? String(m.releaseDate).split('-')[0] : (m.release_date ? String(m.release_date).split('-')[0] : '');
-      const title = m.title;
-      const imdbId = m.imdbId || m.imdb_id;
-      const cacheKey = imdbId || (title ? `${normalizeTitle(title)}_${yearStr}` : null);
-      if (cacheKey && omdbCache.has(cacheKey)) {
-        const val = omdbCache.get(cacheKey);
-        if (isOmdbCacheValid(val) && typeof val === 'object' && val.votes > 0) return val.votes;
-      }
       if (typeof m.vote_count === 'number' && m.vote_count > 0) return m.vote_count;
       return m.popularity || 0;
-    }
-
-    async function fetchImdbRating(imdbId, title, year, tmdbFallback) {
-      const yearStr = year ? String(year).split('-')[0] : '';
-      const normT = title ? normalizeTitle(title) : '';
-      const cacheKey = imdbId || (normT ? `${normT}_${yearStr}` : null);
-
-      if (cacheKey && omdbCache.has(cacheKey)) {
-        const cached = omdbCache.get(cacheKey);
-        if (isOmdbCacheValid(cached)) {
-          if (typeof cached === 'object' && cached !== null) {
-            const src = cached.source || (cached.votes > 0 ? 'omdb' : 'tmdb');
-            return { rating: cached.rating, source: src };
-          }
-          return { rating: cached, source: 'omdb' };
-        }
-      }
-
-      const fallbackStr = tmdbFallback ? (typeof tmdbFallback === 'number' ? tmdbFallback.toFixed(1) : String(tmdbFallback)) : null;
-
-      let url = '';
-      if (imdbId) {
-        url = `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${encodeURIComponent(imdbId)}`;
-      } else if (title) {
-        const cleanTitle = title.replace(/\(.*?\)/g, '').trim();
-        url = `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(cleanTitle)}${yearStr ? `&y=${yearStr}` : ''}`;
-      } else {
-        return { rating: fallbackStr, source: 'tmdb' };
-      }
-
-      try {
-        const res = await fetch(url);
-        if (!res.ok) {
-          if (cacheKey && fallbackStr) {
-            omdbCache.set(cacheKey, { rating: fallbackStr, votes: 0, source: 'tmdb', ts: Date.now() });
-            saveOmdbCache();
-          }
-          return { rating: fallbackStr, source: 'tmdb' };
-        }
-        const data = await res.json();
-        if (data && data.Response === "True") {
-          const isRealImdb = data.imdbRating && data.imdbRating !== "N/A";
-          const ratingVal = isRealImdb ? parseFloat(data.imdbRating).toFixed(1) : fallbackStr;
-          const votesVal = (data.imdbVotes && data.imdbVotes !== "N/A") ? parseInt(data.imdbVotes.replace(/,/g, ''), 10) : 0;
-          const awardsVal = (data.Awards && data.Awards !== "N/A") ? data.Awards : null;
-          const src = isRealImdb ? 'omdb' : 'tmdb';
-          const cacheObj = { rating: ratingVal, votes: votesVal, source: src, awards: awardsVal, ts: Date.now() };
-          if (cacheKey) omdbCache.set(cacheKey, cacheObj);
-          if (imdbId && normT) omdbCache.set(`${normT}_${yearStr}`, cacheObj);
-          saveOmdbCache();
-          return { rating: ratingVal, source: src };
-        }
-      } catch (e) { console.warn('[OMDb Rating Fetch]', e); }
-
-      if (cacheKey && fallbackStr) {
-        const cacheObj = { rating: fallbackStr, votes: 0, source: 'tmdb', ts: Date.now() };
-        omdbCache.set(cacheKey, cacheObj);
-        saveOmdbCache();
-      }
-      return { rating: fallbackStr, source: 'tmdb' };
-    }
-
-    function preloadOmdbForWatchlist() {
-      if (!Array.isArray(scannedMovies) || scannedMovies.length === 0) return;
-      const uncached = scannedMovies.filter(m => {
-        const yearStr = m.releaseDate ? String(m.releaseDate).split('-')[0] : '';
-        const normT = m.title ? normalizeTitle(m.title) : '';
-        const cacheKey = m.imdbId || (normT ? `${normT}_${yearStr}` : null);
-        return !cacheKey || !omdbCache.has(cacheKey);
-      });
-      if (uncached.length === 0) return;
-
-      let idx = 0;
-      const batchSize = 10;
-      const processBatch = async () => {
-        if (idx >= uncached.length) {
-          applyFiltersAndRender();
-          return;
-        }
-        const chunk = uncached.slice(idx, idx + batchSize);
-        idx += batchSize;
-        await Promise.all(chunk.map(m => {
-          const yearStr = m.releaseDate ? String(m.releaseDate).split('-')[0] : '';
-          return fetchImdbRating(m.imdbId, m.title, yearStr, m.rating);
-        }));
-        if (idx < uncached.length) setTimeout(processBatch, 100);
-        else applyFiltersAndRender();
-      };
-      processBatch();
     }
 
     function createMovieCard(movieObj, delayIndex = 0) {
@@ -2960,27 +2792,12 @@
       gradient.className = 'absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90';
       a.appendChild(gradient);
 
-      const yearStr = movieObj.releaseDate ? String(movieObj.releaseDate).split('-')[0] : '';
-      const normT = movieObj.title ? normalizeTitle(movieObj.title) : '';
-      const cacheKey = movieObj.imdbId || (normT ? `${normT}_${yearStr}` : null);
-      const ratingInfo = getRatingInfo(movieObj);
-
-      if (ratingInfo.rating && parseFloat(ratingInfo.rating) > 0) {
-        const isImdb = ratingInfo.source === 'omdb';
-        const colorClass = isImdb ? 'text-yellow-400 border-yellow-500/30' : 'text-sky-400 border-sky-500/30';
+      const tmdbRating = getTmdbRating(movieObj);
+      if (tmdbRating) {
         const badge = document.createElement('div');
-        badge.className = `absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black ${colorClass} border shadow-lg z-20`;
-        badge.innerHTML = `${ratingInfo.label} ${ratingInfo.rating}`;
+        badge.className = 'absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black text-[#01b4e4] border border-[#01b4e4]/35 shadow-lg z-20';
+        badge.innerHTML = `TMDB ${tmdbRating}`;
         a.appendChild(badge);
-
-        if (ratingInfo.source === 'tmdb' && (!cacheKey || !omdbCache.has(cacheKey) || !isOmdbCacheValid(omdbCache.get(cacheKey))) && movieObj.title) {
-          fetchImdbRating(movieObj.imdbId, movieObj.title, yearStr, movieObj.rating).then(r => {
-            if (r && r.rating && r.source === 'omdb') {
-              badge.className = 'absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black text-yellow-400 border border-yellow-500/30 shadow-lg z-20';
-              badge.innerHTML = `IMDb ${r.rating}`;
-            }
-          });
-        }
       }
 
       if (movieObj.vpnInfo) {
@@ -3074,7 +2891,7 @@
       const maxPage = Math.ceil(currentData.length / ITEMS_PER_PAGE); if (currentPage > maxPage) currentPage = maxPage || 1; const start = (currentPage - 1) * ITEMS_PER_PAGE; const pageMovies = currentData.slice(start, start + ITEMS_PER_PAGE); pageMovies.forEach((m, idx) => container.appendChild(createMovieCard(m, idx))); renderPagination(maxPage);
     }
     document.addEventListener('click', (e) => { if (el.quickSearchInput && el.searchDropdown) { if (!el.quickSearchInput.contains(e.target) && !el.searchDropdown.contains(e.target)) el.searchDropdown.classList.add('hidden'); } });
-    if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) { el.searchDropdown.innerHTML = ''; results.sort((a, b) => (b.popularity || b.vote_count || 0) - (a.popularity || a.vote_count || 0)).slice(0, 6).forEach(item => { const isPerson = item.__mediaType === 'person'; const displayTitle = getResultTitle(item); const date = getResultDate(item); const year = date ? date.split('-')[0] : ''; const imagePath = isPerson ? item.profile_path : item.poster_path; const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : ''; const row = document.createElement('div'); row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0'; const safeTitle = escapeHTML(displayTitle); let badgeLabel = ''; let badgeColor = ''; if (item.__mediaType === 'tv') { badgeLabel = 'TV'; badgeColor = 'text-blue-400 border-blue-500/30'; } else if (item.__mediaType === 'person') { badgeLabel = item.known_for_department === 'Directing' ? 'DIRECTOR' : 'ACTOR'; badgeColor = 'text-purple-400 border-purple-500/30'; } else { badgeLabel = 'MOVIE'; badgeColor = 'text-gray-400 border-gray-500/30'; } const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average ? `IMDb ${item.vote_average.toFixed(1)}` : 'NR'); row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="text-yellow-400 text-[10px] font-bold">${escapeHTML(ratingOrDept)}</span></div>`; row.addEventListener('click', () => { el.quickSearchInput.value = displayTitle; el.searchDropdown.classList.add('hidden'); if (item.__mediaType === 'person') { openActorModal(item.id, item.name, item.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(item); } }); el.searchDropdown.appendChild(row); }); el.searchDropdown.classList.remove('hidden'); } }, 400); }); }
+    if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) { el.searchDropdown.innerHTML = ''; results.sort((a, b) => (b.popularity || b.vote_count || 0) - (a.popularity || a.vote_count || 0)).slice(0, 6).forEach(item => { const isPerson = item.__mediaType === 'person'; const displayTitle = getResultTitle(item); const date = getResultDate(item); const year = date ? date.split('-')[0] : ''; const imagePath = isPerson ? item.profile_path : item.poster_path; const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : ''; const row = document.createElement('div'); row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0'; const safeTitle = escapeHTML(displayTitle); let badgeLabel = ''; let badgeColor = ''; if (item.__mediaType === 'tv') { badgeLabel = 'TV'; badgeColor = 'text-blue-400 border-blue-500/30'; } else if (item.__mediaType === 'person') { badgeLabel = item.known_for_department === 'Directing' ? 'DIRECTOR' : 'ACTOR'; badgeColor = 'text-purple-400 border-purple-500/30'; } else { badgeLabel = 'MOVIE'; badgeColor = 'text-gray-400 border-gray-500/30'; } const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR'); row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="text-[#01b4e4] text-[10px] font-bold">${escapeHTML(ratingOrDept)}</span></div>`; row.addEventListener('click', () => { el.quickSearchInput.value = displayTitle; el.searchDropdown.classList.add('hidden'); if (item.__mediaType === 'person') { openActorModal(item.id, item.name, item.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(item); } }); el.searchDropdown.appendChild(row); }); el.searchDropdown.classList.remove('hidden'); } }, 400); }); }
     async function renderSingleMovieResult(movie) {
       if (!el.quickSearchResult) return; el.quickSearchResult.innerHTML = `<div class="glass-panel p-5 rounded-2xl text-center"><p class="text-blue-400 text-sm font-bold uppercase tracking-widest animate-pulse">Scanning Global Database...</p></div>`; el.quickSearchResult.classList.remove('hidden');
       try {
@@ -3436,7 +3253,6 @@
             try {
               populateFilterDropdowns();
               applyFiltersAndRender();
-              preloadOmdbForWatchlist();
               updateStats();
             } catch (err) { console.warn('[Post-Scan Render]', err); }
             resetUI();
@@ -3607,38 +3423,16 @@
         pageMovies.forEach((m, idx) => {
           const mTitle = escapeHTML(m.title);
           const mYear = m.release_date ? m.release_date.split('-')[0] : '';
-          const normT = m.title ? normalizeTitle(m.title) : '';
-          const cacheKey = `${normT}_${mYear}`;
-          let mRating = getCachedRating(m);
-
-          if (!omdbCache.has(cacheKey) && m.title) {
-            fetchImdbRating(null, m.title, mYear, m.vote_average).then(r => {
-              const badgeEl = document.getElementById(`actorFilmRating_${m.id}`);
-              if (badgeEl && r) badgeEl.innerHTML = `IMDb ${r}`;
-            });
-          }
 
           const mPoster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null;
           const mChar = m.character ? escapeHTML(m.character) : '';
           const isInWatchlist = watchlistIds.has(m.id);
           const roleStr = isDirector ? 'Director' : (mChar ? mChar : '');
           const subtext = roleStr ? `${mYear ? mYear + ' · ' : ''}${roleStr}` : (mYear || '');
-          const actorRatingInfo = getRatingInfo(m);
-          const actorBadgeColor = actorRatingInfo.source === 'omdb' ? 'text-yellow-400 border-yellow-500/20' : 'text-sky-400 border-sky-500/20';
-          const actorRatingHtml = actorRatingInfo.rating && parseFloat(actorRatingInfo.rating) > 0
-            ? `<div id="actorFilmRating_${m.id}" class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black ${actorBadgeColor} border shadow-lg z-20">${actorRatingInfo.label} ${actorRatingInfo.rating}</div>`
+          const filmRating = getTmdbRating(m);
+          const actorRatingHtml = filmRating
+            ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black text-[#01b4e4] border border-[#01b4e4]/35 shadow-lg z-20">TMDB ${filmRating}</div>`
             : '';
-
-          if ((!cacheKey || !omdbCache.has(cacheKey) || !isOmdbCacheValid(omdbCache.get(cacheKey))) && m.title) {
-            fetchImdbRating(null, m.title, mYear, m.vote_average).then(r => {
-              const badgeEl = document.getElementById(`actorFilmRating_${m.id}`);
-              if (badgeEl && r && r.rating) {
-                const isImdb = r.source === 'omdb';
-                badgeEl.className = `absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black ${isImdb ? 'text-yellow-400 border-yellow-500/20' : 'text-sky-400 border-sky-500/20'} border shadow-lg z-20`;
-                badgeEl.innerHTML = `${isImdb ? 'IMDb' : 'TMDB'} ${r.rating}`;
-              }
-            });
-          }
 
           filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="handleActorFilmClick(${m.id}, '', ${!isModal})">
             <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
