@@ -2425,13 +2425,8 @@
     }
 
     let isHeroVideoMuted = localStorage.getItem('ps_hero_sound_muted') === 'false' ? false : true;
-    let heroVideoFailTimer = null;
 
     function hideUnavailableHeroVideo() {
-      if (heroVideoFailTimer) {
-        clearTimeout(heroVideoFailTimer);
-        heroVideoFailTimer = null;
-      }
       const iframe = document.getElementById('heroVideoIframe');
       const btn = document.getElementById('heroSoundToggleBtn');
       if (iframe) {
@@ -2447,12 +2442,6 @@
 
     window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
-      if (heroVideoFailTimer) clearTimeout(heroVideoFailTimer);
-
-      // 3.5s Fail-safe timer: If video is blocked or fails to start playing, fallback to backdrop image
-      heroVideoFailTimer = setTimeout(() => {
-        hideUnavailableHeroVideo();
-      }, 3500);
 
       // Fast image pre-check for YouTube 120px error thumbnail or 404
       const match = iframeEl.src ? iframeEl.src.match(/\/embed\/([a-zA-Z0-9_-]+)/) : null;
@@ -2471,7 +2460,7 @@
       }
 
       setTimeout(() => {
-        if (document.getElementById('heroVideoIframe') === iframeEl && heroVideoFailTimer) {
+        if (document.getElementById('heroVideoIframe') === iframeEl) {
           iframeEl.style.opacity = '1';
         }
         if (!isHeroVideoMuted) {
@@ -2515,13 +2504,6 @@
       if (isError) {
         hideUnavailableHeroVideo();
         return;
-      }
-
-      if (info.playerState === 1 || info.playerState === 3) {
-        if (heroVideoFailTimer) {
-          clearTimeout(heroVideoFailTimer);
-          heroVideoFailTimer = null;
-        }
       }
 
       if (info.playerState === 0) {
