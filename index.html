@@ -3664,19 +3664,26 @@
           if (!m.character) return false;
           return /voice|uncredited|\bself\b/i.test(m.character);
         };
+        const isObscure = (m) => {
+          const votes = m.vote_count || 0;
+          const pop = m.popularity || 0;
+          return votes < 25 && pop < 5.0;
+        };
 
         const validCredits = rawCredits.filter(m => (m.title || m.name) && m.backdrop_path && !isVoiceRole(m));
+        const wellKnownCredits = validCredits.filter(m => !isObscure(m));
+        const pool = wellKnownCredits.length > 0 ? wellKnownCredits : validCredits;
         
         // Tier 1: THE single main lead character (order === 0) or Director
-        const singleMainLeadCredits = validCredits.filter(m => m.order === 0 || m.job === 'Director')
+        const singleMainLeadCredits = pool.filter(m => m.order === 0 || m.job === 'Director')
           .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
         // Tier 2: Top billing co-lead roles (order < 3)
-        const topCoLeadCredits = validCredits.filter(m => typeof m.order === 'number' && m.order < 3)
+        const topCoLeadCredits = pool.filter(m => typeof m.order === 'number' && m.order < 3)
           .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
-        // Tier 3: All valid credits sorted by popularity
-        const sortedAll = validCredits.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+        // Tier 3: All pool credits sorted by popularity
+        const sortedAll = pool.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
         const chosenCredit = singleMainLeadCredits[0] || topCoLeadCredits[0] || sortedAll[0] || null;
         if (chosenCredit) {
