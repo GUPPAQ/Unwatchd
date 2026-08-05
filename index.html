@@ -3667,13 +3667,18 @@
 
         const validCredits = rawCredits.filter(m => (m.title || m.name) && m.backdrop_path && !isVoiceRole(m));
         
-        // Prioritize THE lead role (order === 0 or order < 3) or Director job
-        const leadCredits = validCredits.filter(m => m.order === 0 || (typeof m.order === 'number' && m.order < 3) || m.job === 'Director');
-        
-        const sortedLead = leadCredits.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+        // Tier 1: THE single main lead character (order === 0) or Director
+        const singleMainLeadCredits = validCredits.filter(m => m.order === 0 || m.job === 'Director')
+          .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
+        // Tier 2: Top billing co-lead roles (order < 3)
+        const topCoLeadCredits = validCredits.filter(m => typeof m.order === 'number' && m.order < 3)
+          .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
+        // Tier 3: All valid credits sorted by popularity
         const sortedAll = validCredits.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
-        const chosenCredit = sortedLead[0] || sortedAll[0] || null;
+        const chosenCredit = singleMainLeadCredits[0] || topCoLeadCredits[0] || sortedAll[0] || null;
         if (chosenCredit) {
           knownForBackdrop = `https://image.tmdb.org/t/p/w1280${chosenCredit.backdrop_path}`;
           knownForTitle = chosenCredit.title || chosenCredit.name || '';
