@@ -2425,39 +2425,33 @@
     }
 
     let isHeroVideoMuted = localStorage.getItem('ps_hero_sound_muted') === 'false' ? false : true;
+    let heroVideoFailTimer = null;
 
     function hideUnavailableHeroVideo() {
+      if (heroVideoFailTimer) {
+        clearTimeout(heroVideoFailTimer);
+        heroVideoFailTimer = null;
+      }
       const iframe = document.getElementById('heroVideoIframe');
       const btn = document.getElementById('heroSoundToggleBtn');
       if (iframe) {
         iframe.style.opacity = '0';
-        setTimeout(() => { try { iframe.remove(); } catch (e) {} }, 400);
+        setTimeout(() => { try { iframe.remove(); } catch (e) {} }, 500);
       }
       if (btn) {
         btn.style.opacity = '0';
-        setTimeout(() => { try { btn.remove(); } catch (e) {} }, 400);
+        setTimeout(() => { try { btn.remove(); } catch (e) {} }, 500);
       }
     }
     window.hideUnavailableHeroVideo = hideUnavailableHeroVideo;
 
     window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
+      if (heroVideoFailTimer) clearTimeout(heroVideoFailTimer);
 
-      // Fast image pre-check for YouTube 120px error thumbnail or 404
-      const match = iframeEl.src ? iframeEl.src.match(/\/embed\/([a-zA-Z0-9_-]+)/) : null;
-      if (match && match[1]) {
-        const key = match[1];
-        const img = new Image();
-        img.onload = function () {
-          if (img.naturalWidth <= 120) {
-            hideUnavailableHeroVideo();
-          }
-        };
-        img.onerror = function () {
-          hideUnavailableHeroVideo();
-        };
-        img.src = `https://img.youtube.com/vi/${key}/hqdefault.jpg`;
-      }
+      heroVideoFailTimer = setTimeout(() => {
+        hideUnavailableHeroVideo();
+      }, 5000);
 
       setTimeout(() => {
         if (document.getElementById('heroVideoIframe') === iframeEl) {
@@ -2497,16 +2491,21 @@
       if (!data) return;
 
       const iframe = document.getElementById('heroVideoIframe');
-      if (!iframe) return;
+      if (!iframe || (event.source && event.source !== iframe.contentWindow)) return;
 
-      const info = data.info || {};
-      const isError = data.event === 'onError' || typeof info.errorCode !== 'undefined' || typeof info.error !== 'undefined';
-      if (isError) {
+      if (data.event === 'onError' || (data.info && (data.info.errorCode || data.info.error))) {
         hideUnavailableHeroVideo();
         return;
       }
 
-      if (info.playerState === 0) {
+      if (data.info && (data.info.playerState === 1 || data.info.playerState === 3)) {
+        if (heroVideoFailTimer) {
+          clearTimeout(heroVideoFailTimer);
+          heroVideoFailTimer = null;
+        }
+      }
+
+      if (data.info && data.info.playerState === 0) {
         try {
           iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
           iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
