@@ -2240,6 +2240,7 @@
         : `<h2 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] leading-tight">${safeTitle}</h2>`;
       const tmdbRating = getTmdbRating(movieObj) || (details && details.vote_average ? details.vote_average.toFixed(1) : null);
       const modalRatingBadgeHtml = tmdbRating ? `<span id="modalRatingBadge" class="bg-[#01b4e4]/15 text-[#01b4e4] border border-[#01b4e4]/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black">TMDB ${tmdbRating}</span>` : '';
+      const imdbId = details && details.external_ids && details.external_ids.imdb_id ? details.external_ids.imdb_id : (movieObj.imdbId || null);
 
       const requestId = movieObj.id;
       window.currentModalMovieId = requestId;
