@@ -29,8 +29,19 @@
       --accent: #3b82f6;
     }
 
-    .ytp-pause-overlay, .ytp-scroll-min, .ytp-impression-link, .ytp-chrome-top, .ytp-chrome-bottom { display: none !important; }
-    #heroVideoIframe { pointer-events: none !important; user-select: none !important; -webkit-user-select: none !important; }
+    .ytp-pause-overlay,
+    .ytp-scroll-min,
+    .ytp-impression-link,
+    .ytp-chrome-top,
+    .ytp-chrome-bottom {
+      display: none !important;
+    }
+
+    #heroVideoIframe {
+      pointer-events: none !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
+    }
 
     html {
       scrollbar-width: none;
@@ -1644,7 +1655,8 @@
     if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
     if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { if (scannedMovies.length > 0 && el.statsBar) { const isHidden = el.statsBar.classList.contains('hidden'); if (isHidden) { el.statsBar.classList.remove('hidden'); el.statsBar.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.add('vpn-active'); el.statsBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else { el.statsBar.classList.add('hidden'); el.statsBar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.remove('vpn-active'); } } el.statsBtn.blur(); }); }
     if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { const currentList = currentGroupedResults[activeTab] || []; if (currentList.length === 0) return; const randomIndex = Math.floor(Math.random() * currentList.length); openMovieModal(currentList[randomIndex], false, true); }); }
-    document.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if (el.quickSearchInput) el.quickSearchInput.focus(); } const trailerModal = document.getElementById('trailerModal'); const trailerModalOpen = trailerModal && !trailerModal.classList.contains('hidden'); if (trailerModalOpen) { if (e.key === 'Escape') { closeTrailerModal(); return; } const iframe = document.querySelector('#trailerIframeWrapper iframe'); if (iframe) { iframe.focus(); try { iframe.contentWindow.focus(); } catch (err) { console.warn('[Trailer Iframe Focus]', err); } } return; } const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden'); if (e.key === 'Escape') { if (actorModalOpen) { closeActorModal(); return; } if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (isModalOpen) document.getElementById('closeModalBtn')?.click(); } if (isModalOpen && !actorModalOpen) {
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if (el.quickSearchInput) el.quickSearchInput.focus(); } const trailerModal = document.getElementById('trailerModal'); const trailerModalOpen = trailerModal && !trailerModal.classList.contains('hidden'); if (trailerModalOpen) { if (e.key === 'Escape') { closeTrailerModal(); return; } const iframe = document.querySelector('#trailerIframeWrapper iframe'); if (iframe) { iframe.focus(); try { iframe.contentWindow.focus(); } catch (err) { console.warn('[Trailer Iframe Focus]', err); } } return; } const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden'); if (e.key === 'Escape') { if (actorModalOpen) { closeActorModal(); return; } if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (isModalOpen) document.getElementById('closeModalBtn')?.click(); } if (isModalOpen && !actorModalOpen) {
         const activeEl = document.activeElement;
         const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
         if (!isInputFocused) {
@@ -1659,7 +1671,8 @@
             if (nextBtn && !nextBtn.classList.contains('hidden')) nextBtn.click();
           }
         }
-      } });
+      }
+    });
     let searchTimeout; if (el.quickSearchInput) { el.quickSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(searchTimeout); if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (el.quickSearchBtn) el.quickSearchBtn.click(); } }); }
     if (el.usernameInput) { el.usernameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (!isScanning) el.startButton.click(); } }); }
     if (el.friendInput) { el.friendInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (!isScanning) el.startButton.click(); } }); }
@@ -2149,7 +2162,8 @@
           if (data.poster_path) preloadImage(`https://image.tmdb.org/t/p/w500${data.poster_path}`);
         }
         return data;
-      } catch (e) { console.warn('[Full Movie Details Fetch]', e);
+      } catch (e) {
+        console.warn('[Full Movie Details Fetch]', e);
         return null;
       }
     }
@@ -2239,7 +2253,7 @@
         ? `<img src="${titleLogo}" alt="${safeTitle}" loading="lazy" decoding="async" class="max-h-20 sm:max-h-28 max-w-[280px] sm:max-w-[440px] object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] mb-2 shrink-0">`
         : `<h2 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] leading-tight">${safeTitle}</h2>`;
       const tmdbRating = getTmdbRating(movieObj) || (details && details.vote_average ? details.vote_average.toFixed(1) : null);
-      const modalRatingBadgeHtml = tmdbRating ? `<span id="modalRatingBadge" class="bg-[#01b4e4]/15 text-[#01b4e4] border border-[#01b4e4]/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black">TMDB ${tmdbRating}</span>` : '';
+      const modalRatingBadgeHtml = tmdbRating ? `<span id="modalRatingBadge" class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black">TMDB ${tmdbRating}</span>` : '';
       const imdbId = details && details.external_ids && details.external_ids.imdb_id ? details.external_ids.imdb_id : (movieObj.imdbId || null);
 
       const requestId = movieObj.id;
@@ -2358,7 +2372,7 @@
               <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
               <div class="glare"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
-              ${recRating ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black text-[#01b4e4] border border-[#01b4e4]/35 shadow-lg z-20">TMDB ${recRating}</div>` : ''}
+              ${recRating ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black text-blue-400 border border-blue-500/30 shadow-lg z-20">TMDB ${recRating}</div>` : ''}
               ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-blue-600/80 backdrop-blur-md px-2 py-0.5 rounded-lg text-[10px] font-black text-white border border-blue-400/30 shadow-lg flex items-center gap-1 z-20">✓ Watchlist</div>` : ''}
               <div class="absolute bottom-0 left-0 w-full p-3 z-20">
                 <h4 class="text-white font-bold text-xs leading-tight drop-shadow-md line-clamp-1 mb-0.5">${mTitle}</h4>
@@ -2411,7 +2425,7 @@
     }
 
     let isHeroVideoMuted = localStorage.getItem('ps_hero_sound_muted') === 'false' ? false : true;
-    window.onHeroVideoLoad = function(iframeEl) {
+    window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
       setTimeout(() => {
         iframeEl.style.opacity = '1';
@@ -2452,7 +2466,7 @@
         try {
           iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
           iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-        } catch (err) {}
+        } catch (err) { }
       }
     });
     function toggleHeroVideoSound() {
@@ -2492,8 +2506,8 @@
       }
     }
 
-    function checkOverviewOverflow() {}
-    function checkBioOverflow() {}
+    function checkOverviewOverflow() { }
+    function checkBioOverflow() { }
 
     const quickSearchHistoryStack = [];
     const watchlistModalHistoryStack = [];
@@ -2510,7 +2524,7 @@
       stack.push(entry);
     }
 
-    window.closeQuickSearchInline = function() {
+    window.closeQuickSearchInline = function () {
       stopHeroVideo();
       if (el.quickSearchResult) {
         el.quickSearchResult.classList.add('hidden');
@@ -2796,7 +2810,7 @@
       const tmdbRating = getTmdbRating(movieObj);
       if (tmdbRating) {
         const badge = document.createElement('div');
-        badge.className = 'absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black text-[#01b4e4] border border-[#01b4e4]/35 shadow-lg z-20';
+        badge.className = 'absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black text-blue-400 border border-blue-500/30 shadow-lg z-20';
         badge.innerHTML = `TMDB ${tmdbRating}`;
         a.appendChild(badge);
       }
@@ -2892,7 +2906,7 @@
       const maxPage = Math.ceil(currentData.length / ITEMS_PER_PAGE); if (currentPage > maxPage) currentPage = maxPage || 1; const start = (currentPage - 1) * ITEMS_PER_PAGE; const pageMovies = currentData.slice(start, start + ITEMS_PER_PAGE); pageMovies.forEach((m, idx) => container.appendChild(createMovieCard(m, idx))); renderPagination(maxPage);
     }
     document.addEventListener('click', (e) => { if (el.quickSearchInput && el.searchDropdown) { if (!el.quickSearchInput.contains(e.target) && !el.searchDropdown.contains(e.target)) el.searchDropdown.classList.add('hidden'); } });
-    if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) { el.searchDropdown.innerHTML = ''; results.sort((a, b) => (b.popularity || b.vote_count || 0) - (a.popularity || a.vote_count || 0)).slice(0, 6).forEach(item => { const isPerson = item.__mediaType === 'person'; const displayTitle = getResultTitle(item); const date = getResultDate(item); const year = date ? date.split('-')[0] : ''; const imagePath = isPerson ? item.profile_path : item.poster_path; const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : ''; const row = document.createElement('div'); row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0'; const safeTitle = escapeHTML(displayTitle); let badgeLabel = ''; let badgeColor = ''; if (item.__mediaType === 'tv') { badgeLabel = 'TV'; badgeColor = 'text-blue-400 border-blue-500/30'; } else if (item.__mediaType === 'person') { badgeLabel = item.known_for_department === 'Directing' ? 'DIRECTOR' : 'ACTOR'; badgeColor = 'text-purple-400 border-purple-500/30'; } else { badgeLabel = 'MOVIE'; badgeColor = 'text-gray-400 border-gray-500/30'; } const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR'); row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="text-[#01b4e4] text-[10px] font-bold">${escapeHTML(ratingOrDept)}</span></div>`; row.addEventListener('click', () => { el.quickSearchInput.value = displayTitle; el.searchDropdown.classList.add('hidden'); if (item.__mediaType === 'person') { openActorModal(item.id, item.name, item.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(item); } }); el.searchDropdown.appendChild(row); }); el.searchDropdown.classList.remove('hidden'); } }, 400); }); }
+    if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) { el.searchDropdown.innerHTML = ''; results.sort((a, b) => (b.popularity || b.vote_count || 0) - (a.popularity || a.vote_count || 0)).slice(0, 6).forEach(item => { const isPerson = item.__mediaType === 'person'; const displayTitle = getResultTitle(item); const date = getResultDate(item); const year = date ? date.split('-')[0] : ''; const imagePath = isPerson ? item.profile_path : item.poster_path; const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : ''; const row = document.createElement('div'); row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0'; const safeTitle = escapeHTML(displayTitle); let badgeLabel = ''; let badgeColor = ''; if (item.__mediaType === 'tv') { badgeLabel = 'TV'; badgeColor = 'text-blue-400 border-blue-500/30'; } else if (item.__mediaType === 'person') { badgeLabel = item.known_for_department === 'Directing' ? 'DIRECTOR' : 'ACTOR'; badgeColor = 'text-purple-400 border-purple-500/30'; } else { badgeLabel = 'MOVIE'; badgeColor = 'text-gray-400 border-gray-500/30'; } const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR'); row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="text-blue-400 text-[10px] font-bold">${escapeHTML(ratingOrDept)}</span></div>`; row.addEventListener('click', () => { el.quickSearchInput.value = displayTitle; el.searchDropdown.classList.add('hidden'); if (item.__mediaType === 'person') { openActorModal(item.id, item.name, item.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(item); } }); el.searchDropdown.appendChild(row); }); el.searchDropdown.classList.remove('hidden'); } }, 400); }); }
     async function renderSingleMovieResult(movie) {
       if (!el.quickSearchResult) return; el.quickSearchResult.innerHTML = `<div class="glass-panel p-5 rounded-2xl text-center"><p class="text-blue-400 text-sm font-bold uppercase tracking-widest animate-pulse">Scanning Global Database...</p></div>`; el.quickSearchResult.classList.remove('hidden');
       try {
@@ -3058,7 +3072,7 @@
           const pNum = parseInt(txt, 10);
           if (!isNaN(pNum) && pNum > totalPages) totalPages = pNum;
         });
-      } catch(e) { console.warn('[Letterboxd Total Pages Parse]', e); }
+      } catch (e) { console.warn('[Letterboxd Total Pages Parse]', e); }
       totalPages = Math.min(MAX_WATCHLIST_PAGES, totalPages);
 
       const fetchSinglePage = async (page) => {
@@ -3432,7 +3446,7 @@
           const subtext = roleStr ? `${mYear ? mYear + ' · ' : ''}${roleStr}` : (mYear || '');
           const filmRating = getTmdbRating(m);
           const actorRatingHtml = filmRating
-            ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black text-[#01b4e4] border border-[#01b4e4]/35 shadow-lg z-20">TMDB ${filmRating}</div>`
+            ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black text-blue-400 border border-blue-500/30 shadow-lg z-20">TMDB ${filmRating}</div>`
             : '';
 
           filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="handleActorFilmClick(${m.id}, '', ${!isModal})">
@@ -3527,7 +3541,7 @@
         const validCredits = rawCredits.filter(m => (m.title || m.name) && m.backdrop_path && !isVoiceRole(m));
         const wellKnownCredits = validCredits.filter(m => !isObscure(m));
         const pool = wellKnownCredits.length > 0 ? wellKnownCredits : validCredits;
-        
+
         // Tier 1: THE single main lead character (order === 0) or Director
         const singleMainLeadCredits = pool.filter(m => m.order === 0 || m.job === 'Director')
           .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
@@ -3553,9 +3567,9 @@
       const bannerBackdropHtml = knownForBackdrop
         ? `<img src="${knownForBackdrop}" alt="${escapeHTML(knownForTitle)} backdrop" loading="lazy" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu"><div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/60 to-black/40"></div>`
         : (profileImg
-            ? `<img src="${profileImg}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover object-top scale-125 blur-3xl opacity-40"><div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/60 to-black/40"></div>`
-            : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div><div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/60 to-transparent"></div>`
-          );
+          ? `<img src="${profileImg}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover object-top scale-125 blur-3xl opacity-40"><div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/60 to-black/40"></div>`
+          : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div><div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/60 to-transparent"></div>`
+        );
 
       return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-4xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200 border-b border-white/5 pb-4"><span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black inline-flex items-center gap-1.5">${movieCountIcon}${allMovies.length} Movies</span>${birthday ? `<span class="text-white font-extrabold">${birthday}</span>` : ''}${ageStr ? `<span class="text-gray-500">&bull;</span><span>${ageStr}</span>` : ''}${birthplace ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${birthplace}</span>` : ''}</div>${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-sm font-extrabold uppercase tracking-widest text-gray-400">Filmography <span class="text-gray-500">(${moviesToShow.length}${showWatchlistOnly ? ' in watchlist' : ' total'})</span></h3><div class="flex gap-2"><button class="actor-toggle-btn ${watchlistBtnActive}" onclick="actorModalWatchlistMode=true; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(${!isModal})">Your Watchlist${watchlistMovies.length > 0 ? ` <span class='ml-1 opacity-60'>${watchlistMovies.length}</span>` : ''}</button><button class="actor-toggle-btn ${allBtnActive}" onclick="actorModalWatchlistMode=false; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(${!isModal})">All Movies${allMovies.length > 0 ? ` <span class='ml-1 opacity-60'>${allMovies.length}</span>` : ''}</button></div></div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="flex items-center gap-2 shrink-0 w-full lg:w-auto"><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${instaBtn}${twitterBtn}${shareBtn}</div>`;
     }
