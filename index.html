@@ -3660,7 +3660,12 @@
           ...(creditsObj.cast || []),
           ...(creditsObj.crew || [])
         ];
-        const validCredits = rawCredits.filter(m => (m.title || m.name) && m.backdrop_path);
+        const isVoiceRole = (m) => {
+          if (!m.character) return false;
+          return /voice|uncredited|\bself\b/i.test(m.character);
+        };
+
+        const validCredits = rawCredits.filter(m => (m.title || m.name) && m.backdrop_path && !isVoiceRole(m));
         
         // Prioritize THE lead role (order === 0 or order < 3) or Director job
         const leadCredits = validCredits.filter(m => m.order === 0 || (typeof m.order === 'number' && m.order < 3) || m.job === 'Director');
