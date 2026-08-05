@@ -3414,7 +3414,7 @@
 
     async function getActorDetails(actorId) {
       if (actorDetailsCache.has(actorId)) return actorDetailsCache.get(actorId);
-      const url = `https://api.themoviedb.org/3/person/${actorId}?api_key=${TMDB_API_KEY}&append_to_response=movie_credits,external_ids,images`;
+      const url = `https://api.themoviedb.org/3/person/${actorId}?api_key=${TMDB_API_KEY}&append_to_response=combined_credits,movie_credits,external_ids,images`;
       try {
         const res = await fetch(url);
         const data = await res.json();
@@ -3654,24 +3654,29 @@
       // Find top backdrop from actor's credits for "Known for" hero banner
       let knownForBackdrop = null;
       let knownForTitle = '';
-      if (person.movie_credits) {
+      const creditsObj = person.combined_credits || person.movie_credits;
+      if (creditsObj) {
         const rawCredits = [
-          ...(person.movie_credits.cast || []),
-          ...(person.movie_credits.crew || [])
+          ...(creditsObj.cast || []),
+          ...(creditsObj.crew || [])
         ];
-        const sortedCredits = rawCredits
-          .filter(m => (m.title || m.name) && m.backdrop_path)
-          .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+        const validCredits = rawCredits.filter(m => (m.title || m.name) && m.backdrop_path);
+        
+        // Prioritize THE lead role (order === 0 or order < 3) or Director job
+        const leadCredits = validCredits.filter(m => m.order === 0 || (typeof m.order === 'number' && m.order < 3) || m.job === 'Director');
+        
+        const sortedLead = leadCredits.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+        const sortedAll = validCredits.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
-        if (sortedCredits.length > 0) {
-          const topCredit = sortedCredits[0];
-          knownForBackdrop = `https://image.tmdb.org/t/p/w1280${topCredit.backdrop_path}`;
-          knownForTitle = topCredit.title || topCredit.name || '';
+        const chosenCredit = sortedLead[0] || sortedAll[0] || null;
+        if (chosenCredit) {
+          knownForBackdrop = `https://image.tmdb.org/t/p/w1280${chosenCredit.backdrop_path}`;
+          knownForTitle = chosenCredit.title || chosenCredit.name || '';
         }
       }
 
       const knownForSubtitle = knownForTitle
-        ? `<div class="mt-1.5 flex items-center gap-2"><span class="bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-md border border-white/10 text-[10px] sm:text-xs font-bold text-gray-300 tracking-wide inline-flex items-center gap-1.5 shadow-md"><span class="text-blue-400 font-extrabold uppercase text-[9px] sm:text-[10px] tracking-wider">Known for</span> <strong class="text-white drop-shadow">${escapeHTML(knownForTitle)}</strong></span></div>`
+        ? `<p class="text-xs sm:text-sm font-medium text-gray-300 drop-shadow mt-1"><span class="text-blue-400 font-extrabold uppercase text-[10px] sm:text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>`
         : '';
 
       const bannerBackdropHtml = knownForBackdrop
