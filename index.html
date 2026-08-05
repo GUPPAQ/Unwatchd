@@ -2245,23 +2245,25 @@
       const normT = movieObj.title ? normalizeTitle(movieObj.title) : '';
       const cacheKey = imdbId || (normT ? `${normT}_${year}` : null);
       const ratingInfo = getRatingInfo(movieObj);
-      const displayRating = ratingInfo.rating || 'NR';
+      const displayRating = ratingInfo.rating;
       const ratingLabel = ratingInfo.label;
-      const ratingBadgeColor = ratingInfo.source === 'omdb' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
+      const ratingBadgeColor = ratingInfo.source === 'omdb' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30';
+      const modalRatingBadgeHtml = displayRating ? `<span id="modalRatingBadge" class="${ratingBadgeColor} px-3 py-1 rounded-lg shadow-sm text-xs font-black">${ratingLabel} ${displayRating}</span>` : `<span id="modalRatingBadge" class="hidden"></span>`;
 
       const requestId = movieObj.id;
       window.currentModalMovieId = requestId;
 
-      if (!omdbCache.has(cacheKey) && (imdbId || movieObj.title)) {
+      if ((!cacheKey || !omdbCache.has(cacheKey) || !isOmdbCacheValid(omdbCache.get(cacheKey))) && (imdbId || movieObj.title)) {
         fetchImdbRating(imdbId, movieObj.title, year, movieObj.rating).then(res => {
           if (window.currentModalMovieId !== requestId) return;
           const b = document.getElementById('modalRatingBadge');
-          if (b && res) {
-            const rVal = typeof res === 'object' ? res.rating : res;
-            const rSrc = typeof res === 'object' ? res.source : 'omdb';
+          if (b && res && res.rating) {
+            const rVal = res.rating;
+            const rSrc = res.source || 'omdb';
             const rLabel = rSrc === 'omdb' ? 'IMDb' : 'TMDB';
             b.innerHTML = `${rLabel} ${rVal}`;
-            b.className = rSrc === 'omdb' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black';
+            b.className = rSrc === 'omdb' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black';
+            b.classList.remove('hidden');
           }
         });
       }
@@ -2373,12 +2375,14 @@
           const mRating = m.vote_average ? m.vote_average.toFixed(1) : null;
           const mYear = m.release_date ? m.release_date.split('-')[0] : '';
           const isInWatchlist = watchlistIds.has(m.id);
+          const recRatingInfo = getRatingInfo(m);
+          const recBadgeColor = recRatingInfo.source === 'omdb' ? 'text-yellow-400 border-yellow-500/20' : 'text-sky-400 border-sky-500/20';
           return `<div class="tilt-card animate-fade shrink-0 w-28 sm:w-36 cursor-pointer z-10 hover:z-30 relative" onclick="handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})">
             <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
               <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
               <div class="glare"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
-              ${mRating && parseFloat(mRating) > 0 ? `<div class="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black text-yellow-400 border border-yellow-500/20 shadow-lg z-20">IMDb ${mRating}</div>` : ''}
+              ${recRatingInfo.rating && parseFloat(recRatingInfo.rating) > 0 ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black ${recBadgeColor} border shadow-lg z-20">${recRatingInfo.label} ${recRatingInfo.rating}</div>` : ''}
               ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-blue-600/80 backdrop-blur-md px-2 py-0.5 rounded-lg text-[10px] font-black text-white border border-blue-400/30 shadow-lg flex items-center gap-1 z-20">✓ Watchlist</div>` : ''}
               <div class="absolute bottom-0 left-0 w-full p-3 z-20">
                 <h4 class="text-white font-bold text-xs leading-tight drop-shadow-md line-clamp-1 mb-0.5">${mTitle}</h4>
@@ -2394,7 +2398,7 @@
       const soundBtnHtml = bestTrailer ? `<button id="heroSoundToggleBtn" onclick="toggleHeroVideoSound()" type="button" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="absolute bottom-4 right-4 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-black/40 hover:bg-black/75 backdrop-blur-md border border-white/10 text-white/80 hover:text-white transition-all cursor-pointer"><svg id="heroSoundIconMuted" class="w-4 h-4 text-white/80 ${isHeroVideoMuted ? '' : 'hidden'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg><svg id="heroSoundIconUnmuted" class="w-4 h-4 text-white ${isHeroVideoMuted ? 'hidden' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg></button>` : '';
       const heroVideoHtml = bestTrailer ? `<div class="absolute inset-0 overflow-hidden pointer-events-none z-10 clip-mask"><iframe id="heroVideoIframe" src="https://www.youtube-nocookie.com/embed/${bestTrailer.key}?autoplay=1&mute=${initialMuteParam}&controls=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&modestbranding=1&iv_load_policy=3&rel=0" title="${safeTitle} preview" allow="autoplay; encrypted-media" class="w-[150%] h-[150%] absolute -top-[25%] -left-[25%] pointer-events-none object-cover scale-115 opacity-0 transition-opacity duration-500 transform-gpu" onload="onHeroVideoLoad(this)"></iframe></div>${soundBtnHtml}` : '';
 
-      return `${closeBtn}<div class="relative w-full h-[360px] sm:h-[460px] shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="lazy" decoding="async" class="w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/50 to-transparent pointer-events-none z-10"></div><div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-10"></div></div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-20 min-h-[20rem]"><div class="flex flex-col justify-end items-start h-auto flex-1 min-w-0 z-20">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200"><span id="modalRatingBadge" class="${ratingBadgeColor} px-3 py-1 rounded-lg shadow-sm text-xs font-black">${ratingLabel} ${displayRating}</span><span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span>` : ''}</div>${trailerHeaderBtn ? `<div class="shrink-0">${trailerHeaderBtn}</div>` : ''}</div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-wrap gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
+      return `${closeBtn}<div class="relative w-full h-[360px] sm:h-[460px] shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="lazy" decoding="async" class="w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/50 to-transparent pointer-events-none z-10"></div><div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-10"></div></div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-20 min-h-[20rem]"><div class="flex flex-col justify-end items-start h-auto flex-1 min-w-0 z-20">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span>` : ''}</div>${trailerHeaderBtn ? `<div class="shrink-0">${trailerHeaderBtn}</div>` : ''}</div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-wrap gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
     }
 
     function getShortText(text, limit = 195) {
@@ -2767,12 +2771,28 @@
     // ── OMDb / IMDb Rating Integration ──────────────────────────────────────────
     const OMDB_API_KEY = "5029a8ad";
     const omdbCache = new Map();
+    const OMDB_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days for real IMDb rating
+    const TMDB_FALLBACK_TTL = 12 * 60 * 60 * 1000;   // 12 hours for temporary fallback
+
+    function isOmdbCacheValid(val) {
+      if (!val) return false;
+      if (typeof val === 'string' || typeof val === 'number') return true;
+      const now = Date.now();
+      const ts = val.ts || val.timestamp || 0;
+      if (!ts) return true;
+      const ttl = (val.source === 'tmdb') ? TMDB_FALLBACK_TTL : OMDB_CACHE_TTL;
+      return (now - ts) < ttl;
+    }
 
     try {
       const savedOmdb = localStorage.getItem('unwatchd_omdb_cache');
       if (savedOmdb) {
         const parsed = JSON.parse(savedOmdb);
-        Object.keys(parsed).forEach(k => omdbCache.set(k, parsed[k]));
+        Object.keys(parsed).forEach(k => {
+          if (isOmdbCacheValid(parsed[k])) {
+            omdbCache.set(k, parsed[k]);
+          }
+        });
       }
     } catch (e) { console.warn('[OMDb Cache Read]', e); }
 
@@ -2785,21 +2805,29 @@
     }
 
     function getRatingInfo(movieObj) {
-      if (!movieObj) return { rating: 'NR', label: 'TMDB', source: 'tmdb' };
+      if (!movieObj) return { rating: null, label: 'TMDB', source: 'tmdb' };
       const yearStr = movieObj.releaseDate ? String(movieObj.releaseDate).split('-')[0] : (movieObj.release_date ? String(movieObj.release_date).split('-')[0] : '');
       const title = movieObj.title;
       const imdbId = movieObj.imdbId || movieObj.imdb_id;
       const cacheKey = imdbId || (title ? `${normalizeTitle(title)}_${yearStr}` : null);
       if (cacheKey && omdbCache.has(cacheKey)) {
         const val = omdbCache.get(cacheKey);
-        if (typeof val === 'object') {
-          const src = val.source || (val.votes > 0 ? 'omdb' : 'tmdb');
-          return { rating: val.rating, label: src === 'omdb' ? 'IMDb' : 'TMDB', source: src };
+        if (isOmdbCacheValid(val)) {
+          if (typeof val === 'object' && val !== null) {
+            const src = val.source || (val.votes > 0 ? 'omdb' : 'tmdb');
+            return { rating: val.rating, label: src === 'omdb' ? 'IMDb' : 'TMDB', source: src };
+          }
+          return { rating: String(val), label: 'IMDb', source: 'omdb' };
         }
-        return { rating: val, label: 'IMDb', source: 'omdb' };
       }
-      const tmdbVal = movieObj.rating || (movieObj.vote_average ? movieObj.vote_average.toFixed(1) : null);
-      return { rating: tmdbVal || 'NR', label: 'TMDB', source: 'tmdb' };
+      const tmdbRaw = movieObj.rating || movieObj.vote_average;
+      let tmdbVal = null;
+      if (typeof tmdbRaw === 'number' && tmdbRaw > 0) {
+        tmdbVal = tmdbRaw.toFixed(1);
+      } else if (typeof tmdbRaw === 'string' && parseFloat(tmdbRaw) > 0) {
+        tmdbVal = parseFloat(tmdbRaw).toFixed(1);
+      }
+      return { rating: tmdbVal, label: 'TMDB', source: 'tmdb' };
     }
 
     function getCachedRating(movieObj) {
@@ -2815,7 +2843,7 @@
       const cacheKey = imdbId || (title ? `${normalizeTitle(title)}_${yearStr}` : null);
       if (cacheKey && omdbCache.has(cacheKey)) {
         const val = omdbCache.get(cacheKey);
-        if (typeof val === 'object' && val.votes > 0) return val.votes;
+        if (isOmdbCacheValid(val) && typeof val === 'object' && val.votes > 0) return val.votes;
       }
       if (typeof m.vote_count === 'number' && m.vote_count > 0) return m.vote_count;
       return m.popularity || 0;
@@ -2828,11 +2856,13 @@
 
       if (cacheKey && omdbCache.has(cacheKey)) {
         const cached = omdbCache.get(cacheKey);
-        if (typeof cached === 'object') {
-          const src = cached.source || (cached.votes > 0 ? 'omdb' : 'tmdb');
-          return { rating: cached.rating, source: src };
+        if (isOmdbCacheValid(cached)) {
+          if (typeof cached === 'object' && cached !== null) {
+            const src = cached.source || (cached.votes > 0 ? 'omdb' : 'tmdb');
+            return { rating: cached.rating, source: src };
+          }
+          return { rating: cached, source: 'omdb' };
         }
-        return { rating: cached, source: 'omdb' };
       }
 
       const fallbackStr = tmdbFallback ? (typeof tmdbFallback === 'number' ? tmdbFallback.toFixed(1) : String(tmdbFallback)) : null;
@@ -2851,7 +2881,7 @@
         const res = await fetch(url);
         if (!res.ok) {
           if (cacheKey && fallbackStr) {
-            omdbCache.set(cacheKey, { rating: fallbackStr, votes: 0, source: 'tmdb' });
+            omdbCache.set(cacheKey, { rating: fallbackStr, votes: 0, source: 'tmdb', ts: Date.now() });
             saveOmdbCache();
           }
           return { rating: fallbackStr, source: 'tmdb' };
@@ -2863,7 +2893,7 @@
           const votesVal = (data.imdbVotes && data.imdbVotes !== "N/A") ? parseInt(data.imdbVotes.replace(/,/g, ''), 10) : 0;
           const awardsVal = (data.Awards && data.Awards !== "N/A") ? data.Awards : null;
           const src = isRealImdb ? 'omdb' : 'tmdb';
-          const cacheObj = { rating: ratingVal, votes: votesVal, source: src, awards: awardsVal };
+          const cacheObj = { rating: ratingVal, votes: votesVal, source: src, awards: awardsVal, ts: Date.now() };
           if (cacheKey) omdbCache.set(cacheKey, cacheObj);
           if (imdbId && normT) omdbCache.set(`${normT}_${yearStr}`, cacheObj);
           saveOmdbCache();
@@ -2872,7 +2902,7 @@
       } catch (e) { console.warn('[OMDb Rating Fetch]', e); }
 
       if (cacheKey && fallbackStr) {
-        const cacheObj = { rating: fallbackStr, votes: 0, source: 'tmdb' };
+        const cacheObj = { rating: fallbackStr, votes: 0, source: 'tmdb', ts: Date.now() };
         omdbCache.set(cacheKey, cacheObj);
         saveOmdbCache();
       }
@@ -2933,17 +2963,22 @@
       const yearStr = movieObj.releaseDate ? String(movieObj.releaseDate).split('-')[0] : '';
       const normT = movieObj.title ? normalizeTitle(movieObj.title) : '';
       const cacheKey = movieObj.imdbId || (normT ? `${normT}_${yearStr}` : null);
-      let initialRating = cacheKey && omdbCache.has(cacheKey) ? omdbCache.get(cacheKey) : movieObj.rating;
+      const ratingInfo = getRatingInfo(movieObj);
 
-      if (initialRating && parseFloat(initialRating) > 0) {
+      if (ratingInfo.rating && parseFloat(ratingInfo.rating) > 0) {
+        const isImdb = ratingInfo.source === 'omdb';
+        const colorClass = isImdb ? 'text-yellow-400 border-yellow-500/30' : 'text-sky-400 border-sky-500/30';
         const badge = document.createElement('div');
-        badge.className = 'absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black text-yellow-400 border border-yellow-500/20 shadow-lg z-20';
-        badge.innerHTML = `IMDb ${initialRating}`;
+        badge.className = `absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black ${colorClass} border shadow-lg z-20`;
+        badge.innerHTML = `${ratingInfo.label} ${ratingInfo.rating}`;
         a.appendChild(badge);
 
-        if (!omdbCache.has(cacheKey) && movieObj.title) {
+        if (ratingInfo.source === 'tmdb' && (!cacheKey || !omdbCache.has(cacheKey) || !isOmdbCacheValid(omdbCache.get(cacheKey))) && movieObj.title) {
           fetchImdbRating(movieObj.imdbId, movieObj.title, yearStr, movieObj.rating).then(r => {
-            if (r && badge) badge.innerHTML = `IMDb ${r}`;
+            if (r && r.rating && r.source === 'omdb') {
+              badge.className = 'absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black text-yellow-400 border border-yellow-500/30 shadow-lg z-20';
+              badge.innerHTML = `IMDb ${r.rating}`;
+            }
           });
         }
       }
@@ -3588,13 +3623,29 @@
           const isInWatchlist = watchlistIds.has(m.id);
           const roleStr = isDirector ? 'Director' : (mChar ? mChar : '');
           const subtext = roleStr ? `${mYear ? mYear + ' · ' : ''}${roleStr}` : (mYear || '');
+          const actorRatingInfo = getRatingInfo(m);
+          const actorBadgeColor = actorRatingInfo.source === 'omdb' ? 'text-yellow-400 border-yellow-500/20' : 'text-sky-400 border-sky-500/20';
+          const actorRatingHtml = actorRatingInfo.rating && parseFloat(actorRatingInfo.rating) > 0
+            ? `<div id="actorFilmRating_${m.id}" class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black ${actorBadgeColor} border shadow-lg z-20">${actorRatingInfo.label} ${actorRatingInfo.rating}</div>`
+            : '';
+
+          if ((!cacheKey || !omdbCache.has(cacheKey) || !isOmdbCacheValid(omdbCache.get(cacheKey))) && m.title) {
+            fetchImdbRating(null, m.title, mYear, m.vote_average).then(r => {
+              const badgeEl = document.getElementById(`actorFilmRating_${m.id}`);
+              if (badgeEl && r && r.rating) {
+                const isImdb = r.source === 'omdb';
+                badgeEl.className = `absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black ${isImdb ? 'text-yellow-400 border-yellow-500/20' : 'text-sky-400 border-sky-500/20'} border shadow-lg z-20`;
+                badgeEl.innerHTML = `${isImdb ? 'IMDb' : 'TMDB'} ${r.rating}`;
+              }
+            });
+          }
 
           filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="handleActorFilmClick(${m.id}, '', ${!isModal})">
             <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
               ${mPoster ? `<img src="${mPoster}" alt="${mTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
               <div class="glare"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
-              ${mRating && parseFloat(mRating) > 0 ? `<div id="actorFilmRating_${m.id}" class="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black text-yellow-400 border border-yellow-500/20 shadow-lg z-20">IMDb ${mRating}</div>` : ''}
+              ${actorRatingHtml}
               ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-blue-600/80 backdrop-blur-md px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black text-white border border-blue-400/30 shadow-lg flex items-center gap-1 z-20">✓ Watchlist</div>` : ''}
               <div class="absolute bottom-0 left-0 w-full p-3 sm:p-4 z-20">
                 <h4 class="text-white font-bold text-xs sm:text-sm leading-tight drop-shadow-md line-clamp-2 mb-0.5">${mTitle}</h4>
