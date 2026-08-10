@@ -42,6 +42,8 @@
       pointer-events: none !important;
       user-select: none !important;
       -webkit-user-select: none !important;
+      transform: scale(1.15) !important;
+      transform-origin: center center !important;
     }
 
     #heroVideoFullscreenIframe {
@@ -3250,9 +3252,8 @@
       if (!rect.width || !rect.height) return;
       const videoAspect = 16 / 9;
       const containerAspect = rect.width / rect.height;
-      // Small safety margin on top of the exact math — guards against sub-pixel rounding and
-      // mobile browsers whose chrome (address bar) still hasn't settled when we first measure.
-      const SAFETY = 1.3;
+      // Safety factor to zoom in the hero background trailer video and eliminate all letterboxes
+      const SAFETY = 1.55;
       let w, h;
       if (containerAspect > videoAspect) { w = rect.width * SAFETY; h = w / videoAspect; }
       else { h = rect.height * SAFETY; w = h * videoAspect; }
