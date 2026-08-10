@@ -422,15 +422,17 @@
       overflow: visible !important;
     }
 
-    /* Vertical padding & negative margins on horizontal tracks so glow fits vertically without shifting horizontal grid alignment or cutting off cards */
+    /* Vertical & horizontal padding with negative margins on horizontal tracks so glow fits on all sides without shifting alignment or clipping cards */
     #castCrewTrack,
     #similarMoviesTrack {
       padding-top: 14px !important;
       padding-bottom: 16px !important;
-      padding-left: 0 !important;
-      padding-right: 0 !important;
+      padding-left: 12px !important;
+      padding-right: 12px !important;
       margin-top: -14px !important;
       margin-bottom: -16px !important;
+      margin-left: -12px !important;
+      margin-right: -12px !important;
     }
 
     .tilt-card-inner {
@@ -1326,26 +1328,27 @@
     </div>
   </div>
 
+  <!-- FULL SCREEN TRAILER POPUP MODAL -->
   <div id="trailerModal"
-    class="fixed inset-0 z-[300] hidden items-center justify-center p-3 sm:p-6 landscape:p-2 pointer-events-none">
+    class="fixed inset-0 z-[300] hidden items-center justify-center p-0 pointer-events-none">
     <div id="trailerModalBackdrop"
-      class="absolute inset-0 bg-black/90 backdrop-blur-xl transition-opacity duration-300 opacity-0 pointer-events-auto cursor-pointer">
+      class="absolute inset-0 bg-black/95 backdrop-blur-2xl transition-opacity duration-300 opacity-0 pointer-events-auto cursor-pointer">
     </div>
     <div id="trailerModalContainer"
-      class="relative w-full max-w-4xl sm:max-w-5xl md:max-w-6xl max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-3rem)] landscape:max-h-[calc(100dvh-1rem)] glass-panel rounded-3xl landscape:rounded-xl shadow-[0_30px_90px_rgba(0,0,0,0.9)] transition-all duration-300 transform translate-y-8 opacity-0 pointer-events-auto flex flex-col bg-[#0b1121] overflow-hidden border border-white/10">
+      class="relative w-full h-full max-w-none max-h-none transition-all duration-300 transform translate-y-8 opacity-0 pointer-events-auto flex flex-col bg-black overflow-hidden border-none">
       <div
-        class="flex items-center justify-between p-3 px-5 sm:p-4 sm:px-6 border-b border-white/10 bg-black/40 shrink-0 landscape:absolute landscape:top-0 landscape:right-0 landscape:z-30 landscape:border-none landscape:bg-transparent landscape:p-3 landscape:pointer-events-none">
-        <h3 id="trailerModalTitle" class="text-sm sm:text-base font-bold text-white truncate pr-4 landscape:hidden">
+        class="absolute top-0 inset-x-0 z-30 flex items-center justify-between p-4 px-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
+        <h3 id="trailerModalTitle" class="text-base sm:text-lg font-bold text-white truncate pr-4 drop-shadow-md">
           Official Trailer</h3>
-        <button id="closeTrailerModalBtn"
-          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center transition-all border border-white/20 shadow-xl cursor-pointer shrink-0 pointer-events-auto">
+        <button id="closeTrailerModalBtn" aria-label="Close"
+          class="w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all border border-white/20 shadow-xl cursor-pointer shrink-0 pointer-events-auto">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
       </div>
       <div
-        class="relative w-full flex-1 min-h-0 aspect-video bg-black flex items-center justify-center landscape:h-full">
+        class="relative w-full h-full bg-black flex items-center justify-center">
         <div id="trailerIframeWrapper" class="w-full h-full"></div>
       </div>
     </div>
