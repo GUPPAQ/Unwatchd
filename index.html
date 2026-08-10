@@ -3283,6 +3283,8 @@
       });
     }
 
+    let heroRevealTimeout = null;
+
     window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
       fitHeroVideoCover(iframeEl);
@@ -3293,19 +3295,18 @@
         iframeEl.contentWindow.postMessage('{"event":"command","func":"unloadModule","args":["cc"]}', '*');
         iframeEl.contentWindow.postMessage('{"event":"command","func":"setOption","args":["captions","track",{}]}', '*');
       } catch (err) { console.warn('[Hero Video Listen Handshake]', err); }
-      // Hold on the static banner for a few seconds first — this hides the YouTube player's own
-      // startup chrome (a brief pause-icon/UI flash) the same way Apple TV holds on the poster
-      // before crossfading into the trailer.
-      setTimeout(() => { revealHeroVideo(iframeEl); }, 4600);
+      if (heroRevealTimeout) clearTimeout(heroRevealTimeout);
+      heroRevealTimeout = setTimeout(() => { revealHeroVideo(iframeEl); }, 4600);
     };
 
     function revealHeroVideo(iframeEl) {
-      if (!iframeEl) return;
+      if (!iframeEl || !document.getElementById('heroVideoIframe')) return;
       fitHeroVideoCover(iframeEl);
       const overlay = document.getElementById('heroFadeOverlay');
       // Fade to black first...
       if (overlay) overlay.style.opacity = '1';
       setTimeout(() => {
+        if (!document.getElementById('heroVideoIframe')) return;
         iframeEl.style.opacity = '1';
         try {
           // Ask YouTube for the best quality it's willing to give this connection and unload captions.
@@ -3322,17 +3323,28 @@
         }
         // ...hold on black a little longer...
         setTimeout(() => {
-          // ...then fade from black into the now-playing video underneath.
           if (overlay) overlay.style.opacity = '0';
         }, 380);
       }, 450);
     }
 
-    // When the trailer finishes, fade back to the static banner — same crossfade, reversed.
+    // Window message listener for YouTube player events
     window.addEventListener('message', (e) => {
       let data;
       try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch (err) { return; }
-      if (!data || data.event !== 'onStateChange' && !(data.event === 'infoDelivery' && data.info)) return;
+      if (!data) return;
+
+      // Track trailer player state (1 = playing, 2 = paused, 0 = ended)
+      if (data.event === 'onStateChange' || (data.event === 'infoDelivery' && data.info && data.info.playerState !== undefined)) {
+        const state = data.event === 'onStateChange' ? data.info : data.info.playerState;
+        if (state === 1) {
+          isTrailerPaused = false;
+        } else if (state === 2 || state === 0) {
+          isTrailerPaused = true;
+        }
+      }
+
+      if (data.event !== 'onStateChange' && !(data.event === 'infoDelivery' && data.info)) return;
       const state = data.event === 'onStateChange' ? data.info : (data.info && data.info.playerState);
       if (state === 0) {
         const fsContainer = document.getElementById('heroVideoFullscreen');
