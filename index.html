@@ -4331,7 +4331,11 @@
     function findBestTmdbMatch(queryObj, results) {
       if (!results || results.length === 0) return null;
       const qNorm = normalizeTitle(queryObj.title);
-      const qYear = queryObj.year ? parseInt(queryObj.year) : null;
+      let qYear = queryObj.year ? parseInt(queryObj.year) : null;
+      if (!qYear && queryObj.slug) {
+        const sm = queryObj.slug.match(/-(\d{4})$/);
+        if (sm) qYear = parseInt(sm[1]);
+      }
       if (!qNorm) return null;
       const exactMatches = results.filter(r => normalizeTitle(getResultTitle(r)) === qNorm || normalizeTitle(getResultOriginalTitle(r)) === qNorm);
       if (exactMatches.length === 1) {
@@ -4572,6 +4576,10 @@
             const source = altText || title || '';
             const m = source.match(/\((\d{4})\)/);
             if (m) year = m[1];
+          }
+          if (!year && slug) {
+            const sm = slug.match(/-(\d{4})$/);
+            if (sm) year = sm[1];
           }
           if (title && title.toLowerCase() !== 'film poster' && title.trim().length > 0) {
             extracted.push({ title: title.trim(), year: year ? String(year).trim() : null, slug: slug ? String(slug).trim() : null });
@@ -4986,16 +4994,28 @@
         const wellKnownCredits = validCredits.filter(m => !isObscure(m));
         const pool = wellKnownCredits.length > 0 ? wellKnownCredits : validCredits;
 
-        const creditScore = (m) => (m.vote_count || 0) + (m.episode_count || 0) * 500;
+        const creditScore = (m) => {
+          const votes = m.vote_count || 0;
+          const pop = m.popularity || 0;
+          const avg = m.vote_average || 0;
+          const eps = m.episode_count || 0;
+          // Cap episode bonus so 150 eps doesn't beat 18k votes, but iconic shows get proper weight
+          const epsScore = Math.min(eps, 50) * 50;
+          return votes + (pop * 50) + (avg * 500) + epsScore;
+        };
 
-        // Tier 1: THE single main lead character (order === 0), or their top directing
-        // credit if they're primarily known as a director (not an actor who has also directed).
-        const singleMainLeadCredits = pool.filter(m => m.order === 0 || (isDirector && m.job === 'Director'))
-          .sort((a, b) => creditScore(b) - creditScore(a) || (b.popularity || 0) - (a.popularity || 0));
+        // Tier 1: Lead roles — order === 0 for movies, OR significant TV roles (10+ episodes)
+        const singleMainLeadCredits = pool.filter(m =>
+          m.order === 0 ||
+          (m.media_type === 'tv' && (m.episode_count || 0) >= 10) ||
+          (isDirector && m.job === 'Director')
+        ).sort((a, b) => creditScore(b) - creditScore(a) || (b.popularity || 0) - (a.popularity || 0));
 
-        // Tier 2: Top billing co-lead roles (order < 3)
-        const topCoLeadCredits = pool.filter(m => typeof m.order === 'number' && m.order < 3)
-          .sort((a, b) => creditScore(b) - creditScore(a) || (b.popularity || 0) - (a.popularity || 0));
+        // Tier 2: Top billing co-lead roles (order < 3) or notable TV appearances
+        const topCoLeadCredits = pool.filter(m =>
+          (typeof m.order === 'number' && m.order < 3) ||
+          (m.media_type === 'tv' && (m.episode_count || 0) >= 3)
+        ).sort((a, b) => creditScore(b) - creditScore(a) || (b.popularity || 0) - (a.popularity || 0));
 
         // Tier 3: All pool credits sorted by weighted score
         const sortedAll = pool.sort((a, b) => creditScore(b) - creditScore(a) || (b.popularity || 0) - (a.popularity || 0));
