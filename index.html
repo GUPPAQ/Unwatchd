@@ -2663,8 +2663,9 @@
 
       if (isPage) {
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
+        const desktopStreamingGridClass = cleanFlatrate.length > 2 ? 'grid grid-cols-2 gap-2.5' : 'flex flex-col gap-2.5';
         const watchNowCardHtml = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-wrap gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div>`;
-        const watchNowCardHtmlDesktop = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm flex flex-col justify-between h-full space-y-3.5"><div class="space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-col gap-2.5">${streamingHtmlDesktop}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}</div>${rentBuyDropdownHtml}</div>`;
+        const watchNowCardHtmlDesktop = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="${desktopStreamingGridClass}">${streamingHtmlDesktop}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div>`;
         // Same card, but grows to fill the sidebar's full stretched height on desktop (the sidebar
         // is naturally shorter than cast+similar below it) so its box bottom lines up with the left
         // column's bottom edge instead of leaving a visually mismatched gap under a short card.
@@ -2685,13 +2686,13 @@
               </div>
             </div>
           </div>
-          <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pt-0 pb-10 flex flex-col gap-10">
-            <div class="lg:hidden">${watchNowCardHtml}</div>
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-x-14 lg:gap-x-20 gap-y-10 items-stretch">
-              <div class="min-w-0">${castCrewHtml}</div>
-              <aside class="hidden lg:flex flex-col h-full">${watchNowCardHtmlDesktop}</aside>
+          <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pt-0 pb-10 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-x-14 lg:gap-x-20 gap-y-10 items-start">
+            <div class="min-w-0 flex flex-col gap-8">
+              <div class="lg:hidden">${watchNowCardHtml}</div>
+              ${castCrewHtml}
+              ${similarHtml}
             </div>
-            ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
+            <aside class="hidden lg:flex flex-col gap-5 sticky top-24">${watchNowCardHtmlDesktop}</aside>
           </div>
           <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pb-10">
             <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${shareBtn}</div>
