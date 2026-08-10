@@ -1289,6 +1289,43 @@
     </div>
   </div>
 
+  <!-- ALL CAST & CREW POPUP MODAL -->
+  <div id="allCastModal"
+    class="fixed inset-0 z-[280] hidden items-center justify-center py-5 px-4 sm:px-6 pointer-events-none">
+    <div id="allCastModalBackdrop"
+      onclick="closeAllCastModal()"
+      class="absolute inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300 opacity-0 pointer-events-auto cursor-pointer will-change-opacity transform-gpu">
+    </div>
+    <div id="allCastModalContent"
+      class="relative w-full max-w-5xl max-h-[88dvh] rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-8 opacity-0 pointer-events-auto flex flex-col bg-[#0b1121] overflow-hidden border border-white/10 will-change-transform transform-gpu">
+      <div class="p-5 sm:p-7 border-b border-white/10 flex flex-col gap-4 bg-gradient-to-r from-blue-950/40 via-gray-900 to-black shrink-0">
+        <div class="flex items-center justify-between gap-4">
+          <div class="min-w-0 flex-1">
+            <h2 id="allCastModalTitle" class="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">Full Cast &amp; Crew</h2>
+            <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-400 mt-0.5">All actors and filmmakers</p>
+          </div>
+          <button onclick="closeAllCastModal()" aria-label="Close" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-colors shrink-0 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div class="relative flex-1">
+            <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input id="allCastSearchInput" type="text" placeholder="Search cast or character..." oninput="filterAllCastGrid()" class="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-8 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500">
+          </div>
+          <div class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl shrink-0">
+            <button id="allCastTabAll" onclick="setAllCastTab('all')" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-500/25 text-blue-400 border border-blue-500/40">All</button>
+            <button id="allCastTabCast" onclick="setAllCastTab('cast')" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white border border-transparent">Cast</button>
+            <button id="allCastTabCrew" onclick="setAllCastTab('crew')" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white border border-transparent">Crew</button>
+          </div>
+        </div>
+      </div>
+      <div id="allCastModalBody" class="p-5 sm:p-7 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        <div id="allCastGrid" class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="trailerModal"
     class="fixed inset-0 z-[300] hidden items-center justify-center p-3 sm:p-6 landscape:p-2 pointer-events-none">
     <div id="trailerModalBackdrop"
@@ -2004,8 +2041,15 @@
         }
 
         return;
-      }
-      const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden'); if (e.key === 'Escape') { if (actorModalOpen) { closeActorModal(); return; } if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (isModalOpen) document.getElementById('closeModalBtn')?.click(); } if (isModalOpen && !actorModalOpen) {
+      const allCastModal = document.getElementById('allCastModal');
+      const allCastModalOpen = allCastModal && !allCastModal.classList.contains('hidden');
+      const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden');
+      if (e.key === 'Escape') {
+        if (allCastModalOpen) { closeAllCastModal(); return; }
+        if (actorModalOpen) { closeActorModal(); return; }
+        if (el.searchDropdown) el.searchDropdown.classList.add('hidden');
+        if (isModalOpen) document.getElementById('closeModalBtn')?.click();
+      } if (isModalOpen && !actorModalOpen) {
         const activeEl = document.activeElement;
         const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
         if (!isInputFocused) {
@@ -2706,11 +2750,20 @@
       const requestId = movieObj.id;
       window.currentModalMovieId = requestId;
       const directors = details && details.credits && details.credits.crew ? details.credits.crew.filter(c => c.job === 'Director') : [];
-      const topCast = details && details.credits && details.credits.cast ? details.credits.cast.slice(0, 15) : [];
+      const allCast = details && details.credits && details.credits.cast ? details.credits.cast : [];
+      const allCrew = details && details.credits && details.credits.crew ? details.credits.crew : [];
+      window.currentMovieFullCredits = {
+        movieTitle: safeTitle,
+        cast: allCast,
+        crew: allCrew,
+        directors: directors
+      };
+      const topCast = allCast.slice(0, 14);
       const crewAndCast = [...directors.map(d => ({ ...d, _role: 'Director' })), ...topCast.map(c => ({ ...c, _role: c.character || '' }))];
+      const totalCastCount = directors.length + allCast.length;
       let castCrewHtml = '';
       if (crewAndCast.length > 0) {
-        const chips = crewAndCast.map(p => {
+        let chips = crewAndCast.map(p => {
           const pImg = p.profile_path ? `https://image.tmdb.org/t/p/w185${p.profile_path}` : null;
           const pName = escapeHTML(p.name);
           const pRole = escapeHTML(p._role);
@@ -2727,7 +2780,25 @@
             ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-0.5"><span class="spotify-marquee-text text-[11.5px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
           </div>`;
         }).join('');
-        castCrewHtml = `<div class="space-y-2.5"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-gray-400">Cast &amp; Crew</h3><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-1, event)" aria-label="Scroll cast left" class="hidden sm:flex absolute left-1 sm:left-2 top-[56px] sm:top-[72px] md:top-[80px] -translate-y-1/2 z-50 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/75 hover:bg-black/95 active:scale-95 border border-white/20 text-white items-center justify-center backdrop-blur-md shadow-2xl transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-90 hover:!opacity-100 hidden"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(1, event)" aria-label="Scroll cast right" class="hidden sm:flex absolute right-1 sm:right-2 top-[56px] sm:top-[72px] md:top-[80px] -translate-y-1/2 z-50 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/75 hover:bg-black/95 active:scale-95 border border-white/20 text-white items-center justify-center backdrop-blur-md shadow-2xl transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-90 hover:!opacity-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button><div id="castCrewTrack" class="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${chips}</div></div></div>`;
+
+        const seeAllChip = `<div onclick="if(!window.isCastDragging) openFullCastModal(${isPage ? 'true' : 'false'})" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-28 sm:w-36 md:w-40 shrink-0 group/seeall cursor-pointer select-none relative">
+          <div class="glow-card w-full aspect-square rounded-full border border-blue-500/50 group-hover/seeall:border-blue-400 bg-gradient-to-br from-blue-950/60 via-blue-900/30 to-black shadow-lg shrink-0 relative flex flex-col items-center justify-center transition-all duration-300 group-hover/seeall:scale-105 group-hover/seeall:shadow-[0_0_20px_rgba(59,130,246,0.5)]">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400 group-hover/seeall:bg-blue-500 group-hover/seeall:text-white transition-colors mb-0.5">
+              <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            </div>
+            <span class="text-xs font-black text-blue-400 group-hover/seeall:text-white uppercase tracking-wider">See All</span>
+          </div>
+          <div class="spotify-marquee-container w-full pointer-events-none">
+            <span class="spotify-marquee-text text-[13px] sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">View All</span>
+          </div>
+          <div class="spotify-marquee-container w-full pointer-events-none -mt-0.5">
+            <span class="spotify-marquee-text text-[11.5px] sm:text-xs text-blue-400 font-medium text-center leading-tight pointer-events-none">${totalCastCount} People</span>
+          </div>
+        </div>`;
+
+        chips += seeAllChip;
+
+        castCrewHtml = `<div class="space-y-2.5"><div class="flex items-center justify-between"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-gray-400">Cast &amp; Crew</h3><button type="button" onclick="openFullCastModal(${isPage ? 'true' : 'false'})" class="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wider flex items-center gap-1 cursor-pointer">See All (${totalCastCount}) <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-1, event)" aria-label="Scroll cast left" class="hidden sm:flex absolute left-1 sm:left-2 top-[56px] sm:top-[72px] md:top-[80px] -translate-y-1/2 z-50 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/75 hover:bg-black/95 active:scale-95 border border-white/20 text-white items-center justify-center backdrop-blur-md shadow-2xl transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-90 hover:!opacity-100 hidden"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(1, event)" aria-label="Scroll cast right" class="hidden sm:flex absolute right-1 sm:right-2 top-[56px] sm:top-[72px] md:top-[80px] -translate-y-1/2 z-50 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/75 hover:bg-black/95 active:scale-95 border border-white/20 text-white items-center justify-center backdrop-blur-md shadow-2xl transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-90 hover:!opacity-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button><div id="castCrewTrack" class="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${chips}</div></div></div>`;
       }
       const bestTrailer = getBestTrailer(details);
       // The autoplaying hero background is held to a stricter standard than the Watch Trailer
@@ -3771,6 +3842,143 @@
         modal.classList.add('hidden'); modal.classList.remove('flex');
         if (wrapper) wrapper.innerHTML = '';
       }, 300);
+    }
+
+    let currentAllCastActiveTab = 'all';
+    let currentAllCastMovieContext = null;
+
+    function openFullCastModal(isPage = false) {
+      if (!window.currentMovieFullCredits) return;
+      const modal = document.getElementById('allCastModal');
+      const backdrop = document.getElementById('allCastModalBackdrop');
+      const content = document.getElementById('allCastModalContent');
+      if (!modal || !content) return;
+
+      currentAllCastActiveTab = 'all';
+      currentAllCastMovieContext = isPage;
+
+      const searchInput = document.getElementById('allCastSearchInput');
+      if (searchInput) searchInput.value = '';
+
+      const { movieTitle, cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
+      const totalCount = directors.length + cast.length;
+
+      const titleEl = document.getElementById('allCastModalTitle');
+      const subEl = document.getElementById('allCastModalSubtitle');
+      if (titleEl) titleEl.textContent = `${movieTitle} — Full Cast & Crew`;
+      if (subEl) subEl.textContent = `${totalCount} actors, directors & crew members`;
+
+      updateAllCastTabsUI();
+      renderAllCastGrid();
+
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+      document.body.classList.add('modal-open');
+      requestAnimationFrame(() => {
+        backdrop.classList.remove('opacity-0');
+        content.classList.remove('translate-y-8', 'opacity-0');
+      });
+    }
+
+    function closeAllCastModal() {
+      const modal = document.getElementById('allCastModal');
+      const backdrop = document.getElementById('allCastModalBackdrop');
+      const content = document.getElementById('allCastModalContent');
+      if (!modal || !content) return;
+
+      backdrop.classList.add('opacity-0');
+      content.classList.add('translate-y-8', 'opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden'); modal.classList.remove('flex');
+        const actorModal = document.getElementById('actorModal');
+        const movieModal = document.getElementById('movieModal');
+        const isActorOpen = actorModal && !actorModal.classList.contains('hidden');
+        const isMovieOpen = movieModal && !movieModal.classList.contains('hidden');
+        if (!isActorOpen && !isMovieOpen) {
+          document.body.classList.remove('modal-open');
+        }
+      }, 300);
+    }
+
+    function setAllCastTab(tab) {
+      currentAllCastActiveTab = tab;
+      updateAllCastTabsUI();
+      renderAllCastGrid();
+    }
+
+    function updateAllCastTabsUI() {
+      ['all', 'cast', 'crew'].forEach(t => {
+        const btn = document.getElementById(`allCastTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (!btn) return;
+        if (t === currentAllCastActiveTab) {
+          btn.className = 'all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm';
+        } else {
+          btn.className = 'all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white border border-transparent';
+        }
+      });
+    }
+
+    function filterAllCastGrid() {
+      renderAllCastGrid();
+    }
+
+    function renderAllCastGrid() {
+      const grid = document.getElementById('allCastGrid');
+      if (!grid || !window.currentMovieFullCredits) return;
+
+      const { cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
+      const searchInput = document.getElementById('allCastSearchInput');
+      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+      let list = [];
+      if (currentAllCastActiveTab === 'cast') {
+        list = cast.map(c => ({ ...c, _role: c.character || 'Cast' }));
+      } else if (currentAllCastActiveTab === 'crew') {
+        list = [...directors.map(d => ({ ...d, _role: 'Director' })), ...crew.map(c => ({ ...c, _role: c.job || 'Crew' }))];
+      } else {
+        const seenIds = new Set();
+        directors.forEach(d => { seenIds.add(d.id); list.push({ ...d, _role: 'Director' }); });
+        cast.forEach(c => {
+          if (!seenIds.has(c.id)) {
+            seenIds.add(c.id);
+            list.push({ ...c, _role: c.character || 'Actor' });
+          }
+        });
+        crew.forEach(cr => {
+          if (!seenIds.has(cr.id)) {
+            seenIds.add(cr.id);
+            list.push({ ...cr, _role: cr.job || 'Crew' });
+          }
+        });
+      }
+
+      if (query) {
+        list = list.filter(p => (p.name || '').toLowerCase().includes(query) || (p._role || '').toLowerCase().includes(query));
+      }
+
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 font-bold text-sm">No people match your filter.</div>`;
+        return;
+      }
+
+      const isPage = currentAllCastMovieContext;
+      grid.innerHTML = list.map(p => {
+        const pImg = p.profile_path ? `https://image.tmdb.org/t/p/w185${p.profile_path}` : null;
+        const pName = escapeHTML(p.name || 'Unknown');
+        const pRole = escapeHTML(p._role || '');
+        const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
+
+        return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="closeAllCastModal(); ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-2 p-2.5 rounded-2xl bg-gray-900/60 border border-white/5 hover:border-blue-500/40 hover:bg-gray-800/80 transition-all cursor-pointer select-none group/person">
+          <div class="glow-card w-20 h-20 sm:w-24 sm:h-24 rounded-full border ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_14px_rgba(59,130,246,0.4)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+            <div class="w-full h-full rounded-full overflow-hidden">
+              ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
+            </div>
+          </div>
+          <div class="spotify-marquee-container w-full pointer-events-none text-center">
+            <span class="spotify-marquee-text text-xs sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">${pName}</span>
+          </div>
+          ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-1 text-center"><span class="spotify-marquee-text text-[11px] text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
+        </div>`;
+      }).join('');
     }
     let touchStartX = 0; let touchStartY = 0; let touchEndX = 0; let touchEndY = 0; let isSwipingModal = false;
     const modalContentEl = document.getElementById('modalContent');
