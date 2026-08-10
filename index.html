@@ -2985,13 +2985,13 @@
         // Same card, but grows to fill the sidebar's full stretched height on desktop (the sidebar
         // is naturally shorter than cast+similar below it) so its box bottom lines up with the left
         // column's bottom edge instead of leaving a visually mismatched gap under a short card.
-        return `<nav id="moviePageNav" class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 py-4 bg-gradient-to-b from-black/55 to-transparent pointer-events-none">
+        return `<nav id="moviePageNav" class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 p-4 sm:p-6 bg-gradient-to-b from-black/55 to-transparent pointer-events-none">
             <button onclick="closeMoviePage()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
             <button onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
           </nav>
           <div class="relative w-full h-[78dvh] sm:h-[100dvh] min-h-[520px]">
-            <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] transform-gpu">` : `<div class="w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div><div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-20"></div></div>
-            <div class="absolute inset-0 z-30 flex flex-col justify-end p-6 sm:p-14 pb-10 sm:pb-16 pointer-events-none">
+            <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-110 transform-gpu">` : `<div class="w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div><div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-20"></div></div>
+            <div class="absolute inset-0 z-30 flex flex-col justify-end p-6 sm:p-14 pb-3 sm:pb-5 pointer-events-none">
               <div class="max-w-[1480px] mx-auto w-full flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
                 <div class="max-w-3xl min-w-0 pointer-events-auto">
                   ${pageTitleHeaderHtml}
@@ -4959,7 +4959,7 @@
       `;
 
       if (isPage) {
-        return `<nav id="actorPageNav" class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 py-4 bg-gradient-to-b from-black/55 to-transparent pointer-events-none">
+        return `<nav id="actorPageNav" class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 p-4 sm:p-6 bg-gradient-to-b from-black/55 to-transparent pointer-events-none">
             <button onclick="closeActorPage()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
             <button onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
           </nav>
