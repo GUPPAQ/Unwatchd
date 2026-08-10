@@ -1302,7 +1302,12 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </nav>
-    <div class="max-w-[1480px] mx-auto w-full px-5 sm:px-10 pb-16 -mt-14 flex-1 flex flex-col gap-6 sm:gap-8">
+    <div id="allCastBannerHero" class="relative w-full h-44 sm:h-56 -mt-18 shrink-0 overflow-hidden bg-[#0b1121] clip-mask">
+      <div id="allCastBannerArt" class="absolute inset-0"></div>
+      <div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/75 to-transparent pointer-events-none z-20"></div>
+      <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-20"></div>
+    </div>
+    <div class="max-w-[1480px] mx-auto w-full px-5 sm:px-10 pb-16 z-30 flex-1 flex flex-col gap-6 sm:gap-8">
       <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 border-b border-white/10 pb-6">
         <div>
           <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm">Cast &amp; Crew</span>
@@ -1321,7 +1326,7 @@
           </div>
         </div>
       </div>
-      <div id="allCastGrid" class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4 sm:gap-6 content-start"></div>
+      <div id="allCastGrid" class="grid grid-cols-3 min-[400px]:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-4 sm:gap-6 content-start"></div>
     </div>
   </div>
 
@@ -2755,6 +2760,7 @@
       const allCrew = details && details.credits && details.credits.crew ? details.credits.crew : [];
       window.currentMovieFullCredits = {
         movieTitle: safeTitle,
+        backdrop: heroBackdropUrl || movieObj.backdrop,
         cast: allCast,
         crew: allCrew,
         directors: directors
@@ -3845,8 +3851,15 @@
       const searchInput = document.getElementById('allCastSearchInput');
       if (searchInput) searchInput.value = '';
 
-      const { movieTitle, cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
+      const { movieTitle, backdrop, cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
       const totalCount = directors.length + cast.length;
+
+      const bannerArtEl = document.getElementById('allCastBannerArt');
+      if (bannerArtEl) {
+        bannerArtEl.innerHTML = backdrop
+          ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] opacity-40 transform-gpu">`
+          : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0b1121]"></div>`;
+      }
 
       const titleEl = document.getElementById('allCastModalTitle');
       const subEl = document.getElementById('allCastModalSubtitle');
@@ -3945,8 +3958,8 @@
         const pRole = escapeHTML(p._role || '');
         const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
 
-        return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="closeAllCastModal(); ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-2.5 p-3 sm:p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-blue-500/40 hover:bg-white/[0.07] transition-all cursor-pointer select-none group/person">
-          <div class="glow-card w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+        return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="closeAllCastModal(); ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-full shrink-0 group/person cursor-pointer select-none relative">
+          <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
             <div class="w-full h-full rounded-full overflow-hidden">
               ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
             </div>
@@ -3954,7 +3967,7 @@
           <div class="spotify-marquee-container w-full pointer-events-none text-center">
             <span class="spotify-marquee-text text-xs sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">${pName}</span>
           </div>
-          ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-1 text-center"><span class="spotify-marquee-text text-[11px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
+          ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-0.5 text-center"><span class="spotify-marquee-text text-[11px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
         </div>`;
       }).join('');
     }
