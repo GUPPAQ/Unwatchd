@@ -4805,6 +4805,8 @@
     }
 
     function bindCastCrewDrag() {
+      const track = document.getElementById('castCrewTrack');
+      if (track) track.querySelectorAll('.cast-chip-card').forEach(card => apply3DTilt(card));
       initDynamicScrollTrack('castCrewTrack', 'castPrevBtn', 'castNextBtn', true);
     }
 
