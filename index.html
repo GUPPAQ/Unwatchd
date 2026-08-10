@@ -2554,7 +2554,6 @@
       const visibleFlatrate = userFlatrate.slice(0, 2);
       const extraFlatrate = [...userFlatrate.slice(2), ...otherFlatrate];
 
-      let streamingHtml = '';
       if (visibleFlatrate.length > 0) {
         visibleFlatrate.forEach(p => { streamingHtml += makeProviderLink(p); });
       } else {
