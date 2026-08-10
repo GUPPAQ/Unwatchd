@@ -1302,32 +1302,33 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </nav>
-    <div id="allCastBannerHero" class="relative w-full h-64 sm:h-80 shrink-0 overflow-hidden bg-[#0b1121] clip-mask">
+    <div id="allCastBannerHero" class="relative w-full h-[340px] sm:h-[420px] shrink-0 overflow-hidden bg-[#0b1121] flex flex-col justify-end clip-mask">
       <div id="allCastBannerArt" class="absolute inset-0"></div>
-      <div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-20"></div>
+      <div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/80 to-transparent pointer-events-none z-20"></div>
       <div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-20"></div>
-    </div>
-    <div class="max-w-[1480px] mx-auto w-full px-5 sm:px-10 pb-16 z-30 flex-1 flex flex-col gap-6 sm:gap-8 mt-3 sm:mt-5">
-      <div class="flex flex-col gap-4 border-b border-white/10 pb-6">
+
+      <div class="relative z-30 max-w-[1480px] mx-auto w-full px-5 sm:px-10 pb-6 sm:pb-8 flex flex-col gap-3 sm:gap-4 pointer-events-auto">
         <div>
-          <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm">Cast &amp; Crew</span>
-          <h1 id="allCastModalTitle" class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mt-0.5">Full Cast &amp; Crew</h1>
+          <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Cast &amp; Crew</span>
+          <h1 id="allCastModalTitle" class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mt-0.5 drop-shadow-md">Full Cast &amp; Crew</h1>
         </div>
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-          <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-400 shrink-0"></p>
+          <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-300 shrink-0 drop-shadow-sm"></p>
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
             <div class="relative min-w-[200px] sm:min-w-[260px] md:min-w-[280px]">
-              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              <input id="allCastSearchInput" type="text" placeholder="Search cast or character..." oninput="filterAllCastGrid()" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500">
+              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <input id="allCastSearchInput" type="text" placeholder="Search cast or character..." oninput="filterAllCastGrid()" class="w-full bg-black/50 backdrop-blur-md border border-white/15 rounded-xl pl-10 pr-8 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-400 shadow-lg">
             </div>
-            <div class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full sm:w-auto shrink-0">
+            <div class="flex items-center gap-1.5 p-1 bg-black/50 backdrop-blur-md border border-white/15 rounded-xl w-full sm:w-auto shrink-0 shadow-lg">
               <button id="allCastTabAll" onclick="setAllCastTab('all')" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-500/25 text-blue-400 border border-blue-500/40 text-center shadow-sm">All</button>
-              <button id="allCastTabCast" onclick="setAllCastTab('cast')" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white border border-transparent text-center">Cast</button>
-              <button id="allCastTabCrew" onclick="setAllCastTab('crew')" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white border border-transparent text-center">Crew</button>
+              <button id="allCastTabCast" onclick="setAllCastTab('cast')" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white border border-transparent text-center">Cast</button>
+              <button id="allCastTabCrew" onclick="setAllCastTab('crew')" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white border border-transparent text-center">Crew</button>
             </div>
           </div>
         </div>
       </div>
+    </div>
+    <div class="max-w-[1480px] mx-auto w-full px-5 sm:px-10 py-8 z-30 flex-1 flex flex-col gap-6 sm:gap-8">
       <div id="allCastGrid" class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4 sm:gap-6 content-start"></div>
     </div>
   </div>
