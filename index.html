@@ -20,6 +20,7 @@
   <meta name="description"
     content="Your personal, global streaming directory. Connect your Letterboxd and instantly find out where to watch your movies.">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
   <style>
@@ -1910,18 +1911,20 @@
     if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
     if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { if (scannedMovies.length > 0) { openInsightsPopup(); } el.statsBtn.blur(); }); }
     if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { const currentList = currentGroupedResults[activeTab] || []; if (currentList.length === 0) return; const randomIndex = Math.floor(Math.random() * currentList.length); openMoviePage(currentList[randomIndex]); }); }
-    let isTrailerPaused = false;
-    let isTrailerMuted = false;
+    let trailerPlayer = null;
 
-    function postYouTubeCommand(iframe, func, args = '') {
-      if (!iframe || !iframe.contentWindow) return;
-      try {
-        iframe.contentWindow.postMessage(JSON.stringify({
-          event: 'command',
-          func: func,
-          args: args
-        }), '*');
-      } catch (err) { console.warn('[YouTube Command Error]', err); }
+    function ensureYouTubeApi(callback) {
+      if (window.YT && window.YT.Player) {
+        callback();
+        return;
+      }
+      const check = setInterval(() => {
+        if (window.YT && window.YT.Player) {
+          clearInterval(check);
+          callback();
+        }
+      }, 50);
+      setTimeout(() => clearInterval(check), 4000);
     }
 
     document.addEventListener('keydown', (e) => {
@@ -1934,40 +1937,56 @@
         const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
         if (isInputFocused) return;
 
-        const iframe = document.querySelector('#trailerIframeWrapper iframe');
-
         if (e.code === 'Space' || e.key === ' ' || e.key === 'k' || e.key === 'K') {
           e.preventDefault();
-          if (iframe) {
-            postYouTubeCommand(iframe, isTrailerPaused ? 'playVideo' : 'pauseVideo');
-            isTrailerPaused = !isTrailerPaused;
+          if (trailerPlayer && typeof trailerPlayer.getPlayerState === 'function') {
+            try {
+              const state = trailerPlayer.getPlayerState();
+              if (state === 1 || (window.YT && state === YT.PlayerState.PLAYING)) {
+                trailerPlayer.pauseVideo();
+              } else {
+                trailerPlayer.playVideo();
+              }
+            } catch (err) { console.warn('[YT Play/Pause]', err); }
           }
           return;
         }
 
         if (e.key === 'ArrowLeft') {
           e.preventDefault();
-          if (iframe) postYouTubeCommand(iframe, 'seekBy', [-5]);
+          if (trailerPlayer && typeof trailerPlayer.getCurrentTime === 'function') {
+            try {
+              const cur = trailerPlayer.getCurrentTime() || 0;
+              trailerPlayer.seekTo(Math.max(0, cur - 5), true);
+            } catch (err) {}
+          }
           return;
         }
 
         if (e.key === 'ArrowRight') {
           e.preventDefault();
-          if (iframe) postYouTubeCommand(iframe, 'seekBy', [5]);
+          if (trailerPlayer && typeof trailerPlayer.getCurrentTime === 'function') {
+            try {
+              const cur = trailerPlayer.getCurrentTime() || 0;
+              trailerPlayer.seekTo(cur + 5, true);
+            } catch (err) {}
+          }
           return;
         }
 
         if (e.key === 'm' || e.key === 'M') {
           e.preventDefault();
-          if (iframe) {
-            postYouTubeCommand(iframe, isTrailerMuted ? 'unMute' : 'mute');
-            isTrailerMuted = !isTrailerMuted;
+          if (trailerPlayer && typeof trailerPlayer.isMuted === 'function') {
+            try {
+              if (trailerPlayer.isMuted()) trailerPlayer.unMute(); else trailerPlayer.mute();
+            } catch (err) {}
           }
           return;
         }
 
         if (e.key === 'f' || e.key === 'F') {
           e.preventDefault();
+          const iframe = document.querySelector('#trailerIframeWrapper iframe');
           if (iframe) {
             if (document.fullscreenElement) {
               document.exitFullscreen().catch(() => {});
@@ -1980,10 +1999,6 @@
           return;
         }
 
-        if (iframe) {
-          iframe.focus();
-          try { iframe.contentWindow.focus(); } catch (err) {}
-        }
         return;
       }
       const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden'); if (e.key === 'Escape') { if (actorModalOpen) { closeActorModal(); return; } if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (isModalOpen) document.getElementById('closeModalBtn')?.click(); } if (isModalOpen && !actorModalOpen) {
@@ -3660,8 +3675,6 @@
 
     function openTrailerModal(videoKey, movieTitle) {
       stopHeroVideo();
-      isTrailerPaused = false;
-      isTrailerMuted = false;
       const modal = document.getElementById('trailerModal');
       const backdrop = document.getElementById('trailerModalBackdrop');
       const container = document.getElementById('trailerModalContainer');
@@ -3670,7 +3683,16 @@
       if (!modal || !wrapper) return;
 
       titleEl.textContent = movieTitle ? `${movieTitle} — Official Trailer` : 'Official Trailer';
-      wrapper.innerHTML = `<iframe id="trailerIframe" src="https://www.youtube.com/embed/${videoKey}?autoplay=1&enablejsapi=1&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&cc_load_policy=0&cc_lang_pref=none&hl=en&vq=hd1080" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen class="w-full h-full" tabindex="0"></iframe>`;
+
+      if (trailerPlayer) {
+        try {
+          if (typeof trailerPlayer.stopVideo === 'function') trailerPlayer.stopVideo();
+          if (typeof trailerPlayer.destroy === 'function') trailerPlayer.destroy();
+        } catch (e) {}
+        trailerPlayer = null;
+      }
+
+      wrapper.innerHTML = `<div id="trailerPlayerDiv" class="w-full h-full"></div>`;
 
       // Append fallback watch link below iframe in footer if embedding is blocked
       const fallbackUrl = `https://www.youtube.com/watch?v=${videoKey}`;
@@ -3683,18 +3705,38 @@
         container.classList.remove('translate-y-8', 'opacity-0');
       });
 
-      const focusIframe = () => {
-        const iframe = wrapper.querySelector('iframe');
-        if (iframe) {
-          try {
-            iframe.contentWindow.postMessage('{"event":"listening","id":"trailerIframe"}', '*');
-            iframe.focus();
-            iframe.contentWindow.focus();
-          } catch (err) {}
+      ensureYouTubeApi(() => {
+        try {
+          trailerPlayer = new YT.Player('trailerPlayerDiv', {
+            height: '100%',
+            width: '100%',
+            videoId: videoKey,
+            playerVars: {
+              autoplay: 1,
+              controls: 1,
+              modestbranding: 1,
+              rel: 0,
+              iv_load_policy: 3,
+              playsinline: 1,
+              enablejsapi: 1,
+              hl: 'en',
+              vq: 'hd1080'
+            },
+            events: {
+              onReady: (event) => {
+                try { event.target.playVideo(); } catch (e) {}
+                const iframe = wrapper.querySelector('iframe');
+                if (iframe) {
+                  iframe.focus();
+                  try { iframe.contentWindow.focus(); } catch (e) {}
+                }
+              }
+            }
+          });
+        } catch (err) {
+          console.warn('[YT Player Embed]', err);
         }
-      };
-
-      [0, 50, 150, 300, 500, 800].forEach(delay => setTimeout(focusIframe, delay));
+      });
 
       const closeHandler = () => closeTrailerModal();
       backdrop.onclick = closeHandler;
@@ -3707,6 +3749,14 @@
       const container = document.getElementById('trailerModalContainer');
       const wrapper = document.getElementById('trailerIframeWrapper');
       if (!modal) return;
+
+      if (trailerPlayer) {
+        try {
+          if (typeof trailerPlayer.stopVideo === 'function') trailerPlayer.stopVideo();
+          if (typeof trailerPlayer.destroy === 'function') trailerPlayer.destroy();
+        } catch (e) {}
+        trailerPlayer = null;
+      }
 
       backdrop.classList.add('opacity-0');
       container.classList.add('translate-y-8', 'opacity-0');
