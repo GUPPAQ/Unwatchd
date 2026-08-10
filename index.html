@@ -98,11 +98,6 @@
       transform: translateZ(0);
     }
 
-    body.is-scrolling *,
-    .is-scrolling * {
-      pointer-events: none !important;
-    }
-
     .safe-area-wrapper {
       padding-top: max(4.6rem, calc(4.6rem + env(safe-area-inset-top)));
       padding-bottom: max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)));
@@ -424,10 +419,6 @@
 
     .tilt-card {
       overflow: visible !important;
-      contain: layout style paint;
-      content-visibility: auto;
-      contain-intrinsic-size: 300px;
-      transform: translateZ(0);
     }
 
     /* Vertical padding & negative margins on horizontal tracks so glow fits vertically without shifting horizontal grid alignment or cutting off cards */
