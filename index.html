@@ -1294,7 +1294,7 @@
   <!-- ALL CAST & CREW FULL PAGE VIEW -->
   <div id="allCastModal"
     class="fixed inset-0 z-[280] hidden flex-col bg-[#0b1121] overflow-y-auto overscroll-none">
-    <nav class="sticky top-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 py-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none -mb-18">
+    <nav class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 py-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
       <button onclick="closeAllCastModal()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
       </button>
@@ -1302,7 +1302,7 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </nav>
-    <div id="allCastBannerHero" class="relative w-full h-56 sm:h-72 shrink-0 overflow-hidden bg-[#0b1121] clip-mask">
+    <div id="allCastBannerHero" class="relative w-full h-64 sm:h-80 shrink-0 overflow-hidden bg-[#0b1121] clip-mask">
       <div id="allCastBannerArt" class="absolute inset-0"></div>
       <div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-20"></div>
       <div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-20"></div>
@@ -3857,7 +3857,7 @@
       const bannerArtEl = document.getElementById('allCastBannerArt');
       if (bannerArtEl) {
         bannerArtEl.innerHTML = backdrop
-          ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] opacity-40 transform-gpu">`
+          ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] transform-gpu">`
           : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0b1121]"></div>`;
       }
 
