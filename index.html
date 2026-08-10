@@ -758,19 +758,25 @@
       max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
+      transition: transform 0.25s ease-out;
     }
 
-    .group\/person:hover .spotify-marquee-text.has-overflow {
-      animation: spotifyMarquee 4.5s ease-in-out infinite alternate;
-      text-overflow: clip;
+    .group\/person:hover .spotify-marquee-container.has-overflow {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .group\/person:hover .spotify-marquee-container.has-overflow .spotify-marquee-text {
       max-width: none;
+      text-overflow: clip;
+      animation: spotifyMarquee 4.2s ease-in-out infinite alternate;
     }
 
     @keyframes spotifyMarquee {
-      0%, 15% {
-        transform: translateX(0%);
+      0%, 20% {
+        transform: translateX(0px);
       }
-      85%, 100% {
+      80%, 100% {
         transform: translateX(var(--marquee-distance, -30px));
       }
     }
@@ -2795,11 +2801,11 @@
         const textEl = container.querySelector('.spotify-marquee-text');
         if (!textEl) return;
         const overflow = textEl.scrollWidth - container.clientWidth;
-        if (overflow > 2) {
-          textEl.classList.add('has-overflow');
-          textEl.style.setProperty('--marquee-distance', `-${overflow + 8}px`);
+        if (overflow > 1) {
+          container.classList.add('has-overflow');
+          textEl.style.setProperty('--marquee-distance', `-${overflow + 6}px`);
         } else {
-          textEl.classList.remove('has-overflow');
+          container.classList.remove('has-overflow');
         }
       });
     }
