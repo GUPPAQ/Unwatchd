@@ -4334,7 +4334,25 @@
       const qYear = queryObj.year ? parseInt(queryObj.year) : null;
       if (!qNorm) return null;
       const exactMatches = results.filter(r => normalizeTitle(getResultTitle(r)) === qNorm || normalizeTitle(getResultOriginalTitle(r)) === qNorm);
-      if (exactMatches.length === 1) return exactMatches[0];
+      if (exactMatches.length === 1) {
+        // If we have a year and the single exact match is way off, keep looking
+        if (qYear) {
+          const matchDate = getResultDate(exactMatches[0]);
+          if (matchDate) {
+            const matchYear = parseInt(matchDate.split('-')[0]);
+            if (!isNaN(matchYear) && Math.abs(matchYear - qYear) > 1) {
+              // Single exact title match but wrong year - don't return it yet,
+              // fall through to year-based search below
+            } else {
+              return exactMatches[0];
+            }
+          } else {
+            return exactMatches[0];
+          }
+        } else {
+          return exactMatches[0];
+        }
+      }
       if (exactMatches.length > 1) {
         if (qYear) {
           const exactWithYear = exactMatches.find(r => getResultDate(r) && Math.abs(parseInt(getResultDate(r).split('-')[0]) - qYear) <= 1);
@@ -4342,9 +4360,13 @@
         }
         return [...exactMatches].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))[0];
       }
+      // If we have a year from Letterboxd, strongly prioritize year matches
       if (qYear) {
         const yearCandidates = results.filter(r => getResultDate(r) && Math.abs(parseInt(getResultDate(r).split('-')[0]) - qYear) <= 1);
         if (yearCandidates.length) {
+          // Check for exact title + year match first
+          const exactTitleYear = yearCandidates.find(r => normalizeTitle(getResultTitle(r)) === qNorm || normalizeTitle(getResultOriginalTitle(r)) === qNorm);
+          if (exactTitleYear) return exactTitleYear;
           const contains = yearCandidates.find(r => { const t = normalizeTitle(getResultTitle(r)); return t.includes(qNorm) || qNorm.includes(t); });
           if (contains) return contains;
           const qWords = qNorm.split(' ').filter(w => w.length > 2);
@@ -4393,7 +4415,7 @@
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
       return [...movieResults, ...tvResults];
     }
-    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v2';
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v3';
     let tmdbMatchCache = new Map();
     try {
       const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
@@ -4723,8 +4745,8 @@
           }
         });
       }
-      const watchlistIds = new Set(scannedMovies.map(m => m.id));
-      const watchlistMovies = allMovies.filter(m => watchlistIds.has(m.id));
+      const watchlistKeySet = new Set(scannedMovies.map(m => `${m.mediaType || 'movie'}-${m.id}`));
+      const watchlistMovies = allMovies.filter(m => watchlistKeySet.has(`${m.mediaType || 'movie'}-${m.id}`));
 
       let moviesToShow = [...allMovies];
       if (actorMediaTypeFilter === 'watchlist') {
@@ -4849,7 +4871,7 @@
           const mYear = m.release_date ? m.release_date.split('-')[0] : '';
           const mPoster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null;
           const mChar = m.character ? escapeHTML(m.character) : '';
-          const isInWatchlist = watchlistIds.has(m.id);
+          const isInWatchlist = watchlistKeySet.has(`${m.mediaType || 'movie'}-${m.id}`);
           const mediaBadge = m.mediaType === 'tv' ? ' · TV Series' : '';
           const roleStr = isDirector ? 'Director' : (mChar ? mChar : '');
           const subtext = `${mYear ? mYear : ''}${mediaBadge}${roleStr ? ' · ' + roleStr : ''}`;
