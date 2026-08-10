@@ -3583,34 +3583,35 @@
       }
     }
 
-    async function openMoviePageById(movieId, movieTitle = '') {
-      const existing = scannedMovies.find(m => m.id === movieId);
+    async function openMoviePageById(movieId, movieTitle = '', mediaType = 'movie') {
+      const existing = scannedMovies.find(m => m.id === movieId && (m.mediaType || 'movie') === mediaType);
       if (existing) { openMoviePage(existing); return; }
       try {
-        const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`);
+        const endpoint = mediaType === 'tv' ? 'tv' : 'movie';
+        const res = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
         const movie = await res.json();
         if (!movie || !movie.id) return;
         const movieObj = {
           id: movie.id,
-          mediaType: 'movie',
-          title: movie.title || movieTitle,
+          mediaType: mediaType,
+          title: movie.title || movie.name || movieTitle,
           poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
           backdrop: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null,
           rating: movie.vote_average ? movie.vote_average.toFixed(1) : null,
-          releaseDate: movie.release_date || null,
+          releaseDate: movie.release_date || movie.first_air_date || null,
           genreIds: movie.genre_ids || (movie.genres ? movie.genres.map(g => g.id) : []),
-          url: `https://www.themoviedb.org/movie/${movie.id}`,
+          url: `https://www.themoviedb.org/${endpoint}/${movie.id}`,
           regionData: null,
           allProviders: null
         };
         try {
-          const pRes = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
+          const pRes = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
           const pData = await pRes.json();
           if (pData && pData.results) {
             movieObj.regionData = pData.results[currentRegion] || null;
             movieObj.allProviders = pData.results;
           }
-        } catch (pe) { console.warn('[Movie Page Providers Fetch]', pe); }
+        } catch (pe) { console.warn('[Movie/TV Page Providers Fetch]', pe); }
         openMoviePage(movieObj);
       } catch (e) { console.error('[Movie Page By Id]', e); }
     }
@@ -4686,23 +4687,39 @@
     function getActorMoviesList(person, showWatchlistOnly, roleHint = '') {
       const isDirector = isPersonDirector(person, roleHint);
       let allMovies = [];
-      if (isDirector && person.movie_credits && person.movie_credits.crew) {
-        const seen = new Set();
-        allMovies = person.movie_credits.crew.filter(m => {
-          if (m.poster_path && m.title && m.job === 'Director' && !seen.has(m.id)) {
-            seen.add(m.id);
-            return true;
+      const creditsObj = (person && person.combined_credits) ? person.combined_credits : (person ? person.movie_credits : null);
+      if (!creditsObj) return { allMovies: [], watchlistMovies: [], moviesToShow: [] };
+
+      const seen = new Set();
+      if (isDirector && creditsObj.crew) {
+        creditsObj.crew.forEach(m => {
+          const mTitle = m.title || m.name || m.original_name || m.original_title;
+          const mediaType = m.media_type || (m.first_air_date ? 'tv' : 'movie');
+          const key = `${mediaType}-${m.id}`;
+          if (m.poster_path && mTitle && m.job === 'Director' && !seen.has(key)) {
+            seen.add(key);
+            allMovies.push({
+              ...m,
+              mediaType: mediaType,
+              title: mTitle,
+              release_date: m.release_date || m.first_air_date || ''
+            });
           }
-          return false;
         });
-      } else if (person.movie_credits && person.movie_credits.cast) {
-        const seen = new Set();
-        allMovies = person.movie_credits.cast.filter(m => {
-          if (m.poster_path && m.title && !seen.has(m.id)) {
-            seen.add(m.id);
-            return true;
+      } else if (creditsObj.cast) {
+        creditsObj.cast.forEach(m => {
+          const mTitle = m.title || m.name || m.original_name || m.original_title;
+          const mediaType = m.media_type || (m.first_air_date ? 'tv' : 'movie');
+          const key = `${mediaType}-${m.id}`;
+          if (m.poster_path && mTitle && !seen.has(key)) {
+            seen.add(key);
+            allMovies.push({
+              ...m,
+              mediaType: mediaType,
+              title: mTitle,
+              release_date: m.release_date || m.first_air_date || ''
+            });
           }
-          return false;
         });
       }
       const watchlistIds = new Set(scannedMovies.map(m => m.id));
@@ -4814,8 +4831,8 @@
       if (moviesToShow.length === 0) {
         const isFiltered = actorFilterQuery || (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all');
         const emptyMsg = isFiltered
-          ? 'No movies match your filters.'
-          : (showWatchlistOnly ? `No movies from your watchlist feature this ${isDirector ? 'director' : 'actor'}.` : 'No movie credits found.');
+          ? 'No titles match your filters.'
+          : (showWatchlistOnly ? `No titles from your watchlist feature this ${isDirector ? 'director' : 'actor'}.` : 'No credits found.');
         filmographyHtml = `<div class="col-span-full flex items-center justify-center min-h-[150px] text-gray-500 font-bold uppercase tracking-widest text-xs">${emptyMsg}</div>`;
       } else {
         pageMovies.forEach((m, idx) => {
@@ -4824,14 +4841,16 @@
           const mPoster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null;
           const mChar = m.character ? escapeHTML(m.character) : '';
           const isInWatchlist = watchlistIds.has(m.id);
+          const mediaBadge = m.mediaType === 'tv' ? ' · TV Series' : '';
           const roleStr = isDirector ? 'Director' : (mChar ? mChar : '');
-          const subtext = roleStr ? `${mYear ? mYear + ' · ' : ''}${roleStr}` : (mYear || '');
+          const subtext = `${mYear ? mYear : ''}${mediaBadge}${roleStr ? ' · ' + roleStr : ''}`;
           const filmRating = getTmdbRating(m);
           const actorRatingHtml = filmRating
             ? `<div class="absolute top-2.5 right-2.5 bg-black/85 px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black text-amber-400 border border-amber-500/30 shadow-lg z-20 flex items-center gap-1"><svg class="w-3 h-3 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${filmRating}</div>`
             : '';
 
-          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="${isPage ? `openMoviePageById(${m.id})` : `handleActorFilmClick(${m.id}, '', ${!isModal})`}">            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 h-full">
+          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="${isPage ? `openMoviePageById(${m.id}, '', '${m.mediaType || 'movie'}')` : `handleActorFilmClick(${m.id}, '', ${!isModal}, '${m.mediaType || 'movie'}')`}">
+            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 h-full">
               <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                 ${mPoster ? `<img src="${mPoster}" alt="${mTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
                 <div class="glare"></div>
@@ -5503,7 +5522,7 @@
       }
     }
 
-    async function handleMovieClickFromContext(movieId, movieTitle, contextType, forceInline = null) {
+    async function handleMovieClickFromContext(movieId, movieTitle, contextType, forceInline = null, mediaType = 'movie') {
       const isInline = forceInline !== null ? forceInline : isQuickSearchContext();
       const stack = isInline ? quickSearchHistoryStack : watchlistModalHistoryStack;
 
@@ -5520,31 +5539,32 @@
         }
       }
 
-      const watchlistMovie = scannedMovies.find(m => m.id === movieId);
+      const watchlistMovie = scannedMovies.find(m => m.id === movieId && (m.mediaType || 'movie') === mediaType);
       if (watchlistMovie) {
         openMovieModal(watchlistMovie, isInline);
         return;
       }
 
       try {
-        const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`);
+        const endpoint = mediaType === 'tv' ? 'tv' : 'movie';
+        const res = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
         const movie = await res.json();
         if (movie && movie.id) {
           const movieObj = {
             id: movie.id,
-            mediaType: 'movie',
-            title: movie.title || movieTitle,
+            mediaType: mediaType,
+            title: movie.title || movie.name || movieTitle,
             poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
             backdrop: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null,
             rating: movie.vote_average ? movie.vote_average.toFixed(1) : null,
-            releaseDate: movie.release_date || null,
+            releaseDate: movie.release_date || movie.first_air_date || null,
             genreIds: movie.genre_ids || (movie.genres ? movie.genres.map(g => g.id) : []),
-            url: `https://www.themoviedb.org/movie/${movie.id}`,
+            url: `https://www.themoviedb.org/${endpoint}/${movie.id}`,
             regionData: null,
             allProviders: null
           };
           try {
-            const pRes = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
+            const pRes = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
             const pData = await pRes.json();
             if (pData && pData.results) {
               movieObj.regionData = pData.results[currentRegion] || null;
@@ -5553,15 +5573,15 @@
           } catch (pe) { console.warn('[Movie Watch Providers Fetch]', pe); }
           openMovieModal(movieObj, isInline);
         }
-      } catch (e) { console.error('Failed to load movie:', e); }
+      } catch (e) { console.error('Failed to load movie/tv:', e); }
     }
 
     async function handleSimilarMovieClick(movieId, movieTitle, forceInline = null) {
       return handleMovieClickFromContext(movieId, movieTitle, 'movie', forceInline);
     }
 
-    async function handleActorFilmClick(movieId, movieTitle, forceInline = null) {
-      return handleMovieClickFromContext(movieId, movieTitle, 'actor', forceInline);
+    async function handleActorFilmClick(movieId, movieTitle, forceInline = null, mediaType = 'movie') {
+      return handleMovieClickFromContext(movieId, movieTitle, 'actor', forceInline, mediaType);
     }
   </script>
 </body>
