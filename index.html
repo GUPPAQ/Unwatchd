@@ -3880,6 +3880,62 @@
 
     let currentAllCastActiveTab = 'all';
     let currentAllCastMovieContext = null;
+    let allCastCurrentPage = 1;
+    const ALL_CAST_PER_PAGE = 30;
+
+    function setAllCastPage(p) {
+      allCastCurrentPage = p;
+      renderAllCastGrid();
+      const modal = document.getElementById('allCastModal');
+      if (modal) modal.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderAllCastPaginationHtml(currentPage, maxPage) {
+      if (maxPage <= 1) return '';
+      let btnsHtml = '';
+
+      const createBtn = (text, disabled, page, isActive = false) => {
+        if (isActive) {
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+        } else if (disabled && text !== '...') {
+          return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
+        } else if (text === '...') {
+          return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none">...</button>`;
+        } else {
+          return `<button type="button" onclick="setAllCastPage(${page})" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/15 text-white font-bold text-sm transition-all border border-white/10 hover:border-white/30 cursor-pointer">${text}</button>`;
+        }
+      };
+
+      const prevDisabled = currentPage === 1;
+      btnsHtml += createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', prevDisabled, currentPage - 1);
+
+      if (maxPage <= 5) {
+        for (let i = 1; i <= maxPage; i++) btnsHtml += createBtn(i, false, i, i === currentPage);
+      } else {
+        if (currentPage <= 3) {
+          for (let i = 1; i <= 4; i++) btnsHtml += createBtn(i, false, i, i === currentPage);
+          btnsHtml += createBtn('...', true, 0);
+          btnsHtml += createBtn(maxPage, false, maxPage, maxPage === currentPage);
+        } else if (currentPage >= maxPage - 2) {
+          btnsHtml += createBtn(1, false, 1, 1 === currentPage);
+          btnsHtml += createBtn('...', true, 0);
+          for (let i = maxPage - 3; i <= maxPage; i++) btnsHtml += createBtn(i, false, i, i === currentPage);
+        } else {
+          btnsHtml += createBtn(1, false, 1, 1 === currentPage);
+          btnsHtml += createBtn('...', true, 0);
+          btnsHtml += createBtn(currentPage - 1, false, currentPage - 1, false);
+          btnsHtml += createBtn(currentPage, false, currentPage, true);
+          btnsHtml += createBtn(currentPage + 1, false, currentPage + 1, false);
+          btnsHtml += createBtn('...', true, 0);
+          btnsHtml += createBtn(maxPage, false, maxPage, false);
+        }
+      }
+
+      const nextDisabled = currentPage === maxPage;
+      btnsHtml += createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', nextDisabled, currentPage + 1);
+
+      return `<div class="col-span-full flex justify-center items-center gap-2 mt-10 mb-6">${btnsHtml}</div>`;
+    }
 
     function openFullCastModal(isPage = false) {
       if (!window.currentMovieFullCredits) return;
@@ -3888,6 +3944,7 @@
 
       currentAllCastActiveTab = 'all';
       currentAllCastMovieContext = isPage;
+      allCastCurrentPage = 1;
 
       if (isPage && !location.hash.includes('-cast')) {
         const mId = window.currentMovieFullCredits.movieId || '0';
@@ -3938,6 +3995,7 @@
 
     function setAllCastTab(tab) {
       currentAllCastActiveTab = tab;
+      allCastCurrentPage = 1;
       updateAllCastTabsUI();
       renderAllCastGrid();
     }
@@ -3955,6 +4013,7 @@
     }
 
     function filterAllCastGrid() {
+      allCastCurrentPage = 1;
       renderAllCastGrid();
     }
 
@@ -3997,8 +4056,13 @@
         return;
       }
 
+      const maxPage = Math.ceil(list.length / ALL_CAST_PER_PAGE);
+      if (allCastCurrentPage > maxPage) allCastCurrentPage = maxPage || 1;
+      const start = (allCastCurrentPage - 1) * ALL_CAST_PER_PAGE;
+      const pageItems = list.slice(start, start + ALL_CAST_PER_PAGE);
+
       const isPage = currentAllCastMovieContext;
-      grid.innerHTML = list.map(p => {
+      const cardsHtml = pageItems.map(p => {
         const pImg = p.profile_path ? `https://image.tmdb.org/t/p/w185${p.profile_path}` : null;
         const pName = escapeHTML(p.name || 'Unknown');
         const pRole = escapeHTML(p._role || '');
@@ -4016,6 +4080,9 @@
           ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-0.5 text-center"><span class="spotify-marquee-text text-[11px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
         </div>`;
       }).join('');
+
+      const pagHtml = renderAllCastPaginationHtml(allCastCurrentPage, maxPage);
+      grid.innerHTML = cardsHtml + pagHtml;
     }
     let touchStartX = 0; let touchStartY = 0; let touchEndX = 0; let touchEndY = 0; let isSwipingModal = false;
     const modalContentEl = document.getElementById('modalContent');
