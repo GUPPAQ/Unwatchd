@@ -414,27 +414,25 @@
 
     .glow-card:hover,
     .tilt-card:hover .glow-card {
-      border-color: rgba(59, 130, 246, 0.75) !important;
-      box-shadow: 0 0 16px rgba(59, 130, 246, 0.45), 0 8px 20px rgba(0, 0, 0, 0.5) !important;
+      border-color: rgba(59, 130, 246, 0.7) !important;
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.35) !important;
     }
 
     .tilt-card {
       overflow: visible !important;
     }
 
-    /* 16px internal padding + scroll-padding + negative margins so glow never hits scroll container x=0 boundary */
+    /* Vertical padding & negative margins on horizontal tracks without horizontal shifting or drop shadows */
     #castCrewTrack,
     #similarMoviesTrack {
       padding-top: 14px !important;
       padding-bottom: 16px !important;
-      padding-left: 16px !important;
-      padding-right: 16px !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
       margin-top: -14px !important;
       margin-bottom: -16px !important;
-      margin-left: -16px !important;
-      margin-right: -16px !important;
-      scroll-padding-left: 16px !important;
-      scroll-padding-right: 16px !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
     }
 
     .tilt-card-inner {
@@ -720,36 +718,36 @@
 
     /* Sizing rules: 2 movies on mobile / 4 on tablet / 6 on desktop; 3 actors on mobile / 5 on tablet / 6 on desktop */
     #similarMoviesTrack>.tilt-card {
-      width: calc((100% - 24px - 1 * 1rem) / 2) !important;
+      width: calc((100% - 1 * 1rem) / 2) !important;
       flex-shrink: 0 !important;
     }
 
     @media (min-width: 640px) {
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 24px - 3 * 1.25rem) / 4) !important;
+        width: calc((100% - 3 * 1.25rem) / 4) !important;
       }
     }
 
     @media (min-width: 1024px) {
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 24px - 5 * 1.25rem) / 6) !important;
+        width: calc((100% - 5 * 1.25rem) / 6) !important;
       }
     }
 
     #castCrewTrack>.cast-chip-card {
-      width: calc((100% - 24px - 2 * 0.75rem) / 3) !important;
+      width: calc((100% - 2 * 0.75rem) / 3) !important;
       flex-shrink: 0 !important;
     }
 
     @media (min-width: 640px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 24px - 4 * 1rem) / 5) !important;
+        width: calc((100% - 4 * 1rem) / 5) !important;
       }
     }
 
     @media (min-width: 1024px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 24px - 5 * 1rem) / 6) !important;
+        width: calc((100% - 5 * 1rem) / 6) !important;
       }
     }
 
@@ -2775,7 +2773,7 @@
           const pRole = escapeHTML(p._role);
           const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
           return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : `openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, ${isModal ? 'false' : 'true'})`}; }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-28 sm:w-36 md:w-40 shrink-0 group/person cursor-pointer select-none relative">
-            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_12px_rgba(59,130,246,0.5)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-500/80 shadow-[inset_0_0_12px_rgba(59,130,246,0.6)]' : 'border-white/10'} bg-gray-800 shrink-0 relative">
               <div class="w-full h-full rounded-full overflow-hidden">
                 ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
               </div>
@@ -2788,7 +2786,7 @@
         }).join('');
 
         const seeAllChip = `<div onclick="if(!window.isCastDragging) openFullCastModal(${isPage ? 'true' : 'false'})" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-28 sm:w-36 md:w-40 shrink-0 group/person cursor-pointer select-none relative">
-          <div class="glow-card w-full aspect-square rounded-full border border-white/10 shadow-lg bg-gray-800 shrink-0 relative flex items-center justify-center">
+          <div class="glow-card w-full aspect-square rounded-full border border-white/10 bg-gray-800 shrink-0 relative flex items-center justify-center">
             <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
           </div>
           <div class="spotify-marquee-container w-full pointer-events-none">
@@ -2948,7 +2946,7 @@
           const isInWatchlist = watchlistIds.has(m.id);
           const recRating = getTmdbRating(m);
           return `<div class="tilt-card animate-fade shrink-0 w-32 sm:w-44 md:w-48 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 sm:hover:scale-[1.03]" onclick="${isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})`}">
-            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 h-full">
+            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full">
               <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                 <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
                 <div class="glare"></div>
