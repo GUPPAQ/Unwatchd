@@ -407,16 +407,24 @@
       -webkit-mask-image: -webkit-radial-gradient(white, black);
     }
 
-    .tilt-card-inner {
+    /* Slow, smooth, cool ambient glow system for Movies and Actors */
+    .tilt-card-inner,
+    .cast-chip-card > div:first-child {
       transform: translateZ(30px);
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      transition: border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
     .tilt-card:hover .tilt-card-inner {
-      border-color: rgba(59, 130, 246, 0.7) !important;
-      box-shadow: 0 0 22px rgba(59, 130, 246, 0.35), 0 10px 25px rgba(0, 0, 0, 0.6) !important;
+      border-color: rgba(59, 130, 246, 0.85) !important;
+      box-shadow: 0 0 28px rgba(59, 130, 246, 0.5), 0 12px 30px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    .group\/person:hover .cast-chip-card > div:first-child,
+    .cast-chip-card:hover > div:first-child {
+      border-color: rgba(59, 130, 246, 0.85) !important;
+      box-shadow: 0 0 24px rgba(59, 130, 246, 0.5) !important;
     }
 
     .glare {
@@ -2514,7 +2522,7 @@
           const pRole = escapeHTML(p._role);
           const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
           return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : `openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, ${isModal ? 'false' : 'true'})`}; }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-28 sm:w-36 md:w-40 shrink-0 group/person cursor-pointer select-none relative">
-            <div class="w-full aspect-square rounded-full overflow-hidden border-2 ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_14px_rgba(59,130,246,0.4)]' : 'border-white/10'} group-hover/person:border-blue-500/70 group-hover/person:shadow-[0_0_16px_rgba(59,130,246,0.35)] transition-all duration-300 shadow-lg bg-gray-800 shrink-0 pointer-events-none">
+            <div class="w-full aspect-square rounded-full overflow-hidden border-2 ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_14px_rgba(59,130,246,0.4)]' : 'border-white/10'} group-hover/person:border-blue-500/85 transition-all duration-500 shadow-lg bg-gray-800 shrink-0 pointer-events-none">
               ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
             </div>
             <div class="spotify-marquee-container w-full pointer-events-none">
