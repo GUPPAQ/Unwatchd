@@ -395,25 +395,38 @@
       cursor: not-allowed;
     }
 
-    .tilt-card {
-      transform: perspective(1000px);
-      transition: transform 0.1s ease;
-    }
 
-    .clip-mask,
-    .tilt-card-inner {
-      mask-image: radial-gradient(white, black);
-      -webkit-mask-image: -webkit-radial-gradient(white, black);
-    }
+
+
+    /* mask removed to allow glow visibility */
 
     /* Sleek subtle Apple TV glow — shared by movies & actors */
     .glow-card {
+      position: relative;
+      overflow: visible !important;
       transition: border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
                   box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
-    .glow-card:hover {
+
+    .glow-card:hover,
+    .tilt-card:hover .glow-card {
       border-color: rgba(59, 130, 246, 0.6) !important;
-      box-shadow: 0 0 14px rgba(59, 130, 246, 0.3), 0 8px 20px rgba(0, 0, 0, 0.5) !important;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.35), 0 8px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .tilt-card {
+      overflow: visible !important;
+    }
+
+    /* Vertical padding & negative margins on horizontal tracks so glow fits vertically without shifting horizontal grid alignment or cutting off cards */
+    #castCrewTrack,
+    #similarMoviesTrack {
+      padding-top: 14px !important;
+      padding-bottom: 16px !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      margin-top: -14px !important;
+      margin-bottom: -16px !important;
     }
 
     .tilt-card-inner {
@@ -1311,7 +1324,7 @@
     const GENRE_MAP = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western' };
     function openStreamingService(webUrl, appUrl = null) { if (!isMobile || !appUrl || appUrl === 'null') { window.open(webUrl, "_blank"); return; } window.location.href = appUrl; setTimeout(() => { window.open(webUrl, "_blank"); }, 1200); }
     const CORS_PROXIES = [(url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`, (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`];
-    const TMDB_PROVIDER_CACHE_KEY = (region) => `ps_providers_${region}_v11`;
+    const TMDB_PROVIDER_CACHE_KEY = (region) => `ps_providers_${region}_v12`;
     const TMDB_PROVIDER_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
     // Text-normalisering som tar bort mellanslag, specialtecken och ersätter "+" med "plus"
@@ -1412,7 +1425,8 @@
       'timvision': './icons/timvision.png',
       'raiplay': './icons/raiplay.png',
       'cbcgem': './icons/cbcgem.png',
-      'bfiplayer': './icons/bfiplayer.png'
+      'bfiplayer': './icons/bfiplayer.png',
+      'tele2play': './icons/tele2play.png'
     };
 
     const KNOWN_DOMAINS = {
@@ -1550,6 +1564,7 @@
       'channel4': ['GB'],
       'svtplay': ['SE'],
       'tv4play': ['SE'],
+      'tele2play': ['SE'],
       'nrktv': ['NO'],
       'tv2play': ['NO', 'DK'],
       'yleareena': ['FI'],
@@ -1618,6 +1633,10 @@
         if (!hasSVT) {
           rawList.push({ provider_id: 385, provider_name: 'SVT Play', display_priority: 11 });
         }
+        const hasTele2 = rawList.some(p => cleanNormalize(p.provider_name) === 'tele2play');
+        if (!hasTele2) {
+          rawList.push({ provider_id: 497, provider_name: 'Tele2 Play', display_priority: 20 });
+        }
       }
 
       const JUNK_SUFFIX_RE = /\b(channel|app ?store|amazon channel|store)\b/i;
@@ -1634,7 +1653,7 @@
       const KNOWN_PRIORITY = {
         'netflix': 0, 'disneyplus': 1, 'primevideo': 2, 'amazonprimevideo': 2, 'max': 3, 'appletv': 4,
         'appletvplus': 4, 'hbomax': 3, 'viaplay': 10, 'svtplay': 11,
-        'tv4play': 12, 'skyshowtime': 13, 'discoveryplus': 14, 'sfanytime': 15
+        'tv4play': 12, 'skyshowtime': 13, 'discoveryplus': 14, 'sfanytime': 15, 'tele2play': 16
       };
 
       const knownPriorityFor = (name) => {
@@ -2512,8 +2531,10 @@
           const pRole = escapeHTML(p._role);
           const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
           return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : `openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, ${isModal ? 'false' : 'true'})`}; }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-28 sm:w-36 md:w-40 shrink-0 group/person cursor-pointer select-none relative">
-            <div class="glow-card w-full aspect-square rounded-full overflow-hidden border-2 ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_14px_rgba(59,130,246,0.4)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0">
-              ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
+            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_14px_rgba(59,130,246,0.4)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+              <div class="w-full h-full rounded-full overflow-hidden">
+                ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
+              </div>
             </div>
             <div class="spotify-marquee-container w-full pointer-events-none">
               <span class="spotify-marquee-text text-[13px] sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">${pName}</span>
@@ -2679,10 +2700,12 @@
           const isInWatchlist = watchlistIds.has(m.id);
           const recRating = getTmdbRating(m);
           return `<div class="tilt-card animate-fade shrink-0 w-32 sm:w-44 md:w-48 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 sm:hover:scale-[1.03]" onclick="${isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})`}">
-            <div class="tilt-card-inner glow-card block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 h-full">
-              <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
-              <div class="glare"></div>
-              <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
+            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 h-full">
+              <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+                <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
+                <div class="glare"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
+              </div>
               ${recRating ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black text-amber-400 border border-amber-500/30 shadow-lg z-20 flex items-center gap-1"><svg class="w-3 h-3 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${recRating}</div>` : ''}
               ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md w-6 h-6 rounded-md text-blue-400 border border-blue-500/30 shadow-lg flex items-center justify-center z-20" title="In Watchlist"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
               <div class="absolute bottom-0 left-0 w-full p-3 z-20">
@@ -2849,7 +2872,7 @@
       overlay.classList.add('flex');
     }
 
-    window.openExtraStreamingPopup = function(movieId) {
+    window.openExtraStreamingPopup = function (movieId) {
       const data = window.moviePopupDataCache ? window.moviePopupDataCache.get(movieId) : null;
       if (!data) return;
       const html = `<div class="space-y-4">
@@ -2869,7 +2892,7 @@
       openCustomPopup(`Watch Options: ${data.title}`, html);
     };
 
-    window.openRentBuyPopup = function(movieId) {
+    window.openRentBuyPopup = function (movieId) {
       const data = window.moviePopupDataCache ? window.moviePopupDataCache.get(movieId) : null;
       if (!data) return;
       const html = data.rentBuyCount > 0
@@ -3595,18 +3618,21 @@
       const a = document.createElement('a');
       a.href = movieObj.url;
       a.addEventListener('click', (e) => { e.preventDefault(); openMoviePage(movieObj); });
-      a.className = 'tilt-card-inner glow-card block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 h-full';
+      a.className = 'tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 h-full';
+      const innerClip = document.createElement('div');
+      innerClip.className = 'absolute inset-0 rounded-2xl overflow-hidden pointer-events-none';
       if (movieObj.poster) {
-        a.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
+        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
       } else {
-        a.innerHTML = `<div class="absolute inset-0 flex items-center justify-center p-4 text-center font-bold text-gray-500 text-sm">${safeTitle}</div>`;
+        innerClip.innerHTML = `<div class="absolute inset-0 flex items-center justify-center p-4 text-center font-bold text-gray-500 text-xs">${safeTitle}</div>`;
       }
       const glare = document.createElement('div');
       glare.className = 'glare';
-      a.appendChild(glare);
+      innerClip.appendChild(glare);
       const gradient = document.createElement('div');
       gradient.className = 'absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90';
-      a.appendChild(gradient);
+      innerClip.appendChild(gradient);
+      a.appendChild(innerClip);
 
       const tmdbRating = getTmdbRating(movieObj);
       if (tmdbRating) {
@@ -4246,10 +4272,12 @@
             ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black text-amber-400 border border-amber-500/30 shadow-lg z-20 flex items-center gap-1"><svg class="w-3 h-3 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${filmRating}</div>`
             : '';
 
-          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="${isPage ? `openMoviePageById(${m.id})` : `handleActorFilmClick(${m.id}, '', ${!isModal})`}">            <div class="tilt-card-inner glow-card block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 h-full">
-              ${mPoster ? `<img src="${mPoster}" alt="${mTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
-              <div class="glare"></div>
-              <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
+          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="${isPage ? `openMoviePageById(${m.id})` : `handleActorFilmClick(${m.id}, '', ${!isModal})`}">            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 h-full">
+              <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+                ${mPoster ? `<img src="${mPoster}" alt="${mTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
+                <div class="glare"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
+              </div>
               ${actorRatingHtml}
               ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md w-6 h-6 rounded-md text-blue-400 border border-blue-500/30 shadow-lg flex items-center justify-center z-20" title="In Watchlist"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
               <div class="absolute bottom-0 left-0 w-full p-3 sm:p-4 z-20">
@@ -4710,27 +4738,11 @@
           }
         }
 
-        let mask = 'none';
-        if (track.scrollWidth <= track.clientWidth) {
-          mask = 'none';
-        } else if (current <= 10) {
-          mask = 'linear-gradient(to right, black 95%, transparent)';
-        } else if (current >= maxScroll - 10) {
-          mask = 'linear-gradient(to right, transparent, black 5%)';
-        } else {
-          mask = 'linear-gradient(to right, transparent, black 3%, black 97%, transparent)';
-        }
-        track.style.maskImage = mask;
-        track.style.webkitMaskImage = mask;
+        track.style.maskImage = 'none';
+        track.style.webkitMaskImage = 'none';
       }
 
       track.addEventListener('scroll', updateUI, { passive: true });
-      track.addEventListener('wheel', (e) => {
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && track.scrollWidth > track.clientWidth) {
-          e.preventDefault();
-          track.scrollLeft += e.deltaY;
-        }
-      }, { passive: false });
       setTimeout(updateUI, 100);
 
       let isDown = false;
