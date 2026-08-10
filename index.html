@@ -1265,7 +1265,7 @@
 
   <div id="moviePageView" class="fixed inset-0 z-[220] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
 
-  <div id="actorPageView" class="fixed inset-0 z-[221] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
+  <div id="actorPageView" class="fixed inset-0 z-[290] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
 
   <div id="genericPopupOverlay"
     class="fixed inset-0 z-[500] hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
@@ -3632,6 +3632,21 @@
       document.body.classList.remove('modal-open');
     }
 
+    function hideActorPageView() {
+      const container = document.getElementById('actorPageView');
+      if (!container || container.classList.contains('hidden')) return;
+      window.currentActorPageId = null;
+      container.classList.add('hidden');
+      container.innerHTML = '';
+      const movieModal = document.getElementById('movieModal');
+      const actorModal = document.getElementById('actorModal');
+      const allCastModal = document.getElementById('allCastModal');
+      const isMoviePageOpen = document.getElementById('moviePageView') && !document.getElementById('moviePageView').classList.contains('hidden');
+      if (!movieModal?.classList.contains('flex') && !actorModal?.classList.contains('flex') && !allCastModal?.classList.contains('flex') && !isMoviePageOpen) {
+        document.body.classList.remove('modal-open');
+      }
+    }
+
     function hideAllCastModalView() {
       const modal = document.getElementById('allCastModal');
       if (modal) {
@@ -3658,8 +3673,11 @@
         hideActorPageView();
         const id = parseInt(location.hash.replace('#movie-', ''), 10);
         if (id) {
-          const existing = scannedMovies.find(m => m.id === id);
-          if (existing) openMoviePage(existing, false); else openMoviePageById(id);
+          const isMoviePageOpen = document.getElementById('moviePageView') && !document.getElementById('moviePageView').classList.contains('hidden');
+          if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== id) {
+            const existing = scannedMovies.find(m => m.id === id);
+            if (existing) openMoviePage(existing, false); else openMoviePageById(id);
+          }
         }
       } else if (location.hash.startsWith('#actor-')) {
         hideAllCastModalView();
@@ -4916,7 +4934,6 @@
       const container = document.getElementById('actorPageView');
       if (!container || !actorId) return;
       stopHeroVideo();
-      hideMoviePageView();
 
       window.currentActorPageId = actorId;
       currentActorRoleHint = roleHint;
