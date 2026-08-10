@@ -4849,7 +4849,7 @@
       }
 
       const { allMovies, watchlistMovies, moviesToShow } = getActorMoviesList(person, showWatchlistOnly, roleHint);
-      const watchlistIds = new Set(scannedMovies.map(m => m.id));
+      const watchlistKeySet = new Set(scannedMovies.map(m => `${m.mediaType || 'movie'}-${m.id}`));
 
       const ACTOR_ITEMS_PER_PAGE = 60;
       const maxActorPage = Math.ceil(moviesToShow.length / ACTOR_ITEMS_PER_PAGE) || 1;
