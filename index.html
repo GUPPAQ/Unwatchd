@@ -1291,40 +1291,37 @@
     </div>
   </div>
 
-  <!-- ALL CAST & CREW POPUP MODAL -->
+  <!-- ALL CAST & CREW FULL PAGE VIEW -->
   <div id="allCastModal"
-    class="fixed inset-0 z-[280] hidden items-center justify-center py-5 px-4 sm:px-6 pointer-events-none">
-    <div id="allCastModalBackdrop"
-      onclick="closeAllCastModal()"
-      class="absolute inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300 opacity-0 pointer-events-auto cursor-pointer will-change-opacity transform-gpu">
-    </div>
-    <div id="allCastModalContent"
-      class="relative w-full max-w-5xl max-h-[88dvh] rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-8 opacity-0 pointer-events-auto flex flex-col bg-[#0b1121] overflow-hidden border border-white/10 will-change-transform transform-gpu">
-      <div class="p-5 sm:p-7 border-b border-white/10 flex flex-col gap-4 bg-gradient-to-r from-blue-950/40 via-gray-900 to-black shrink-0">
-        <div class="flex items-center justify-between gap-4">
-          <div class="min-w-0 flex-1">
-            <h2 id="allCastModalTitle" class="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">Full Cast &amp; Crew</h2>
-            <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-400 mt-0.5">All actors and filmmakers</p>
-          </div>
-          <button onclick="closeAllCastModal()" aria-label="Close" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white flex items-center justify-center transition-all shrink-0 cursor-pointer shadow-sm">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-          </button>
+    class="fixed inset-0 z-[280] hidden flex-col bg-[#0b1121] overflow-y-auto overscroll-none">
+    <nav class="sticky top-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 py-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
+      <button onclick="closeAllCastModal()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+      <button onclick="closeAllCastModal(); goHomeFromPage();" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </nav>
+    <div class="max-w-[1480px] mx-auto w-full px-5 sm:px-10 pb-16 -mt-14 flex-1 flex flex-col gap-6 sm:gap-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 border-b border-white/10 pb-6">
+        <div>
+          <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm">Cast &amp; Crew</span>
+          <h1 id="allCastModalTitle" class="text-3xl sm:text-5xl font-black text-white tracking-tight mt-1">Full Cast &amp; Crew</h1>
+          <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-400 mt-1"></p>
         </div>
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div class="relative flex-1">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <div class="relative min-w-[220px] sm:min-w-[280px]">
             <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input id="allCastSearchInput" type="text" placeholder="Search cast or character..." oninput="filterAllCastGrid()" class="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-8 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500">
+            <input id="allCastSearchInput" type="text" placeholder="Search cast or character..." oninput="filterAllCastGrid()" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500">
           </div>
           <div class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl shrink-0">
-            <button id="allCastTabAll" onclick="setAllCastTab('all')" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-500/25 text-blue-400 border border-blue-500/40">All</button>
-            <button id="allCastTabCast" onclick="setAllCastTab('cast')" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white border border-transparent">Cast</button>
-            <button id="allCastTabCrew" onclick="setAllCastTab('crew')" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white border border-transparent">Crew</button>
+            <button id="allCastTabAll" onclick="setAllCastTab('all')" class="all-cast-tab px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-500/25 text-blue-400 border border-blue-500/40">All</button>
+            <button id="allCastTabCast" onclick="setAllCastTab('cast')" class="all-cast-tab px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white border border-transparent">Cast</button>
+            <button id="allCastTabCrew" onclick="setAllCastTab('crew')" class="all-cast-tab px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white border border-transparent">Crew</button>
           </div>
         </div>
       </div>
-      <div id="allCastModalBody" class="p-5 sm:p-7 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-        <div id="allCastGrid" class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4"></div>
-      </div>
+      <div id="allCastGrid" class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4 sm:gap-6 content-start"></div>
     </div>
   </div>
 
@@ -3840,9 +3837,7 @@
     function openFullCastModal(isPage = false) {
       if (!window.currentMovieFullCredits) return;
       const modal = document.getElementById('allCastModal');
-      const backdrop = document.getElementById('allCastModalBackdrop');
-      const content = document.getElementById('allCastModalContent');
-      if (!modal || !content) return;
+      if (!modal) return;
 
       currentAllCastActiveTab = 'all';
       currentAllCastMovieContext = isPage;
@@ -3863,30 +3858,23 @@
 
       modal.classList.remove('hidden'); modal.classList.add('flex');
       document.body.classList.add('modal-open');
-      requestAnimationFrame(() => {
-        backdrop.classList.remove('opacity-0');
-        content.classList.remove('translate-y-8', 'opacity-0');
-      });
+      modal.scrollTop = 0;
     }
 
     function closeAllCastModal() {
       const modal = document.getElementById('allCastModal');
-      const backdrop = document.getElementById('allCastModalBackdrop');
-      const content = document.getElementById('allCastModalContent');
-      if (!modal || !content) return;
+      if (!modal) return;
 
-      backdrop.classList.add('opacity-0');
-      content.classList.add('translate-y-8', 'opacity-0');
-      setTimeout(() => {
-        modal.classList.add('hidden'); modal.classList.remove('flex');
-        const actorModal = document.getElementById('actorModal');
-        const movieModal = document.getElementById('movieModal');
-        const isActorOpen = actorModal && !actorModal.classList.contains('hidden');
-        const isMovieOpen = movieModal && !movieModal.classList.contains('hidden');
-        if (!isActorOpen && !isMovieOpen) {
-          document.body.classList.remove('modal-open');
-        }
-      }, 300);
+      modal.classList.add('hidden'); modal.classList.remove('flex');
+      const actorModal = document.getElementById('actorModal');
+      const movieModal = document.getElementById('movieModal');
+      const isActorOpen = actorModal && !actorModal.classList.contains('hidden');
+      const isMovieOpen = movieModal && !movieModal.classList.contains('hidden');
+      const isMoviePageOpen = document.getElementById('moviePageView') && !document.getElementById('moviePageView').classList.contains('hidden');
+      const isActorPageOpen = document.getElementById('actorPageView') && !document.getElementById('actorPageView').classList.contains('hidden');
+      if (!isActorOpen && !isMovieOpen && !isMoviePageOpen && !isActorPageOpen) {
+        document.body.classList.remove('modal-open');
+      }
     }
 
     function setAllCastTab(tab) {
@@ -3957,8 +3945,8 @@
         const pRole = escapeHTML(p._role || '');
         const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
 
-        return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="closeAllCastModal(); ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-2 p-2.5 rounded-2xl bg-gray-900/60 border border-white/5 hover:border-blue-500/40 hover:bg-gray-800/80 transition-all cursor-pointer select-none group/person">
-          <div class="glow-card w-20 h-20 sm:w-24 sm:h-24 rounded-full border ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_14px_rgba(59,130,246,0.4)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+        return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="closeAllCastModal(); ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-2.5 p-3 sm:p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-blue-500/40 hover:bg-white/[0.07] transition-all cursor-pointer select-none group/person">
+          <div class="glow-card w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
             <div class="w-full h-full rounded-full overflow-hidden">
               ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
             </div>
@@ -3966,7 +3954,7 @@
           <div class="spotify-marquee-container w-full pointer-events-none text-center">
             <span class="spotify-marquee-text text-xs sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">${pName}</span>
           </div>
-          ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-1 text-center"><span class="spotify-marquee-text text-[11px] text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
+          ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-1 text-center"><span class="spotify-marquee-text text-[11px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
         </div>`;
       }).join('');
     }
