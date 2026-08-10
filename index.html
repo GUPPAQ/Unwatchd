@@ -43,6 +43,16 @@
       -webkit-user-select: none !important;
     }
 
+    #heroVideoFullscreenIframe {
+      pointer-events: auto !important;
+      user-select: auto !important;
+    }
+
+    #trailerIframeWrapper iframe {
+      pointer-events: auto !important;
+      touch-action: auto !important;
+    }
+
     html {
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -687,6 +697,46 @@
       background: rgba(255, 255, 255, 0.05);
     }
 
+    .actor-toggle-btn-lg {
+      padding: 0.7rem 1.5rem;
+      font-size: 0.8rem;
+    }
+
+    #castCrewTrack > *, #similarMoviesTrack > * {
+      scroll-snap-align: start;
+    }
+
+    /* Sizing rules: 2 movies on mobile / 4 on desktop & tablet; 3 actors on mobile / 5 on tablet / 6 on desktop */
+    #similarMoviesTrack > .tilt-card {
+      width: calc((100% - 1 * 1rem) / 2) !important;
+      flex-shrink: 0 !important;
+    }
+    @media (min-width: 640px) {
+      #similarMoviesTrack > .tilt-card {
+        width: calc((100% - 3 * 1.25rem) / 4) !important;
+      }
+    }
+
+    #castCrewTrack > .cast-chip-card {
+      width: calc((100% - 2 * 0.75rem) / 3) !important;
+      flex-shrink: 0 !important;
+    }
+    @media (min-width: 640px) {
+      #castCrewTrack > .cast-chip-card {
+        width: calc((100% - 4 * 1rem) / 5) !important;
+      }
+    }
+    @media (min-width: 1024px) {
+      #castCrewTrack > .cast-chip-card {
+        width: calc((100% - 5 * 1rem) / 6) !important;
+      }
+    }
+
+    .filter-select-wrapper-lg .filter-select-label {
+      font-size: 0.85rem;
+      padding: 0.8rem 2.75rem 0.8rem 1.15rem;
+    }
+
     .actor-bio-text {
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -699,6 +749,32 @@
       -webkit-line-clamp: unset;
     }
 
+    @media (max-height: 520px) {
+      .actor-hero-container {
+        height: 100vh !important;
+        min-height: 320px !important;
+      }
+      .actor-hero-content {
+        padding-top: 4.5rem !important;
+        padding-bottom: 1.25rem !important;
+      }
+      .actor-hero-name {
+        font-size: 2.5rem !important;
+        line-height: 1.05 !important;
+      }
+      .actor-hero-small-img {
+        width: 7.5rem !important;
+      }
+      #actorFilmGrid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+      }
+      #activeGridContainer {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+      }
+    }
+
     .movie-overview-text {
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -709,6 +785,47 @@
 
     .movie-overview-text.expanded {
       -webkit-line-clamp: unset;
+    }
+
+    .movie-hero-title {
+      font-weight: 900 !important;
+      letter-spacing: -0.035em !important;
+      color: #ffffff !important;
+      text-shadow: 0 8px 30px rgba(0, 0, 0, 0.95), 0 2px 8px rgba(0, 0, 0, 0.9);
+      word-break: break-word;
+    }
+
+    .titleLogoImg {
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.95));
+    }
+/* Scales up the shared cast/similar/watch-now fragments when they render inside the
+       full-page movie/actor view, which has far more room than the old compact modal. */
+    .ps-page-scale > h3 {
+      font-size: 1.05rem;
+      letter-spacing: 0.16em;
+    }
+    .ps-page-scale .cast-chip-card {
+      width: 7.5rem;
+    }
+    .ps-page-scale .cast-chip-card span {
+      font-size: 0.95rem;
+    }
+    .ps-page-scale .tilt-card {
+      width: 9.5rem;
+    }
+    .ps-page-scale .tilt-card h4 {
+      font-size: 0.85rem;
+    }
+    .ps-page-scale .tilt-card p {
+      font-size: 0.72rem;
+    }
+    @media (min-width: 640px) {
+      .ps-page-scale .cast-chip-card {
+        width: 9rem;
+      }
+      .ps-page-scale .tilt-card {
+        width: 12rem;
+      }
     }
   </style>
 </head>
@@ -1093,6 +1210,17 @@
         class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
       </svg></button>
+  </div>
+
+  <div id="moviePageView" class="fixed inset-0 z-[220] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
+
+  <div id="actorPageView" class="fixed inset-0 z-[221] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
+
+  <div id="genericPopupOverlay" class="fixed inset-0 z-[500] hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onclick="if(event.target===this) closeGenericPopup()">
+    <div id="genericPopupContent" class="glass-panel bg-[#0f1730] border border-white/10 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6 relative shadow-[0_30px_60px_rgba(0,0,0,0.8)]">
+      <button onclick="closeGenericPopup()" aria-label="Close" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+      <div id="genericPopupBody" class="pr-6"></div>
+    </div>
   </div>
 
   <div id="actorModal"
@@ -1653,8 +1781,8 @@
     if (el.toggleFriendBtn) { el.toggleFriendBtn.addEventListener('click', () => { if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.friendInput) el.friendInput.focus(); }); }
     if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if (el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if (el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } if (isFriendMatchActive) { if (el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies = []; clearScanStorage(); isFriendMatchActive = false; if (el.activeGridContainer) el.activeGridContainer.innerHTML = ''; if (el.statsBar) el.statsBar.classList.add('hidden'); if (el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
     if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
-    if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { if (scannedMovies.length > 0 && el.statsBar) { const isHidden = el.statsBar.classList.contains('hidden'); if (isHidden) { el.statsBar.classList.remove('hidden'); el.statsBar.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.add('vpn-active'); el.statsBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else { el.statsBar.classList.add('hidden'); el.statsBar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3'); if (el.statsBtn) el.statsBtn.classList.remove('vpn-active'); } } el.statsBtn.blur(); }); }
-    if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { const currentList = currentGroupedResults[activeTab] || []; if (currentList.length === 0) return; const randomIndex = Math.floor(Math.random() * currentList.length); openMovieModal(currentList[randomIndex], false, true); }); }
+    if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { if (scannedMovies.length > 0) { openInsightsPopup(); } el.statsBtn.blur(); }); }
+    if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { const currentList = currentGroupedResults[activeTab] || []; if (currentList.length === 0) return; const randomIndex = Math.floor(Math.random() * currentList.length); openMoviePage(currentList[randomIndex]); }); }
     document.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if (el.quickSearchInput) el.quickSearchInput.focus(); } const trailerModal = document.getElementById('trailerModal'); const trailerModalOpen = trailerModal && !trailerModal.classList.contains('hidden'); if (trailerModalOpen) { if (e.key === 'Escape') { closeTrailerModal(); return; } const iframe = document.querySelector('#trailerIframeWrapper iframe'); if (iframe) { iframe.focus(); try { iframe.contentWindow.focus(); } catch (err) { console.warn('[Trailer Iframe Focus]', err); } } return; } const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden'); if (e.key === 'Escape') { if (actorModalOpen) { closeActorModal(); return; } if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (isModalOpen) document.getElementById('closeModalBtn')?.click(); } if (isModalOpen && !actorModalOpen) {
         const activeEl = document.activeElement;
@@ -2025,6 +2153,13 @@
     if (sharedMovieId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/movie/${sharedMovieId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(movie => { if (movie.id) { movie.__mediaType = 'movie'; el.quickSearchInput.value = movie.title; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(movie); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared Movie URL Fetch]', e); }); }
     else if (sharedTvId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/tv/${sharedTvId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(show => { if (show.id) { show.__mediaType = 'tv'; el.quickSearchInput.value = show.name; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(show); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared TV URL Fetch]', e); }); }
     else if (sharedActorId) { openActorModal(Number(sharedActorId)); window.history.replaceState({}, document.title, window.location.pathname); }
+    if (window.location.hash.startsWith('#movie-')) {
+      const initialMovieId = parseInt(window.location.hash.replace('#movie-', ''), 10);
+      if (initialMovieId) { const existing = scannedMovies.find(m => m.id === initialMovieId); if (existing) openMoviePage(existing, false); else openMoviePageById(initialMovieId); }
+    } else if (window.location.hash.startsWith('#actor-')) {
+      const initialActorId = parseInt(window.location.hash.replace('#actor-', ''), 10);
+      if (initialActorId) openActorPage(initialActorId, '', '', false);
+    }
     const DB_NAME = 'UnwatchdDB';
     const DB_VERSION = 1;
     const STORE_NAME = 'scans';
@@ -2152,7 +2287,7 @@
       if (movieDetailsCache.has(cacheKey)) {
         return movieDetailsCache.get(cacheKey);
       }
-      const url = `https://api.themoviedb.org/3/${mediaType === 'tv' ? 'tv' : 'movie'}/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos,external_ids,recommendations,watch/providers,images&include_image_language=en,null,sv`;
+      const url = `https://api.themoviedb.org/3/${mediaType === 'tv' ? 'tv' : 'movie'}/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos,external_ids,recommendations,similar,watch/providers,images&include_image_language=en,null,sv`;
       try {
         const res = await fetch(url);
         const data = await res.json();
@@ -2189,8 +2324,14 @@
       if (ytVideos.length === 0) return null;
 
       const badWords = /\b(audio description|audio described|descriptive audio|described video|\bad\b|commentary|narration|reaction|review|blooper|spoof|behind the scenes|featurette|interview|b-roll|lego|fan|parody|honest|concept|recap|dubbed)\b/i;
-      const candidates = ytVideos.filter(v => !badWords.test(v.name || ''));
-      const list = candidates.length > 0 ? candidates : ytVideos;
+      const nonBad = ytVideos.filter(v => !badWords.test(v.name || ''));
+
+      // A video's TMDB `type` (Trailer/Teaser) is a much more reliable signal than its name.
+      // A featurette or clip can easily have a name with no blacklisted words in it (e.g. a
+      // costume-department featurette), so if a real trailer/teaser exists, always prefer it.
+      const trailerTypes = nonBad.filter(v => v.type === 'Trailer' || v.type === 'Teaser');
+      const candidates = trailerTypes.length > 0 ? trailerTypes : (nonBad.length > 0 ? nonBad : ytVideos);
+      const list = candidates;
 
       list.sort((a, b) => {
         let scoreA = 0;
@@ -2219,13 +2360,53 @@
       return list[0];
     }
 
+    const validatedLogoCache = new Map();
+    function preloadImageCheck(url, timeoutMs = 2500) {
+      return new Promise((resolve) => {
+        if (!url) { resolve(false); return; }
+        const img = new Image();
+        const timer = setTimeout(() => resolve(false), timeoutMs);
+        img.onload = () => { clearTimeout(timer); resolve(img.naturalWidth > 0 && img.naturalHeight > 0); };
+        img.onerror = () => { clearTimeout(timer); resolve(false); };
+        img.src = url;
+      });
+    }
+    // Resolves whether this movie's title logo genuinely renders, using a real image load test
+    // (not the DOM <img> tag's own onerror, which has proven unreliable for some TMDB entries).
+    // Caches the definitive answer so generateFullMovieHTML's own getBestTitleLogo call — which
+    // can't be made async — just reads the confirmed result instead of guessing.
+    async function resolveTitleLogo(details) {
+      if (!details || !details.id) return;
+      if (validatedLogoCache.has(details.id)) return;
+      try {
+        const raw = getBestTitleLogoRaw(details);
+        if (!raw) { validatedLogoCache.set(details.id, null); return; }
+        const ok = await preloadImageCheck(raw, 4000);
+        validatedLogoCache.set(details.id, ok ? raw : null);
+      } catch (err) {
+        console.warn('[Title Logo Resolve]', err);
+        validatedLogoCache.set(details.id, null);
+      }
+    }
+
     function getBestTitleLogo(details) {
+      if (details && details.id && validatedLogoCache.has(details.id)) return validatedLogoCache.get(details.id);
+      return getBestTitleLogoRaw(details);
+    }
+
+    function getBestTitleLogoRaw(details) {
       if (!details || !details.images || !Array.isArray(details.images.logos) || details.images.logos.length === 0) return null;
-      const validLogos = details.images.logos.filter(l => l.file_path && (l.aspect_ratio == null || l.aspect_ratio > 1.1));
+      // Exclude SVG logos (which render transparent/blank due to browser SVG sandbox policies) and allow PNG logos up to aspect ratio 18.0
+      const validLogos = details.images.logos.filter(l => {
+        if (!l.file_path || l.file_path.toLowerCase().endsWith('.svg')) return false;
+        const ar = l.aspect_ratio;
+        return ar == null || (ar >= 1.1 && ar <= 18.0);
+      });
       if (validLogos.length === 0) return null;
 
-      const englishLogos = validLogos.filter(l => l.iso_639_1 === 'en');
-      const candidates = englishLogos.length > 0 ? englishLogos : validLogos;
+      // Prefer English ('en') and textless/universal (null or empty) logos
+      const primaryLogos = validLogos.filter(l => !l.iso_639_1 || l.iso_639_1 === 'en' || l.iso_639_1 === 'null');
+      const candidates = primaryLogos.length > 0 ? primaryLogos : validLogos;
 
       candidates.sort((a, b) => {
         let scoreA = 0;
@@ -2234,8 +2415,10 @@
         if (a.iso_639_1 === 'en') scoreA += 100;
         if (b.iso_639_1 === 'en') scoreB += 100;
 
-        if (a.aspect_ratio && a.aspect_ratio > 1.8 && a.aspect_ratio < 6.0) scoreA += 30;
-        if (b.aspect_ratio && b.aspect_ratio > 1.8 && b.aspect_ratio < 6.0) scoreB += 30;
+        const arA = a.aspect_ratio || 0;
+        const arB = b.aspect_ratio || 0;
+        if (arA >= 1.8 && arA <= 6.0) scoreA += 50;
+        if (arB >= 1.8 && arB <= 6.0) scoreB += 50;
 
         scoreA += (a.vote_average || 0) * (a.vote_count || 1);
         scoreB += (b.vote_average || 0) * (b.vote_count || 1);
@@ -2243,17 +2426,38 @@
         return scoreB - scoreA;
       });
 
-      return `https://image.tmdb.org/t/p/w500${candidates[0].file_path}`;
+      const bestLogo = candidates[0];
+      return `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
     }
 
-    function generateFullMovieHTML(movieObj, details, isModal = false, context = 'lookup') {
-      const safeTitle = escapeHTML(movieObj.title); const year = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : 'N/A'; const runtime = details && details.runtime ? `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m` : ''; const genres = details && details.genres ? details.genres.map(g => escapeHTML(g.name)).slice(0, 3).join(' • ') : ''; const overview = details && details.overview ? escapeHTML(details.overview) : 'No synopsis available.';
+    window.onTitleLogoError = function(imgEl) {
+      if (!imgEl || imgEl.dataset.fallbackDone) return;
+      imgEl.dataset.fallbackDone = 'true';
+      const isPage = imgEl.classList.contains('pageTitleImg');
+      const safeTitle = imgEl.alt || '';
+      const tag = isPage ? 'h1' : 'h2';
+      const fontClasses = isPage
+        ? 'movie-hero-title text-4xl min-[400px]:text-5xl sm:text-7xl md:text-8xl lg:text-[5.5rem] font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[0.95] mb-3'
+        : 'movie-hero-title text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-2';
+      
+      const heading = document.createElement(tag);
+      heading.className = fontClasses;
+      heading.textContent = safeTitle;
+      imgEl.replaceWith(heading);
+    };
+
+    function generateFullMovieHTML(movieObj, details, isModal = false, context = 'lookup', isPage = false) {
+      const safeTitle = escapeHTML(movieObj.title || (details && details.title) || (details && details.name) || 'Untitled'); const year = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : 'N/A'; const runtime = details && details.runtime ? `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m` : ''; const genres = details && details.genres ? details.genres.map(g => escapeHTML(g.name)).slice(0, 3).join(' • ') : ''; const overview = details && details.overview ? escapeHTML(details.overview) : 'No synopsis available.';
       const titleLogo = getBestTitleLogo(details);
       const titleHeaderHtml = titleLogo
-        ? `<img src="${titleLogo}" alt="${safeTitle}" loading="lazy" decoding="async" class="max-h-20 sm:max-h-28 max-w-[280px] sm:max-w-[440px] object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] mb-2 shrink-0">`
-        : `<h2 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] leading-tight">${safeTitle}</h2>`;
+        ? `<img src="${titleLogo}" alt="${safeTitle}" loading="eager" decoding="async" class="titleLogoImg max-h-20 sm:max-h-28 max-w-[280px] sm:max-w-[440px] object-contain mb-2 shrink-0" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`
+        : `<h2 class="movie-hero-title text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-2">${safeTitle}</h2>`;
+      // Bigger, bolder title treatment for the full-bleed page hero, matching the actor name typography style but a bit larger.
+      const pageTitleHeaderHtml = titleLogo
+        ? `<img src="${titleLogo}" alt="${safeTitle}" loading="eager" decoding="async" class="titleLogoImg pageTitleImg max-h-28 sm:max-h-40 max-w-[360px] sm:max-w-[620px] object-contain mb-3 shrink-0" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`
+        : `<h1 class="movie-hero-title text-4xl min-[400px]:text-5xl sm:text-7xl md:text-8xl lg:text-[5.5rem] font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[0.95] mb-3">${safeTitle}</h1>`;
       const tmdbRating = getTmdbRating(movieObj) || (details && details.vote_average ? details.vote_average.toFixed(1) : null);
-      const modalRatingBadgeHtml = tmdbRating ? `<span id="modalRatingBadge" class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black">TMDB ${tmdbRating}</span>` : '';
+      const modalRatingBadgeHtml = tmdbRating ? `<span id="modalRatingBadge" class="bg-amber-500/15 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black inline-flex items-center gap-1.5"><svg class="w-3 h-3 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${tmdbRating}</span>` : '';
       const imdbId = details && details.external_ids && details.external_ids.imdb_id ? details.external_ids.imdb_id : (movieObj.imdbId || null);
 
       const requestId = movieObj.id;
@@ -2268,21 +2472,27 @@
           const pName = escapeHTML(p.name);
           const pRole = escapeHTML(p._role);
           const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
-          return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, ${isModal ? 'false' : 'true'});" class="cast-chip-card flex flex-col items-center gap-1.5 w-24 sm:w-28 shrink-0 group/person cursor-pointer select-none">
-            <div class="w-full aspect-square rounded-full overflow-hidden border-2 ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_12px_rgba(59,130,246,0.3)]' : 'border-white/10'} group-hover/person:border-blue-500/60 transition-colors shadow-lg bg-gray-800 shrink-0 pointer-events-none">
+          return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : `openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, ${isModal ? 'false' : 'true'})`}; }" class="cast-chip-card flex flex-col items-center gap-1.5 w-28 sm:w-36 md:w-40 shrink-0 group/person cursor-pointer select-none transition-transform duration-200 sm:hover:scale-[1.04]">
+            <div class="w-full aspect-square rounded-full overflow-hidden border-2 ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_14px_rgba(59,130,246,0.4)]' : 'border-white/10'} group-hover/person:border-blue-500/60 transition-colors shadow-lg bg-gray-800 shrink-0 pointer-events-none">
               ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
             </div>
-            <span class="text-[13px] text-gray-200 group-hover/person:text-blue-400 transition-colors font-bold text-center leading-snug line-clamp-2 w-full pointer-events-none">${pName}</span>
-            ${pRole ? `<span class="text-[11.5px] text-gray-400 font-medium text-center leading-tight line-clamp-1 w-full pointer-events-none -mt-0.5">${pRole}</span>` : ''}
+            <span class="text-[13px] sm:text-sm text-gray-200 group-hover/person:text-blue-400 transition-colors font-bold text-center leading-snug line-clamp-2 w-full pointer-events-none">${pName}</span>
+            ${pRole ? `<span class="text-[11.5px] sm:text-xs text-gray-400 font-medium text-center leading-tight line-clamp-1 w-full pointer-events-none -mt-0.5">${pRole}</span>` : ''}
           </div>`;
         }).join('');
-        castCrewHtml = `<div class="space-y-2.5"><h3 class="text-sm font-extrabold uppercase tracking-widest text-gray-400">Cast & Crew</h3><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-320)" aria-label="Scroll cast left" class="absolute left-2 sm:left-4 top-[52px] sm:top-[60px] -translate-y-1/2 z-50 w-9 h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/15 text-white hidden md:flex items-center justify-center shadow-2xl transition-all hover:scale-110 cursor-pointer opacity-0 pointer-events-none"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(320)" aria-label="Scroll cast right" class="absolute right-2 sm:right-4 top-[52px] sm:top-[60px] -translate-y-1/2 z-50 w-9 h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/15 text-white hidden md:flex items-center justify-center shadow-2xl transition-all hover:scale-110 cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button><div id="castCrewTrack" class="flex gap-4 overflow-x-auto pb-1 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent touch-pan-x cursor-grab select-none">${chips}</div></div></div>`;
+        castCrewHtml = `<div class="space-y-2.5"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-gray-400">Cast &amp; Crew</h3><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-1, event)" aria-label="Scroll cast left" class="hidden sm:flex absolute left-1 sm:left-2 top-[56px] sm:top-[72px] md:top-[80px] -translate-y-1/2 z-50 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/75 hover:bg-black/95 active:scale-95 border border-white/20 text-white items-center justify-center backdrop-blur-md shadow-2xl transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-90 hover:!opacity-100 hidden"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(1, event)" aria-label="Scroll cast right" class="hidden sm:flex absolute right-1 sm:right-2 top-[56px] sm:top-[72px] md:top-[80px] -translate-y-1/2 z-50 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/75 hover:bg-black/95 active:scale-95 border border-white/20 text-white items-center justify-center backdrop-blur-md shadow-2xl transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-90 hover:!opacity-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button><div id="castCrewTrack" class="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${chips}</div></div></div>`;
       }
       const bestTrailer = getBestTrailer(details);
+      // The autoplaying hero background is held to a stricter standard than the Watch Trailer
+      // button: it must have "trailer" in its name and be flagged official by TMDB (their signal
+      // for studio-uploaded content, as opposed to fan edits). If nothing qualifies, the hero just
+      // shows the static banner — no video — while the button can still fall back to a looser pick.
+      const heroTrailer = bestTrailer && bestTrailer.official && /trailer/i.test(bestTrailer.name || '') ? bestTrailer : null;
       const btnClass = "flex items-center justify-center sm:justify-start gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-3 rounded-xl transition-all text-sm font-bold text-gray-300 hover:text-white flex-1 sm:flex-none sm:min-w-[150px] whitespace-nowrap";
       const streamingBtnClass = "flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-3 rounded-xl transition-all text-sm font-bold text-gray-300 hover:text-white w-max";
+      const streamingBtnClassBig = "flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-[1.15rem] rounded-xl transition-all text-lg font-bold text-gray-300 hover:text-white w-full";
 
-      const makeProviderLink = (p, extraText = '') => {
+      const makeProviderLink = (p, extraText = '', big = false) => {
         let safeName = (p.provider_name || '').replace("with Ads", "").trim();
 
         const providerMeta = currentProviders.find(cp => cp.id === p.provider_id) || null;
@@ -2305,7 +2515,7 @@
           link = deeplink.searchUrl(movieObj.title);
         }
 
-        return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="${streamingBtnClass}"><div class="w-6 h-6 flex-shrink-0 rounded-[22.5%] overflow-hidden shadow-sm pointer-events-none">${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}</div>${escapeHTML(safeName)}${extraText}</a>`;
+        return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="${big ? streamingBtnClassBig : streamingBtnClass}"><div class="${big ? 'w-10 h-10' : 'w-6 h-6'} flex-shrink-0 rounded-[22.5%] overflow-hidden shadow-sm pointer-events-none">${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}</div><span class="truncate min-w-0">${escapeHTML(safeName)}${extraText}</span></a>`;
       };
 
       let streamingHtml = '';
@@ -2320,6 +2530,13 @@
         cleanFlatrate.forEach(p => { streamingHtml += makeProviderLink(p); });
       } else {
         streamingHtml = `<div class="w-max max-w-full bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl flex items-center justify-center sm:justify-start"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Not available on subscription</p></div>`;
+      }
+
+      let streamingHtmlDesktop = '';
+      if (cleanFlatrate.length > 0) {
+        cleanFlatrate.forEach(p => { streamingHtmlDesktop += makeProviderLink(p, '', true); });
+      } else {
+        streamingHtmlDesktop = streamingHtml;
       }
 
       let rentBuyDropdownHtml = '';
@@ -2340,23 +2557,52 @@
         rbMap.forEach(val => {
           rbLinksHtml += makeProviderLink(val.p);
         });
-        rentBuyDropdownHtml = `<details class="group pt-3 border-t border-blue-500/20"><summary class="text-xs font-extrabold uppercase tracking-widest text-gray-400 cursor-pointer flex items-center gap-2 hover:text-white transition-colors list-none outline-none select-none"><svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>Rent · Buy Options <span class="text-gray-500 font-bold">(${rbMap.size})</span></summary><div class="pt-3 flex flex-wrap gap-3">${rbLinksHtml}</div></details>`;
+        rentBuyDropdownHtml = `<details class="group pt-3 border-t border-blue-500/20"><summary class="text-xs font-extrabold uppercase tracking-widest text-gray-400 cursor-pointer flex items-center gap-2 hover:text-white transition-colors list-none outline-none select-none"><svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>Rent · Buy Options <span class="text-gray-500 font-bold">(${rbMap.size})</span></summary><div class="pt-3 grid grid-cols-2 gap-3 [&>a]:!w-full">${rbLinksHtml}</div></details>`;
+      } else {
+        rentBuyDropdownHtml = `<details class="group pt-3 border-t border-blue-500/20"><summary class="text-xs font-extrabold uppercase tracking-widest text-gray-400 cursor-pointer flex items-center gap-2 hover:text-white transition-colors list-none outline-none select-none"><svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>Rent · Buy Options <span class="text-gray-500 font-bold">(0)</span></summary><div class="pt-3"><div class="w-max max-w-full bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl flex items-center justify-center sm:justify-start"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Not available to rent or buy</p></div></div></details>`;
       }
 
       const hasMovieHistory = isModal ? watchlistModalHistoryStack.length > 0 : quickSearchHistoryStack.length > 0;
       const movieBackBtn = hasMovieHistory ? `<button id="movieBackBtn" onclick="navGoBack()" aria-label="Go back" class="pointer-events-auto mt-4 ml-4 w-10 h-10 flex items-center justify-center bg-black/50 hover:bg-black/80 backdrop-blur-md text-white rounded-full transition-colors border border-white/10 shadow-lg cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
       const closeBtn = `<div class="sticky top-0 z-[60] w-full h-0 flex ${movieBackBtn ? 'justify-between' : 'justify-end'} pointer-events-none">${movieBackBtn}<button id="closeModalBtn" onclick="${isModal ? 'closeModal()' : 'closeQuickSearchInline()'}" aria-label="Close" class="pointer-events-auto mt-4 mr-4 w-10 h-10 flex items-center justify-center bg-black/50 hover:bg-black/80 backdrop-blur-md text-white rounded-full transition-colors border border-white/10 shadow-lg cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>`;
-      const letterboxdBtn = movieObj.mediaType !== 'tv' ? `<a href="https://letterboxd.com/tmdb/${movieObj.id}" target="_blank" class="${btnClass}"><div style="width: 20px; height: 20px; flex-shrink: 0; position: relative; overflow: hidden; border-radius: 22.5%; display: grid; place-items: center;"><img src="./icons/letterboxd.png" alt="Letterboxd" style="width: 100%; height: 100%; display: block; object-fit: cover;"></div>Letterboxd</a>` : '';
+      const letterboxdBtn = `<a href="https://letterboxd.com/tmdb/${movieObj.id}" target="_blank" class="${btnClass}"><div style="width: 20px; height: 20px; flex-shrink: 0; position: relative; overflow: hidden; border-radius: 22.5%; display: grid; place-items: center;"><img src="./icons/letterboxd.png" alt="Letterboxd" style="width: 100%; height: 100%; display: block; object-fit: cover;"></div>Letterboxd</a>`;
       const imdbBtn = imdbId ? `<a href="https://www.imdb.com/title/${escapeHTML(imdbId)}/" target="_blank" class="${btnClass}"><div style="width: 20px; height: 20px; flex-shrink: 0; position: relative; overflow: hidden; border-radius: 22.5%; display: grid; place-items: center;"><img src="./icons/imdb.png" alt="IMDb" style="width: 100%; height: 100%; display: block; object-fit: cover;"></div>IMDb</a>` : '';
       const trailerHeaderBtn = bestTrailer
         ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${btnClass} cursor-pointer"><svg class="w-5 h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch Trailer</button>`
         : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${btnClass}"><svg class="w-5 h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch Trailer</a>`;
+      // On the full page, if the trailer is already playing in the hero, "Watch Trailer" expands
+      // that same video to fullscreen. If the hero has no video (stricter official-trailer check
+      // failed) but a looser trailer pick exists, fall back to the classic modal instead.
+      const pageTrailerBtnHtml = heroTrailer
+        ? `<button onclick="expandHeroVideoFullscreen()" class="${btnClass} cursor-pointer"><svg class="w-5 h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch Trailer</button>`
+        : bestTrailer
+          ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${btnClass} cursor-pointer"><svg class="w-5 h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch Trailer</button>`
+          : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${btnClass}"><svg class="w-5 h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch Trailer</a>`;
       const shareParam = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
       const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-green-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg> Copy Link</button>`;
 
       const overviewHtml = createExpandableTextHtml(overview, 'movieOverviewText');
 
-      const recs = details && details.recommendations && details.recommendations.results ? details.recommendations.results.filter(m => m.poster_path && m.title).slice(0, 15) : [];
+      const recResults = (details && details.recommendations && details.recommendations.results) || [];
+      const simResults = (details && details.similar && details.similar.results) || [];
+      const collectionId = details && details.belongs_to_collection ? details.belongs_to_collection.id : null;
+      // TMDB's recommendation/similar list items don't include belongs_to_collection, so also use a
+      // title-prefix heuristic to catch franchise sequels (e.g. "Avatar" vs "Avatar: The Way of Water").
+      const franchiseKey = safeTitle.toLowerCase().split(/[:\-–]/)[0].trim();
+      const seenRecIds = new Set();
+      const combinedRecs = [...recResults, ...simResults].filter(m => {
+        if (!m.poster_path || !m.title || seenRecIds.has(m.id)) return false;
+        seenRecIds.add(m.id);
+        return true;
+      });
+      // Other entries from the same collection or franchise (e.g. the other Avatar films) belong at the
+      // front, ahead of TMDB's generic "users who liked this also liked" recommendations.
+      combinedRecs.sort((a, b) => {
+        const aScore = (a.belongs_to_collection && a.belongs_to_collection.id === collectionId ? 2 : 0) + (franchiseKey.length > 3 && (a.title || '').toLowerCase().startsWith(franchiseKey) ? 1 : 0);
+        const bScore = (b.belongs_to_collection && b.belongs_to_collection.id === collectionId ? 2 : 0) + (franchiseKey.length > 3 && (b.title || '').toLowerCase().startsWith(franchiseKey) ? 1 : 0);
+        return bScore - aScore;
+      });
+      const recs = combinedRecs.slice(0, 15);
       let similarHtml = '';
       if (recs.length > 0) {
         const watchlistIds = new Set(scannedMovies.map(m => m.id));
@@ -2367,28 +2613,67 @@
           const mYear = m.release_date ? m.release_date.split('-')[0] : '';
           const isInWatchlist = watchlistIds.has(m.id);
           const recRating = getTmdbRating(m);
-          return `<div class="tilt-card animate-fade shrink-0 w-28 sm:w-36 cursor-pointer z-10 hover:z-30 relative" onclick="handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})">
+          return `<div class="tilt-card animate-fade shrink-0 w-32 sm:w-44 md:w-48 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 sm:hover:scale-[1.03]" onclick="${isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})`}">
             <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
               <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
               <div class="glare"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
-              ${recRating ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black text-blue-400 border border-blue-500/30 shadow-lg z-20">TMDB ${recRating}</div>` : ''}
-              ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md w-6 h-6 rounded-md text-blue-400 border border-blue-500/30 shadow-lg flex items-center justify-center text-xs font-black z-20" title="In Watchlist">✓</div>` : ''}
+              ${recRating ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] font-black text-amber-400 border border-amber-500/30 shadow-lg z-20 flex items-center gap-1"><svg class="w-3 h-3 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${recRating}</div>` : ''}
+              ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md w-6 h-6 rounded-md text-blue-400 border border-blue-500/30 shadow-lg flex items-center justify-center z-20" title="In Watchlist"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
               <div class="absolute bottom-0 left-0 w-full p-3 z-20">
-                <h4 class="text-white font-bold text-xs leading-tight drop-shadow-md line-clamp-1 mb-0.5">${mTitle}</h4>
-                ${mYear ? `<p class="text-[10px] text-gray-400 font-medium truncate">${mYear}</p>` : ''}
+                <h4 class="text-white font-bold text-xs sm:text-sm leading-tight drop-shadow-md line-clamp-1 mb-0.5">${mTitle}</h4>
+                ${mYear ? `<p class="text-[10px] sm:text-xs text-gray-400 font-medium truncate">${mYear}</p>` : ''}
               </div>
             </div>
           </div>`;
         }).join('');
-        similarHtml = `<div class="space-y-2.5"><h3 class="text-sm font-extrabold uppercase tracking-widest text-gray-400">More Like This</h3><div class="relative group/similar"><button id="similarPrevBtn" type="button" onclick="scrollSimilarTrack(-320)" aria-label="Scroll similar movies left" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-50 w-9 h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/15 text-white hidden md:flex items-center justify-center shadow-2xl transition-all hover:scale-110 cursor-pointer opacity-0 pointer-events-none"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button><button id="similarNextBtn" type="button" onclick="scrollSimilarTrack(320)" aria-label="Scroll similar movies right" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-50 w-9 h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/15 text-white hidden md:flex items-center justify-center shadow-2xl transition-all hover:scale-110 cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button><div id="similarMoviesTrack" class="flex gap-4 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent touch-pan-x cursor-grab select-none">${recCards}</div></div></div>`;
+        similarHtml = `<div class="space-y-2.5"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-gray-400">More Like This</h3><div class="relative group/similar"><button id="similarPrevBtn" type="button" onclick="scrollSimilarTrack(-1, event)" aria-label="Scroll similar movies left" class="hidden sm:flex absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-50 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/75 hover:bg-black/95 active:scale-95 border border-white/20 text-white items-center justify-center backdrop-blur-md shadow-2xl transition-all duration-200 cursor-pointer opacity-0 group-hover/similar:opacity-90 hover:!opacity-100 hidden"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button><button id="similarNextBtn" type="button" onclick="scrollSimilarTrack(1, event)" aria-label="Scroll similar movies right" class="hidden sm:flex absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-50 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/75 hover:bg-black/95 active:scale-95 border border-white/20 text-white items-center justify-center backdrop-blur-md shadow-2xl transition-all duration-200 cursor-pointer opacity-0 group-hover/similar:opacity-90 hover:!opacity-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button><div id="similarMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${recCards}</div></div></div>`;
       }
 
       const initialMuteParam = isHeroVideoMuted ? 1 : 0;
-      const soundBtnHtml = bestTrailer ? `<button id="heroSoundToggleBtn" onclick="toggleHeroVideoSound()" type="button" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center bg-black/60 hover:bg-black/90 active:scale-95 backdrop-blur-md border border-white/20 text-white transition-all cursor-pointer pointer-events-auto shadow-2xl"><svg id="heroSoundIconMuted" class="w-5 h-5 text-white/90 ${isHeroVideoMuted ? '' : 'hidden'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg><svg id="heroSoundIconUnmuted" class="w-5 h-5 text-white ${isHeroVideoMuted ? 'hidden' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg></button>` : '';
-      const heroVideoHtml = bestTrailer ? `<div class="absolute inset-0 overflow-hidden pointer-events-none z-10 clip-mask"><iframe id="heroVideoIframe" src="https://www.youtube-nocookie.com/embed/${bestTrailer.key}?autoplay=1&mute=${initialMuteParam}&controls=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&modestbranding=1&iv_load_policy=3&rel=0" title="${safeTitle} preview" allow="autoplay; encrypted-media" class="w-[150%] h-[150%] absolute -top-[25%] -left-[25%] pointer-events-none object-cover scale-115 opacity-0 transition-opacity duration-500 transform-gpu" onload="onHeroVideoLoad(this)"></iframe></div>` : '';
+      const soundIconsInnerHtml = `<svg class="heroSoundIconMuted w-4 h-4 sm:w-5 sm:h-5 ${isHeroVideoMuted ? '' : 'hidden'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg><svg class="heroSoundIconUnmuted w-4 h-4 sm:w-5 sm:h-5 ${isHeroVideoMuted ? 'hidden' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>`;
+      // Mobile: sits inline next to the trailer button, below the banner. Desktop/tablet: floats over the banner like before.
+      const soundBtnInlineHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn sm:hidden shrink-0 w-11 h-11 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all cursor-pointer">${soundIconsInnerHtml}</button>` : '';
+      const soundBtnHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn hidden sm:flex absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full items-center justify-center bg-black/60 hover:bg-black/90 active:scale-95 backdrop-blur-md border border-white/20 text-white transition-all cursor-pointer pointer-events-auto shadow-2xl">${soundIconsInnerHtml}</button>` : '';
+      const heroVideoHtml = heroTrailer ? `<div class="absolute inset-0 overflow-hidden pointer-events-none z-10 clip-mask"><iframe id="heroVideoIframe" src="https://www.youtube.com/embed/${heroTrailer.key}?autoplay=1&mute=${initialMuteParam}&controls=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&modestbranding=1&iv_load_policy=3&rel=0&vq=hd1080&cc_load_policy=0&cc_lang_pref=none&hl=en" title="${safeTitle} preview" allow="autoplay; encrypted-media" class="absolute pointer-events-none opacity-0 transition-opacity duration-700 transform-gpu" onload="onHeroVideoLoad(this)"></iframe></div><div id="heroFadeOverlay" class="absolute inset-0 bg-black opacity-0 transition-opacity duration-500 pointer-events-none z-15"></div>` : '';
 
-      return `${closeBtn}<div class="relative w-full h-[360px] sm:h-[460px] shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="lazy" decoding="async" class="w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/50 to-transparent pointer-events-none z-10"></div><div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-10"></div></div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-20 min-h-[20rem] pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div>${soundBtnHtml}</div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span>` : ''}</div>${trailerHeaderBtn ? `<div class="shrink-0">${trailerHeaderBtn}</div>` : ''}</div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-wrap gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
+      if (isPage) {
+        const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
+        const watchNowCardHtml = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-wrap gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div>`;
+        const watchNowCardHtmlDesktop = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-col gap-2.5">${streamingHtmlDesktop}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div>`;
+        // Same card, but grows to fill the sidebar's full stretched height on desktop (the sidebar
+        // is naturally shorter than cast+similar below it) so its box bottom lines up with the left
+        // column's bottom edge instead of leaving a visually mismatched gap under a short card.
+        return `<nav id="moviePageNav" class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 py-4 bg-gradient-to-b from-black/55 to-transparent pointer-events-none">
+            <button onclick="closeMoviePage()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/10 text-white transition-colors cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+            <button onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/10 text-white transition-colors cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+          </nav>
+          <div class="relative w-full h-[78dvh] sm:h-[100dvh] min-h-[520px]">
+            <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] transform-gpu">` : `<div class="w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div><div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-20"></div></div>
+            <div class="absolute inset-0 z-30 flex flex-col justify-end p-6 sm:p-14 pb-10 sm:pb-16 pointer-events-none">
+              <div class="max-w-[1480px] mx-auto w-full flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                <div class="max-w-3xl min-w-0 pointer-events-auto">
+                  ${pageTitleHeaderHtml}
+                  <div class="flex flex-wrap items-center gap-3 text-base sm:text-lg font-bold text-gray-200 mt-2">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span>` : ''}</div>
+                  <div class="mt-3">${createHeroOverviewHtml(overview, safeTitle)}</div>
+                </div>
+                <div class="flex items-center gap-3 pointer-events-auto shrink-0">${pageTrailerBtnHtml}${soundBtnInlineHtml.replace('sm:hidden', '')}</div>
+              </div>
+            </div>
+          </div>
+          <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pt-0 pb-10 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-x-14 lg:gap-x-20 gap-y-10">
+            <div class="min-w-0 flex flex-col gap-8">
+              <div class="lg:hidden">${watchNowCardHtml}</div>
+              ${castCrewHtml}
+              ${similarHtml}
+            </div>
+            <aside class="hidden lg:flex flex-col gap-5 h-full">${watchNowCardHtmlDesktop}</aside>
+          </div>
+          <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pb-10">
+            <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${shareBtn}</div>
+          </div>`;
+      }
+      return `${closeBtn}<div class="relative w-full h-[360px] sm:h-[460px] shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div><div class="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div>${soundBtnHtml}</div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm font-bold text-gray-200"><div class="flex flex-wrap items-center gap-3">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}</div>${genres ? `<div class="flex items-center gap-3"><span class="hidden sm:inline text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span></div>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-wrap gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
     }
 
     function getShortText(text, limit = 195) {
@@ -2396,6 +2681,80 @@
       const sub = text.slice(0, limit);
       const lastSpace = sub.lastIndexOf(' ');
       return lastSpace > 90 ? sub.slice(0, lastSpace) : sub;
+    }
+
+    // ---- Generic popup (Insights, full description text, etc.) ----
+    let statsBarOriginalParent = null;
+    function closeGenericPopup() {
+      const overlay = document.getElementById('genericPopupOverlay');
+      if (!overlay) return;
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+      const bar = document.getElementById('statsBar');
+      if (bar && statsBarOriginalParent) {
+        statsBarOriginalParent.appendChild(bar);
+        statsBarOriginalParent = null;
+        bar.classList.add('hidden');
+        bar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3');
+        if (el.statsBtn) el.statsBtn.classList.remove('vpn-active');
+      }
+    }
+    function openTextPopup(title, text) {
+      const body = document.getElementById('genericPopupBody');
+      const overlay = document.getElementById('genericPopupOverlay');
+      if (!body || !overlay) return;
+      body.innerHTML = `<h3 class="text-sm font-black uppercase tracking-widest text-blue-400 mb-3">${escapeHTML(title)}</h3><p class="text-gray-200 text-base leading-relaxed font-medium">${text}</p>`;
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    }
+    function openInsightsPopup() {
+      const bar = document.getElementById('statsBar');
+      const body = document.getElementById('genericPopupBody');
+      const overlay = document.getElementById('genericPopupOverlay');
+      if (!bar || !body || !overlay) return;
+      statsBarOriginalParent = bar.parentElement;
+      body.innerHTML = `<h3 class="text-sm font-black uppercase tracking-widest text-blue-400 mb-4">Insights</h3>`;
+      body.appendChild(bar);
+      bar.classList.remove('hidden');
+      bar.classList.add('grid', 'grid-cols-2', 'gap-2.5');
+      if (el.statsBtn) el.statsBtn.classList.add('vpn-active');
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    }
+    // 2-line-clamped hero description with a "More" link that opens the full text in the popup
+    // above, instead of expanding inline (used on the full-page movie/actor hero).
+    let heroOverviewCounter = 0;
+    const heroOverviewTextStore = {};
+    function createHeroOverviewHtml(escapedText, popupTitle) {
+      if (!escapedText) return '';
+      const id = 'heroOverview_' + (++heroOverviewCounter);
+      heroOverviewTextStore[id] = { text: escapedText, popupTitle };
+      setTimeout(() => clampHeroOverview(id), 0);
+      return `<p id="${id}" class="max-w-2xl text-gray-200 text-base sm:text-lg leading-snug font-medium">${escapedText}</p>`;
+    }
+    // Measures the actual rendered paragraph and binary-searches for the longest prefix that still
+    // fits on 2 lines once "… More" is appended — guarantees "More" lands as the real last word on
+    // line 2, rather than approximating with CSS line-clamp + float (which can end up on its own row).
+    function clampHeroOverview(id) {
+      const p = document.getElementById(id);
+      const data = heroOverviewTextStore[id];
+      if (!p || !data) return;
+      const lineHeight = parseFloat(getComputedStyle(p).lineHeight) || 24;
+      const maxHeight = lineHeight * 2 + 2;
+      const moreSpan = `<span class="text-blue-400 font-extrabold">more</span>`;
+      p.textContent = data.text;
+      if (p.scrollHeight <= maxHeight) return;
+      let lo = 0, hi = data.text.length;
+      while (lo < hi) {
+        const mid = Math.ceil((lo + hi) / 2);
+        // Measure with the exact same inline markup we'll actually render (a <span>, not a <button> —
+        // a real button has its own padding/border that a plain-text measurement wouldn't account for,
+        // which was throwing the wrapping off for some titles).
+        p.innerHTML = data.text.slice(0, mid).trim() + '… ' + moreSpan;
+        if (p.scrollHeight <= maxHeight) lo = mid; else hi = mid - 1;
+      }
+      const truncated = data.text.slice(0, lo).trim();
+      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="text-blue-400 font-extrabold cursor-pointer hover:text-blue-300 transition-colors">more</span>`;
     }
 
     function createExpandableTextHtml(text, id = '') {
@@ -2425,55 +2784,210 @@
     }
 
     let isHeroVideoMuted = localStorage.getItem('ps_hero_sound_muted') === 'false' ? false : true;
+
+    // Manually computes exact "object-fit: cover" sizing for the hero video iframe (iframes don't
+    // support object-fit natively). This guarantees zero YouTube letterbox bars with the minimum
+    // necessary zoom, for any hero aspect ratio — no more guessed overscan percentages.
+    function fitHeroVideoCover(iframeEl) {
+      if (!iframeEl) return;
+      const container = iframeEl.parentElement;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const videoAspect = 16 / 9;
+      const containerAspect = rect.width / rect.height;
+      // Small safety margin on top of the exact math — guards against sub-pixel rounding and
+      // mobile browsers whose chrome (address bar) still hasn't settled when we first measure.
+      const SAFETY = 1.3;
+      let w, h;
+      if (containerAspect > videoAspect) { w = rect.width * SAFETY; h = w / videoAspect; }
+      else { h = rect.height * SAFETY; w = h * videoAspect; }
+      iframeEl.style.width = w + 'px';
+      iframeEl.style.height = h + 'px';
+      iframeEl.style.left = ((rect.width - w) / 2) + 'px';
+      iframeEl.style.top = ((rect.height - h) / 2) + 'px';
+    }
+    window.addEventListener('resize', () => {
+      const f = document.getElementById('heroVideoIframe');
+      if (!f) return;
+      const fs = document.getElementById('heroVideoFullscreen');
+      if (fs && !fs.classList.contains('hidden')) fitHeroVideoContain(f);
+      else fitHeroVideoCover(f);
+    });
+    // Mobile browsers often finish settling their address-bar chrome (which changes the real
+    // viewport height) a moment after load — re-fit once more to catch that.
+    window.addEventListener('orientationchange', () => {
+      const f = document.getElementById('heroVideoIframe');
+      if (f) setTimeout(() => fitHeroVideoCover(f), 400);
+    });
+
+    // Uncropped "contain" fit for fullscreen viewing — unlike the cover-fit used for the
+    // autoplay background, here we want the whole frame visible, letterboxed if needed.
+    function fitHeroVideoContain(iframeEl) {
+      if (!iframeEl) return;
+      const container = iframeEl.parentElement;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const videoAspect = 16 / 9;
+      const containerAspect = rect.width / rect.height;
+      let w, h;
+      if (containerAspect > videoAspect) { h = rect.height; w = h * videoAspect; }
+      else { w = rect.width; h = w / videoAspect; }
+      iframeEl.style.width = w + 'px';
+      iframeEl.style.height = h + 'px';
+      iframeEl.style.left = ((rect.width - w) / 2) + 'px';
+      iframeEl.style.top = ((rect.height - h) / 2) + 'px';
+    }
+
+    // ---- Watch Trailer -> expand the already-playing hero video to fullscreen ----
+    let heroFullscreenOriginalParent = null;
+    let heroFullscreenOriginalSrc = null;
+    function expandHeroVideoFullscreen() {
+      const oldIframe = document.getElementById('heroVideoIframe');
+      if (!oldIframe) return;
+      const keyMatch = oldIframe.src.match(/embed\/([^?]+)/);
+      const videoKey = keyMatch ? keyMatch[1] : null;
+      if (!videoKey) return;
+      heroFullscreenOriginalParent = oldIframe.parentElement;
+      heroFullscreenOriginalSrc = oldIframe.src;
+
+      let fsContainer = document.getElementById('heroVideoFullscreen');
+      if (!fsContainer) {
+        fsContainer = document.createElement('div');
+        fsContainer.id = 'heroVideoFullscreen';
+        fsContainer.className = 'fixed inset-0 z-[400] bg-black hidden';
+        const closeBtn = document.createElement('button');
+        closeBtn.setAttribute('aria-label', 'Close');
+        closeBtn.className = 'absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center bg-black/50 hover:bg-black/80 backdrop-blur-md border border-white/10 text-white cursor-pointer';
+        closeBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        closeBtn.onclick = collapseHeroVideoFullscreen;
+        fsContainer.appendChild(closeBtn);
+        document.body.appendChild(fsContainer);
+      }
+
+      // Build a brand-new iframe with real controls rather than mutating .src on the existing one —
+      // that relied on the browser cleanly re-navigating the same iframe, which wasn't reliably
+      // showing YouTube's control bar. A fresh element with the right params from the start is safer.
+      oldIframe.remove();
+      const newIframe = document.createElement('iframe');
+      newIframe.id = 'heroVideoFullscreenIframe';
+      newIframe.src = `https://www.youtube.com/embed/${videoKey}?autoplay=1&controls=1&playsinline=1&enablejsapi=1&fs=1&modestbranding=1&rel=0&cc_load_policy=0&cc_lang_pref=none&hl=en`;
+      newIframe.title = 'Trailer';
+      newIframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen');
+      newIframe.setAttribute('allowfullscreen', '');
+      newIframe.setAttribute('frameborder', '0');
+      newIframe.style.cssText = 'border:0; position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:auto; touch-action:auto;';
+      fsContainer.appendChild(newIframe);
+      fsContainer.classList.remove('hidden');
+    }
+    function collapseHeroVideoFullscreen() {
+      const fsContainer = document.getElementById('heroVideoFullscreen');
+      const fsIframe = document.getElementById('heroVideoFullscreenIframe');
+      if (fsIframe) fsIframe.remove();
+      if (fsContainer) fsContainer.classList.add('hidden');
+      // Rebuild the background hero video fresh (muted, no controls, autoplaying) in its original spot,
+      // rather than trying to reuse/rewind the fullscreen iframe we just tore down.
+      if (heroFullscreenOriginalParent && heroFullscreenOriginalSrc) {
+        const bgIframe = document.createElement('iframe');
+        bgIframe.id = 'heroVideoIframe';
+        bgIframe.src = heroFullscreenOriginalSrc;
+        bgIframe.title = 'preview';
+        bgIframe.setAttribute('allow', 'autoplay; encrypted-media');
+        bgIframe.className = 'absolute pointer-events-none opacity-0 transition-opacity duration-700 transform-gpu';
+        bgIframe.style.border = '0';
+        bgIframe.onload = () => onHeroVideoLoad(bgIframe);
+        heroFullscreenOriginalParent.appendChild(bgIframe);
+      }
+    }
+
+    // Hard safety net for title logos: if an image hasn't confirmed it actually rendered pixels
+    // within ~1.8s (covers slow loads, silent failures, or a TMDB entry that "loads" but is blank),
+    // force the plain-text fallback rather than leaving a broken/invisible title.
+    function verifyTitleLogos() {
+      document.querySelectorAll('img.titleLogoImg').forEach(img => {
+        setTimeout(() => {
+          if (!img.isConnected || img.style.display === 'none') return;
+          if (!img.complete || img.naturalWidth === 0) {
+            if (window.onTitleLogoError) window.onTitleLogoError(img);
+          }
+        }, 1200);
+      });
+    }
+
     window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
+      fitHeroVideoCover(iframeEl);
+      setTimeout(() => fitHeroVideoCover(iframeEl), 600);
+      try {
+        iframeEl.contentWindow.postMessage('{"event":"listening","id":"heroVideoIframe"}', '*');
+        iframeEl.contentWindow.postMessage('{"event":"command","func":"unloadModule","args":["captions"]}', '*');
+        iframeEl.contentWindow.postMessage('{"event":"command","func":"unloadModule","args":["cc"]}', '*');
+        iframeEl.contentWindow.postMessage('{"event":"command","func":"setOption","args":["captions","track",{}]}', '*');
+      } catch (err) { console.warn('[Hero Video Listen Handshake]', err); }
+      // Hold on the static banner for a few seconds first — this hides the YouTube player's own
+      // startup chrome (a brief pause-icon/UI flash) the same way Apple TV holds on the poster
+      // before crossfading into the trailer.
+      setTimeout(() => { revealHeroVideo(iframeEl); }, 4600);
+    };
+
+    function revealHeroVideo(iframeEl) {
+      if (!iframeEl) return;
+      fitHeroVideoCover(iframeEl);
+      const overlay = document.getElementById('heroFadeOverlay');
+      // Fade to black first...
+      if (overlay) overlay.style.opacity = '1';
       setTimeout(() => {
         iframeEl.style.opacity = '1';
+        try {
+          // Ask YouTube for the best quality it's willing to give this connection and unload captions.
+          iframeEl.contentWindow.postMessage('{"event":"command","func":"setPlaybackQuality","args":["hd1080"]}', '*');
+          iframeEl.contentWindow.postMessage('{"event":"command","func":"unloadModule","args":["captions"]}', '*');
+          iframeEl.contentWindow.postMessage('{"event":"command","func":"unloadModule","args":["cc"]}', '*');
+          iframeEl.contentWindow.postMessage('{"event":"command","func":"setOption","args":["captions","track",{}]}', '*');
+        } catch (err) { console.warn('[Hero Video Quality PostMessage]', err); }
         if (!isHeroVideoMuted) {
           try {
             iframeEl.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
             iframeEl.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
           } catch (err) { console.warn('[Hero Video Unmute PostMessage]', err); }
         }
-      }, 500);
-    };
+        // ...hold on black a little longer...
+        setTimeout(() => {
+          // ...then fade from black into the now-playing video underneath.
+          if (overlay) overlay.style.opacity = '0';
+        }, 380);
+      }, 450);
+    }
 
-    document.addEventListener('visibilitychange', () => {
-      const iframe = document.getElementById('heroVideoIframe');
-      if (!iframe) return;
-      if (document.hidden) {
-        try {
-          iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-        } catch (e) { console.warn('[Hero Video Pause]', e); }
-      } else {
-        try {
-          iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-        } catch (e) { console.warn('[Hero Video Play]', e); }
-      }
-    });
-
-    window.addEventListener('message', (event) => {
-      if (event.origin !== 'https://www.youtube-nocookie.com') return;
+    // When the trailer finishes, fade back to the static banner — same crossfade, reversed.
+    window.addEventListener('message', (e) => {
       let data;
-      try {
-        data = JSON.parse(event.data);
-      } catch (e) {
-        return;
-      }
-      if (data && data.info && data.info.playerState === 0) {
-        const iframe = document.getElementById('heroVideoIframe');
-        if (!iframe || event.source !== iframe.contentWindow) return;
-        try {
-          iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
-          iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-        } catch (err) { }
+      try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch (err) { return; }
+      if (!data || data.event !== 'onStateChange' && !(data.event === 'infoDelivery' && data.info)) return;
+      const state = data.event === 'onStateChange' ? data.info : (data.info && data.info.playerState);
+      if (state === 0) {
+        const fsContainer = document.getElementById('heroVideoFullscreen');
+        if (fsContainer && !fsContainer.classList.contains('hidden')) return;
+        const iframeEl = document.getElementById('heroVideoIframe');
+        const overlay = document.getElementById('heroFadeOverlay');
+        if (!iframeEl) return;
+        if (overlay) overlay.style.opacity = '1';
+        setTimeout(() => {
+          iframeEl.style.opacity = '0';
+          setTimeout(() => { if (overlay) overlay.style.opacity = '0'; }, 380);
+        }, 450);
       }
     });
+
+    // Video intentionally keeps playing when the browser tab loses focus — it only stops when
+    // navigating away to a different page/movie inside the site (see stopHeroVideo() calls in
+    // closeMoviePage / closeModal).
     function toggleHeroVideoSound() {
       const iframe = document.getElementById('heroVideoIframe');
-      const btn = document.getElementById('heroSoundToggleBtn');
-      const iconMuted = document.getElementById('heroSoundIconMuted');
-      const iconUnmuted = document.getElementById('heroSoundIconUnmuted');
+      const btns = document.querySelectorAll('.heroSoundToggleBtn');
+      const iconsMuted = document.querySelectorAll('.heroSoundIconMuted');
+      const iconsUnmuted = document.querySelectorAll('.heroSoundIconUnmuted');
       if (!iframe) return;
 
       if (isHeroVideoMuted) {
@@ -2481,16 +2995,16 @@
         iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
         isHeroVideoMuted = false;
         localStorage.setItem('ps_hero_sound_muted', 'false');
-        if (iconMuted) iconMuted.classList.add('hidden');
-        if (iconUnmuted) iconUnmuted.classList.remove('hidden');
-        if (btn) btn.title = 'Mute';
+        iconsMuted.forEach(el => el.classList.add('hidden'));
+        iconsUnmuted.forEach(el => el.classList.remove('hidden'));
+        btns.forEach(b => b.title = 'Mute');
       } else {
         iframe.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
         isHeroVideoMuted = true;
         localStorage.setItem('ps_hero_sound_muted', 'true');
-        if (iconMuted) iconMuted.classList.remove('hidden');
-        if (iconUnmuted) iconUnmuted.classList.add('hidden');
-        if (btn) btn.title = 'Unmute';
+        iconsMuted.forEach(el => el.classList.remove('hidden'));
+        iconsUnmuted.forEach(el => el.classList.add('hidden'));
+        btns.forEach(b => b.title = 'Unmute');
       }
     }
 
@@ -2564,6 +3078,112 @@
         window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
       });
     }
+
+    // ---------------- Full-page movie view ----------------
+    window.currentMoviePageObj = null;
+
+    async function openMoviePage(movieObj, pushHistory = true) {
+      const container = document.getElementById('moviePageView');
+      if (!container || !movieObj) return;
+      hideActorPageView();
+
+      window.currentMoviePageObj = movieObj;
+      document.body.classList.add('modal-open');
+      container.classList.remove('hidden');
+      container.scrollTop = 0;
+      container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
+
+      if (pushHistory) {
+        try { history.pushState({ moviePage: movieObj.id }, '', `#movie-${movieObj.id}`); } catch (e) { }
+      }
+
+      try {
+        const mediaType = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
+        const details = await getFullMovieDetails(movieObj.id, mediaType);
+        // Bail out quietly if the person has already navigated to a different movie while this was loading.
+        if (window.currentMoviePageObj !== movieObj) return;
+        await resolveTitleLogo(details);
+        if (window.currentMoviePageObj !== movieObj) return;
+        container.innerHTML = generateFullMovieHTML(movieObj, details, true, 'lookup', true);
+        verifyTitleLogos();
+        container.scrollTop = 0;
+        setTimeout(() => { const f = document.getElementById('heroVideoIframe'); if (f) fitHeroVideoCover(f); }, 500);
+      } catch (e) {
+        console.error('[Movie Page]', e);
+        container.innerHTML = `<div class="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6"><p class="text-red-400 font-bold">Couldn't load this title.</p><button onclick="closeMoviePage()" class="text-blue-400 text-sm font-bold underline">Go back</button></div>`;
+      }
+    }
+
+    async function openMoviePageById(movieId, movieTitle = '') {
+      const existing = scannedMovies.find(m => m.id === movieId);
+      if (existing) { openMoviePage(existing); return; }
+      try {
+        const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`);
+        const movie = await res.json();
+        if (!movie || !movie.id) return;
+        const movieObj = {
+          id: movie.id,
+          mediaType: 'movie',
+          title: movie.title || movieTitle,
+          poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+          backdrop: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null,
+          rating: movie.vote_average ? movie.vote_average.toFixed(1) : null,
+          releaseDate: movie.release_date || null,
+          genreIds: movie.genre_ids || (movie.genres ? movie.genres.map(g => g.id) : []),
+          url: `https://www.themoviedb.org/movie/${movie.id}`,
+          regionData: null,
+          allProviders: null
+        };
+        try {
+          const pRes = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
+          const pData = await pRes.json();
+          if (pData && pData.results) {
+            movieObj.regionData = pData.results[currentRegion] || null;
+            movieObj.allProviders = pData.results;
+          }
+        } catch (pe) { console.warn('[Movie Page Providers Fetch]', pe); }
+        openMoviePage(movieObj);
+      } catch (e) { console.error('[Movie Page By Id]', e); }
+    }
+
+    function goHomeFromPage() {
+      hideMoviePageView();
+      hideActorPageView();
+      try { history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch (e) { }
+    }
+
+    function closeMoviePage() {
+      if (location.hash.startsWith('#movie-')) { history.back(); }
+      else { hideMoviePageView(); }
+    }
+
+    function hideMoviePageView() {
+      const container = document.getElementById('moviePageView');
+      if (!container || container.classList.contains('hidden')) return;
+      stopHeroVideo();
+      window.currentMoviePageObj = null;
+      container.classList.add('hidden');
+      container.innerHTML = '';
+      document.body.classList.remove('modal-open');
+    }
+
+    window.addEventListener('popstate', () => {
+      if (location.hash.startsWith('#movie-')) {
+        hideActorPageView();
+        const id = parseInt(location.hash.replace('#movie-', ''), 10);
+        if (id && (!window.currentMoviePageObj || window.currentMoviePageObj.id !== id)) {
+          const existing = scannedMovies.find(m => m.id === id);
+          if (existing) openMoviePage(existing, false); else openMoviePageById(id);
+        }
+      } else if (location.hash.startsWith('#actor-')) {
+        hideMoviePageView();
+        const id = parseInt(location.hash.replace('#actor-', ''), 10);
+        if (id && window.currentActorPageId !== id) openActorPage(id, '', '', false);
+      } else {
+        hideMoviePageView();
+        hideActorPageView();
+      }
+    });
 
     async function openMovieModal(movieObj, forceInline = null, isWatchlistFlip = false) {
       stopHeroVideo();
@@ -2653,7 +3273,7 @@
       preloadAdjacentMovies(currentList, currentIndex);
 
       const closeModal = () => { stopHeroVideo(); modalActiveMovieObj = null; modalActiveActorId = null; watchlistModalHistoryStack.length = 0; backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); if (prevBtn) prevBtn.classList.add('opacity-0'); if (nextBtn) nextBtn.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('modal-open'); if (prevBtn) prevBtn.classList.add('hidden'); if (nextBtn) nextBtn.classList.add('hidden'); }, 300); }; backdrop.onclick = closeModal; window.closeModal = closeModal;
-      try { const details = await getFullMovieDetails(movieObj.id, movieObj.mediaType); content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync'); document.getElementById('closeModalBtn').onclick = closeModal; const movieBack = document.getElementById('movieBackBtn'); if (movieBack) movieBack.onclick = navGoBack; checkOverviewOverflow(); applyTiltToSimilarGrid(); bindCastCrewDrag(); const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0; const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0; content.scrollTop = 0; } catch (e) { console.warn('[Modal Detail Load]', e); content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
+      try { const details = await getFullMovieDetails(movieObj.id, movieObj.mediaType); await resolveTitleLogo(details); content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync'); verifyTitleLogos(); document.getElementById('closeModalBtn').onclick = closeModal; const movieBack = document.getElementById('movieBackBtn'); if (movieBack) movieBack.onclick = navGoBack; checkOverviewOverflow(); applyTiltToSimilarGrid(); bindCastCrewDrag(); const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0; const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0; content.scrollTop = 0; } catch (e) { console.warn('[Modal Detail Load]', e); content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
     }
 
     function openTrailerModal(videoKey, movieTitle) {
@@ -2666,7 +3286,7 @@
       if (!modal || !wrapper) return;
 
       titleEl.textContent = movieTitle ? `${movieTitle} — Official Trailer` : 'Official Trailer';
-      wrapper.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoKey}?autoplay=1&enablejsapi=1&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen class="w-full h-full"></iframe>`;
+      wrapper.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoKey}?autoplay=1&enablejsapi=1&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&cc_load_policy=0&cc_lang_pref=none&hl=en&vq=hd1080" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen class="w-full h-full"></iframe>`;
 
       // Append fallback watch link below iframe in footer if embedding is blocked
       const fallbackUrl = `https://www.youtube.com/watch?v=${videoKey}`;
@@ -2793,7 +3413,7 @@
       wrapper.style.animationDelay = `${delayIndex * 0.02}s`;
       const a = document.createElement('a');
       a.href = movieObj.url;
-      a.addEventListener('click', (e) => { e.preventDefault(); openMovieModal(movieObj, false, true); });
+      a.addEventListener('click', (e) => { e.preventDefault(); openMoviePage(movieObj); });
       a.className = 'tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 hover:border-blue-500/50 h-full transition-colors';
       if (movieObj.poster) {
         a.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
@@ -2810,8 +3430,8 @@
       const tmdbRating = getTmdbRating(movieObj);
       if (tmdbRating) {
         const badge = document.createElement('div');
-        badge.className = 'absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black text-blue-400 border border-blue-500/30 shadow-lg z-20';
-        badge.innerHTML = `TMDB ${tmdbRating}`;
+        badge.className = 'absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg text-[11px] sm:text-xs font-black text-amber-400 border border-amber-500/30 shadow-lg z-20 flex items-center gap-1';
+        badge.innerHTML = `<svg class="w-3 h-3 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${tmdbRating}`;
         a.appendChild(badge);
       }
 
@@ -2880,26 +3500,14 @@
           currentGroupedResults.unavailable.push(baseObj);
         }
       });
-      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length; renderActiveGrid();
+      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
+      renderActiveGrid();
     }
     function renderActiveGrid() {
       const container = el.activeGridContainer; if (!container) return; container.innerHTML = ''; const currentData = currentGroupedResults[activeTab] || [];
       if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${serviceTally[topService]} movies</strong> from your watchlist.</p></div><div class="text-3xl opacity-80">💡</div>`; container.appendChild(banner); } }
       if (currentData.length === 0) {
-        const otherTabsWithContent = ['stream', 'rentbuy', 'other', 'unavailable'].filter(t => t !== activeTab && (currentGroupedResults[t] || []).length > 0);
-        let hint = '';
-        if (otherTabsWithContent.length > 0) {
-          const labelMap = { stream: 'Available', rentbuy: 'Rent · Buy', other: 'Unsubscribed', unavailable: 'Unavailable' };
-          hint = `<div class="mt-4 flex flex-wrap gap-2 justify-center">${otherTabsWithContent.map(t => `<button class="jump-to-tab-btn bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-xl transition-colors" data-jump-tab="${t}">Check ${labelMap[t]}</button>`).join('')}</div>`;
-        }
-        container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[300px] text-gray-500 font-bold uppercase tracking-widest text-sm gap-1"><span>No movies in this category</span>${hint}</div>`;
-        container.querySelectorAll('.jump-to-tab-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const targetTab = btn.getAttribute('data-jump-tab');
-            el.tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === targetTab));
-            activeTab = targetTab; currentPage = 1; renderActiveGrid();
-          });
-        });
+        container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[300px] text-gray-500 font-bold uppercase tracking-widest text-sm gap-1"><span>No movies in this category</span></div>`;
         if (el.paginationControls) { el.paginationControls.innerHTML = ''; el.paginationControls.classList.add('hidden'); }
         return;
       }
@@ -3392,11 +4000,19 @@
 
 
 
-    function generateActorHTML(person, showWatchlistOnly, roleHint = '', isModal = true) {
+    function generateActorHTML(person, showWatchlistOnly, roleHint = '', isModal = true, isPage = false) {
       if (!person) {
         return `<div class="p-10 text-center text-red-400">Error loading actor details.</div>`;
       }
       const isDirector = isPersonDirector(person, roleHint);
+      const actingCreditCount = person.movie_credits && person.movie_credits.cast
+        ? person.movie_credits.cast.filter(m => m.poster_path && m.title).length : 0;
+      const directingCreditCount = person.movie_credits && person.movie_credits.crew
+        ? person.movie_credits.crew.filter(m => m.poster_path && m.title && m.job === 'Director').length : 0;
+      // People with a real body of work on both sides (e.g. Eli Roth) get a toggle instead of the
+      // app silently picking one department and hiding the other entirely.
+      const hasDualRole = actingCreditCount >= 3 && directingCreditCount >= 2;
+      const roleToggleHtml = hasDualRole ? `<div class="inline-flex items-center p-1 bg-black/40 border border-white/10 rounded-full backdrop-blur-md"><button onclick="currentActorRoleHint='Actor'; actorModalWatchlistMode=false; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(${!isModal})" class="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all ${!isDirector ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'}">Actor</button><button onclick="currentActorRoleHint='Director'; actorModalWatchlistMode=false; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(${!isModal})" class="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all ${isDirector ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'}">Director</button></div>` : '';
       const safeName = escapeHTML(person.name || 'Unknown');
       const profileImg = person.profile_path ? `https://image.tmdb.org/t/p/h632${person.profile_path}` : null;
       const birthday = person.birthday ? person.birthday : null;
@@ -3446,16 +4062,15 @@
           const subtext = roleStr ? `${mYear ? mYear + ' · ' : ''}${roleStr}` : (mYear || '');
           const filmRating = getTmdbRating(m);
           const actorRatingHtml = filmRating
-            ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black text-blue-400 border border-blue-500/30 shadow-lg z-20">TMDB ${filmRating}</div>`
+            ? `<div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black text-amber-400 border border-amber-500/30 shadow-lg z-20 flex items-center gap-1"><svg class="w-3 h-3 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${filmRating}</div>`
             : '';
 
-          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="handleActorFilmClick(${m.id}, '', ${!isModal})">
-            <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
+          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" onclick="${isPage ? `openMoviePageById(${m.id})` : `handleActorFilmClick(${m.id}, '', ${!isModal})`}">            <div class="tilt-card-inner block relative rounded-2xl overflow-hidden aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 hover:border-blue-500/50 h-full transition-colors">
               ${mPoster ? `<img src="${mPoster}" alt="${mTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
               <div class="glare"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90"></div>
               ${actorRatingHtml}
-              ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md w-6 h-6 rounded-md text-blue-400 border border-blue-500/30 shadow-lg flex items-center justify-center text-xs font-black z-20" title="In Watchlist">✓</div>` : ''}
+              ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md w-6 h-6 rounded-md text-blue-400 border border-blue-500/30 shadow-lg flex items-center justify-center z-20" title="In Watchlist"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
               <div class="absolute bottom-0 left-0 w-full p-3 sm:p-4 z-20">
                 <h4 class="text-white font-bold text-xs sm:text-sm leading-tight drop-shadow-md line-clamp-2 mb-0.5">${mTitle}</h4>
                 ${subtext ? `<p class="text-[9px] sm:text-[10px] text-gray-400 font-medium truncate">${subtext}</p>` : ''}
@@ -3542,20 +4157,23 @@
         const wellKnownCredits = validCredits.filter(m => !isObscure(m));
         const pool = wellKnownCredits.length > 0 ? wellKnownCredits : validCredits;
 
-        // Tier 1: THE single main lead character (order === 0) or Director
-        const singleMainLeadCredits = pool.filter(m => m.order === 0 || m.job === 'Director')
-          .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0));
+        const creditScore = (m) => (m.vote_count || 0) + (m.episode_count || 0) * 500;
+
+        // Tier 1: THE single main lead character (order === 0), or their top directing
+        // credit if they're primarily known as a director (not an actor who has also directed).
+        const singleMainLeadCredits = pool.filter(m => m.order === 0 || (isDirector && m.job === 'Director'))
+          .sort((a, b) => creditScore(b) - creditScore(a) || (b.popularity || 0) - (a.popularity || 0));
 
         // Tier 2: Top billing co-lead roles (order < 3)
         const topCoLeadCredits = pool.filter(m => typeof m.order === 'number' && m.order < 3)
-          .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0));
+          .sort((a, b) => creditScore(b) - creditScore(a) || (b.popularity || 0) - (a.popularity || 0));
 
-        // Tier 3: All pool credits sorted by vote_count
-        const sortedAll = pool.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0));
+        // Tier 3: All pool credits sorted by weighted score
+        const sortedAll = pool.sort((a, b) => creditScore(b) - creditScore(a) || (b.popularity || 0) - (a.popularity || 0));
 
         const chosenCredit = singleMainLeadCredits[0] || topCoLeadCredits[0] || sortedAll[0] || null;
         if (chosenCredit) {
-          knownForBackdrop = `https://image.tmdb.org/t/p/w1280${chosenCredit.backdrop_path}`;
+          knownForBackdrop = `https://image.tmdb.org/t/p/original${chosenCredit.backdrop_path}`;
           knownForTitle = chosenCredit.title || chosenCredit.name || '';
         }
       }
@@ -3564,14 +4182,45 @@
         ? `<p class="text-xs sm:text-sm font-medium text-gray-300 drop-shadow mt-1"><span class="text-blue-400 font-extrabold uppercase text-[10px] sm:text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>`
         : '';
 
-      const bannerBackdropHtml = knownForBackdrop
-        ? `<img src="${knownForBackdrop}" alt="${escapeHTML(knownForTitle)} backdrop" loading="lazy" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu"><div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/60 to-black/40"></div>`
-        : (profileImg
-          ? `<img src="${profileImg}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover object-top scale-125 blur-3xl opacity-40"><div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/60 to-black/40"></div>`
-          : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div><div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/60 to-transparent"></div>`
-        );
+      const desktopBackdropImg = knownForBackdrop || profileImg;
+      const mobileBackdropImg = profileImg || knownForBackdrop;
 
-      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-4xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200 border-b border-white/5 pb-4"><span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black inline-flex items-center gap-1.5">${movieCountIcon}${allMovies.length} Movies</span>${birthday ? `<span class="text-white font-extrabold">${birthday}</span>` : ''}${ageStr ? `<span class="text-gray-500">&bull;</span><span>${ageStr}</span>` : ''}${birthplace ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${birthplace}</span>` : ''}</div>${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-sm font-extrabold uppercase tracking-widest text-gray-400">Filmography <span class="text-gray-500">(${moviesToShow.length}${showWatchlistOnly ? ' in watchlist' : ' total'})</span></h3><div class="flex gap-2"><button class="actor-toggle-btn ${watchlistBtnActive}" onclick="actorModalWatchlistMode=true; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(${!isModal})">Your Watchlist${watchlistMovies.length > 0 ? ` <span class='ml-1 opacity-60'>${watchlistMovies.length}</span>` : ''}</button><button class="actor-toggle-btn ${allBtnActive}" onclick="actorModalWatchlistMode=false; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(${!isModal})">All Movies${allMovies.length > 0 ? ` <span class='ml-1 opacity-60'>${allMovies.length}</span>` : ''}</button></div></div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="flex items-center gap-2 shrink-0 w-full lg:w-auto"><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${instaBtn}${twitterBtn}${shareBtn}</div>`;
+      const bannerBackdropHtml = `
+        ${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="desktop-movie-banner hidden sm:block w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="desktop-movie-banner hidden sm:block w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}
+        ${mobileBackdropImg ? `<img src="${mobileBackdropImg}" alt="${safeName}" loading="eager" decoding="async" class="mobile-profile-banner sm:hidden w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="sm:hidden w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0b1121] via-[#0b1121]/60 to-black/40"></div>
+      `;
+
+      if (isPage) {
+        return `<nav id="actorPageNav" class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 py-4 bg-gradient-to-b from-black/55 to-transparent pointer-events-none">
+            <button onclick="closeActorPage()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/10 text-white transition-colors cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+            <button onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/10 text-white transition-colors cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+          </nav>
+          <div class="relative w-full h-[88dvh] sm:h-[74dvh] min-h-[560px] sm:min-h-[420px] actor-hero-container">
+            <div id="actorPageHeroArt" class="absolute inset-0 overflow-hidden clip-mask">${bannerBackdropHtml}<div class="absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div><div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-20"></div></div>
+            <div class="absolute inset-0 z-30 flex flex-col justify-end p-5 sm:p-14 pt-20 pb-8 sm:pb-16 pointer-events-none actor-hero-content">
+              <div class="max-w-[1480px] mx-auto w-full flex flex-col gap-3 sm:gap-4">
+                <div class="flex flex-row items-center gap-4 sm:gap-8">
+                  ${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async" class="actor-hero-small-img hidden sm:block w-48 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 pointer-events-auto">` : `<div class="actor-hero-small-img hidden sm:flex w-48 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 pointer-events-auto">${safeName.charAt(0)}</div>`}
+                  <div class="pointer-events-auto min-w-0 flex flex-col gap-1 sm:gap-2">
+                    <h1 class="actor-hero-name text-3xl min-[400px]:text-4xl sm:text-7xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[0.98]">${safeName}</h1>
+                    ${roleToggleHtml ? `<div>${roleToggleHtml}</div>` : ''}
+                    ${knownForTitle ? `<p class="actor-hero-known-for hidden sm:block text-sm sm:text-base font-medium text-gray-300 drop-shadow"><span class="text-blue-400 font-extrabold uppercase text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>` : ''}
+                  </div>
+                </div>
+                <div class="pointer-events-auto min-w-0 max-w-3xl">
+                  <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-base sm:text-lg font-bold text-gray-200 mb-2 sm:mb-3"><span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2.5 sm:px-3 py-1 rounded-lg shadow-sm text-[11px] sm:text-xs font-black inline-flex items-center gap-1.5">${movieCountIcon}${allMovies.length} Movies</span>${birthday ? `<span class="text-white font-extrabold">${birthday}</span>` : ''}${ageStr ? `<span class="text-gray-500">&bull;</span><span>${ageStr}</span>` : ''}${birthplace ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${birthplace}</span>` : ''}</div>
+                  <div class="mt-1">${bio ? createHeroOverviewHtml(bio, safeName) : ''}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pt-0 pb-10 flex flex-col gap-10">
+            <div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-gray-400">Filmography <span class="text-gray-500 text-sm sm:text-base normal-case tracking-normal">(${moviesToShow.length}${showWatchlistOnly ? ' in watchlist' : ' total'})</span></h3><div class="flex gap-2"><button class="actor-toggle-btn actor-toggle-btn-lg ${watchlistBtnActive}" onclick="actorModalWatchlistMode=true; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(false)">Your Watchlist${watchlistMovies.length > 0 ? ` <span class='ml-1 opacity-60'>${watchlistMovies.length}</span>` : ''}</button><button class="actor-toggle-btn actor-toggle-btn-lg ${allBtnActive}" onclick="actorModalWatchlistMode=false; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(false)">All Movies${allMovies.length > 0 ? ` <span class='ml-1 opacity-60'>${allMovies.length}</span>` : ''}</button></div></div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-3 text-base text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="flex items-center gap-2 shrink-0 w-full lg:w-auto"><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div>
+            <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${instaBtn}${twitterBtn}${shareBtn}</div>
+          </div>`;
+      }
+      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200 border-b border-white/5 pb-4"><span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black inline-flex items-center gap-1.5">${movieCountIcon}${allMovies.length} Movies</span>${birthday ? `<span class="text-white font-extrabold">${birthday}</span>` : ''}${ageStr ? `<span class="text-gray-500">&bull;</span><span>${ageStr}</span>` : ''}${birthplace ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${birthplace}</span>` : ''}</div>${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-sm font-extrabold uppercase tracking-widest text-gray-400">Filmography <span class="text-gray-500">(${moviesToShow.length}${showWatchlistOnly ? ' in watchlist' : ' total'})</span></h3><div class="flex gap-2"><button class="actor-toggle-btn ${watchlistBtnActive}" onclick="actorModalWatchlistMode=true; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(${!isModal})">Your Watchlist${watchlistMovies.length > 0 ? ` <span class='ml-1 opacity-60'>${watchlistMovies.length}</span>` : ''}</button><button class="actor-toggle-btn ${allBtnActive}" onclick="actorModalWatchlistMode=false; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(${!isModal})">All Movies${allMovies.length > 0 ? ` <span class='ml-1 opacity-60'>${allMovies.length}</span>` : ''}</button></div></div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="flex items-center gap-2 shrink-0 w-full lg:w-auto"><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${instaBtn}${twitterBtn}${shareBtn}</div>`;
     }
 
     let currentActorId = null;
@@ -3580,6 +4229,60 @@
     let modalActiveMovieObj = null;
     let modalActiveActorId = null;
     let modalActiveActorRoleHint = '';
+
+    // ---------------- Full-page actor view ----------------
+    window.currentActorPageId = null;
+
+    async function openActorPage(actorId, actorName = '', roleHint = '', pushHistory = true) {
+      const container = document.getElementById('actorPageView');
+      if (!container || !actorId) return;
+      stopHeroVideo();
+      hideMoviePageView();
+
+      window.currentActorPageId = actorId;
+      currentActorRoleHint = roleHint;
+      actorModalWatchlistMode = true;
+      actorFilterQuery = '';
+      actorFilterGenre = 'all';
+      actorFilterDecade = 'all';
+      actorFilterSort = 'popularity';
+
+      container.classList.remove('hidden');
+      document.body.classList.add('modal-open');
+      container.scrollTop = 0;
+      container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
+
+      if (pushHistory) {
+        try { history.pushState({ actorPage: actorId }, '', `#actor-${actorId}`); } catch (e) { }
+      }
+
+      try {
+        const person = await getActorDetails(actorId);
+        if (window.currentActorPageId !== actorId) return;
+        container.innerHTML = generateActorHTML(person, actorModalWatchlistMode, roleHint, true, true);
+        container.scrollTop = 0;
+        bindActorFilmControls();
+        applyTiltToActorGrid();
+      } catch (e) {
+        console.error('[Actor Page]', e);
+        container.innerHTML = `<div class="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6"><p class="text-red-400 font-bold">Couldn't load this person.</p><button onclick="closeActorPage()" class="text-blue-400 text-sm font-bold underline">Go back</button></div>`;
+      }
+    }
+
+    function closeActorPage() {
+      if (location.hash.startsWith('#actor-')) { history.back(); }
+      else { hideActorPageView(); }
+    }
+
+    function hideActorPageView() {
+      const container = document.getElementById('actorPageView');
+      if (!container || container.classList.contains('hidden')) return;
+      stopHeroVideo();
+      window.currentActorPageId = null;
+      container.classList.add('hidden');
+      container.innerHTML = '';
+      document.body.classList.remove('modal-open');
+    }
 
     async function openActorModal(actorId, actorName = '', roleHint = '', forceInline = null) {
       stopHeroVideo();
@@ -3776,14 +4479,28 @@
       grid.querySelectorAll('.tilt-card').forEach(card => apply3DTilt(card));
     }
 
-    function scrollSimilarTrack(amount) {
+    function scrollSimilarTrack(direction, e) {
+      if (e) { e.stopPropagation(); e.preventDefault(); }
       const track = document.getElementById('similarMoviesTrack');
-      if (track) track.scrollBy({ left: amount, behavior: 'smooth' });
+      if (!track) return;
+      const firstCard = track.querySelector('.tilt-card');
+      if (!firstCard) return;
+      const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
+      const cardWidth = firstCard.getBoundingClientRect().width + gap;
+      const visibleCount = window.innerWidth >= 640 ? 4 : 2;
+      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
     }
 
-    function scrollCastTrack(amount) {
+    function scrollCastTrack(direction, e) {
+      if (e) { e.stopPropagation(); e.preventDefault(); }
       const track = document.getElementById('castCrewTrack');
-      if (track) track.scrollBy({ left: amount, behavior: 'smooth' });
+      if (!track) return;
+      const firstCard = track.querySelector('.cast-chip-card');
+      if (!firstCard) return;
+      const gap = parseFloat(window.getComputedStyle(track).gap) || 12;
+      const cardWidth = firstCard.getBoundingClientRect().width + gap;
+      const visibleCount = window.innerWidth >= 1024 ? 6 : (window.innerWidth >= 640 ? 5 : 3);
+      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
     }
 
     function initDynamicScrollTrack(trackId, prevBtnId, nextBtnId, isCast) {
@@ -3798,17 +4515,17 @@
 
         if (prevBtn) {
           if (current <= 10) {
-            prevBtn.classList.add('opacity-0', 'pointer-events-none');
+            prevBtn.classList.add('hidden');
           } else {
-            prevBtn.classList.remove('opacity-0', 'pointer-events-none');
+            prevBtn.classList.remove('hidden');
           }
         }
 
         if (nextBtn) {
           if (current >= maxScroll - 10) {
-            nextBtn.classList.add('opacity-0', 'pointer-events-none');
+            nextBtn.classList.add('hidden');
           } else {
-            nextBtn.classList.remove('opacity-0', 'pointer-events-none');
+            nextBtn.classList.remove('hidden');
           }
         }
 
@@ -3827,25 +4544,48 @@
       }
 
       track.addEventListener('scroll', updateUI, { passive: true });
+      track.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && track.scrollWidth > track.clientWidth) {
+          e.preventDefault();
+          track.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
       setTimeout(updateUI, 100);
 
       let isDown = false;
       let startX = 0;
       let scrollLeft = 0;
       let isDragging = false;
+      let velocity = 0;
+      let lastX = 0;
+      let lastT = 0;
+      let momentumRAF = null;
+
+      function stopMomentum() { if (momentumRAF) { cancelAnimationFrame(momentumRAF); momentumRAF = null; } }
+      function applyMomentum() {
+        if (Math.abs(velocity) < 0.5) { momentumRAF = null; return; }
+        track.scrollLeft -= velocity;
+        velocity *= 0.94;
+        momentumRAF = requestAnimationFrame(applyMomentum);
+      }
 
       track.onmousedown = (e) => {
+        stopMomentum();
         isDown = true;
         isDragging = false;
         if (isCast) window.isCastDragging = false;
         startX = e.pageX - track.offsetLeft;
         scrollLeft = track.scrollLeft;
+        lastX = e.pageX;
+        lastT = performance.now();
+        velocity = 0;
         track.style.cursor = 'grabbing';
       };
-      track.onmouseleave = () => { isDown = false; track.style.cursor = 'grab'; };
+      track.onmouseleave = () => { if (isDown) { isDown = false; track.style.cursor = 'grab'; applyMomentum(); } };
       track.onmouseup = () => {
         isDown = false;
         track.style.cursor = 'grab';
+        applyMomentum();
         if (isCast) setTimeout(() => { window.isCastDragging = false; }, 50);
       };
       track.onmousemove = (e) => {
@@ -3858,6 +4598,11 @@
           if (isCast) window.isCastDragging = true;
         }
         track.scrollLeft = scrollLeft - walk;
+        const now = performance.now();
+        const dt = now - lastT;
+        if (dt > 0) velocity = ((e.pageX - lastX) * 1.5 / dt) * 16;
+        lastX = e.pageX;
+        lastT = now;
       };
 
       track.querySelectorAll('.tilt-card, .cast-chip-card').forEach(card => {
@@ -3881,6 +4626,21 @@
     }
 
     function refreshActorFilmographyGrid() {
+      const actorPageContainer = document.getElementById('actorPageView');
+      const isPageOpen = actorPageContainer && !actorPageContainer.classList.contains('hidden') && window.currentActorPageId;
+      if (isPageOpen) {
+        const person = actorDetailsCache.get(window.currentActorPageId);
+        if (!person) return;
+        const scrollTop = actorPageContainer.scrollTop;
+        actorPageContainer.innerHTML = generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, true, true);
+        actorPageContainer.scrollTop = scrollTop;
+        bindActorFilmControls();
+        applyTiltToActorGrid();
+        const inp = document.getElementById('actorFilmSearch');
+        if (inp && actorFilterQuery) { try { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } catch (err) { console.warn('[Actor Filter Focus]', err); } }
+        return;
+      }
+
       const actorModal = document.getElementById('actorModal');
       const isModalOpen = actorModal && !actorModal.classList.contains('hidden');
       const isInline = !isModalOpen && el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden');
