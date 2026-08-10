@@ -4324,7 +4324,12 @@
     if (el.stopButton) el.stopButton.addEventListener('click', () => { if (isScanning) { cancelRequested = true; if (el.progressLabel) el.progressLabel.textContent = "Aborting search..."; } });
     const isGenuineWatchlistPage = (html, targetUser) => { if (!html) return false; const doc = new DOMParser().parseFromString(html, 'text/html'); const title = (doc.title || '').toLowerCase(); const hasContainer = !!doc.querySelector('.poster-list'); const titleLooksRight = title.includes('watchlist') && title.includes(targetUser.toLowerCase()); return hasContainer || titleLooksRight; };
     function normalizeTitle(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
-    function getFilmKey(obj) { if (obj.slug) return obj.slug.toLowerCase(); return normalizeTitle(obj.title) + '|' + (obj.year || ''); }
+    function getFilmKey(obj) {
+      const slugKey = obj.slug ? obj.slug.toLowerCase() : '';
+      const titleKey = normalizeTitle(obj.title);
+      const yearKey = obj.year || (obj.slug ? (obj.slug.match(/-(\d{4})$/)?.[1] || '') : '');
+      return (slugKey || titleKey) + '|' + yearKey;
+    }
     function getResultTitle(r) { return r.title || r.name || ''; }
     function getResultOriginalTitle(r) { return r.original_title || r.original_name || ''; }
     function getResultDate(r) { return r.release_date || r.first_air_date || null; }
@@ -4345,8 +4350,7 @@
           if (matchDate) {
             const matchYear = parseInt(matchDate.split('-')[0]);
             if (!isNaN(matchYear) && Math.abs(matchYear - qYear) > 1) {
-              // Single exact title match but wrong year - don't return it yet,
-              // fall through to year-based search below
+              // Single exact title match but wrong year - don't return it yet
             } else {
               return exactMatches[0];
             }
@@ -4361,6 +4365,15 @@
         if (qYear) {
           const exactWithYear = exactMatches.find(r => getResultDate(r) && Math.abs(parseInt(getResultDate(r).split('-')[0]) - qYear) <= 1);
           if (exactWithYear) return exactWithYear;
+        }
+        // Plain Letterboxd slugs (e.g. "nowhere" without year suffix) belong to the original/earliest release
+        if (queryObj.slug && !/-\d{4}$/.test(queryObj.slug)) {
+          const sortedByDate = [...exactMatches].filter(r => getResultDate(r)).sort((a, b) => {
+            const yA = parseInt(getResultDate(a).split('-')[0]) || 9999;
+            const yB = parseInt(getResultDate(b).split('-')[0]) || 9999;
+            return yA - yB;
+          });
+          if (sortedByDate.length > 0) return sortedByDate[0];
         }
         return [...exactMatches].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))[0];
       }
@@ -4419,7 +4432,7 @@
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
       return [...movieResults, ...tvResults];
     }
-    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v3';
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v4';
     let tmdbMatchCache = new Map();
     try {
       const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
