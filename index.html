@@ -2525,30 +2525,11 @@
 
     loadScanFromStorage().then(scanData => {
       if (scanData && scanData.movies && scanData.movies.length > 0) {
-        let migrationNeeded = false;
-        scannedMovies = scanData.movies.map(m => {
-          if (m.id === 1151534 && (m.mediaType || 'movie') === 'movie') {
-            migrationNeeded = true;
-            return {
-              ...m,
-              id: 1811,
-              mediaType: 'movie',
-              title: 'Nowhere',
-              releaseDate: '1997-05-09',
-              poster: 'https://image.tmdb.org/t/p/w500/c1TZKfzvATep5x5DthqWjjWtU2l.jpg',
-              backdrop: 'https://image.tmdb.org/t/p/w1280/bTS9PZp8GQa8XqC9eMT1FrtRXnM.jpg',
-              url: 'https://www.themoviedb.org/movie/1811'
-            };
-          }
-          return m;
-        });
+        scannedMovies = scanData.movies;
         if (scanData.isFriendMatch !== undefined) {
           isFriendMatchActive = scanData.isFriendMatch;
         } else {
           isFriendMatchActive = localStorage.getItem('ps_is_friend_match_active') === 'true';
-        }
-        if (migrationNeeded) {
-          saveScanToStorage(scannedMovies, isFriendMatchActive);
         }
         const renderCachedGallery = () => {
           try {
@@ -4361,10 +4342,6 @@
         if (sm) qYear = parseInt(sm[1]);
       }
       if (!qNorm) return null;
-      if (qNorm === 'nowhere' && (!qYear || qYear === 1997 || (queryObj.slug && !queryObj.slug.includes('2023')))) {
-        const araki1997 = results.find(r => r.id === 1811);
-        if (araki1997) return araki1997;
-      }
       const exactMatches = results.filter(r => normalizeTitle(getResultTitle(r)) === qNorm || normalizeTitle(getResultOriginalTitle(r)) === qNorm);
       if (exactMatches.length === 1) {
         // If we have a year and the single exact match is way off, keep looking
