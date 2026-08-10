@@ -42,7 +42,7 @@
       pointer-events: none !important;
       user-select: none !important;
       -webkit-user-select: none !important;
-      transform: scale(1.15) !important;
+      transform: scale(1.05) !important;
       transform-origin: center center !important;
     }
 
@@ -2992,7 +2992,7 @@
             <button onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
           </nav>
           <div class="relative w-full h-[78dvh] sm:h-[100dvh] min-h-[520px]">
-            <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-120 transform-gpu">` : `<div class="w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div><div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-20"></div></div>
+            <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div><div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-20"></div></div>
             <div class="absolute inset-0 z-30 flex flex-col justify-end p-6 sm:p-14 pb-6 sm:pb-8 pointer-events-none">
               <div class="max-w-[1480px] mx-auto w-full flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
                 <div class="max-w-3xl min-w-0 pointer-events-auto">
@@ -3252,8 +3252,8 @@
       if (!rect.width || !rect.height) return;
       const videoAspect = 16 / 9;
       const containerAspect = rect.width / rect.height;
-      // Safety factor to zoom in the hero background trailer video and eliminate all letterboxes
-      const SAFETY = 1.55;
+      // Safety factor to zoom in the hero background trailer video cleanly without over-cropping
+      const SAFETY = 1.38;
       let w, h;
       if (containerAspect > videoAspect) { w = rect.width * SAFETY; h = w / videoAspect; }
       else { h = rect.height * SAFETY; w = h * videoAspect; }
@@ -3964,7 +3964,7 @@
       const bannerArtEl = document.getElementById('allCastBannerArt');
       if (bannerArtEl) {
         bannerArtEl.innerHTML = backdrop
-          ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] scale-120 transform-gpu">`
+          ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">`
           : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0b1121]"></div>`;
       }
 
