@@ -414,25 +414,25 @@
 
     .glow-card:hover,
     .tilt-card:hover .glow-card {
-      border-color: rgba(59, 130, 246, 0.8) !important;
-      box-shadow: inset 0 0 0 1.5px rgba(59, 130, 246, 0.6), 0 8px 20px rgba(0, 0, 0, 0.6) !important;
+      border-color: rgba(59, 130, 246, 0.9) !important;
+      box-shadow: 0 0 24px rgba(59, 130, 246, 0.65), 0 10px 25px rgba(0, 0, 0, 0.6) !important;
     }
 
     .tilt-card {
       overflow: visible !important;
     }
 
-    /* Vertical padding & negative margins on horizontal tracks so glow fits vertically without shifting grid alignment */
+    /* Vertical & horizontal padding with negative margins so outer glow fits without clipping or shifting card count */
     #castCrewTrack,
     #similarMoviesTrack {
       padding-top: 14px !important;
       padding-bottom: 16px !important;
-      padding-left: 0 !important;
-      padding-right: 0 !important;
+      padding-left: 8px !important;
+      padding-right: 8px !important;
       margin-top: -14px !important;
       margin-bottom: -16px !important;
-      margin-left: 0 !important;
-      margin-right: 0 !important;
+      margin-left: -8px !important;
+      margin-right: -8px !important;
     }
 
     .tilt-card-inner {
