@@ -4200,6 +4200,8 @@
         const backBtn = document.getElementById('movieBackBtn');
         if (backBtn) backBtn.onclick = navGoBack;
         checkOverviewOverflow();
+        bindCastCrewDrag();
+        applyTiltToSimilarGrid();
         scrollToQuickSearchResult();
       } catch (err) { console.warn('[Single Movie Result Fetch]', err); el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Network Interface Error.</p></div>`; }
     }
@@ -5167,17 +5169,17 @@
 
         if (prevBtn) {
           if (current <= 10) {
-            prevBtn.classList.add('hidden');
+            prevBtn.classList.add('!hidden');
           } else {
-            prevBtn.classList.remove('hidden');
+            prevBtn.classList.remove('!hidden');
           }
         }
 
         if (nextBtn) {
-          if (current >= maxScroll - 10) {
-            nextBtn.classList.add('hidden');
+          if (current >= maxScroll - 10 || maxScroll <= 10) {
+            nextBtn.classList.add('!hidden');
           } else {
-            nextBtn.classList.remove('hidden');
+            nextBtn.classList.remove('!hidden');
           }
         }
 
@@ -5186,7 +5188,9 @@
       }
 
       track.addEventListener('scroll', updateUI, { passive: true });
+      updateUI();
       setTimeout(updateUI, 100);
+      setTimeout(updateUI, 300);
 
       let isDown = false;
       let startX = 0;
