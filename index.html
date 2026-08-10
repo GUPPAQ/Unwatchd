@@ -422,17 +422,19 @@
       overflow: visible !important;
     }
 
-    /* 12px internal padding so glow extends naturally inside track bounds without edge clipping */
+    /* 16px internal padding + scroll-padding + negative margins so glow never hits scroll container x=0 boundary */
     #castCrewTrack,
     #similarMoviesTrack {
       padding-top: 14px !important;
       padding-bottom: 16px !important;
-      padding-left: 12px !important;
-      padding-right: 12px !important;
+      padding-left: 16px !important;
+      padding-right: 16px !important;
       margin-top: -14px !important;
       margin-bottom: -16px !important;
-      margin-left: 0 !important;
-      margin-right: 0 !important;
+      margin-left: -16px !important;
+      margin-right: -16px !important;
+      scroll-padding-left: 16px !important;
+      scroll-padding-right: 16px !important;
     }
 
     .tilt-card-inner {
@@ -2773,7 +2775,7 @@
           const pRole = escapeHTML(p._role);
           const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
           return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : `openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, ${isModal ? 'false' : 'true'})`}; }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-28 sm:w-36 md:w-40 shrink-0 group/person cursor-pointer select-none relative">
-            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_14px_rgba(59,130,246,0.4)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-500/80 shadow-[0_0_12px_rgba(59,130,246,0.5)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
               <div class="w-full h-full rounded-full overflow-hidden">
                 ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
               </div>
