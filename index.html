@@ -2781,35 +2781,53 @@
         const textEl = container.querySelector('.spotify-marquee-text');
         if (!textEl) return;
 
-        const containerWidth = container.clientWidth;
-        const textWidth = textEl.scrollWidth;
-        const overflow = textWidth - containerWidth;
-        if (overflow <= 2) return;
-
+        // Temporarily remove constraints to measure real text width
+        const origMaxW = textEl.style.maxWidth;
+        const origOverflow = textEl.style.overflow;
         textEl.style.maxWidth = 'none';
+        textEl.style.overflow = 'visible';
+        const textWidth = textEl.scrollWidth;
+        const containerWidth = container.clientWidth;
+        const overflow = textWidth - containerWidth;
+
+        if (overflow <= 2) {
+          // No overflow — restore and skip
+          textEl.style.maxWidth = origMaxW;
+          textEl.style.overflow = origOverflow;
+          return;
+        }
+
+        // Keep constraints off and begin scrolling
+        textEl.style.overflow = 'visible';
         textEl.style.textOverflow = 'clip';
 
-        const scrollDist = overflow + 16;
-        const duration = Math.max(1.6, Math.min(3.8, scrollDist / 32));
+        const scrollDist = overflow + 4;
+        const duration = Math.max(1.4, Math.min(3.5, scrollDist / 30));
 
         if (textEl._marqueeTimer) clearTimeout(textEl._marqueeTimer);
 
-        function startForward() {
-          textEl.style.transition = `transform ${duration}s cubic-bezier(0.4, 0, 0.2, 1)`;
+        function scrollForward() {
+          textEl.style.transition = `transform ${duration}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
           textEl.style.transform = `translateX(-${scrollDist}px)`;
           textEl._marqueeTimer = setTimeout(() => {
             if (!cardEl.matches(':hover')) return;
-            textEl.style.transition = `transform ${duration}s cubic-bezier(0.4, 0, 0.2, 1)`;
-            textEl.style.transform = `translateX(0px)`;
-            textEl._marqueeTimer = setTimeout(() => {
-              if (cardEl.matches(':hover')) {
-                startForward();
-              }
-            }, (duration * 1000) + 900);
-          }, (duration * 1000) + 900);
+            scrollBack();
+          }, (duration * 1000) + 800);
         }
 
-        startForward();
+        function scrollBack() {
+          textEl.style.transition = `transform ${duration}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
+          textEl.style.transform = 'translateX(0px)';
+          textEl._marqueeTimer = setTimeout(() => {
+            if (!cardEl.matches(':hover')) return;
+            scrollForward();
+          }, (duration * 1000) + 800);
+        }
+
+        // Small delay before starting so it feels intentional
+        textEl._marqueeTimer = setTimeout(() => {
+          if (cardEl.matches(':hover')) scrollForward();
+        }, 400);
       });
     }
 
