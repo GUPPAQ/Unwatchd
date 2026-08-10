@@ -1157,9 +1157,7 @@
       <div id="categoriesBar"
         class="glass-panel rounded-2xl p-2.5 sm:p-3 mb-6 flex flex-col xl:flex-row gap-3 xl:gap-4 xl:items-center animate-fade relative"
         style="animation-delay: 0.1s;">
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 w-full xl:flex xl:flex-1 xl:gap-2">
-          <button class="tab-btn" data-tab="all">All <span id="tabCount-all"
-              class="tab-badge">0</span></button>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full xl:flex xl:flex-1 xl:gap-2">
           <button class="tab-btn active" data-tab="stream">Available <span id="tabCount-stream"
               class="tab-badge">0</span></button>
           <button class="tab-btn" data-tab="rentbuy">Rent / Buy <span id="tabCount-rentbuy"
@@ -4226,7 +4224,7 @@
       const qNormFilter = normalizeTitle(query);
       let filtered = scannedMovies.filter(m => { const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter); const matchG = genre === 'all' || (m.genreIds && m.genreIds.some(id => GENRE_MAP[id] === genre)); const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade)); return matchQ && matchG && matchD; });
       filtered.sort((a, b) => { if (sort === 'popularity') return getMoviePopularity(b) - getMoviePopularity(a); if (sort === 'az') return a.title.localeCompare(b.title); if (sort === 'za') return b.title.localeCompare(a.title); if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || 0)) - (parseFloat(getCachedRating(a) || 0)); if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || 0)) - (parseFloat(getCachedRating(b) || 0)); if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0'); if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(a.releaseDate || '9999'); return 0; });
-      currentGroupedResults = { all: [], stream: [], rentbuy: [], other: [], unavailable: [] };
+      currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
       filtered.forEach(movie => {
         let regionData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData; let vpnInfo = null;
         if (vpnModeEnabled && movie.allProviders) {
@@ -4243,7 +4241,6 @@
           }
         }
         const baseObj = { ...movie, regionData, vpnInfo };
-        currentGroupedResults.all.push(baseObj);
         if (!regionData) { baseObj.subtext = 'Not streaming in region'; currentGroupedResults.unavailable.push(baseObj); return; }
 
         const flatrate = (regionData.flatrate || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
@@ -4269,7 +4266,6 @@
           currentGroupedResults.unavailable.push(baseObj);
         }
       });
-      const allC = document.getElementById('tabCount-all'); if (allC) allC.textContent = currentGroupedResults.all.length;
       const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
       renderActiveGrid();
     }
@@ -4436,7 +4432,7 @@
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
       return [...movieResults, ...tvResults];
     }
-    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v4';
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v5';
     let tmdbMatchCache = new Map();
     try {
       const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
@@ -4584,8 +4580,21 @@
         candidatePosters.forEach(element => {
           let title = element.getAttribute('data-film-name');
           let year = element.getAttribute('data-film-release-year') || element.getAttribute('data-film-year') || null;
-          let slug = element.getAttribute('data-film-slug') || element.getAttribute('data-target-link') || null;
-          if (slug && slug.startsWith('/film/')) slug = slug.replace('/film/', '').replace(/\/.*$/, '');
+          let slug = element.getAttribute('data-film-slug') || element.getAttribute('data-target-link') || element.dataset?.filmSlug || element.dataset?.targetLink || null;
+          if (!slug) {
+            const a = element.closest('a') || element.querySelector('a') || (element.parentElement ? element.parentElement.closest('a') : null);
+            if (a) {
+              const href = a.getAttribute('href') || '';
+              if (href.includes('/film/')) slug = href;
+            }
+          }
+          if (!slug && element.parentElement) {
+            const parentA = element.parentElement.querySelector('a[href*="/film/"]') || element.parentElement.closest('a[href*="/film/"]');
+            if (parentA) slug = parentA.getAttribute('href');
+          }
+          if (slug) {
+            if (slug.includes('/film/')) slug = slug.replace(/^.*\/film\//, '').replace(/\/.*$/, '').trim();
+          }
           const img = element.querySelector('img');
           if (!title && img) { title = img.getAttribute('alt'); }
           if (!year) {
