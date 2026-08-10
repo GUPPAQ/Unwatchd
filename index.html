@@ -3632,8 +3632,28 @@
       document.body.classList.remove('modal-open');
     }
 
+    function hideAllCastModalView() {
+      const modal = document.getElementById('allCastModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
     window.addEventListener('popstate', () => {
-      if (location.hash.startsWith('#movie-')) {
+      if (location.hash.includes('-cast')) {
+        hideActorPageView();
+        const parts = location.hash.replace('#movie-', '').split('-cast');
+        const id = parseInt(parts[0], 10);
+        if (id) {
+          if (!window.currentMovieFullCredits || window.currentMovieFullCredits.movieId !== id) {
+            openMoviePageById(id).then(() => openFullCastModal(true));
+          } else {
+            openFullCastModal(true);
+          }
+        }
+      } else if (location.hash.startsWith('#movie-')) {
+        hideAllCastModalView();
         hideActorPageView();
         const id = parseInt(location.hash.replace('#movie-', ''), 10);
         if (id && (!window.currentMoviePageObj || window.currentMoviePageObj.id !== id)) {
@@ -3641,10 +3661,12 @@
           if (existing) openMoviePage(existing, false); else openMoviePageById(id);
         }
       } else if (location.hash.startsWith('#actor-')) {
+        hideAllCastModalView();
         hideMoviePageView();
         const id = parseInt(location.hash.replace('#actor-', ''), 10);
         if (id && window.currentActorPageId !== id) openActorPage(id, '', '', false);
       } else {
+        hideAllCastModalView();
         hideMoviePageView();
         hideActorPageView();
       }
@@ -3848,6 +3870,11 @@
       currentAllCastActiveTab = 'all';
       currentAllCastMovieContext = isPage;
 
+      if (isPage && !location.hash.includes('-cast')) {
+        const mId = window.currentMovieFullCredits.movieId || '0';
+        try { history.pushState({ allCastPage: true, movieId: mId }, '', `#movie-${mId}-cast`); } catch (e) {}
+      }
+
       const searchInput = document.getElementById('allCastSearchInput');
       if (searchInput) searchInput.value = '';
 
@@ -3879,6 +3906,12 @@
       if (!modal) return;
 
       modal.classList.add('hidden'); modal.classList.remove('flex');
+      if (location.hash.includes('-cast')) {
+        const mId = location.hash.replace('#movie-', '').split('-cast')[0];
+        if (mId) {
+          try { history.replaceState({ moviePage: Number(mId) }, '', `#movie-${mId}`); } catch (e) {}
+        }
+      }
       const actorModal = document.getElementById('actorModal');
       const movieModal = document.getElementById('movieModal');
       const isActorOpen = actorModal && !actorModal.classList.contains('hidden');
