@@ -2760,7 +2760,7 @@
       const allCrew = details && details.credits && details.credits.crew ? details.credits.crew : [];
       window.currentMovieFullCredits = {
         movieTitle: safeTitle,
-        backdrop: heroBackdropUrl || movieObj.backdrop,
+        backdrop: (details && details.backdrop_path ? `https://image.tmdb.org/t/p/w1280${details.backdrop_path}` : movieObj.backdrop) || null,
         cast: allCast,
         crew: allCrew,
         directors: directors
