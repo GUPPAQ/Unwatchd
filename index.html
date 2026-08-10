@@ -702,32 +702,36 @@
       font-size: 0.8rem;
     }
 
-    #castCrewTrack > *, #similarMoviesTrack > * {
+    #castCrewTrack>*,
+    #similarMoviesTrack>* {
       scroll-snap-align: start;
     }
 
     /* Sizing rules: 2 movies on mobile / 4 on desktop & tablet; 3 actors on mobile / 5 on tablet / 6 on desktop */
-    #similarMoviesTrack > .tilt-card {
+    #similarMoviesTrack>.tilt-card {
       width: calc((100% - 1 * 1rem) / 2) !important;
       flex-shrink: 0 !important;
     }
+
     @media (min-width: 640px) {
-      #similarMoviesTrack > .tilt-card {
+      #similarMoviesTrack>.tilt-card {
         width: calc((100% - 3 * 1.25rem) / 4) !important;
       }
     }
 
-    #castCrewTrack > .cast-chip-card {
+    #castCrewTrack>.cast-chip-card {
       width: calc((100% - 2 * 0.75rem) / 3) !important;
       flex-shrink: 0 !important;
     }
+
     @media (min-width: 640px) {
-      #castCrewTrack > .cast-chip-card {
+      #castCrewTrack>.cast-chip-card {
         width: calc((100% - 4 * 1rem) / 5) !important;
       }
     }
+
     @media (min-width: 1024px) {
-      #castCrewTrack > .cast-chip-card {
+      #castCrewTrack>.cast-chip-card {
         width: calc((100% - 5 * 1rem) / 6) !important;
       }
     }
@@ -754,21 +758,26 @@
         height: 100vh !important;
         min-height: 320px !important;
       }
+
       .actor-hero-content {
         padding-top: 4.5rem !important;
         padding-bottom: 1.25rem !important;
       }
+
       .actor-hero-name {
         font-size: 2.5rem !important;
         line-height: 1.05 !important;
       }
+
       .actor-hero-small-img {
         width: 7.5rem !important;
       }
+
       #actorFilmGrid {
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
         gap: 1.25rem !important;
       }
+
       #activeGridContainer {
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
         gap: 1.25rem !important;
@@ -798,31 +807,39 @@
     .titleLogoImg {
       filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.95));
     }
-/* Scales up the shared cast/similar/watch-now fragments when they render inside the
+
+    /* Scales up the shared cast/similar/watch-now fragments when they render inside the
        full-page movie/actor view, which has far more room than the old compact modal. */
-    .ps-page-scale > h3 {
+    .ps-page-scale>h3 {
       font-size: 1.05rem;
       letter-spacing: 0.16em;
     }
+
     .ps-page-scale .cast-chip-card {
       width: 7.5rem;
     }
+
     .ps-page-scale .cast-chip-card span {
       font-size: 0.95rem;
     }
+
     .ps-page-scale .tilt-card {
       width: 9.5rem;
     }
+
     .ps-page-scale .tilt-card h4 {
       font-size: 0.85rem;
     }
+
     .ps-page-scale .tilt-card p {
       font-size: 0.72rem;
     }
+
     @media (min-width: 640px) {
       .ps-page-scale .cast-chip-card {
         width: 9rem;
       }
+
       .ps-page-scale .tilt-card {
         width: 12rem;
       }
@@ -1216,9 +1233,16 @@
 
   <div id="actorPageView" class="fixed inset-0 z-[221] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
 
-  <div id="genericPopupOverlay" class="fixed inset-0 z-[500] hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onclick="if(event.target===this) closeGenericPopup()">
-    <div id="genericPopupContent" class="glass-panel bg-[#0f1730] border border-white/10 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6 relative shadow-[0_30px_60px_rgba(0,0,0,0.8)]">
-      <button onclick="closeGenericPopup()" aria-label="Close" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+  <div id="genericPopupOverlay"
+    class="fixed inset-0 z-[500] hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+    onclick="if(event.target===this) closeGenericPopup()">
+    <div id="genericPopupContent"
+      class="glass-panel bg-[#0f1730] border border-white/10 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6 relative shadow-[0_30px_60px_rgba(0,0,0,0.8)]">
+      <button onclick="closeGenericPopup()" aria-label="Close"
+        class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer transition-colors"><svg
+          class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg></button>
       <div id="genericPopupBody" class="pr-6"></div>
     </div>
   </div>
@@ -2430,7 +2454,7 @@
       return `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
     }
 
-    window.onTitleLogoError = function(imgEl) {
+    window.onTitleLogoError = function (imgEl) {
       if (!imgEl || imgEl.dataset.fallbackDone) return;
       imgEl.dataset.fallbackDone = 'true';
       const isPage = imgEl.classList.contains('pageTitleImg');
@@ -2439,7 +2463,7 @@
       const fontClasses = isPage
         ? 'movie-hero-title text-4xl min-[400px]:text-5xl sm:text-7xl md:text-8xl lg:text-[5.5rem] font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[0.95] mb-3'
         : 'movie-hero-title text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-2';
-      
+
       const heading = document.createElement(tag);
       heading.className = fontClasses;
       heading.textContent = safeTitle;
@@ -2783,7 +2807,7 @@
       }
     }
 
-    let isHeroVideoMuted = localStorage.getItem('ps_hero_sound_muted') === 'false' ? false : true;
+    let isHeroVideoMuted = true;
 
     // Manually computes exact "object-fit: cover" sizing for the hero video iframe (iframes don't
     // support object-fit natively). This guarantees zero YouTube letterbox bars with the minimum
