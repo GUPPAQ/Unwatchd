@@ -2521,8 +2521,9 @@
       const btnClass = "flex items-center justify-center sm:justify-start gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-3 rounded-xl transition-all text-sm font-bold text-gray-300 hover:text-white flex-1 sm:flex-none sm:min-w-[150px] whitespace-nowrap";
       const streamingBtnClass = "flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-3 rounded-xl transition-all text-sm font-bold text-gray-300 hover:text-white w-max";
       const streamingBtnClassBig = "flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2.5 rounded-xl transition-all text-sm font-bold text-gray-300 hover:text-white w-full";
+      const streamingBtnClassHuge = "flex items-center gap-3.5 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-3.5 rounded-xl transition-all text-base font-bold text-gray-300 hover:text-white w-full";
 
-      const makeProviderLink = (p, extraText = '', big = false) => {
+      const makeProviderLink = (p, extraText = '', mode = false) => {
         let safeName = (p.provider_name || '').replace("with Ads", "").trim();
 
         const providerMeta = currentProviders.find(cp => cp.id === p.provider_id) || null;
@@ -2545,7 +2546,9 @@
           link = deeplink.searchUrl(movieObj.title);
         }
 
-        return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="${big ? streamingBtnClassBig : streamingBtnClass}"><div class="${big ? 'w-7 h-7' : 'w-6 h-6'} flex-shrink-0 rounded-[22.5%] overflow-hidden shadow-sm pointer-events-none">${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}</div><span class="truncate min-w-0">${escapeHTML(safeName)}${extraText}</span></a>`;
+        const btnStyle = mode === 'huge' ? streamingBtnClassHuge : (mode === 'medium' || mode === true ? streamingBtnClassBig : streamingBtnClass);
+        const iconStyle = mode === 'huge' ? 'w-9 h-9' : ((mode === 'medium' || mode === true) ? 'w-7 h-7' : 'w-6 h-6');
+        return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="${btnStyle}"><div class="${iconStyle} flex-shrink-0 rounded-[22.5%] overflow-hidden shadow-sm pointer-events-none">${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}</div><span class="truncate min-w-0">${escapeHTML(safeName)}${extraText}</span></a>`;
       };
 
       let streamingHtml = '';
@@ -2568,8 +2571,10 @@
       }
 
       let streamingHtmlDesktop = '';
-      if (visibleFlatrate.length > 0) {
-        visibleFlatrate.forEach(p => { streamingHtmlDesktop += makeProviderLink(p, '', true); });
+      if (visibleFlatrate.length === 1) {
+        streamingHtmlDesktop = makeProviderLink(visibleFlatrate[0], '', 'huge');
+      } else if (visibleFlatrate.length > 1) {
+        visibleFlatrate.forEach(p => { streamingHtmlDesktop += makeProviderLink(p, '', 'medium'); });
       } else {
         streamingHtmlDesktop = streamingHtml;
       }
@@ -2688,7 +2693,7 @@
 
       if (isPage) {
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
-        const desktopStreamingGridClass = visibleFlatrate.length === 1 ? 'flex flex-col gap-2.5' : 'grid grid-cols-2 gap-2.5';
+        const desktopStreamingGridClass = visibleFlatrate.length >= 3 ? 'grid grid-cols-2 gap-2.5' : 'flex flex-col gap-2.5';
         const watchNowCardHtml = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-wrap gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div>`;
         const watchNowCardHtmlDesktop = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm h-full flex flex-col justify-between space-y-3.5"><div class="space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="${desktopStreamingGridClass}">${streamingHtmlDesktop}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}</div>${rentBuyDropdownHtml}</div>`;
         // Same card, but grows to fill the sidebar's full stretched height on desktop (the sidebar
