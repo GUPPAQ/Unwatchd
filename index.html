@@ -2906,14 +2906,7 @@
       const trailerHeaderBtn = bestTrailer
         ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${btnClass} cursor-pointer"><svg class="w-5 h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch Trailer</button>`
         : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${btnClass}"><svg class="w-5 h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch Trailer</a>`;
-      // On the full page, if the trailer is already playing in the hero, "Watch Trailer" expands
-      // that same video to fullscreen. If the hero has no video (stricter official-trailer check
-      // failed) but a looser trailer pick exists, fall back to the classic modal instead.
-      const pageTrailerBtnHtml = heroTrailer
-        ? `<button onclick="expandHeroVideoFullscreen()" class="${btnClass} cursor-pointer"><svg class="w-5 h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch Trailer</button>`
-        : bestTrailer
-          ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${btnClass} cursor-pointer"><svg class="w-5 h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch Trailer</button>`
-          : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${btnClass}"><svg class="w-5 h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch Trailer</a>`;
+      const pageTrailerBtnHtml = trailerHeaderBtn;
       const shareParam = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
       const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-green-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg> Copy Link</button>`;
 
