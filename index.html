@@ -1939,6 +1939,10 @@
 
         if (e.code === 'Space' || e.key === ' ' || e.key === 'k' || e.key === 'K') {
           e.preventDefault();
+          e.stopPropagation();
+          if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+          }
           if (trailerPlayer && typeof trailerPlayer.getPlayerState === 'function') {
             try {
               const state = trailerPlayer.getPlayerState();
@@ -3674,6 +3678,9 @@
     }
 
     function openTrailerModal(videoKey, movieTitle) {
+      if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+      }
       stopHeroVideo();
       const modal = document.getElementById('trailerModal');
       const backdrop = document.getElementById('trailerModalBackdrop');
