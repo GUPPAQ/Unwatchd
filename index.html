@@ -1295,7 +1295,7 @@
   <div id="allCastModal"
     class="fixed inset-0 z-[280] hidden flex-col bg-[#0b1121] overflow-y-auto overscroll-none">
     <nav class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 py-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
-      <button onclick="closeAllCastModal()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
+      <button onclick="if(location.hash.includes('-cast')){ history.back(); } else { closeAllCastModal(); }" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
       </button>
       <button onclick="closeAllCastModal(); goHomeFromPage();" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
@@ -3646,17 +3646,18 @@
         const parts = location.hash.replace('#movie-', '').split('-cast');
         const id = parseInt(parts[0], 10);
         if (id) {
-          if (!window.currentMovieFullCredits || window.currentMovieFullCredits.movieId !== id) {
-            openMoviePageById(id).then(() => openFullCastModal(true));
-          } else {
-            openFullCastModal(true);
+          const isMoviePageOpen = document.getElementById('moviePageView') && !document.getElementById('moviePageView').classList.contains('hidden');
+          if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== id) {
+            const existing = scannedMovies.find(m => m.id === id);
+            if (existing) openMoviePage(existing, false); else openMoviePageById(id);
           }
+          openFullCastModal(true);
         }
       } else if (location.hash.startsWith('#movie-')) {
         hideAllCastModalView();
         hideActorPageView();
         const id = parseInt(location.hash.replace('#movie-', ''), 10);
-        if (id && (!window.currentMoviePageObj || window.currentMoviePageObj.id !== id)) {
+        if (id) {
           const existing = scannedMovies.find(m => m.id === id);
           if (existing) openMoviePage(existing, false); else openMoviePageById(id);
         }
@@ -3906,12 +3907,6 @@
       if (!modal) return;
 
       modal.classList.add('hidden'); modal.classList.remove('flex');
-      if (location.hash.includes('-cast')) {
-        const mId = location.hash.replace('#movie-', '').split('-cast')[0];
-        if (mId) {
-          try { history.replaceState({ moviePage: Number(mId) }, '', `#movie-${mId}`); } catch (e) {}
-        }
-      }
       const actorModal = document.getElementById('actorModal');
       const movieModal = document.getElementById('movieModal');
       const isActorOpen = actorModal && !actorModal.classList.contains('hidden');
@@ -3991,7 +3986,7 @@
         const pRole = escapeHTML(p._role || '');
         const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
 
-        return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="closeAllCastModal(); ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-full shrink-0 group/person cursor-pointer select-none relative">
+        return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'closeAllCastModal(); openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-full shrink-0 group/person cursor-pointer select-none relative">
           <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
             <div class="w-full h-full rounded-full overflow-hidden">
               ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
