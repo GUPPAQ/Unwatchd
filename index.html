@@ -2643,7 +2643,7 @@
         const bScore = (b.belongs_to_collection && b.belongs_to_collection.id === collectionId ? 2 : 0) + (franchiseKey.length > 3 && (b.title || '').toLowerCase().startsWith(franchiseKey) ? 1 : 0);
         return bScore - aScore;
       });
-      const recs = combinedRecs.slice(0, 15);
+      const recs = combinedRecs.slice(0, 28);
       let similarHtml = '';
       if (recs.length > 0) {
         const watchlistIds = new Set(scannedMovies.map(m => m.id));
@@ -2703,13 +2703,13 @@
               </div>
             </div>
           </div>
-          <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pt-0 pb-10 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-x-14 lg:gap-x-20 gap-y-10 items-start">
-            <div class="min-w-0 flex flex-col gap-8">
-              <div class="lg:hidden">${watchNowCardHtml}</div>
-              ${castCrewHtml}
-              ${similarHtml}
+          <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pt-0 pb-10 flex flex-col gap-10">
+            <div class="lg:hidden">${watchNowCardHtml}</div>
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-x-14 lg:gap-x-20 gap-y-10 items-start">
+              <div class="min-w-0">${castCrewHtml}</div>
+              <aside class="hidden lg:flex flex-col gap-5">${watchNowCardHtmlDesktop}</aside>
             </div>
-            <aside class="hidden lg:flex flex-col gap-5 sticky top-24">${watchNowCardHtmlDesktop}</aside>
+            ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
           </div>
           <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pb-10">
             <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${shareBtn}</div>
