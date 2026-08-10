@@ -1913,7 +1913,7 @@
     let isTrailerPaused = false;
     let isTrailerMuted = false;
 
-    function postYouTubeCommand(iframe, func, args = []) {
+    function postYouTubeCommand(iframe, func, args = '') {
       if (!iframe || !iframe.contentWindow) return;
       try {
         iframe.contentWindow.postMessage(JSON.stringify({
@@ -3686,12 +3686,15 @@
       const focusIframe = () => {
         const iframe = wrapper.querySelector('iframe');
         if (iframe) {
-          iframe.focus();
-          try { iframe.contentWindow.focus(); } catch (err) {}
+          try {
+            iframe.contentWindow.postMessage('{"event":"listening","id":"trailerIframe"}', '*');
+            iframe.focus();
+            iframe.contentWindow.focus();
+          } catch (err) {}
         }
       };
 
-      [50, 150, 300, 500, 800].forEach(delay => setTimeout(focusIframe, delay));
+      [0, 50, 150, 300, 500, 800].forEach(delay => setTimeout(focusIframe, delay));
 
       const closeHandler = () => closeTrailerModal();
       backdrop.onclick = closeHandler;
