@@ -1327,7 +1327,7 @@
     const GENRE_MAP = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western' };
     function openStreamingService(webUrl, appUrl = null) { if (!isMobile || !appUrl || appUrl === 'null') { window.open(webUrl, "_blank"); return; } window.location.href = appUrl; setTimeout(() => { window.open(webUrl, "_blank"); }, 1200); }
     const CORS_PROXIES = [(url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`, (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`];
-    const TMDB_PROVIDER_CACHE_KEY = (region) => `ps_providers_${region}_v12`;
+    const TMDB_PROVIDER_CACHE_KEY = (region) => `ps_providers_${region}_v13`;
     const TMDB_PROVIDER_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
     // Text-normalisering som tar bort mellanslag, specialtecken och ersätter "+" med "plus"
@@ -1342,13 +1342,16 @@
         .replace(/[+]/g, 'plus')
         .replace(/[^a-z0-9]/g, '');
 
-      if (norm === 'hbomax' || norm === 'max' || norm === 'hbomaxamazonchannel') norm = 'max';
+      if (norm.includes('hbomax') || norm.includes('max')) norm = 'max';
+      if (norm.includes('peacock')) norm = 'peacock';
+      if (norm.includes('disney')) norm = 'disneyplus';
+      if (norm.includes('paramount')) norm = 'paramountplus';
+      if (norm.includes('discovery')) norm = 'discoveryplus';
+      if (norm.includes('amc')) norm = 'amcplus';
+      if (norm.includes('mgm')) norm = 'mgmplus';
+      if (norm.includes('tubi')) norm = 'tubi';
       if (norm === 'amazonprimevideo' || norm === 'amazonvideo' || norm === 'amazonprime' || norm === 'primevideo' || norm === 'amazon') norm = 'primevideo';
       if (norm.startsWith('appletv') || norm.includes('appleitunes') || norm === 'itunes') norm = 'appletv';
-      if (norm === 'peacockpremium' || norm === 'peacock') norm = 'peacock';
-      if (norm === 'tubitv' || norm === 'tubi') norm = 'tubi';
-      if (norm === 'disney' || norm === 'disneyplus') norm = 'disneyplus';
-      if (norm === 'paramount' || norm === 'paramountplus') norm = 'paramountplus';
       if (norm.startsWith('triart')) norm = 'triartplay';
       if (norm.startsWith('draken')) norm = 'drakenfilm';
       if (norm.startsWith('cineas')) norm = 'cineasterna';
@@ -1359,6 +1362,67 @@
       if (norm === 'bfiplayer' || norm === 'bfiplayeramazonchannel') norm = 'bfiplayer';
       if (norm.startsWith('svt')) norm = 'svtplay';
       return norm;
+    };
+
+    const CANONICAL_DISPLAY_NAMES = {
+      'peacock': 'Peacock',
+      'disneyplus': 'Disney+',
+      'paramountplus': 'Paramount+',
+      'primevideo': 'Prime Video',
+      'appletv': 'Apple TV+',
+      'tubi': 'Tubi',
+      'discoveryplus': 'Discovery+',
+      'amcplus': 'AMC+',
+      'mgmplus': 'MGM+',
+      'max': 'Max',
+      'svtplay': 'SVT Play',
+      'tv4play': 'TV4 Play',
+      'tele2play': 'Tele2 Play',
+      'teliaplay': 'Telia Play',
+      'skyshowtime': 'SkyShowtime',
+      'viaplay': 'Viaplay',
+      'sfanytime': 'SF Anytime',
+      'plutotv': 'Pluto TV',
+      'nrktv': 'NRK TV',
+      'tv2play': 'TV 2 Play',
+      'yleareena': 'Yle Areena',
+      'ruutu': 'Ruutu',
+      'triartplay': 'TriArt Play',
+      'drakenfilm': 'Draken Film',
+      'cineasterna': 'Cineasterna',
+      'blockbuster': 'Blockbuster',
+      'rakutentv': 'Rakuten TV',
+      'chili': 'Chili',
+      'hulu': 'Hulu',
+      'crunchyroll': 'Crunchyroll',
+      'bbciplayer': 'BBC iPlayer',
+      'itvx': 'ITVX',
+      'channel4': 'Channel 4',
+      'nowtv': 'Now TV',
+      'stan': 'Stan',
+      'binge': 'BINGE',
+      'abciview': 'ABC iview',
+      'neon': 'Neon',
+      'crave': 'Crave',
+      'cbcgem': 'CBC Gem',
+      'mubi': 'MUBI',
+      'shudder': 'Shudder',
+      'criterionchannel': 'Criterion Channel',
+      'starz': 'Starz',
+      'hoopla': 'Hoopla',
+      'kanopy': 'Kanopy'
+    };
+
+    const getCanonicalDisplayName = (rawName) => {
+      if (!rawName) return '';
+      const norm = cleanNormalize(rawName);
+      if (CANONICAL_DISPLAY_NAMES[norm]) return CANONICAL_DISPLAY_NAMES[norm];
+      return rawName
+        .replace(/^amazon\s+/i, '')
+        .replace(TIER_SUFFIX_RE, '')
+        .replace(/\bchannel\b/gi, '')
+        .replace(/\bapp ?store\b/gi, '')
+        .trim();
     };
 
     // Global, utökad whitelist för 100% täckning över alla 21 regioner
@@ -1593,7 +1657,8 @@
       if (match) {
         return { provider_name: match.name, provider_id: match.id, logoPath: match.logoPath, logo_path: p.logo_path };
       }
-      const cleanName = p.provider_name.replace(/^Amazon\s+/i, '').replace(TIER_SUFFIX_RE, '').trim();
+      const rawClean = p.provider_name.replace(/^Amazon\s+/i, '').replace(TIER_SUFFIX_RE, '').trim();
+      const cleanName = getCanonicalDisplayName(rawClean);
       const local = localIconFor(cleanName);
       const rawLogo = p.logo_path || p.logoPath;
       const tmdbLogo = rawLogo ? (rawLogo.startsWith('http') ? rawLogo : `https://image.tmdb.org/t/p/original${rawLogo.startsWith('/') ? '' : '/'}${rawLogo}`) : null;
@@ -1690,7 +1755,8 @@
 
       const providers = [...byNormalizedName.values()]
         .map(p => {
-          const cleanName = p.__key.replace(/^Amazon\s+/i, '');
+          const rawClean = p.__key.replace(/^Amazon\s+/i, '');
+          const cleanName = getCanonicalDisplayName(rawClean);
           const local = localIconFor(cleanName);
 
           // EXCLUSIVE SELECTION RULE: Only show services in the selector grid if we have a local PNG icon!
