@@ -414,15 +414,15 @@
 
     .glow-card:hover,
     .tilt-card:hover .glow-card {
-      border-color: rgba(59, 130, 246, 0.7) !important;
-      box-shadow: 0 0 14px rgba(59, 130, 246, 0.35) !important;
+      border-color: rgba(59, 130, 246, 0.6) !important;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.35) !important;
     }
 
     .tilt-card {
       overflow: visible !important;
     }
 
-    /* Vertical padding & negative margins on horizontal tracks without horizontal shifting or drop shadows */
+    /* Vertical padding & negative margins so glow fits vertically without shifting grid alignment or card counts */
     #castCrewTrack,
     #similarMoviesTrack {
       padding-top: 14px !important;
@@ -2772,8 +2772,8 @@
           const pName = escapeHTML(p.name);
           const pRole = escapeHTML(p._role);
           const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
-          return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : `openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, ${isModal ? 'false' : 'true'})`}; }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-28 sm:w-36 md:w-40 shrink-0 group/person cursor-pointer select-none relative">
-            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-500/80 shadow-[inset_0_0_12px_rgba(59,130,246,0.6)]' : 'border-white/10'} bg-gray-800 shrink-0 relative">
+          return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { ${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : `openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, ${isModal ? 'false' : 'true'})`}; }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-[110px] sm:w-[140px] shrink-0 group/person cursor-pointer select-none relative">
+            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
               <div class="w-full h-full rounded-full overflow-hidden">
                 ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
               </div>
@@ -2786,7 +2786,7 @@
         }).join('');
 
         const seeAllChip = `<div onclick="if(!window.isCastDragging) openFullCastModal(${isPage ? 'true' : 'false'})" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-28 sm:w-36 md:w-40 shrink-0 group/person cursor-pointer select-none relative">
-          <div class="glow-card w-full aspect-square rounded-full border border-white/10 bg-gray-800 shrink-0 relative flex items-center justify-center">
+          <div class="glow-card w-full aspect-square rounded-full border border-white/10 shadow-lg bg-gray-800 shrink-0 relative flex items-center justify-center">
             <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
           </div>
           <div class="spotify-marquee-container w-full pointer-events-none">
@@ -2946,7 +2946,7 @@
           const isInWatchlist = watchlistIds.has(m.id);
           const recRating = getTmdbRating(m);
           return `<div class="tilt-card animate-fade shrink-0 w-32 sm:w-44 md:w-48 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 sm:hover:scale-[1.03]" onclick="${isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})`}">
-            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full">
+            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/5 h-full">
               <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                 <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
                 <div class="glare"></div>
