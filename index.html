@@ -2548,22 +2548,27 @@
         || (details && details['watch/providers'] && details['watch/providers'].results ? details['watch/providers'].results[currentRegion] : null);
 
       const cleanFlatrate = filterAndDeduplicateProviders(regionProviders?.flatrate || []);
-      const isAvailableOnSelected = cleanFlatrate.some(p => selectedServiceIds.has(p.provider_id));
+      const userFlatrate = cleanFlatrate.filter(p => selectedServiceIds.has(p.provider_id));
+      const otherFlatrate = cleanFlatrate.filter(p => !selectedServiceIds.has(p.provider_id));
 
-      if (cleanFlatrate.length > 0) {
-        cleanFlatrate.forEach(p => { streamingHtml += makeProviderLink(p); });
+      const visibleFlatrate = userFlatrate.slice(0, 2);
+      const extraFlatrate = [...userFlatrate.slice(2), ...otherFlatrate];
+
+      let streamingHtml = '';
+      if (visibleFlatrate.length > 0) {
+        visibleFlatrate.forEach(p => { streamingHtml += makeProviderLink(p); });
       } else {
-        streamingHtml = `<div class="w-max max-w-full bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl flex items-center justify-center sm:justify-start"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Not available on subscription</p></div>`;
+        const noSubText = cleanFlatrate.length > 0 ? 'Not available on your subscriptions' : 'Not available on subscription';
+        streamingHtml = `<div class="w-max max-w-full bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl flex items-center justify-center sm:justify-start"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
       }
 
       let streamingHtmlDesktop = '';
-      if (cleanFlatrate.length > 0) {
-        cleanFlatrate.forEach(p => { streamingHtmlDesktop += makeProviderLink(p, '', true); });
+      if (visibleFlatrate.length > 0) {
+        visibleFlatrate.forEach(p => { streamingHtmlDesktop += makeProviderLink(p, '', true); });
       } else {
         streamingHtmlDesktop = streamingHtml;
       }
 
-      let rentBuyDropdownHtml = '';
       const rent = filterAndDeduplicateProviders(regionProviders?.rent || [], true);
       const buy = filterAndDeduplicateProviders(regionProviders?.buy || [], true);
       const rbMap = new Map();
@@ -2576,15 +2581,28 @@
         else { rbMap.set(p.provider_id, { p, type: 'Buy' }); }
       });
 
-      if (rbMap.size > 0) {
-        let rbLinksHtml = '';
-        rbMap.forEach(val => {
-          rbLinksHtml += makeProviderLink(val.p);
-        });
-        rentBuyDropdownHtml = `<details class="group pt-3 border-t border-blue-500/20"><summary class="text-xs font-extrabold uppercase tracking-widest text-gray-400 cursor-pointer flex items-center gap-2 hover:text-white transition-colors list-none outline-none select-none"><svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>Rent · Buy Options <span class="text-gray-500 font-bold">(${rbMap.size})</span></summary><div class="pt-3 grid grid-cols-2 gap-3 [&>a]:!w-full">${rbLinksHtml}</div></details>`;
-      } else {
-        rentBuyDropdownHtml = `<details class="group pt-3 border-t border-blue-500/20"><summary class="text-xs font-extrabold uppercase tracking-widest text-gray-400 cursor-pointer flex items-center gap-2 hover:text-white transition-colors list-none outline-none select-none"><svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>Rent · Buy Options <span class="text-gray-500 font-bold">(0)</span></summary><div class="pt-3"><div class="w-max max-w-full bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl flex items-center justify-center sm:justify-start"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Not available to rent or buy</p></div></div></details>`;
-      }
+      let extraFlatrateLinksHtml = '';
+      extraFlatrate.forEach(p => { extraFlatrateLinksHtml += makeProviderLink(p, '', true); });
+      let userFlatrateLinksHtml = '';
+      userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, '', true); });
+      let rbLinksHtml = '';
+      rbMap.forEach(val => { rbLinksHtml += makeProviderLink(val.p, '', true); });
+
+      if (!window.moviePopupDataCache) window.moviePopupDataCache = new Map();
+      window.moviePopupDataCache.set(movieObj.id, {
+        title: movieObj.title,
+        extraFlatrateLinksHtml,
+        userFlatrateLinksHtml,
+        rbLinksHtml,
+        rentBuyCount: rbMap.size,
+        extraCount: extraFlatrate.length
+      });
+
+      const hasExtra = extraFlatrate.length > 0;
+      const extraBtnHtml = hasExtra ? `<button type="button" onclick="openExtraStreamingPopup(${movieObj.id})" class="w-full py-2.5 px-3 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 active:scale-95 border border-blue-500/30 text-blue-400 text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm"><span class="flex items-center gap-1.5 truncate"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>Other Services</span><span class="bg-blue-500/30 px-2 py-0.5 rounded-md text-[10px] font-black text-white shrink-0 ml-1">+${extraFlatrate.length}</span></button>` : '';
+      const rentBuyBtnHtml = `<button type="button" onclick="openRentBuyPopup(${movieObj.id})" class="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm"><span class="flex items-center gap-1.5 truncate"><svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"></path></svg>Rent · Buy</span><span class="bg-white/10 px-2 py-0.5 rounded-md text-[10px] font-black text-gray-300 shrink-0 ml-1">${rbMap.size}</span></button>`;
+
+      const rentBuyDropdownHtml = `<div class="grid ${hasExtra ? 'grid-cols-2' : 'grid-cols-1'} gap-2 pt-3 border-t border-blue-500/20">${extraBtnHtml}${rentBuyBtnHtml}</div>`;
 
       const hasMovieHistory = isModal ? watchlistModalHistoryStack.length > 0 : quickSearchHistoryStack.length > 0;
       const movieBackBtn = hasMovieHistory ? `<button id="movieBackBtn" onclick="navGoBack()" aria-label="Go back" class="pointer-events-auto mt-4 ml-4 w-10 h-10 flex items-center justify-center bg-black/50 hover:bg-black/80 backdrop-blur-md text-white rounded-full transition-colors border border-white/10 shadow-lg cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
@@ -2724,6 +2742,44 @@
         if (el.statsBtn) el.statsBtn.classList.remove('vpn-active');
       }
     }
+    function openCustomPopup(title, html) {
+      const body = document.getElementById('genericPopupBody');
+      const overlay = document.getElementById('genericPopupOverlay');
+      if (!body || !overlay) return;
+      body.innerHTML = `<h3 class="text-sm sm:text-base font-black uppercase tracking-widest text-blue-400 mb-4">${escapeHTML(title)}</h3>${html}`;
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    }
+
+    window.openExtraStreamingPopup = function(movieId) {
+      const data = window.moviePopupDataCache ? window.moviePopupDataCache.get(movieId) : null;
+      if (!data) return;
+      const html = `<div class="space-y-4">
+        ${data.extraFlatrateLinksHtml ? `
+          <div>
+            <h4 class="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-2.5">Available Streaming Services</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${data.extraFlatrateLinksHtml}</div>
+          </div>
+        ` : ''}
+        ${data.userFlatrateLinksHtml ? `
+          <div>
+            <h4 class="text-xs font-extrabold uppercase tracking-widest text-blue-400 mb-2.5">Your Subscriptions</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${data.userFlatrateLinksHtml}</div>
+          </div>
+        ` : ''}
+      </div>`;
+      openCustomPopup(`Watch Options: ${data.title}`, html);
+    };
+
+    window.openRentBuyPopup = function(movieId) {
+      const data = window.moviePopupDataCache ? window.moviePopupDataCache.get(movieId) : null;
+      if (!data) return;
+      const html = data.rentBuyCount > 0
+        ? `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${data.rbLinksHtml}</div>`
+        : `<div class="w-max max-w-full bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Not available to rent or buy</p></div>`;
+      openCustomPopup(`Rent & Buy Options: ${data.title}`, html);
+    };
+
     function openTextPopup(title, text) {
       const body = document.getElementById('genericPopupBody');
       const overlay = document.getElementById('genericPopupOverlay');
