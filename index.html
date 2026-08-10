@@ -4727,12 +4727,11 @@
       const watchlistMovies = allMovies.filter(m => watchlistIds.has(m.id));
 
       let moviesToShow = [...allMovies];
-      const activeFilter = (typeof showWatchlistOnly === 'string') ? showWatchlistOnly : (showWatchlistOnly ? 'watchlist' : actorMediaTypeFilter);
-      if (activeFilter === 'watchlist') {
+      if (actorMediaTypeFilter === 'watchlist') {
         moviesToShow = watchlistMovies;
-      } else if (activeFilter === 'movie') {
+      } else if (actorMediaTypeFilter === 'movie') {
         moviesToShow = allMovies.filter(m => m.mediaType === 'movie');
-      } else if (activeFilter === 'tv') {
+      } else if (actorMediaTypeFilter === 'tv') {
         moviesToShow = allMovies.filter(m => m.mediaType === 'tv');
       }
 
@@ -4920,10 +4919,10 @@
 
       const mediaFilterTabsHtml = `
         <div class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl shrink-0">
-          <button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'all' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmography(${!isModal})">All <span class="ml-1 opacity-60">${allMovies.length}</span></button>
-          <button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'movie' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmography(${!isModal})">Movies <span class="ml-1 opacity-60">${movieOnlyCount}</span></button>
-          ${tvCount > 0 ? `<button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'tv' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmography(${!isModal})">Series <span class="ml-1 opacity-60">${tvCount}</span></button>` : ''}
-          <button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'watchlist' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmography(${!isModal})">Watchlist ${watchlistMovies.length > 0 ? `<span class="ml-1 opacity-60">${watchlistMovies.length}</span>` : ''}</button>
+          <button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'watchlist' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()">Watchlist ${watchlistMovies.length > 0 ? `<span class="ml-1 opacity-60">${watchlistMovies.length}</span>` : '<span class="ml-1 opacity-60">0</span>'}</button>
+          <button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'all' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()">All <span class="ml-1 opacity-60">${allMovies.length}</span></button>
+          <button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'movie' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()">Movies <span class="ml-1 opacity-60">${movieOnlyCount}</span></button>
+          ${tvCount > 0 ? `<button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'tv' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmographyGrid()">Series <span class="ml-1 opacity-60">${tvCount}</span></button>` : ''}
         </div>`;
 
       const movieCountIcon = isDirector
@@ -5048,8 +5047,7 @@
 
       window.currentActorPageId = actorId;
       currentActorRoleHint = roleHint;
-      actorModalWatchlistMode = false;
-      actorMediaTypeFilter = 'all';
+      actorMediaTypeFilter = 'watchlist';
       actorFilterQuery = '';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
@@ -5067,7 +5065,9 @@
       try {
         const person = await getActorDetails(actorId);
         if (window.currentActorPageId !== actorId) return;
-        container.innerHTML = generateActorHTML(person, actorModalWatchlistMode, roleHint, true, true);
+        const { watchlistMovies } = getActorMoviesList(person, false, roleHint);
+        if (watchlistMovies.length === 0) actorMediaTypeFilter = 'all';
+        container.innerHTML = generateActorHTML(person, false, roleHint, true, true);
         container.scrollTop = 0;
         bindActorFilmControls();
         applyTiltToActorGrid();
@@ -5141,7 +5141,7 @@
       modalActiveMovieObj = null;
       modalActiveActorId = actorId;
       modalActiveActorRoleHint = roleHint;
-      actorModalWatchlistMode = true;
+      actorMediaTypeFilter = 'watchlist';
       actorFilterQuery = '';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
@@ -5160,7 +5160,9 @@
       try {
         const person = await getActorDetails(actorId);
         if (modalActiveActorId !== actorId) return;
-        content.innerHTML = generateActorHTML(person, actorModalWatchlistMode, modalActiveActorRoleHint, true);
+        const { watchlistMovies } = getActorMoviesList(person, false, modalActiveActorRoleHint);
+        if (watchlistMovies.length === 0) actorMediaTypeFilter = 'all';
+        content.innerHTML = generateActorHTML(person, false, modalActiveActorRoleHint, true);
         const { allMovies: modalMovies } = getActorMoviesList(person, actorModalWatchlistMode, modalActiveActorRoleHint);
         const closeActorBtn = document.getElementById('closeActorModalBtn');
         const closeActorModal = () => { stopHeroVideo(); modalActiveActorId = null; modalActiveMovieObj = null; watchlistModalHistoryStack.length = 0; backdrop.classList.add('opacity-0'); content.classList.add('translate-y-8', 'opacity-0'); setTimeout(() => { actorModal.classList.add('hidden'); actorModal.classList.remove('flex'); document.body.classList.remove('modal-open'); }, 300); };
