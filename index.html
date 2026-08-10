@@ -2781,9 +2781,9 @@
         const textEl = container.querySelector('.spotify-marquee-text');
         if (!textEl) return;
 
-        // Temporarily remove constraints to measure real text width
-        const origMaxW = textEl.style.maxWidth;
-        const origOverflow = textEl.style.overflow;
+        // Temporarily unconstrain to measure real text width
+        const savedMaxW = textEl.style.maxWidth;
+        const savedOF = textEl.style.overflow;
         textEl.style.maxWidth = 'none';
         textEl.style.overflow = 'visible';
         const textWidth = textEl.scrollWidth;
@@ -2791,18 +2791,18 @@
         const overflow = textWidth - containerWidth;
 
         if (overflow <= 2) {
-          // No overflow — restore and skip
-          textEl.style.maxWidth = origMaxW;
-          textEl.style.overflow = origOverflow;
+          textEl.style.maxWidth = savedMaxW;
+          textEl.style.overflow = savedOF;
           return;
         }
 
-        // Keep constraints off and begin scrolling
-        textEl.style.overflow = 'visible';
+        // Align left so first letter stays visible, text extends rightward
+        container.style.justifyContent = 'flex-start';
         textEl.style.textOverflow = 'clip';
+        textEl.style.transform = 'translateX(0px)';
 
         const scrollDist = overflow + 4;
-        const duration = Math.max(1.4, Math.min(3.5, scrollDist / 30));
+        const duration = Math.max(1.2, Math.min(3.2, scrollDist / 35));
 
         if (textEl._marqueeTimer) clearTimeout(textEl._marqueeTimer);
 
@@ -2812,7 +2812,7 @@
           textEl._marqueeTimer = setTimeout(() => {
             if (!cardEl.matches(':hover')) return;
             scrollBack();
-          }, (duration * 1000) + 800);
+          }, (duration * 1000) + 700);
         }
 
         function scrollBack() {
@@ -2821,13 +2821,13 @@
           textEl._marqueeTimer = setTimeout(() => {
             if (!cardEl.matches(':hover')) return;
             scrollForward();
-          }, (duration * 1000) + 800);
+          }, (duration * 1000) + 700);
         }
 
-        // Small delay before starting so it feels intentional
+        // Brief pause before starting
         textEl._marqueeTimer = setTimeout(() => {
           if (cardEl.matches(':hover')) scrollForward();
-        }, 400);
+        }, 500);
       });
     }
 
@@ -2837,12 +2837,16 @@
         const textEl = container.querySelector('.spotify-marquee-text');
         if (!textEl) return;
         if (textEl._marqueeTimer) clearTimeout(textEl._marqueeTimer);
-        textEl.style.transition = 'transform 0.35s ease-out';
+        textEl.style.transition = 'transform 0.3s ease-out';
         textEl.style.transform = 'translateX(0px)';
         setTimeout(() => {
+          container.style.justifyContent = '';
           textEl.style.maxWidth = '';
+          textEl.style.overflow = '';
           textEl.style.textOverflow = '';
-        }, 360);
+          textEl.style.transition = '';
+          textEl.style.transform = '';
+        }, 320);
       });
     }
 
