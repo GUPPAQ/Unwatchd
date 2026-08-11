@@ -4435,7 +4435,7 @@
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
       return [...movieResults, ...tvResults];
     }
-    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v7'; // bumped again: search pipeline now does a year-scoped TMDB lookup too
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v8'; // bumped again: search pipeline now does a year-scoped TMDB lookup too
     let tmdbMatchCache = new Map();
     try {
       const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
@@ -4577,21 +4577,23 @@
           targetUl = pool[0];
         }
         if (targetUl) {
-          candidatePosters = Array.from(targetUl.querySelectorAll('.film-poster, .react-component[data-component-class="LazyPoster"], [data-item-slug], [data-item-name]'));
+          const rawList = Array.from(targetUl.querySelectorAll('.film-poster, .react-component[data-component-class="LazyPoster"], [data-item-slug], [data-item-name]'));
+          candidatePosters = rawList.filter(elem => !rawList.some(parent => parent !== elem && parent.contains(elem)));
         }
         if (candidatePosters.length === 0) {
           const flat = Array.from(doc.querySelectorAll('.poster-list .film-poster, .film-poster, .react-component[data-component-class="LazyPoster"]')).filter(elem => {
             return !elem.closest('aside') && !elem.closest('footer') && !elem.closest('.sidebar') && !elem.closest('.popular-films');
           });
+          const topFlat = flat.filter(elem => !flat.some(parent => parent !== elem && parent.contains(elem)));
           const seenIds = new Set();
-          for (const elem of flat) {
+          for (const elem of topFlat) {
             const id = elem.getAttribute('data-film-id') || elem.getAttribute('data-item-id') || elem.getAttribute('data-film-slug') || elem.getAttribute('data-item-slug') || elem.getAttribute('data-film-name');
             if (!id) { candidatePosters.push(elem); continue; }
             if (!seenIds.has(id)) { seenIds.add(id); candidatePosters.push(elem); }
             if (candidatePosters.length >= 28) break;
           }
           if (candidatePosters.length === 0) {
-            candidatePosters = Array.from(doc.querySelectorAll('.poster-list .film-poster, .react-component')).slice(0, 28);
+            candidatePosters = topFlat.slice(0, 28);
           }
         }
         const AD_HINT_RE = /\b(ad|ads|advert|sponsor|sponsored|promo|promoted|suggested|favourite|favorite)\b/i;
