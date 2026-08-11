@@ -4390,14 +4390,73 @@
       const maxPage = Math.ceil(currentData.length / ITEMS_PER_PAGE); if (currentPage > maxPage) currentPage = maxPage || 1; const start = (currentPage - 1) * ITEMS_PER_PAGE; const pageMovies = currentData.slice(start, start + ITEMS_PER_PAGE); pageMovies.forEach((m, idx) => container.appendChild(createMovieCard(m, idx))); renderPagination(maxPage);
     }
     document.addEventListener('click', (e) => { if (el.quickSearchInput && el.searchDropdown) { if (!el.quickSearchInput.contains(e.target) && !el.searchDropdown.contains(e.target)) el.searchDropdown.classList.add('hidden'); } });
-    if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) { el.searchDropdown.innerHTML = ''; results.sort((a, b) => { const aVal = a.__mediaType === 'person' ? (a.popularity || 0) : (a.vote_count || a.popularity || 0); const bVal = b.__mediaType === 'person' ? (b.popularity || 0) : (b.vote_count || b.popularity || 0); return bVal - aVal; }).slice(0, 6).forEach(item => { const isPerson = item.__mediaType === 'person'; const displayTitle = getResultTitle(item); const date = getResultDate(item); const year = date ? date.split('-')[0] : ''; const imagePath = isPerson ? item.profile_path : item.poster_path; const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : ''; const row = document.createElement('div'); row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0'; const safeTitle = escapeHTML(displayTitle); let badgeLabel = ''; let badgeColor = ''; if (item.__mediaType === 'tv') { badgeLabel = 'TV'; badgeColor = 'text-blue-400 border-blue-500/30'; } else if (item.__mediaType === 'person') { badgeLabel = item.known_for_department === 'Directing' ? 'DIRECTOR' : 'ACTOR'; badgeColor = 'text-purple-400 border-purple-500/30'; } else { badgeLabel = 'MOVIE'; badgeColor = 'text-gray-400 border-gray-500/30'; } const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR'); row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="text-blue-400 text-[10px] font-bold">${escapeHTML(ratingOrDept)}</span></div>`; row.addEventListener('click', () => { el.quickSearchInput.value = displayTitle; el.searchDropdown.classList.add('hidden'); if (item.__mediaType === 'person') { openActorModal(item.id, item.name, item.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(item); } }); el.searchDropdown.appendChild(row); }); el.searchDropdown.classList.remove('hidden'); } }, 400); }); }
+    if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
+          el.searchDropdown.innerHTML = '';
+          results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 6).forEach(item => {
+            const isPerson = item.__mediaType === 'person';
+            const displayTitle = getResultTitle(item);
+            const date = getResultDate(item);
+            const year = date ? date.split('-')[0] : '';
+            const imagePath = isPerson ? item.profile_path : item.poster_path;
+            const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : '';
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0';
+            const safeTitle = escapeHTML(displayTitle);
+            let badgeLabel = '';
+            let badgeColor = '';
+            if (item.__mediaType === 'tv') {
+              badgeLabel = 'TV';
+              badgeColor = 'text-blue-400 border-blue-500/30';
+            } else if (item.__mediaType === 'person') {
+              badgeLabel = item.known_for_department === 'Directing' ? 'DIRECTOR' : 'ACTOR';
+              badgeColor = 'text-purple-400 border-purple-500/30';
+            } else {
+              badgeLabel = 'MOVIE';
+              badgeColor = 'text-gray-400 border-gray-500/30';
+            }
+            const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR');
+            row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="text-blue-400 text-[10px] font-bold">${escapeHTML(ratingOrDept)}</span></div>`;
+            row.addEventListener('click', () => {
+              el.quickSearchInput.value = displayTitle;
+              el.searchDropdown.classList.add('hidden');
+              if (item.__mediaType === 'person') {
+                openActorModal(item.id, item.name, item.known_for_department === 'Directing' ? 'Director' : 'Actor', true);
+              } else {
+                renderSingleMovieResult(item);
+              }
+            });
+            el.searchDropdown.appendChild(row);
+          });
+          el.searchDropdown.classList.remove('hidden');
+        } }, 400); }); }
     async function renderSingleMovieResult(movie) {
       if (el.searchDropdown) el.searchDropdown.classList.add('hidden');
       const mediaType = movie.__mediaType === 'tv' ? 'tv' : 'movie';
       const displayTitle = getResultTitle(movie) || movie.title || movie.name || '';
       openMoviePageById(movie.id, displayTitle, mediaType);
     }
-    if (el.quickSearchBtn) { el.quickSearchBtn.addEventListener('click', async () => { if (!el.quickSearchInput) return; const query = el.quickSearchInput.value.trim(); if (!query) return; const results = await searchMultiMedia(query); if (results.length === 0) { if (el.quickSearchResult) { el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`; el.quickSearchResult.classList.remove('hidden'); } return; } results.sort((a, b) => { const aVal = a.__mediaType === 'person' ? (a.popularity || 0) : (a.vote_count || a.popularity || 0); const bVal = b.__mediaType === 'person' ? (b.popularity || 0) : (b.vote_count || b.popularity || 0); return bVal - aVal; }); const topResult = results[0]; if (topResult.__mediaType === 'person') { openActorModal(topResult.id, topResult.name, topResult.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(topResult); } }); }
+    if (el.quickSearchBtn) {
+      el.quickSearchBtn.addEventListener('click', async () => {
+        if (!el.quickSearchInput) return;
+        const query = el.quickSearchInput.value.trim();
+        if (!query) return;
+        const results = await searchMultiMedia(query);
+        if (results.length === 0) {
+          if (el.quickSearchResult) {
+            el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`;
+            el.quickSearchResult.classList.remove('hidden');
+          }
+          return;
+        }
+        results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query));
+        const topResult = results[0];
+        if (topResult.__mediaType === 'person') {
+          openActorModal(topResult.id, topResult.name, topResult.known_for_department === 'Directing' ? 'Director' : 'Actor', true);
+        } else {
+          renderSingleMovieResult(topResult);
+        }
+      });
+    }
     if (el.stopButton) el.stopButton.addEventListener('click', () => { if (isScanning) { cancelRequested = true; if (el.progressLabel) el.progressLabel.textContent = "Aborting search..."; } });
     const isGenuineWatchlistPage = (html, targetUser) => { if (!html) return false; const doc = new DOMParser().parseFromString(html, 'text/html'); const title = (doc.title || '').toLowerCase(); const hasContainer = !!doc.querySelector('.poster-list'); const titleLooksRight = title.includes('watchlist') && title.includes(targetUser.toLowerCase()); return hasContainer || titleLooksRight; };
     function normalizeTitle(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
@@ -4411,6 +4470,7 @@
     function getResultTitle(r) { return r.title || r.name || ''; }
     function getResultOriginalTitle(r) { return r.original_title || r.original_name || ''; }
     function getResultDate(r) { return r.release_date || r.first_air_date || null; }
+
     function findBestTmdbMatch(queryObj, results) {
       if (!results || results.length === 0) return null;
       const qNorm = normalizeTitle(queryObj.title);
@@ -4422,13 +4482,11 @@
       if (!qNorm) return null;
       const exactMatches = results.filter(r => normalizeTitle(getResultTitle(r)) === qNorm || normalizeTitle(getResultOriginalTitle(r)) === qNorm);
       if (exactMatches.length === 1) {
-        // If we have a year and the single exact match is way off, keep looking
         if (qYear) {
           const matchDate = getResultDate(exactMatches[0]);
           if (matchDate) {
             const matchYear = parseInt(matchDate.split('-')[0]);
             if (!isNaN(matchYear) && Math.abs(matchYear - qYear) > 1) {
-              // Single exact title match but wrong year - don't return it yet
             } else {
               return exactMatches[0];
             }
@@ -4444,7 +4502,6 @@
           const exactWithYear = exactMatches.find(r => getResultDate(r) && Math.abs(parseInt(getResultDate(r).split('-')[0]) - qYear) <= 1);
           if (exactWithYear) return exactWithYear;
         }
-        // Plain Letterboxd slugs (e.g. "nowhere" without year suffix) belong to the original/earliest release
         if (queryObj.slug && !/-\d{4}$/.test(queryObj.slug)) {
           const sortedByDate = [...exactMatches].filter(r => getResultDate(r)).sort((a, b) => {
             const yA = parseInt(getResultDate(a).split('-')[0]) || 9999;
@@ -4455,11 +4512,9 @@
         }
         return [...exactMatches].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))[0];
       }
-      // If we have a year from Letterboxd, strongly prioritize year matches
       if (qYear) {
         const yearCandidates = results.filter(r => getResultDate(r) && Math.abs(parseInt(getResultDate(r).split('-')[0]) - qYear) <= 1);
         if (yearCandidates.length) {
-          // Check for exact title + year match first
           const exactTitleYear = yearCandidates.find(r => normalizeTitle(getResultTitle(r)) === qNorm || normalizeTitle(getResultOriginalTitle(r)) === qNorm);
           if (exactTitleYear) return exactTitleYear;
           const contains = yearCandidates.find(r => { const t = normalizeTitle(getResultTitle(r)); return t.includes(qNorm) || qNorm.includes(t); });
@@ -4484,15 +4539,87 @@
       }
       return null;
     }
+
+    function scoreSearchResult(item, queryRaw) {
+      if (!item || !queryRaw) return 0;
+      const qNorm = normalizeTitle(queryRaw);
+      const yearMatch = queryRaw.match(/\b(19\d\d|20\d\d)\b/);
+      const targetYear = yearMatch ? yearMatch[1] : null;
+      const cleanQuery = targetYear ? queryRaw.replace(/\b(19\d\d|20\d\d)\b/, '').trim() : queryRaw;
+      const cleanQNorm = normalizeTitle(cleanQuery);
+
+      const displayTitle = getResultTitle(item);
+      const titleNorm = normalizeTitle(displayTitle);
+      const origTitle = getResultOriginalTitle(item);
+      const origNorm = normalizeTitle(origTitle);
+      const date = getResultDate(item);
+      const itemYear = date ? date.split('-')[0] : '';
+
+      let score = 0;
+
+      // 1. Exact Title Match
+      if (titleNorm === qNorm || titleNorm === cleanQNorm || origNorm === qNorm || origNorm === cleanQNorm) {
+        score += 5000;
+      }
+      // 2. Title starts with query
+      else if (titleNorm.startsWith(cleanQNorm) || origNorm.startsWith(cleanQNorm)) {
+        score += 2000;
+      }
+      // 3. Title contains query as distinct phrase/word
+      else if (titleNorm.includes(cleanQNorm) || origNorm.includes(cleanQNorm)) {
+        score += 800;
+      }
+
+      // 4. Exact Year match (if user provided a year in search e.g. "Nowhere 1997")
+      if (targetYear && itemYear === targetYear) {
+        score += 3000;
+      }
+
+      // 5. Media type scoring:
+      if (item.__mediaType === 'movie' || item.__mediaType === 'tv') {
+        score += 500;
+        const voteCount = item.vote_count || 0;
+        const voteAvg = item.vote_average || 0;
+        const popularity = item.popularity || 0;
+        score += Math.min(voteCount * 0.01 + voteAvg * 10 + popularity * 0.5, 300);
+      } else if (item.__mediaType === 'person') {
+        if (titleNorm === qNorm || titleNorm === cleanQNorm) {
+          score += 4500;
+        } else if (titleNorm.startsWith(cleanQNorm)) {
+          score += 1500;
+        }
+        score += Math.min((item.popularity || 0) * 2, 200);
+      }
+
+      return score;
+    }
+
     async function searchMultiMedia(titleQuery) {
-      const url = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}`;
+      const yearMatch = titleQuery.match(/\b(19\d\d|20\d\d)\b/);
+      const targetYear = yearMatch ? yearMatch[1] : null;
+      const cleanQuery = targetYear ? titleQuery.replace(/\b(19\d\d|20\d\d)\b/, '').trim() : titleQuery;
+
+      const url1 = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}`;
+      const promises = [fetch(url1).then(r => r.json()).catch(() => ({}))];
+
+      if (cleanQuery && cleanQuery !== titleQuery && cleanQuery.length >= 2) {
+        const url2 = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanQuery)}`;
+        promises.push(fetch(url2).then(r => r.json()).catch(() => ({})));
+      }
+
       try {
-        const res = await fetch(url);
-        const data = await res.json();
-        const results = (data.results || []).filter(r => r.media_type === 'movie' || r.media_type === 'tv' || r.media_type === 'person').map(r => ({
-          ...r,
-          __mediaType: r.media_type
-        }));
+        const responses = await Promise.all(promises);
+        const seenIds = new Set();
+        const results = [];
+        responses.forEach(data => {
+          (data.results || []).forEach(r => {
+            const key = r.id + '_' + (r.media_type || 'movie');
+            if ((r.media_type === 'movie' || r.media_type === 'tv' || r.media_type === 'person') && !seenIds.has(key)) {
+              seenIds.add(key);
+              results.push({ ...r, __mediaType: r.media_type });
+            }
+          });
+        });
         return results;
       } catch (e) {
         console.warn('[TMDB Search Multi Fallback]', e);
