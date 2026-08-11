@@ -4435,7 +4435,7 @@
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
       return [...movieResults, ...tvResults];
     }
-    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v9'; // bumped again: search pipeline now does a year-scoped TMDB lookup too
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v7'; // bumped again: search pipeline now does a year-scoped TMDB lookup too
     let tmdbMatchCache = new Map();
     try {
       const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
@@ -4577,14 +4577,7 @@
           targetUl = pool[0];
         }
         if (targetUl) {
-          const list = Array.from(targetUl.querySelectorAll('.film-poster, .react-component, [data-component-class="LazyPoster"], .poster-container, li.poster-container'));
-          const seenContainer = new Set();
-          candidatePosters = list.filter(elem => {
-            const container = elem.closest('[data-component-class="LazyPoster"], .react-component, .poster-container, li') || elem;
-            if (seenContainer.has(container)) return false;
-            seenContainer.add(container);
-            return true;
-          });
+          candidatePosters = Array.from(targetUl.querySelectorAll('.film-poster, .react-component[data-component-class="LazyPoster"], [data-item-slug], [data-item-name]'));
         }
         if (candidatePosters.length === 0) {
           const flat = Array.from(doc.querySelectorAll('.poster-list .film-poster, .film-poster, .react-component[data-component-class="LazyPoster"]')).filter(elem => {
@@ -4598,7 +4591,7 @@
             if (candidatePosters.length >= 28) break;
           }
           if (candidatePosters.length === 0) {
-            candidatePosters = Array.from(doc.querySelectorAll('.poster-list .film-poster')).slice(0, 28);
+            candidatePosters = Array.from(doc.querySelectorAll('.poster-list .film-poster, .react-component')).slice(0, 28);
           }
         }
         const AD_HINT_RE = /\b(ad|ads|advert|sponsor|sponsored|promo|promoted|suggested|favourite|favorite)\b/i;
@@ -4615,40 +4608,28 @@
         };
         candidatePosters = candidatePosters.filter(elem => !looksLikeAd(elem));
         candidatePosters.forEach(element => {
-          const target = element.closest('[data-component-class="LazyPoster"], .react-component, [data-item-name], [data-item-slug], [data-target-link], .poster-container, li') || element;
-          let filmId = target.getAttribute('data-postered-identifier')
-            || target.getAttribute('data-film-id')
-            || target.getAttribute('data-item-id')
-            || element.getAttribute('data-film-id')
-            || element.getAttribute('data-item-id')
-            || target.dataset?.filmId
-            || target.dataset?.itemId
-            || null;
-          const anchor = target.querySelector('a[href*="/film/"]') || target.closest('a[href*="/film/"]') || element.querySelector('a[href*="/film/"]') || element.closest('a[href*="/film/"]');
-          const frameTitleEl = target.querySelector('.frame-title') || element.querySelector('.frame-title');
-          const img = target.querySelector('img') || element.querySelector('img');
+          //   <img alt="Poster for Nowhere (1997)">
+          // The img alt is prefixed with "Poster for " and must NOT be used as the raw title -
+          // that prefix broke exact-title matching and is why "Nowhere" (1997) was resolving to
+          // the unrelated, far more popular "Nowhere" (2023) Netflix film.
+          let filmId = element.getAttribute('data-film-id') || element.getAttribute('data-item-id') || element.dataset?.filmId || element.dataset?.itemId || null;
+          const anchor = element.querySelector('a[href*="/film/"]') || element.closest('a[href*="/film/"]');
+          const frameTitleEl = element.querySelector('.frame-title');
+          const img = element.querySelector('img');
 
+          // Build a clean "Title (YYYY)" string from the best available source, in priority order.
           let rawDisplay = (anchor && anchor.getAttribute('data-original-title'))
             || (frameTitleEl && frameTitleEl.textContent)
-            || target.getAttribute('data-item-full-display-name')
-            || target.getAttribute('data-item-name')
-            || target.getAttribute('data-film-name')
-            || element.getAttribute('data-film-name')
-            || element.getAttribute('data-item-name')
+            || element.getAttribute('data-film-name') || element.getAttribute('data-item-name') || element.getAttribute('data-item-full-display-name')
             || '';
           rawDisplay = rawDisplay.trim();
           if (!rawDisplay && img) {
+            // Fall back to alt text, stripping the "Poster for " prefix Letterboxd adds.
             rawDisplay = (img.getAttribute('alt') || '').replace(/^poster for\s+/i, '').trim();
           }
 
           let title = rawDisplay;
-          let year = target.getAttribute('data-item-release-year')
-            || target.getAttribute('data-item-year')
-            || target.getAttribute('data-film-release-year')
-            || target.getAttribute('data-film-year')
-            || element.getAttribute('data-film-release-year')
-            || element.getAttribute('data-film-year')
-            || null;
+          let year = element.getAttribute('data-film-release-year') || element.getAttribute('data-film-year') || element.getAttribute('data-item-release-year') || element.getAttribute('data-item-year') || null;
           const yearMatch = rawDisplay.match(/\((\d{4})\)\s*$/);
           if (yearMatch) {
             if (!year) year = yearMatch[1];
@@ -4656,24 +4637,18 @@
           }
           if (!title && img) { title = (img.getAttribute('alt') || '').replace(/^poster for\s+/i, '').replace(/\(\d{4}\)\s*$/i, '').trim(); }
 
-          let slug = target.getAttribute('data-item-slug')
-            || target.getAttribute('data-film-slug')
-            || target.getAttribute('data-target-link')
-            || target.getAttribute('data-linked-film-slug')
-            || element.getAttribute('data-film-slug')
-            || element.getAttribute('data-item-slug')
-            || element.getAttribute('data-target-link')
-            || target.dataset?.itemSlug
-            || target.dataset?.filmSlug
-            || target.dataset?.targetLink
-            || null;
+          let slug = element.getAttribute('data-film-slug') || element.getAttribute('data-item-slug') || element.getAttribute('data-target-link') || element.getAttribute('data-linked-film-slug') || element.dataset?.filmSlug || element.dataset?.itemSlug || element.dataset?.targetLink || null;
           if (!slug && anchor) slug = anchor.getAttribute('href');
           if (!slug) {
-            const a = target.closest('a') || element.closest('a') || (target.parentElement ? target.parentElement.closest('a') : null);
+            const a = element.closest('a') || (element.parentElement ? element.parentElement.closest('a') : null);
             if (a) {
               const href = a.getAttribute('href') || '';
               if (href.includes('/film/')) slug = href;
             }
+          }
+          if (!slug && element.parentElement) {
+            const parentA = element.parentElement.querySelector('a[href*="/film/"]') || element.parentElement.closest('a[href*="/film/"]');
+            if (parentA) slug = parentA.getAttribute('href');
           }
           if (slug) {
             if (slug.includes('/film/')) slug = slug.replace(/^.*\/film\//, '').replace(/\/.*$/, '').trim();
