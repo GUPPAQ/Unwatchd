@@ -2111,7 +2111,20 @@
     let searchTimeout; if (el.quickSearchInput) { el.quickSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(searchTimeout); if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (el.quickSearchBtn) el.quickSearchBtn.click(); } }); }
     if (el.usernameInput) { el.usernameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (!isScanning) el.startButton.click(); } }); }
     if (el.friendInput) { el.friendInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (!isScanning) el.startButton.click(); } }); }
-    if (el.clearSearchBtn) { el.clearSearchBtn.addEventListener('click', () => { if (el.quickSearchInput) el.quickSearchInput.value = ''; if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; } if (el.quickSearchInput) el.quickSearchInput.focus(); }); }
+    function clearQuickSearchInput() {
+      const input = el.quickSearchInput || document.getElementById('quickSearchInput');
+      const clearBtn = el.clearSearchBtn || document.getElementById('clearSearchBtn');
+      const dropdown = el.searchDropdown || document.getElementById('searchDropdown');
+      const result = el.quickSearchResult || document.getElementById('quickSearchResult');
+      if (input) input.value = '';
+      if (clearBtn) clearBtn.classList.add('hidden');
+      if (dropdown) dropdown.classList.add('hidden');
+      if (result) {
+        result.classList.add('hidden');
+        result.innerHTML = '';
+      }
+    }
+    if (el.clearSearchBtn) { el.clearSearchBtn.addEventListener('click', () => { clearQuickSearchInput(); if (el.quickSearchInput) el.quickSearchInput.focus(); }); }
     if (el.usernameInput) { el.usernameInput.addEventListener('input', (e) => { localStorage.setItem('ps_username', e.target.value); toggleClearSyncBtn(); }); }
     if (el.clearSyncBtn) { el.clearSyncBtn.addEventListener('click', () => { if (isScanning) return; if (el.usernameInput) el.usernameInput.value = ''; selectedServiceIds.clear(); cachedSelectedProviders = []; localStorage.setItem('ps_username', ''); localStorage.setItem('ps_services', '[]'); localStorage.removeItem('ps_selected_providers'); clearScanStorage(); isFriendMatchActive = false; document.querySelectorAll('.service-btn').forEach(b => b.classList.remove('selected')); if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.formError) el.formError.classList.add('hidden'); if (el.progressSection) el.progressSection.classList.add('hidden'); if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.usernameInput) el.usernameInput.focus(); scannedMovies = []; renderSelectedView(); }); }
 
@@ -3737,10 +3750,12 @@
     function goHomeFromPage() {
       hideMoviePageView();
       hideActorPageView();
+      clearQuickSearchInput();
       try { history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch (e) { }
     }
 
     function closeMoviePage() {
+      clearQuickSearchInput();
       if (location.hash.startsWith('#movie-')) { history.back(); }
       else { hideMoviePageView(); }
     }
@@ -3811,6 +3826,7 @@
         hideAllCastModalView();
         hideMoviePageView();
         hideActorPageView();
+        clearQuickSearchInput();
       }
     });
 
@@ -5458,6 +5474,7 @@
     }
 
     function closeActorPage() {
+      clearQuickSearchInput();
       if (location.hash.startsWith('#actor-')) { history.back(); }
       else { hideActorPageView(); }
     }
