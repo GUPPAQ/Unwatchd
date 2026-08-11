@@ -1392,6 +1392,31 @@
 
   <script>
     const escapeHTML = (str) => { if (typeof str !== 'string') return str; return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
+    function slugify(text) {
+      if (!text) return '';
+      return text.toString().toLowerCase().trim()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+    function parseRouteInfo() {
+      const hash = window.location.hash || '';
+      const path = window.location.pathname || '';
+      const route = hash || path;
+      if (!route) return null;
+      if (route.includes('film/') || route.includes('#movie-') || route.includes('/film/')) {
+        const isCast = route.includes('/cast') || route.includes('-cast');
+        const match = route.match(/(?:film\/|#movie-)(\d+)/);
+        if (match) return { type: isCast ? 'cast' : 'film', id: parseInt(match[1], 10) };
+      }
+      if (route.includes('actor/') || route.includes('director/') || route.includes('#actor-') || route.includes('/person/')) {
+        const match = route.match(/(?:actor\/|director\/|#actor-)(\d+)/);
+        if (match) return { type: 'actor', id: parseInt(match[1], 10) };
+      }
+      return null;
+    }
     const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     const ITEMS_PER_PAGE = 60;
     let currentRegion = localStorage.getItem('ps_region') || 'SE';
