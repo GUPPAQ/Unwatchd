@@ -4422,9 +4422,11 @@
         return searchBothMedia(titleQuery);
       }
     }
-    async function searchBothMedia(titleQuery) {
-      const movieUrl = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}`;
-      const tvUrl = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}`;
+    async function searchBothMedia(titleQuery, year) {
+      const yearParamMovie = year ? `&primary_release_year=${encodeURIComponent(year)}` : '';
+      const yearParamTv = year ? `&first_air_date_year=${encodeURIComponent(year)}` : '';
+      const movieUrl = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}${yearParamMovie}`;
+      const tvUrl = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}${yearParamTv}`;
       const [movieRes, tvRes] = await Promise.all([
         fetch(movieUrl).then(r => r.json()).catch((e) => { console.warn('[TMDB Search Movie Catch]', e); return {}; }),
         fetch(tvUrl).then(r => r.json()).catch((e) => { console.warn('[TMDB Search TV Catch]', e); return {}; })
@@ -4433,7 +4435,7 @@
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
       return [...movieResults, ...tvResults];
     }
-    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v6';
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v9'; // bumped again: search pipeline now does a year-scoped TMDB lookup too
     let tmdbMatchCache = new Map();
     try {
       const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
@@ -4447,12 +4449,39 @@
       } catch (e) { console.warn('[TMDB Match Cache Write]', e); }
     }
 
+    function dedupeMediaResults(list) {
+      const seen = new Set();
+      const out = [];
+      for (const r of list) {
+        const k = `${r.__mediaType}-${r.id}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        out.push(r);
+      }
+      return out;
+    }
+
     async function findBestMediaMatch(qObj) {
       const key = getFilmKey(qObj);
       if (tmdbMatchCache.has(key)) {
         return tmdbMatchCache.get(key);
       }
+      let qYear = qObj.year ? parseInt(qObj.year) : null;
+      if (!qYear && qObj.slug) {
+        const sm = qObj.slug.match(/-(\d{4})$/);
+        if (sm) qYear = parseInt(sm[1]);
+      }
       let combined = await searchBothMedia(qObj.title);
+      // When we know the release year (from Letterboxd), also run a year-scoped search and merge
+      // it in. TMDB's plain title search ranks results by relevance/popularity, so an obscure
+      // exact-title match (e.g. the 1997 cult film "Nowhere") can end up buried behind a far more
+      // popular same-titled result (e.g. the 2023 Netflix film "Nowhere") and never surface. Scoping
+      // the query by year makes TMDB itself resolve the ambiguity instead of relying purely on
+      // whatever happened to come back from an unscoped text search.
+      if (qYear) {
+        const yearScoped = await searchBothMedia(qObj.title, qYear);
+        if (yearScoped.length > 0) combined = dedupeMediaResults([...yearScoped, ...combined]);
+      }
       if (combined.length === 0 && /\b\d{4}\b/.test(qObj.title)) {
         const noYearLike = qObj.title.replace(/\b\d{4}\b/g, ' ').replace(/\s+/g, ' ').trim();
         if (noYearLike && noYearLike.length >= 3) {
@@ -4548,15 +4577,22 @@
           targetUl = pool[0];
         }
         if (targetUl) {
-          candidatePosters = Array.from(targetUl.querySelectorAll('.film-poster'));
+          const list = Array.from(targetUl.querySelectorAll('.film-poster, .react-component, [data-component-class="LazyPoster"], .poster-container, li.poster-container'));
+          const seenContainer = new Set();
+          candidatePosters = list.filter(elem => {
+            const container = elem.closest('[data-component-class="LazyPoster"], .react-component, .poster-container, li') || elem;
+            if (seenContainer.has(container)) return false;
+            seenContainer.add(container);
+            return true;
+          });
         }
         if (candidatePosters.length === 0) {
-          const flat = Array.from(doc.querySelectorAll('.poster-list .film-poster, .film-poster')).filter(elem => {
+          const flat = Array.from(doc.querySelectorAll('.poster-list .film-poster, .film-poster, .react-component[data-component-class="LazyPoster"]')).filter(elem => {
             return !elem.closest('aside') && !elem.closest('footer') && !elem.closest('.sidebar') && !elem.closest('.popular-films');
           });
           const seenIds = new Set();
           for (const elem of flat) {
-            const id = elem.getAttribute('data-film-id') || elem.getAttribute('data-film-slug') || elem.getAttribute('data-film-name');
+            const id = elem.getAttribute('data-film-id') || elem.getAttribute('data-item-id') || elem.getAttribute('data-film-slug') || elem.getAttribute('data-item-slug') || elem.getAttribute('data-film-name');
             if (!id) { candidatePosters.push(elem); continue; }
             if (!seenIds.has(id)) { seenIds.add(id); candidatePosters.push(elem); }
             if (candidatePosters.length >= 28) break;
@@ -4579,31 +4615,68 @@
         };
         candidatePosters = candidatePosters.filter(elem => !looksLikeAd(elem));
         candidatePosters.forEach(element => {
-          let filmId = element.getAttribute('data-film-id') || element.dataset?.filmId || null;
-          let title = element.getAttribute('data-film-name');
-          let year = element.getAttribute('data-film-release-year') || element.getAttribute('data-film-year') || null;
-          let slug = element.getAttribute('data-film-slug') || element.getAttribute('data-target-link') || element.dataset?.filmSlug || element.dataset?.targetLink || null;
+          const target = element.closest('[data-component-class="LazyPoster"], .react-component, [data-item-name], [data-item-slug], [data-target-link], .poster-container, li') || element;
+          let filmId = target.getAttribute('data-postered-identifier')
+            || target.getAttribute('data-film-id')
+            || target.getAttribute('data-item-id')
+            || element.getAttribute('data-film-id')
+            || element.getAttribute('data-item-id')
+            || target.dataset?.filmId
+            || target.dataset?.itemId
+            || null;
+          const anchor = target.querySelector('a[href*="/film/"]') || target.closest('a[href*="/film/"]') || element.querySelector('a[href*="/film/"]') || element.closest('a[href*="/film/"]');
+          const frameTitleEl = target.querySelector('.frame-title') || element.querySelector('.frame-title');
+          const img = target.querySelector('img') || element.querySelector('img');
+
+          let rawDisplay = (anchor && anchor.getAttribute('data-original-title'))
+            || (frameTitleEl && frameTitleEl.textContent)
+            || target.getAttribute('data-item-full-display-name')
+            || target.getAttribute('data-item-name')
+            || target.getAttribute('data-film-name')
+            || element.getAttribute('data-film-name')
+            || element.getAttribute('data-item-name')
+            || '';
+          rawDisplay = rawDisplay.trim();
+          if (!rawDisplay && img) {
+            rawDisplay = (img.getAttribute('alt') || '').replace(/^poster for\s+/i, '').trim();
+          }
+
+          let title = rawDisplay;
+          let year = target.getAttribute('data-item-release-year')
+            || target.getAttribute('data-item-year')
+            || target.getAttribute('data-film-release-year')
+            || target.getAttribute('data-film-year')
+            || element.getAttribute('data-film-release-year')
+            || element.getAttribute('data-film-year')
+            || null;
+          const yearMatch = rawDisplay.match(/\((\d{4})\)\s*$/);
+          if (yearMatch) {
+            if (!year) year = yearMatch[1];
+            title = rawDisplay.slice(0, yearMatch.index).trim();
+          }
+          if (!title && img) { title = (img.getAttribute('alt') || '').replace(/^poster for\s+/i, '').replace(/\(\d{4}\)\s*$/i, '').trim(); }
+
+          let slug = target.getAttribute('data-item-slug')
+            || target.getAttribute('data-film-slug')
+            || target.getAttribute('data-target-link')
+            || target.getAttribute('data-linked-film-slug')
+            || element.getAttribute('data-film-slug')
+            || element.getAttribute('data-item-slug')
+            || element.getAttribute('data-target-link')
+            || target.dataset?.itemSlug
+            || target.dataset?.filmSlug
+            || target.dataset?.targetLink
+            || null;
+          if (!slug && anchor) slug = anchor.getAttribute('href');
           if (!slug) {
-            const a = element.closest('a') || element.querySelector('a') || (element.parentElement ? element.parentElement.closest('a') : null);
+            const a = target.closest('a') || element.closest('a') || (target.parentElement ? target.parentElement.closest('a') : null);
             if (a) {
               const href = a.getAttribute('href') || '';
               if (href.includes('/film/')) slug = href;
             }
           }
-          if (!slug && element.parentElement) {
-            const parentA = element.parentElement.querySelector('a[href*="/film/"]') || element.parentElement.closest('a[href*="/film/"]');
-            if (parentA) slug = parentA.getAttribute('href');
-          }
           if (slug) {
             if (slug.includes('/film/')) slug = slug.replace(/^.*\/film\//, '').replace(/\/.*$/, '').trim();
-          }
-          const img = element.querySelector('img');
-          if (!title && img) { title = img.getAttribute('alt'); }
-          if (!year) {
-            const altText = img ? img.getAttribute('alt') : null;
-            const source = altText || title || '';
-            const m = source.match(/\((\d{4})\)/);
-            if (m) year = m[1];
           }
           if (!year && slug) {
             const sm = slug.match(/-(\d{4})$/);
