@@ -4469,10 +4469,20 @@
     } catch (e) { console.warn('[TMDB Match Cache Read]', e); }
 
     function saveTmdbMatchCache() {
-      try {
-        const entries = Array.from(tmdbMatchCache.entries()).slice(-1500);
-        localStorage.setItem(TMDB_MATCH_CACHE_KEY, JSON.stringify(entries));
-      } catch (e) { console.warn('[TMDB Match Cache Write]', e); }
+      // If we blow the localStorage quota (this does happen in practice - full TMDB result
+      // objects for ~1500 titles add up), don't just drop the write silently: progressively
+      // keep fewer of the most-recent entries until it fits, so the cache still helps on the
+      // next scan instead of being empty (and re-hitting the TMDB API for everything) every time.
+      const sizes = [1500, 750, 350, 150, 50];
+      for (const size of sizes) {
+        try {
+          const entries = Array.from(tmdbMatchCache.entries()).slice(-size);
+          localStorage.setItem(TMDB_MATCH_CACHE_KEY, JSON.stringify(entries));
+          return;
+        } catch (e) {
+          if (size === sizes[sizes.length - 1]) console.warn('[TMDB Match Cache Write] giving up, quota still exceeded at minimum size', e);
+        }
+      }
     }
 
     function dedupeMediaResults(list) {
@@ -5089,11 +5099,11 @@
       const movieOnlyCount = allMovies.filter(m => m.mediaType === 'movie').length;
 
       const mediaFilterTabsHtml = `
-        <div class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl shrink-0">
-          <button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'watchlist' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()">Watchlist ${watchlistMovies.length > 0 ? `<span class="ml-1 opacity-60">${watchlistMovies.length}</span>` : '<span class="ml-1 opacity-60">0</span>'}</button>
-          <button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'all' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()">All <span class="ml-1 opacity-60">${allMovies.length}</span></button>
-          <button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'movie' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()">Movies <span class="ml-1 opacity-60">${movieOnlyCount}</span></button>
-          ${tvCount > 0 ? `<button type="button" class="all-cast-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${actorMediaTypeFilter === 'tv' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmographyGrid()">Series <span class="ml-1 opacity-60">${tvCount}</span></button>` : ''}
+        <div class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl shrink-0 w-full sm:w-auto">
+          <button type="button" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-center ${actorMediaTypeFilter === 'watchlist' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()">Watchlist ${watchlistMovies.length > 0 ? `<span class="ml-1 opacity-60">${watchlistMovies.length}</span>` : '<span class="ml-1 opacity-60">0</span>'}</button>
+          <button type="button" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-center ${actorMediaTypeFilter === 'movie' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()">Movies <span class="ml-1 opacity-60">${movieOnlyCount}</span></button>
+          ${tvCount > 0 ? `<button type="button" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-center ${actorMediaTypeFilter === 'tv' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmographyGrid()">Series <span class="ml-1 opacity-60">${tvCount}</span></button>` : ''}
+          <button type="button" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-center ${actorMediaTypeFilter === 'all' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()">All <span class="ml-1 opacity-60">${allMovies.length}</span></button>
         </div>`;
 
       const movieCountIcon = isDirector
