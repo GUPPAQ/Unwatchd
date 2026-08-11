@@ -2997,8 +2997,11 @@
 
       if (collectionParts.length > 1) {
         collectionParts.sort((a, b) => {
-          const dateA = a.release_date || a.first_air_date || a.releaseDate || '0';
-          const dateB = b.release_date || b.first_air_date || b.releaseDate || '0';
+          const dateA = a.release_date || a.first_air_date || a.releaseDate || '';
+          const dateB = b.release_date || b.first_air_date || b.releaseDate || '';
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return 1;
+          if (!dateB) return -1;
           return dateA.localeCompare(dateB);
         });
         const watchlistIds = new Set(scannedMovies.map(m => m.id));
@@ -3011,7 +3014,7 @@
           const isInWatchlist = watchlistIds.has(m.id);
           const isCurrentMovie = m.id === movieObj.id;
           const recRating = getTmdbRating(m);
-          const activeBorderClass = isCurrentMovie ? 'border-2 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : 'border border-white/5';
+          const activeBorderClass = isCurrentMovie ? 'border border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : 'border border-white/5';
           return `<div class="tilt-card animate-fade shrink-0 w-32 sm:w-44 md:w-48 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 ${isCurrentMovie ? '' : 'sm:hover:scale-[1.03]'}" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isCurrentMovie ? '' : (isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})`)}">
             <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 ${activeBorderClass} h-full">
               <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
@@ -3032,14 +3035,9 @@
         relatedHtml = `<div class="space-y-2.5"><div class="flex items-center justify-between"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-blue-400 flex items-center gap-2"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>${escapeHTML(collectionName)}</h3><span class="text-xs font-bold text-gray-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-full">${collectionParts.length} Parts</span></div><div class="relative group/related">${relatedScrollBtns}<div id="relatedMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 px-0.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${relatedCards}</div></div></div>`;
       }
 
-      // Other entries from the same collection or franchise (e.g. the other Avatar films) belong at the
-      // front, ahead of TMDB's generic "users who liked this also liked" recommendations.
-      combinedRecs.sort((a, b) => {
-        const aScore = (a.belongs_to_collection && a.belongs_to_collection.id === collectionId ? 2 : 0) + (franchiseKey.length > 3 && (a.title || '').toLowerCase().startsWith(franchiseKey) ? 1 : 0);
-        const bScore = (b.belongs_to_collection && b.belongs_to_collection.id === collectionId ? 2 : 0) + (franchiseKey.length > 3 && (b.title || '').toLowerCase().startsWith(franchiseKey) ? 1 : 0);
-        return bScore - aScore;
-      });
-      const recs = combinedRecs.slice(0, 28);
+      // Filter out any movies that are already present in the Collection track from Similar Movies
+      const collectionMovieIds = new Set(collectionParts.map(m => m.id));
+      const recs = combinedRecs.filter(m => !collectionMovieIds.has(m.id)).slice(0, 28);
       let similarHtml = '';
       if (recs.length > 0) {
         const watchlistIds = new Set(scannedMovies.map(m => m.id));
