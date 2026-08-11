@@ -4392,43 +4392,10 @@
     document.addEventListener('click', (e) => { if (el.quickSearchInput && el.searchDropdown) { if (!el.quickSearchInput.contains(e.target) && !el.searchDropdown.contains(e.target)) el.searchDropdown.classList.add('hidden'); } });
     if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) { el.searchDropdown.innerHTML = ''; results.sort((a, b) => { const aVal = a.__mediaType === 'person' ? (a.popularity || 0) : (a.vote_count || a.popularity || 0); const bVal = b.__mediaType === 'person' ? (b.popularity || 0) : (b.vote_count || b.popularity || 0); return bVal - aVal; }).slice(0, 6).forEach(item => { const isPerson = item.__mediaType === 'person'; const displayTitle = getResultTitle(item); const date = getResultDate(item); const year = date ? date.split('-')[0] : ''; const imagePath = isPerson ? item.profile_path : item.poster_path; const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : ''; const row = document.createElement('div'); row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0'; const safeTitle = escapeHTML(displayTitle); let badgeLabel = ''; let badgeColor = ''; if (item.__mediaType === 'tv') { badgeLabel = 'TV'; badgeColor = 'text-blue-400 border-blue-500/30'; } else if (item.__mediaType === 'person') { badgeLabel = item.known_for_department === 'Directing' ? 'DIRECTOR' : 'ACTOR'; badgeColor = 'text-purple-400 border-purple-500/30'; } else { badgeLabel = 'MOVIE'; badgeColor = 'text-gray-400 border-gray-500/30'; } const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR'); row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="text-blue-400 text-[10px] font-bold">${escapeHTML(ratingOrDept)}</span></div>`; row.addEventListener('click', () => { el.quickSearchInput.value = displayTitle; el.searchDropdown.classList.add('hidden'); if (item.__mediaType === 'person') { openActorModal(item.id, item.name, item.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(item); } }); el.searchDropdown.appendChild(row); }); el.searchDropdown.classList.remove('hidden'); } }, 400); }); }
     async function renderSingleMovieResult(movie) {
-      if (!el.quickSearchResult) return; el.quickSearchResult.innerHTML = `<div class="glass-panel p-5 rounded-2xl text-center"><p class="text-blue-400 text-sm font-bold uppercase tracking-widest animate-pulse">Scanning Global Database...</p></div>`; el.quickSearchResult.classList.remove('hidden');
-      try {
-        const mediaType = movie.__mediaType === 'tv' ? 'tv' : 'movie';
-        const displayTitle = getResultTitle(movie) || movie.title;
-        const displayDate = getResultDate(movie) || movie.release_date;
-        const url = `https://api.themoviedb.org/3/${mediaType}/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`; const res = await fetch(url); const data = await res.json().catch(() => ({})); const allProviders = data.results || {}; let regionData = allProviders[currentRegion] || null; let vpnInfo = null;
-        if (vpnModeEnabled) {
-          const flatHere = regionData?.flatrate || [];
-          const alreadySubscribedHere = flatHere.some(p => selectedServiceIds.has(p.provider_id));
-          if (!alreadySubscribedHere) {
-            for (const code of Object.keys(REGION_META)) {
-              if (code === currentRegion || !allProviders[code]) continue;
-              const alt = allProviders[code];
-              const altFlat = alt?.flatrate || [];
-              const matchedIds = altFlat.filter(p => selectedServiceIds.has(p.provider_id));
-              if (matchedIds.length > 0) {
-                vpnInfo = { region: code, services: matchedIds.map(p => ({ label: p.provider_name })) };
-                regionData = alt;
-                break;
-              }
-            }
-          }
-        }
-        const movieObjForInline = { id: movie.id, mediaType, title: displayTitle, poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null, backdrop: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null, rating: movie.vote_average ? movie.vote_average.toFixed(1) : null, releaseDate: displayDate, url: regionData?.link || `https://www.themoviedb.org/${mediaType}/${movie.id}`, allProviders, regionData, vpnInfo };
-        window.currentActiveMovieObj = movieObjForInline;
-        currentActorId = null;
-        quickSearchHistoryStack.length = 0;
-        const details = await getFullMovieDetails(movie.id, mediaType); el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateFullMovieHTML(movieObjForInline, details, false, 'lookup')}</div>`;
-        const closeBtn = document.getElementById('closeModalBtn');
-        if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; window.currentActiveMovieObj = null; };
-        const backBtn = document.getElementById('movieBackBtn');
-        if (backBtn) backBtn.onclick = navGoBack;
-        checkOverviewOverflow();
-        bindCastCrewDrag();
-        applyTiltToSimilarGrid();
-        scrollToQuickSearchResult();
-      } catch (err) { console.warn('[Single Movie Result Fetch]', err); el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Network Interface Error.</p></div>`; }
+      if (el.searchDropdown) el.searchDropdown.classList.add('hidden');
+      const mediaType = movie.__mediaType === 'tv' ? 'tv' : 'movie';
+      const displayTitle = getResultTitle(movie) || movie.title || movie.name || '';
+      openMoviePageById(movie.id, displayTitle, mediaType);
     }
     if (el.quickSearchBtn) { el.quickSearchBtn.addEventListener('click', async () => { if (!el.quickSearchInput) return; const query = el.quickSearchInput.value.trim(); if (!query) return; const results = await searchMultiMedia(query); if (results.length === 0) { if (el.quickSearchResult) { el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`; el.quickSearchResult.classList.remove('hidden'); } return; } results.sort((a, b) => { const aVal = a.__mediaType === 'person' ? (a.popularity || 0) : (a.vote_count || a.popularity || 0); const bVal = b.__mediaType === 'person' ? (b.popularity || 0) : (b.vote_count || b.popularity || 0); return bVal - aVal; }); const topResult = results[0]; if (topResult.__mediaType === 'person') { openActorModal(topResult.id, topResult.name, topResult.known_for_department === 'Directing' ? 'Director' : 'Actor', true); } else { renderSingleMovieResult(topResult); } }); }
     if (el.stopButton) el.stopButton.addEventListener('click', () => { if (isScanning) { cancelRequested = true; if (el.progressLabel) el.progressLabel.textContent = "Aborting search..."; } });
