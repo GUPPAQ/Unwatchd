@@ -1411,9 +1411,14 @@
         const match = route.match(/(?:film\/|#movie-)(\d+)/);
         if (match) return { type: isCast ? 'cast' : 'film', id: parseInt(match[1], 10) };
       }
-      if (route.includes('actor/') || route.includes('director/') || route.includes('#actor-') || route.includes('/person/')) {
-        const match = route.match(/(?:actor\/|director\/|#actor-)(\d+)/);
-        if (match) return { type: 'actor', id: parseInt(match[1], 10) };
+      const personMatch = route.match(/(?:actor\/|director\/|writer\/|producer\/|composer\/|#actor-)(\d+)/);
+      if (personMatch) {
+        let role = 'Actor';
+        if (route.includes('director/')) role = 'Director';
+        else if (route.includes('writer/')) role = 'Writer';
+        else if (route.includes('producer/')) role = 'Producer';
+        else if (route.includes('composer/')) role = 'Composer';
+        return { type: 'actor', id: parseInt(personMatch[1], 10), role };
       }
       return null;
     }
@@ -2502,7 +2507,7 @@
         const existing = scannedMovies.find(m => m.id === initialRoute.id);
         if (existing) openMoviePage(existing, false); else openMoviePageById(initialRoute.id);
       } else if (initialRoute.type === 'actor') {
-        openActorPage(initialRoute.id, '', '', false);
+        openActorPage(initialRoute.id, '', initialRoute.role || '', false);
       } else if (initialRoute.type === 'cast') {
         const existing = scannedMovies.find(m => m.id === initialRoute.id);
         if (existing) openMoviePage(existing, false); else openMoviePageById(initialRoute.id);
@@ -3845,7 +3850,7 @@
         } else if (routeInfo.type === 'actor') {
           hideAllCastModalView();
           hideMoviePageView();
-          if (window.currentActorPageId !== routeInfo.id) openActorPage(routeInfo.id, '', '', false);
+          if (window.currentActorPageId !== routeInfo.id || window.currentActorRoleHint !== routeInfo.role) openActorPage(routeInfo.id, '', routeInfo.role || '', false);
         }
       } else {
         hideAllCastModalView();
@@ -4465,7 +4470,12 @@
               badgeLabel = 'TV';
               badgeColor = 'text-blue-400 border-blue-500/30';
             } else if (item.__mediaType === 'person') {
-              badgeLabel = item.known_for_department === 'Directing' ? 'DIRECTOR' : 'ACTOR';
+              const dept = item.known_for_department;
+              if (dept === 'Directing') badgeLabel = 'DIRECTOR';
+              else if (dept === 'Writing') badgeLabel = 'WRITER';
+              else if (dept === 'Production') badgeLabel = 'PRODUCER';
+              else if (dept === 'Sound') badgeLabel = 'COMPOSER';
+              else badgeLabel = 'ACTOR';
               badgeColor = 'text-purple-400 border-purple-500/30';
             } else {
               badgeLabel = 'MOVIE';
@@ -5090,6 +5100,43 @@
       } catch (e) { console.warn('[Actor Details Fetch]', e); return null; }
     }
 
+    
+    function getPersonAvailableRoles(person) {
+      const roles = [];
+      if (!person) return ["Actor"];
+      const creditsObj = person.combined_credits || person.movie_credits;
+      if (!creditsObj) return ["Actor"];
+
+      if (creditsObj.cast && creditsObj.cast.some(m => m.poster_path)) roles.push("Actor");
+      if (creditsObj.crew) {
+        if (creditsObj.crew.some(m => m.poster_path && (m.job === "Director" || m.department === "Directing"))) roles.push("Director");
+        if (creditsObj.crew.some(m => m.poster_path && (m.department === "Writing" || m.job === "Writer" || m.job === "Screenplay" || m.job === "Story"))) roles.push("Writer");
+        if (creditsObj.crew.some(m => m.poster_path && (m.department === "Production" || m.job === "Producer" || m.job === "Executive Producer"))) roles.push("Producer");
+        if (creditsObj.crew.some(m => m.poster_path && (m.department === "Sound" || m.job === "Original Music Composer" || m.job === "Music" || m.job === "Composer"))) roles.push("Composer");
+      }
+      return roles.length > 0 ? roles : ["Actor"];
+    }
+
+    function determineActivePersonRole(person, roleHint = "") {
+      const avail = getPersonAvailableRoles(person);
+      if (roleHint) {
+        const rNorm = roleHint.toLowerCase();
+        if ((rNorm.includes("director") || rNorm.includes("directing")) && avail.includes("Director")) return "Director";
+        if ((rNorm.includes("writer") || rNorm.includes("writing")) && avail.includes("Writer")) return "Writer";
+        if ((rNorm.includes("producer") || rNorm.includes("production")) && avail.includes("Producer")) return "Producer";
+        if ((rNorm.includes("composer") || rNorm.includes("sound") || rNorm.includes("music")) && avail.includes("Composer")) return "Composer";
+        if (rNorm.includes("actor") && avail.includes("Actor")) return "Actor";
+      }
+      const dept = person?.known_for_department;
+      if (dept === "Directing" && avail.includes("Director")) return "Director";
+      if (dept === "Writing" && avail.includes("Writer")) return "Writer";
+      if (dept === "Production" && avail.includes("Producer")) return "Producer";
+      if (dept === "Sound" && avail.includes("Composer")) return "Composer";
+      if (dept === "Acting" && avail.includes("Actor")) return "Actor";
+
+      return avail[0] || "Actor";
+    }
+
     function isPersonDirector(person, roleHint = '') {
       if (!person) return false;
       if (roleHint === 'Director') return true;
@@ -5102,18 +5149,19 @@
     }
 
     function getActorMoviesList(person, showWatchlistOnly, roleHint = '') {
-      const isDirector = isPersonDirector(person, roleHint);
+      const activeRole = determineActivePersonRole(person, roleHint);
+      const availableRoles = getPersonAvailableRoles(person);
       let allMovies = [];
       const creditsObj = (person && person.combined_credits) ? person.combined_credits : (person ? person.movie_credits : null);
-      if (!creditsObj) return { allMovies: [], watchlistMovies: [], moviesToShow: [] };
+      if (!creditsObj) return { allMovies: [], watchlistMovies: [], moviesToShow: [], activeRole, availableRoles: ['Actor'] };
 
       const seen = new Set();
-      if (isDirector && creditsObj.crew) {
-        creditsObj.crew.forEach(m => {
+      if (activeRole === 'Actor' && creditsObj.cast) {
+        creditsObj.cast.forEach(m => {
           const mTitle = m.title || m.name || m.original_name || m.original_title;
           const mediaType = m.media_type || (m.first_air_date ? 'tv' : 'movie');
           const key = `${mediaType}-${m.id}`;
-          if (m.poster_path && mTitle && m.job === 'Director' && !seen.has(key)) {
+          if (m.poster_path && mTitle && !seen.has(key)) {
             seen.add(key);
             allMovies.push({
               ...m,
@@ -5123,12 +5171,23 @@
             });
           }
         });
-      } else if (creditsObj.cast) {
-        creditsObj.cast.forEach(m => {
+      } else if (creditsObj.crew) {
+        creditsObj.crew.forEach(m => {
           const mTitle = m.title || m.name || m.original_name || m.original_title;
           const mediaType = m.media_type || (m.first_air_date ? 'tv' : 'movie');
           const key = `${mediaType}-${m.id}`;
-          if (m.poster_path && mTitle && !seen.has(key)) {
+          if (!m.poster_path || !mTitle || seen.has(key)) return;
+
+          let match = false;
+          const dept = (m.department || '').toLowerCase();
+          const job = (m.job || '').toLowerCase();
+
+          if (activeRole === 'Director') match = job === 'director' || dept === 'directing';
+          else if (activeRole === 'Writer') match = dept === 'writing' || job === 'writer' || job === 'screenplay' || job === 'story';
+          else if (activeRole === 'Producer') match = dept === 'production' || job === 'producer' || job === 'executive producer';
+          else if (activeRole === 'Composer') match = dept === 'sound' || job === 'original music composer' || job === 'composer' || job === 'music';
+
+          if (match) {
             seen.add(key);
             allMovies.push({
               ...m,
@@ -5204,7 +5263,7 @@
         default: moviesToShow.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0)); break;
       }
 
-      return { allMovies, watchlistMovies, moviesToShow };
+      return { allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles };
     }
 
 
@@ -5242,7 +5301,7 @@
         ageStr = deathday ? `${age} (deceased)` : `${age} years old`;
       }
 
-      const { allMovies, watchlistMovies, moviesToShow } = getActorMoviesList(person, showWatchlistOnly, roleHint);
+      const { allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles } = getActorMoviesList(person, showWatchlistOnly, roleHint);
       const watchlistKeySet = new Set(scannedMovies.map(m => `${m.mediaType || 'movie'}-${m.id}`));
 
       const ACTOR_ITEMS_PER_PAGE = 60;
@@ -5335,6 +5394,17 @@
           ${tvCount > 0 ? `<button type="button" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-center ${actorMediaTypeFilter === 'tv' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmographyGrid()">Series <span class="ml-1 opacity-60">${tvCount}</span></button>` : ''}
           <button type="button" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-center ${actorMediaTypeFilter === 'all' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()">All <span class="ml-1 opacity-60">${allMovies.length}</span></button>
         </div>`;
+
+            const roleIcons = {
+        'Actor': '🎭',
+        'Director': '🎬',
+        'Writer': '✍️',
+        'Producer': '💼',
+        'Composer': '🎵'
+      };
+      const activeRoleIcon = roleIcons[activeRole] || '🎭';
+
+      const roleSelectWrapper = availableRoles.length > 1 ? `<div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorRoleLabel">${activeRoleIcon} ${activeRole}</span><select id="actorRoleSelect" class="filter-select lg:w-auto">${availableRoles.map(r => `<option value="${r}"${r === activeRole ? ' selected' : ''}>${roleIcons[r] || ''} ${r}</option>`).join('')}</select></div>` : '';
 
       const movieCountIcon = isDirector
         ? `<svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>`
@@ -5439,18 +5509,18 @@
                   </div>
                 </div>
                 <div class="pointer-events-auto min-w-0 max-w-3xl">
-                  <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-base sm:text-lg font-bold text-gray-200 mb-2 sm:mb-3"><span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2.5 sm:px-3 py-1 rounded-lg shadow-sm text-[11px] sm:text-xs font-black inline-flex items-center gap-1.5">${movieCountIcon}${allMovies.length} Credits</span>${birthday ? `<span class="text-white font-extrabold">${birthday}</span>` : ''}${ageStr ? `<span class="text-gray-500">&bull;</span><span>${ageStr}</span>` : ''}${birthplace ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${birthplace}</span>` : ''}</div>
+                  <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-base sm:text-lg font-bold text-gray-200 mb-2 sm:mb-3"><span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2.5 sm:px-3 py-1 rounded-lg shadow-sm text-[11px] sm:text-xs font-black inline-flex items-center gap-1.5">${activeRoleIcon} ${allMovies.length} ${activeRole} Credits</span>${birthday ? `<span class="text-white font-extrabold">${birthday}</span>` : ''}${ageStr ? `<span class="text-gray-500">&bull;</span><span>${ageStr}</span>` : ''}${birthplace ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${birthplace}</span>` : ''}</div>
                   <div class="mt-1">${bio ? createHeroOverviewHtml(bio, safeName) : ''}</div>
                 </div>
               </div>
             </div>
           </div>
           <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pt-0 pb-10 flex flex-col gap-10">
-            <div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-sm sm:text-base normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-3 text-base text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="flex items-center gap-2 shrink-0 w-full lg:w-auto"><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div>
+            <div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-sm sm:text-base normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-3 text-base text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="flex items-center gap-2 shrink-0 w-full lg:w-auto">${roleSelectWrapper}<div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div>
             <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${instaBtn}${twitterBtn}${shareBtn}</div>
           </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200 border-b border-white/5 pb-4"><span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black inline-flex items-center gap-1.5">${movieCountIcon}${allMovies.length} Credits</span>${birthday ? `<span class="text-white font-extrabold">${birthday}</span>` : ''}${ageStr ? `<span class="text-gray-500">&bull;</span><span>${ageStr}</span>` : ''}${birthplace ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${birthplace}</span>` : ''}</div>${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-sm font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="flex items-center gap-2 shrink-0 w-full lg:w-auto"><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${instaBtn}${twitterBtn}${shareBtn}</div>`;
+      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200 border-b border-white/5 pb-4"><span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black inline-flex items-center gap-1.5">${activeRoleIcon} ${allMovies.length} ${activeRole} Credits</span>${birthday ? `<span class="text-white font-extrabold">${birthday}</span>` : ''}${ageStr ? `<span class="text-gray-500">&bull;</span><span>${ageStr}</span>` : ''}${birthplace ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${birthplace}</span>` : ''}</div>${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-sm font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="flex items-center gap-2 shrink-0 w-full lg:w-auto"><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${instaBtn}${twitterBtn}${shareBtn}</div>`;
     }
 
     let currentActorId = null;
@@ -5462,6 +5532,27 @@
 
     // ---------------- Full-page actor view ----------------
     window.currentActorPageId = null;
+
+        function changeActorRole(newRole) {
+      window.currentActorRoleHint = newRole;
+      const actorId = window.currentActorPageId;
+      const person = window.currentActorPersonObj;
+      if (!actorId || !person) return;
+
+      const slug = slugify(person.name || '');
+      const prefix = `#${newRole.toLowerCase()}/`;
+      try { history.replaceState({ actorPage: actorId }, '', `${prefix}${actorId}${slug ? '-' + slug : ''}`); } catch (e) { }
+
+      const container = document.getElementById('actorPageView');
+      if (container) {
+        const { watchlistMovies } = getActorMoviesList(person, false, newRole);
+        if (watchlistMovies.length === 0) actorMediaTypeFilter = 'all';
+        container.innerHTML = generateActorHTML(person, false, newRole, true, true);
+        container.scrollTop = 0;
+        bindActorFilmControls();
+        applyTiltToActorGrid();
+      }
+    }
 
     async function openActorPage(actorId, actorName = '', roleHint = '', pushHistory = true) {
       const container = document.getElementById('actorPageView');
@@ -5484,6 +5575,7 @@
       try {
         const person = await getActorDetails(actorId);
         if (window.currentActorPageId !== actorId) return;
+        window.currentActorPersonObj = person;
         if (pushHistory) {
           const isDirector = (roleHint || person?.known_for_department || '').toLowerCase().includes('directing') || (roleHint || '').toLowerCase().includes('director');
           const prefix = isDirector ? '#director/' : '#actor/';
