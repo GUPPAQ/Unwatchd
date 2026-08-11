@@ -3483,7 +3483,7 @@
         iframeEl.contentWindow.postMessage('{"event":"command","func":"setOption","args":["captions","track",{}]}', '*');
       } catch (err) { console.warn('[Hero Video Listen Handshake]', err); }
       if (heroRevealTimeout) clearTimeout(heroRevealTimeout);
-      heroRevealTimeout = setTimeout(() => { revealHeroVideo(iframeEl); }, 4600);
+      heroRevealTimeout = setTimeout(() => { revealHeroVideo(iframeEl); }, 5600);
     };
 
     function revealHeroVideo(iframeEl) {
