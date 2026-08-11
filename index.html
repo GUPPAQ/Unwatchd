@@ -426,6 +426,7 @@
 
     /* Vertical padding & negative margins so glow fits vertically without shifting grid alignment or card counts */
     #castCrewTrack,
+    #relatedMoviesTrack,
     #similarMoviesTrack {
       padding-top: 14px !important;
       padding-bottom: 16px !important;
@@ -714,23 +715,27 @@
     }
 
     #castCrewTrack>*,
+    #relatedMoviesTrack>*,
     #similarMoviesTrack>* {
       scroll-snap-align: start;
     }
 
     /* Sizing rules: 2 movies on mobile / 4 on tablet / 6 on desktop; 3 actors on mobile / 5 on tablet / 6 on desktop */
+    #relatedMoviesTrack>.tilt-card,
     #similarMoviesTrack>.tilt-card {
       width: calc((100% - 1 * 1rem) / 2) !important;
       flex-shrink: 0 !important;
     }
 
     @media (min-width: 640px) {
+      #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
         width: calc((100% - 3 * 1.25rem) / 4) !important;
       }
     }
 
     @media (min-width: 1024px) {
+      #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
         width: calc((100% - 5 * 1.25rem) / 6) !important;
       }
@@ -3015,7 +3020,7 @@
           const isCurrentMovie = m.id === movieObj.id;
           const recRating = getTmdbRating(m);
           const activeBorderClass = isCurrentMovie ? 'border border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : 'border border-white/5';
-          return `<div class="tilt-card animate-fade shrink-0 w-32 sm:w-44 md:w-48 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 ${isCurrentMovie ? '' : 'sm:hover:scale-[1.03]'}" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isCurrentMovie ? '' : (isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})`)}">
+          return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 ${isCurrentMovie ? '' : 'sm:hover:scale-[1.03]'}" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isCurrentMovie ? '' : (isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})`)}">
             <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 ${activeBorderClass} h-full">
               <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                 ${mPoster ? `<img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
@@ -3048,7 +3053,7 @@
           const mYear = m.release_date ? m.release_date.split('-')[0] : '';
           const isInWatchlist = watchlistIds.has(m.id);
           const recRating = getTmdbRating(m);
-          return `<div class="tilt-card animate-fade shrink-0 w-32 sm:w-44 md:w-48 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 sm:hover:scale-[1.03]" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})`}">
+          return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 sm:hover:scale-[1.03]" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'})`}">
             <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full">
               <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                 <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
@@ -4208,7 +4213,7 @@
         const actorM = document.getElementById('actorModal');
         if (actorM && !actorM.classList.contains('hidden')) { isSwipingModal = false; return; }
         if (e.touches.length === 1) {
-          if (e.target && e.target.closest('.overflow-x-auto, .touch-pan-x, #castCrewTrack, #similarMoviesTrack')) {
+          if (e.target && e.target.closest('.overflow-x-auto, .touch-pan-x, #castCrewTrack, #relatedMoviesTrack, #similarMoviesTrack')) {
             isSwipingModal = false;
             return;
           }
@@ -4225,7 +4230,7 @@
         if (!isSwipingModal) return;
         isSwipingModal = false;
         if (e.changedTouches.length === 1) {
-          if (e.target && e.target.closest('.overflow-x-auto, .touch-pan-x, #castCrewTrack, #similarMoviesTrack')) return;
+          if (e.target && e.target.closest('.overflow-x-auto, .touch-pan-x, #castCrewTrack, #relatedMoviesTrack, #similarMoviesTrack')) return;
           touchEndX = e.changedTouches[0].clientX;
           touchEndY = e.changedTouches[0].clientY;
           const deltaX = touchEndX - touchStartX;
@@ -5698,6 +5703,10 @@
       const track = document.getElementById('similarMoviesTrack');
       if (track) track.querySelectorAll('.tilt-card').forEach(card => apply3DTilt(card));
       initDynamicScrollTrack('similarMoviesTrack', 'similarPrevBtn', 'similarNextBtn', false);
+
+      const relTrack = document.getElementById('relatedMoviesTrack');
+      if (relTrack) relTrack.querySelectorAll('.tilt-card').forEach(card => apply3DTilt(card));
+      initDynamicScrollTrack('relatedMoviesTrack', 'relatedPrevBtn', 'relatedNextBtn', false);
     }
 
     function refreshActorFilmographyGrid() {
