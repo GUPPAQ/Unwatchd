@@ -4406,7 +4406,7 @@
     document.addEventListener('click', (e) => { if (el.quickSearchInput && el.searchDropdown) { if (!el.quickSearchInput.contains(e.target) && !el.searchDropdown.contains(e.target)) el.searchDropdown.classList.add('hidden'); } });
     if (el.quickSearchInput) { el.quickSearchInput.addEventListener('input', (e) => { const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
           el.searchDropdown.innerHTML = '';
-          results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 6).forEach(item => {
+          results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 15).forEach(item => {
             const isPerson = item.__mediaType === 'person';
             const displayTitle = getResultTitle(item);
             const date = getResultDate(item);
