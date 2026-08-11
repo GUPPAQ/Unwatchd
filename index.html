@@ -2471,12 +2471,18 @@
     if (sharedMovieId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/movie/${sharedMovieId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(movie => { if (movie.id) { movie.__mediaType = 'movie'; el.quickSearchInput.value = movie.title; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(movie); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared Movie URL Fetch]', e); }); }
     else if (sharedTvId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/tv/${sharedTvId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(show => { if (show.id) { show.__mediaType = 'tv'; el.quickSearchInput.value = show.name; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(show); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared TV URL Fetch]', e); }); }
     else if (sharedActorId) { openActorPage(Number(sharedActorId)); window.history.replaceState({}, document.title, window.location.pathname); }
-    if (window.location.hash.startsWith('#movie-')) {
-      const initialMovieId = parseInt(window.location.hash.replace('#movie-', ''), 10);
-      if (initialMovieId) { const existing = scannedMovies.find(m => m.id === initialMovieId); if (existing) openMoviePage(existing, false); else openMoviePageById(initialMovieId); }
-    } else if (window.location.hash.startsWith('#actor-')) {
-      const initialActorId = parseInt(window.location.hash.replace('#actor-', ''), 10);
-      if (initialActorId) openActorPage(initialActorId, '', '', false);
+    const initialRoute = parseRouteInfo();
+    if (initialRoute) {
+      if (initialRoute.type === 'film') {
+        const existing = scannedMovies.find(m => m.id === initialRoute.id);
+        if (existing) openMoviePage(existing, false); else openMoviePageById(initialRoute.id);
+      } else if (initialRoute.type === 'actor') {
+        openActorPage(initialRoute.id, '', '', false);
+      } else if (initialRoute.type === 'cast') {
+        const existing = scannedMovies.find(m => m.id === initialRoute.id);
+        if (existing) openMoviePage(existing, false); else openMoviePageById(initialRoute.id);
+        openFullCastModal(true);
+      }
     }
     const DB_NAME = 'UnwatchdDB';
     const DB_VERSION = 1;
@@ -3686,7 +3692,8 @@
       container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
 
       if (pushHistory) {
-        try { history.pushState({ moviePage: movieObj.id }, '', `#movie-${movieObj.id}`); } catch (e) { }
+        const slug = slugify(movieObj.title || '');
+        try { history.pushState({ moviePage: movieObj.id }, '', `#film/${movieObj.id}${slug ? '-' + slug : ''}`); } catch (e) { }
       }
 
       try {
@@ -3792,34 +3799,29 @@
     }
 
     window.addEventListener('popstate', () => {
-      if (location.hash.includes('-cast')) {
-        hideActorPageView();
-        const parts = location.hash.replace('#movie-', '').split('-cast');
-        const id = parseInt(parts[0], 10);
-        if (id) {
+      const routeInfo = parseRouteInfo();
+      if (routeInfo) {
+        if (routeInfo.type === 'cast') {
+          hideActorPageView();
           const isMoviePageOpen = document.getElementById('moviePageView') && !document.getElementById('moviePageView').classList.contains('hidden');
-          if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== id) {
-            const existing = scannedMovies.find(m => m.id === id);
-            if (existing) openMoviePage(existing, false); else openMoviePageById(id);
+          if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== routeInfo.id) {
+            const existing = scannedMovies.find(m => m.id === routeInfo.id);
+            if (existing) openMoviePage(existing, false); else openMoviePageById(routeInfo.id);
           }
           openFullCastModal(true);
-        }
-      } else if (location.hash.startsWith('#movie-')) {
-        hideAllCastModalView();
-        hideActorPageView();
-        const id = parseInt(location.hash.replace('#movie-', ''), 10);
-        if (id) {
+        } else if (routeInfo.type === 'film') {
+          hideAllCastModalView();
+          hideActorPageView();
           const isMoviePageOpen = document.getElementById('moviePageView') && !document.getElementById('moviePageView').classList.contains('hidden');
-          if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== id) {
-            const existing = scannedMovies.find(m => m.id === id);
-            if (existing) openMoviePage(existing, false); else openMoviePageById(id);
+          if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== routeInfo.id) {
+            const existing = scannedMovies.find(m => m.id === routeInfo.id);
+            if (existing) openMoviePage(existing, false); else openMoviePageById(routeInfo.id);
           }
+        } else if (routeInfo.type === 'actor') {
+          hideAllCastModalView();
+          hideMoviePageView();
+          if (window.currentActorPageId !== routeInfo.id) openActorPage(routeInfo.id, '', '', false);
         }
-      } else if (location.hash.startsWith('#actor-')) {
-        hideAllCastModalView();
-        hideMoviePageView();
-        const id = parseInt(location.hash.replace('#actor-', ''), 10);
-        if (id && window.currentActorPageId !== id) openActorPage(id, '', '', false);
       } else {
         hideAllCastModalView();
         hideMoviePageView();
@@ -4094,9 +4096,11 @@
       currentAllCastMovieContext = isPage;
       allCastCurrentPage = 1;
 
-      if (isPage && !location.hash.includes('-cast')) {
+      if (isPage && !location.hash.includes('/cast') && !location.hash.includes('-cast')) {
         const mId = window.currentMovieFullCredits.movieId || '0';
-        try { history.pushState({ allCastPage: true, movieId: mId }, '', `#movie-${mId}-cast`); } catch (e) { }
+        const castMovieObj = scannedMovies.find(m => m.id === Number(mId)) || window.currentActiveMovieObj || window.currentMoviePageObj;
+        const castSlug = slugify(castMovieObj?.title || '');
+        try { history.pushState({ allCastPage: true, movieId: mId }, '', `#film/${mId}${castSlug ? '-' + castSlug : ''}/cast`); } catch (e) { }
       }
 
       const searchInput = document.getElementById('allCastSearchInput');
@@ -5452,13 +5456,15 @@
       container.scrollTop = 0;
       container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
 
-      if (pushHistory) {
-        try { history.pushState({ actorPage: actorId }, '', `#actor-${actorId}`); } catch (e) { }
-      }
-
       try {
         const person = await getActorDetails(actorId);
         if (window.currentActorPageId !== actorId) return;
+        if (pushHistory) {
+          const isDirector = (roleHint || person?.known_for_department || '').toLowerCase().includes('directing') || (roleHint || '').toLowerCase().includes('director');
+          const prefix = isDirector ? '#director/' : '#actor/';
+          const actorSlug = slugify(person.name || '');
+          try { history.pushState({ actorPage: actorId }, '', `${prefix}${actorId}${actorSlug ? '-' + actorSlug : ''}`); } catch (e) { }
+        }
         const { watchlistMovies } = getActorMoviesList(person, false, roleHint);
         if (watchlistMovies.length === 0) actorMediaTypeFilter = 'all';
         container.innerHTML = generateActorHTML(person, false, roleHint, true, true);
