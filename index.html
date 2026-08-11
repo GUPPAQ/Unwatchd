@@ -411,7 +411,7 @@
       position: relative;
       overflow: visible !important;
       transition: border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                  box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
     .glow-card:hover,
@@ -1294,50 +1294,77 @@
   </div>
 
   <!-- ALL CAST & CREW FULL PAGE VIEW -->
-  <div id="allCastModal"
-    class="fixed inset-0 z-[280] hidden flex-col bg-[#0b1121] overflow-y-auto overscroll-none">
-    <nav class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 p-4 sm:p-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
-      <button onclick="if(location.hash.includes('-cast')){ history.back(); } else { closeAllCastModal(); }" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+  <div id="allCastModal" class="fixed inset-0 z-[280] hidden flex-col bg-[#0b1121] overflow-y-auto overscroll-none">
+    <nav
+      class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 p-4 sm:p-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
+      <button onclick="if(location.hash.includes('-cast')){ history.back(); } else { closeAllCastModal(); }"
+        aria-label="Back"
+        class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
       </button>
-      <button onclick="closeAllCastModal(); goHomeFromPage();" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      <button onclick="closeAllCastModal(); goHomeFromPage();" aria-label="Close"
+        class="pointer-events-auto shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
       </button>
     </nav>
-    <div id="allCastBannerHero" class="relative w-full h-[340px] sm:h-[420px] shrink-0 overflow-hidden bg-[#0b1121] flex flex-col justify-end clip-mask">
+    <div id="allCastBannerHero"
+      class="relative w-full h-[340px] sm:h-[420px] shrink-0 overflow-hidden bg-[#0b1121] flex flex-col justify-end clip-mask">
       <div id="allCastBannerArt" class="absolute inset-0"></div>
-      <div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/80 to-transparent pointer-events-none z-20"></div>
-      <div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-20"></div>
+      <div
+        class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/80 to-transparent pointer-events-none z-20">
+      </div>
+      <div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-20">
+      </div>
 
-      <div class="relative z-30 max-w-[1480px] mx-auto w-full px-5 sm:px-10 pb-6 sm:pb-8 flex flex-col gap-3 sm:gap-4 pointer-events-auto">
+      <div
+        class="relative z-30 max-w-[1480px] mx-auto w-full px-5 sm:px-10 pb-6 sm:pb-8 flex flex-col gap-3 sm:gap-4 pointer-events-auto">
         <div>
-          <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Cast &amp; Crew</span>
-          <h1 id="allCastModalTitle" class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mt-0.5 drop-shadow-md">Full Cast &amp; Crew</h1>
+          <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Cast &amp;
+            Crew</span>
+          <h1 id="allCastModalTitle"
+            class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mt-0.5 drop-shadow-md">Full
+            Cast &amp; Crew</h1>
         </div>
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-          <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-300 shrink-0 drop-shadow-sm"></p>
+          <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-300 shrink-0 drop-shadow-sm">
+          </p>
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
             <div class="relative min-w-[200px] sm:min-w-[260px] md:min-w-[280px]">
-              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              <input id="allCastSearchInput" type="text" placeholder="Search cast or character..." oninput="filterAllCastGrid()" class="w-full bg-black/50 backdrop-blur-md border border-white/15 rounded-xl pl-10 pr-8 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-400 shadow-lg">
+              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <input id="allCastSearchInput" type="text" placeholder="Search cast or character..."
+                oninput="filterAllCastGrid()"
+                class="w-full bg-black/50 backdrop-blur-md border border-white/15 rounded-xl pl-10 pr-8 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-400 shadow-lg">
             </div>
-            <div class="flex items-center gap-1.5 p-1 bg-black/50 backdrop-blur-md border border-white/15 rounded-xl w-full sm:w-auto shrink-0 shadow-lg">
-              <button id="allCastTabAll" onclick="setAllCastTab('all')" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-500/25 text-blue-400 border border-blue-500/40 text-center shadow-sm">All</button>
-              <button id="allCastTabCast" onclick="setAllCastTab('cast')" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white border border-transparent text-center">Cast</button>
-              <button id="allCastTabCrew" onclick="setAllCastTab('crew')" class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white border border-transparent text-center">Crew</button>
+            <div
+              class="flex items-center gap-1.5 p-1 bg-black/50 backdrop-blur-md border border-white/15 rounded-xl w-full sm:w-auto shrink-0 shadow-lg">
+              <button id="allCastTabAll" onclick="setAllCastTab('all')"
+                class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-500/25 text-blue-400 border border-blue-500/40 text-center shadow-sm">All</button>
+              <button id="allCastTabCast" onclick="setAllCastTab('cast')"
+                class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white border border-transparent text-center">Cast</button>
+              <button id="allCastTabCrew" onclick="setAllCastTab('crew')"
+                class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white border border-transparent text-center">Crew</button>
             </div>
           </div>
         </div>
       </div>
     </div>
     <div class="max-w-[1480px] mx-auto w-full px-5 sm:px-10 py-8 z-30 flex-1 flex flex-col gap-6 sm:gap-8">
-      <div id="allCastGrid" class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4 sm:gap-6 content-start"></div>
+      <div id="allCastGrid"
+        class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4 sm:gap-6 content-start">
+      </div>
     </div>
   </div>
 
   <!-- FULL SCREEN TRAILER POPUP MODAL -->
-  <div id="trailerModal"
-    class="fixed inset-0 z-[300] hidden items-center justify-center p-0 pointer-events-none">
+  <div id="trailerModal" class="fixed inset-0 z-[300] hidden items-center justify-center p-0 pointer-events-none">
     <div id="trailerModalBackdrop"
       class="absolute inset-0 bg-black/95 backdrop-blur-2xl transition-opacity duration-300 opacity-0 pointer-events-auto cursor-pointer">
     </div>
@@ -1354,8 +1381,7 @@
           </svg>
         </button>
       </div>
-      <div
-        class="relative w-full h-full bg-black flex items-center justify-center">
+      <div class="relative w-full h-full bg-black flex items-center justify-center">
         <div id="trailerIframeWrapper" class="w-full h-full"></div>
       </div>
     </div>
@@ -2009,7 +2035,7 @@
             try {
               const cur = trailerPlayer.getCurrentTime() || 0;
               trailerPlayer.seekTo(Math.max(0, cur - 5), true);
-            } catch (err) {}
+            } catch (err) { }
           }
           return;
         }
@@ -2020,7 +2046,7 @@
             try {
               const cur = trailerPlayer.getCurrentTime() || 0;
               trailerPlayer.seekTo(cur + 5, true);
-            } catch (err) {}
+            } catch (err) { }
           }
           return;
         }
@@ -2030,7 +2056,7 @@
           if (trailerPlayer && typeof trailerPlayer.isMuted === 'function') {
             try {
               if (trailerPlayer.isMuted()) trailerPlayer.unMute(); else trailerPlayer.mute();
-            } catch (err) {}
+            } catch (err) { }
           }
           return;
         }
@@ -2040,9 +2066,9 @@
           const iframe = document.querySelector('#trailerIframeWrapper iframe');
           if (iframe) {
             if (document.fullscreenElement) {
-              document.exitFullscreen().catch(() => {});
+              document.exitFullscreen().catch(() => { });
             } else if (iframe.requestFullscreen) {
-              iframe.requestFullscreen().catch(() => {});
+              iframe.requestFullscreen().catch(() => { });
             } else if (iframe.webkitRequestFullscreen) {
               iframe.webkitRequestFullscreen();
             }
@@ -3805,7 +3831,7 @@
         try {
           if (typeof trailerPlayer.stopVideo === 'function') trailerPlayer.stopVideo();
           if (typeof trailerPlayer.destroy === 'function') trailerPlayer.destroy();
-        } catch (e) {}
+        } catch (e) { }
         trailerPlayer = null;
       }
 
@@ -3841,11 +3867,11 @@
             },
             events: {
               onReady: (event) => {
-                try { event.target.playVideo(); } catch (e) {}
+                try { event.target.playVideo(); } catch (e) { }
                 const iframe = wrapper.querySelector('iframe');
                 if (iframe) {
                   iframe.focus();
-                  try { iframe.contentWindow.focus(); } catch (e) {}
+                  try { iframe.contentWindow.focus(); } catch (e) { }
                 }
               }
             }
@@ -3871,7 +3897,7 @@
         try {
           if (typeof trailerPlayer.stopVideo === 'function') trailerPlayer.stopVideo();
           if (typeof trailerPlayer.destroy === 'function') trailerPlayer.destroy();
-        } catch (e) {}
+        } catch (e) { }
         trailerPlayer = null;
       }
 
@@ -3953,7 +3979,7 @@
 
       if (isPage && !location.hash.includes('-cast')) {
         const mId = window.currentMovieFullCredits.movieId || '0';
-        try { history.pushState({ allCastPage: true, movieId: mId }, '', `#movie-${mId}-cast`); } catch (e) {}
+        try { history.pushState({ allCastPage: true, movieId: mId }, '', `#movie-${mId}-cast`); } catch (e) { }
       }
 
       const searchInput = document.getElementById('allCastSearchInput');
@@ -4503,8 +4529,9 @@
     }
     const fetchWatchlist = async (targetUser, labelPrefix) => {
       let page1Html = null; let successfulProxy = false; if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
+      const cacheBust = Date.now();
       for (const proxy of CORS_PROXIES) {
-        try { const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/1/`)); if (res.ok) { const txt = await res.text(); if (txt && txt.includes('letterboxd.com')) { if (txt.includes('Page not found') || txt.includes('404 Not Found')) { throw new Error(`USER_NOT_FOUND:${targetUser}`); } if (!isGenuineWatchlistPage(txt, targetUser)) continue; page1Html = txt; successfulProxy = true; break; } } } catch (e) { console.warn('[Letterboxd Page 1 Fetch]', e); if (e.message.startsWith('USER_NOT_FOUND')) throw e; }
+        try { const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/1/?_=${cacheBust}`), { cache: 'no-store' }); if (res.ok) { const txt = await res.text(); if (txt && txt.includes('letterboxd.com')) { if (txt.includes('Page not found') || txt.includes('404 Not Found')) { throw new Error(`USER_NOT_FOUND:${targetUser}`); } if (!isGenuineWatchlistPage(txt, targetUser)) continue; page1Html = txt; successfulProxy = true; break; } } } catch (e) { console.warn('[Letterboxd Page 1 Fetch]', e); if (e.message.startsWith('USER_NOT_FOUND')) throw e; }
       }
       if (!successfulProxy || !page1Html) { throw new Error(`PROXY_FAILURE:${targetUser}`); }
 
@@ -4524,7 +4551,7 @@
         if (page === 1) return page1Html;
         for (const proxy of CORS_PROXIES) {
           try {
-            const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/${page}/`));
+            const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/${page}/?_=${cacheBust}`), { cache: 'no-store' });
             if (res.ok) {
               const txt = await res.text();
               if (txt && txt.includes('letterboxd.com') && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser)) {
@@ -4570,23 +4597,23 @@
         // client-side - reading from it is what caused "Nowhere" (1997) to resolve to "Nowhere" (2023).
         candidatePosters = Array.from(doc.querySelectorAll('.react-component[data-component-class="LazyPoster"]')).filter(elem => !inExcludedRegion(elem));
         if (candidatePosters.length === 0) {
-        const allLists = Array.from(doc.querySelectorAll('ul.poster-list')).filter(ul => {
-          return !ul.closest('aside') && !ul.closest('footer') && !ul.closest('.sidebar') && !ul.closest('.popular-films') && !ul.closest('#popular-films') && !ul.closest('.footer');
-        });
-        let targetUl = null;
-        if (allLists.length === 0) {
-          targetUl = doc.querySelector('ul.poster-list');
-        } else if (allLists.length === 1) {
-          targetUl = allLists[0];
-        } else {
-          const mainCandidates = allLists.filter(ul => ul.closest('.col-17') || ul.closest('.col-16') || ul.closest('.col-main') || ul.closest('#content') || ul.closest('.content-wrap') || ul.closest('section.col-17'));
-          const pool = mainCandidates.length ? mainCandidates : allLists;
-          pool.sort((a, b) => b.querySelectorAll('.film-poster').length - a.querySelectorAll('.film-poster').length);
-          targetUl = pool[0];
-        }
-        if (targetUl) {
-          candidatePosters = Array.from(targetUl.querySelectorAll('.film-poster'));
-        }
+          const allLists = Array.from(doc.querySelectorAll('ul.poster-list')).filter(ul => {
+            return !ul.closest('aside') && !ul.closest('footer') && !ul.closest('.sidebar') && !ul.closest('.popular-films') && !ul.closest('#popular-films') && !ul.closest('.footer');
+          });
+          let targetUl = null;
+          if (allLists.length === 0) {
+            targetUl = doc.querySelector('ul.poster-list');
+          } else if (allLists.length === 1) {
+            targetUl = allLists[0];
+          } else {
+            const mainCandidates = allLists.filter(ul => ul.closest('.col-17') || ul.closest('.col-16') || ul.closest('.col-main') || ul.closest('#content') || ul.closest('.content-wrap') || ul.closest('section.col-17'));
+            const pool = mainCandidates.length ? mainCandidates : allLists;
+            pool.sort((a, b) => b.querySelectorAll('.film-poster').length - a.querySelectorAll('.film-poster').length);
+            targetUl = pool[0];
+          }
+          if (targetUl) {
+            candidatePosters = Array.from(targetUl.querySelectorAll('.film-poster'));
+          }
         }
         if (candidatePosters.length === 0) {
           const flat = Array.from(doc.querySelectorAll('.poster-list .film-poster, .film-poster')).filter(elem => {
