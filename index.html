@@ -3862,7 +3862,11 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           ]);
         }
 
-        container.innerHTML = generateFullMovieHTML(movieObj, details, true, 'lookup', true, collectionData);
+        container.innerHTML = `<div id="moviePageInnerContent" class="opacity-0 transition-opacity duration-200">${generateFullMovieHTML(movieObj, details, true, 'lookup', true, collectionData)}</div>`;
+        requestAnimationFrame(() => {
+          const inner = document.getElementById('moviePageInnerContent');
+          if (inner) inner.classList.remove('opacity-0');
+        });
         verifyTitleLogos();
         applyTiltToSimilarGrid();
         bindCastCrewDrag();
@@ -5754,7 +5758,11 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           ]);
         }
 
-        container.innerHTML = generateActorHTML(person, false, activeRole, true, true);
+        container.innerHTML = `<div id="actorPageInnerContent" class="opacity-0 transition-opacity duration-200">${generateActorHTML(person, false, activeRole, true, true)}</div>`;
+        requestAnimationFrame(() => {
+          const inner = document.getElementById('actorPageInnerContent');
+          if (inner) inner.classList.remove('opacity-0');
+        });
         container.scrollTop = 0;
         bindActorFilmControls();
         applyTiltToActorGrid();
