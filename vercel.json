@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/api/proxy",
+      "destination": "/api/proxy.js"
+    },
+    {
+      "source": "/api/letterboxd",
+      "destination": "/api/letterboxd.js"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
