@@ -5314,9 +5314,18 @@
       let filmographyHtml = '';
       if (moviesToShow.length === 0) {
         const isFiltered = actorFilterQuery || (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all');
-        const emptyMsg = isFiltered
-          ? 'No titles match your filters.'
-          : (showWatchlistOnly ? `No titles from your watchlist feature this ${isDirector ? 'director' : 'actor'}.` : 'No credits found.');
+        let emptyMsg = 'No credits found.';
+        if (isFiltered) {
+          emptyMsg = 'No titles match your filters.';
+        } else if (actorMediaTypeFilter === 'watchlist') {
+          emptyMsg = `No watchlist titles found for this ${activeRole.toLowerCase()}.`;
+        } else if (actorMediaTypeFilter === 'movie') {
+          emptyMsg = `No films found for this ${activeRole.toLowerCase()}.`;
+        } else if (actorMediaTypeFilter === 'tv') {
+          emptyMsg = `No series found for this ${activeRole.toLowerCase()}.`;
+        } else {
+          emptyMsg = `No credits found for this ${activeRole.toLowerCase()}.`;
+        }
         filmographyHtml = `<div class="col-span-full flex items-center justify-center min-h-[150px] text-gray-500 font-bold uppercase tracking-widest text-xs">${emptyMsg}</div>`;
       } else {
         pageMovies.forEach((m, idx) => {
@@ -5404,8 +5413,7 @@
       };
       const activeRoleIcon = roleIcons[activeRole] || '🎭';
 
-      const allPossibleRoles = ['Actor', 'Director', 'Writer', 'Producer', 'Composer'];
-      const roleSelectWrapper = `<div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorRoleLabel">${activeRoleIcon} ${activeRole}</span><select id="actorRoleSelect" class="filter-select lg:w-auto">${allPossibleRoles.map(r => `<option value="${r}"${r === activeRole ? ' selected' : ''}>${roleIcons[r] || ''} ${r}</option>`).join('')}</select></div>`;
+      const roleSelectWrapper = availableRoles.length > 1 ? `<div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorRoleLabel">${activeRoleIcon} ${activeRole}</span><select id="actorRoleSelect" class="filter-select lg:w-auto">${availableRoles.map(r => `<option value="${r}"${r === activeRole ? ' selected' : ''}>${roleIcons[r] || ''} ${r}</option>`).join('')}</select></div>` : '';
 
       const movieCountIcon = isDirector
         ? `<svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>`
