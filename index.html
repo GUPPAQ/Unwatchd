@@ -4738,12 +4738,9 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
 
     function getMoviePopularity(m) {
       if (!m) return 0;
-      const pop = typeof m.popularity === 'number' ? m.popularity : 0;
-      const votes = typeof m.vote_count === 'number' ? m.vote_count : 0;
-      const rating = parseFloat(m.rating || m.vote_average || 0) || 0;
-
-      // True Popularity Formula: Strong TMDB popularity weight + sqrt(votes) + squared rating
-      return (pop * 40) + (Math.sqrt(votes) * 12) + (Math.pow(rating, 2) * 8);
+      // Pure TMDB Official Popularity Score
+      if (typeof m.popularity === 'number' && m.popularity > 0) return m.popularity;
+      return m.vote_count || 0;
     }
 
     function createMovieCard(movieObj, delayIndex = 0) {
