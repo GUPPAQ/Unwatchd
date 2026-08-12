@@ -3160,10 +3160,11 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         collectionParts.sort((a, b) => {
           const dateA = a.release_date || a.first_air_date || a.releaseDate || '';
           const dateB = b.release_date || b.first_air_date || b.releaseDate || '';
-          if (!dateA && !dateB) return 0;
-          if (!dateA) return 1;
-          if (!dateB) return -1;
-          return dat        const relatedCards = collectionParts.map((m) => {
+          return dateA.localeCompare(dateB);
+        });
+        const watchlistIds = new Set(scannedMovies.map(m => m.id));
+        const collectionName = (collectionData && collectionData.name) || (details && details.belongs_to_collection && details.belongs_to_collection.name) || 'Related Films & Franchises';
+        const relatedCards = collectionParts.map((m) => {
           const mTitle = escapeHTML(m.title || m.name || '');
           const mMediaType = m.mediaType || m.media_type || (m.name && !m.title ? 'tv' : (movieObj.mediaType === 'tv' ? 'tv' : 'movie'));
           const mPoster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : (m.poster || null);
