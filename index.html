@@ -3822,11 +3822,12 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     async function openMoviePage(movieObj, pushHistory = true) {
       const container = document.getElementById('moviePageView');
       if (!container || !movieObj) return;
-      hideActorPageView();
 
       window.currentMoviePageObj = movieObj;
       document.body.classList.add('modal-open');
       container.classList.remove('hidden');
+      hideActorPageView();
+      hideAllCastModalView();
       container.scrollTop = 0;
       container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
 
@@ -3848,6 +3849,17 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         if (details && details.belongs_to_collection && details.belongs_to_collection.id) {
           collectionData = await getCollectionDetails(details.belongs_to_collection.id);
         }
+
+        const backdropUrl = details && details.backdrop_path ? `https://image.tmdb.org/t/p/w1280${details.backdrop_path}` : movieObj.backdrop;
+        if (backdropUrl) {
+          const img = new Image();
+          img.src = backdropUrl;
+          await Promise.race([
+            new Promise(r => { img.onload = r; img.onerror = r; }),
+            new Promise(r => setTimeout(r, 250))
+          ]);
+        }
+
         container.innerHTML = generateFullMovieHTML(movieObj, details, true, 'lookup', true, collectionData);
         verifyTitleLogos();
         applyTiltToSimilarGrid();
@@ -3966,15 +3978,21 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           } else if (routeInfo.type === 'film') {
             hideAllCastModalView();
             const container = document.getElementById('moviePageView');
-            const isMoviePageOpen = container && !container.classList.contains('hidden');
-            if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== routeInfo.id) {
+            if (container) container.classList.remove('hidden');
+            const isMoviePageOpen = window.currentMoviePageObj && window.currentMoviePageObj.id === routeInfo.id;
+            if (!isMoviePageOpen) {
               const existing = scannedMovies.find(m => m.id === routeInfo.id);
               if (existing) openMoviePage(existing, false); else openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false);
             }
             hideActorPageView();
           } else if (routeInfo.type === 'actor') {
             hideAllCastModalView();
-            if (window.currentActorPageId !== routeInfo.id || window.currentActorRoleHint !== routeInfo.role) openActorPage(routeInfo.id, '', routeInfo.role || '', false);
+            const container = document.getElementById('actorPageView');
+            if (container) container.classList.remove('hidden');
+            if (window.currentActorPageId !== routeInfo.id || window.currentActorRoleHint !== routeInfo.role) {
+              openActorPage(routeInfo.id, '', routeInfo.role || '', false);
+            }
+            hideMoviePageView();
           }
         });
       } else {
@@ -5689,8 +5707,6 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     async function openActorPage(actorId, actorName = '', roleHint = '', pushHistory = true) {
       const container = document.getElementById('actorPageView');
       if (!container || !actorId) return;
-      hideMoviePageView();
-      hideAllCastModalView();
       stopHeroVideo();
 
       window.currentActorPageId = actorId;
@@ -5702,7 +5718,10 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       actorFilterDecade = 'all';
       actorFilterSort = 'popularity';
 
+      document.body.classList.add('modal-open');
       container.classList.remove('hidden');
+      hideMoviePageView();
+      hideAllCastModalView();
       document.body.classList.add('modal-open');
       container.scrollTop = 0;
       container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
@@ -5722,6 +5741,17 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         }
         const { watchlistMovies } = getActorMoviesList(person, false, activeRole);
         if (watchlistMovies.length === 0) actorMediaTypeFilter = 'all';
+
+        const profileUrl = person && person.profile_path ? `https://image.tmdb.org/t/p/h632${person.profile_path}` : null;
+        if (profileUrl) {
+          const img = new Image();
+          img.src = profileUrl;
+          await Promise.race([
+            new Promise(r => { img.onload = r; img.onerror = r; }),
+            new Promise(r => setTimeout(r, 250))
+          ]);
+        }
+
         container.innerHTML = generateActorHTML(person, false, activeRole, true, true);
         container.scrollTop = 0;
         bindActorFilmControls();
