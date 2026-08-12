@@ -3894,19 +3894,20 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     }
 
     function goHomeFromPage() {
+      clearQuickSearchInput();
       hideMoviePageView();
       hideActorPageView();
-      clearQuickSearchInput();
       if (window.location.hash) {
-        history.back();
+        try { history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch (e) {}
       }
     }
 
     function closeMoviePage() {
       clearQuickSearchInput();
-      hideMoviePageView();
       if (window.location.hash) {
         history.back();
+      } else {
+        hideMoviePageView();
       }
     }
 
@@ -3944,29 +3945,38 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     }
 
     window.addEventListener('popstate', () => {
-      const routeInfo = parseRouteInfo();
-      if (routeInfo) {
-        if (routeInfo.type === 'cast') {
-          hideActorPageView();
-          const isMoviePageOpen = document.getElementById('moviePageView') && !document.getElementById('moviePageView').classList.contains('hidden');
-          if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== routeInfo.id) {
-            const existing = scannedMovies.find(m => m.id === routeInfo.id);
-            if (existing) openMoviePage(existing, false); else openMoviePageById(routeInfo.id);
+      const rawRoute = parseRouteInfo();
+      if (rawRoute) {
+        resolveRouteToId(rawRoute).then(routeInfo => {
+          if (!routeInfo || !routeInfo.id) {
+            hideAllCastModalView();
+            hideMoviePageView();
+            hideActorPageView();
+            return;
           }
-          openFullCastModal(true);
-        } else if (routeInfo.type === 'film') {
-          hideAllCastModalView();
-          hideActorPageView();
-          const isMoviePageOpen = document.getElementById('moviePageView') && !document.getElementById('moviePageView').classList.contains('hidden');
-          if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== routeInfo.id) {
-            const existing = scannedMovies.find(m => m.id === routeInfo.id);
-            if (existing) openMoviePage(existing, false); else openMoviePageById(routeInfo.id);
+          if (routeInfo.type === 'cast') {
+            hideActorPageView();
+            const container = document.getElementById('moviePageView');
+            const isMoviePageOpen = container && !container.classList.contains('hidden');
+            if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== routeInfo.id) {
+              const existing = scannedMovies.find(m => m.id === routeInfo.id);
+              if (existing) openMoviePage(existing, false); else openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false);
+            }
+            openFullCastModal(true);
+          } else if (routeInfo.type === 'film') {
+            hideAllCastModalView();
+            const container = document.getElementById('moviePageView');
+            const isMoviePageOpen = container && !container.classList.contains('hidden');
+            if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== routeInfo.id) {
+              const existing = scannedMovies.find(m => m.id === routeInfo.id);
+              if (existing) openMoviePage(existing, false); else openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false);
+            }
+            hideActorPageView();
+          } else if (routeInfo.type === 'actor') {
+            hideAllCastModalView();
+            if (window.currentActorPageId !== routeInfo.id || window.currentActorRoleHint !== routeInfo.role) openActorPage(routeInfo.id, '', routeInfo.role || '', false);
           }
-        } else if (routeInfo.type === 'actor') {
-          hideAllCastModalView();
-          hideMoviePageView();
-          if (window.currentActorPageId !== routeInfo.id || window.currentActorRoleHint !== routeInfo.role) openActorPage(routeInfo.id, '', routeInfo.role || '', false);
-        }
+        });
       } else {
         hideAllCastModalView();
         hideMoviePageView();
@@ -5724,9 +5734,10 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
 
     function closeActorPage() {
       clearQuickSearchInput();
-      hideActorPageView();
       if (window.location.hash) {
         history.back();
+      } else {
+        hideActorPageView();
       }
     }
 
