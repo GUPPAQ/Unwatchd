@@ -4078,25 +4078,63 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       container.scrollTop = 0;
       container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
 
+      // Initial fallback slug push before async resolution
+      const initialBaseSlug = slugify(movieObj.title || '');
+      const initialYear = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : (movieObj.release_date ? movieObj.release_date.split('-')[0] : '');
+      const initialHasOlder = scannedMovies.some(m => {
+        if (m.id === movieObj.id) return false;
+        if (slugify(m.title) !== initialBaseSlug) return false;
+        const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
+        return otherYear && initialYear && parseInt(otherYear) < parseInt(initialYear);
+      });
+      const initialSlug = initialHasOlder && initialYear ? `${initialBaseSlug}-${initialYear}` : initialBaseSlug;
+      const initialMediaType = movieObj.mediaType === 'tv' ? 'series' : 'film';
+      if (initialSlug) registerSlug(initialSlug, movieObj.id, initialMediaType);
       if (pushHistory) {
-        const baseSlug = slugify(movieObj.title || '');
-        const mYear = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : (movieObj.release_date ? movieObj.release_date.split('-')[0] : '');
-        const hasOlderSameTitle = scannedMovies.some(m => {
-          if (m.id === movieObj.id) return false;
-          if (slugify(m.title) !== baseSlug) return false;
-          const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
-          return otherYear && mYear && parseInt(otherYear) < parseInt(mYear);
-        });
-        const slug = hasOlderSameTitle && mYear ? `${baseSlug}-${mYear}` : baseSlug;
-        const mediaType = movieObj.mediaType === 'tv' ? 'series' : 'film';
-        if (slug) registerSlug(slug, movieObj.id, mediaType);
-        try { history.pushState({ moviePage: movieObj.id }, '', `#${mediaType}/${slug}`); } catch (e) { }
+        try { history.pushState({ moviePage: movieObj.id }, '', `#${initialMediaType}/${initialSlug}`); } catch (e) { }
       }
 
       try {
         const mediaType = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
         const details = await getFullMovieDetails(movieObj.id, mediaType);
-        // Bail out quietly if the person has already navigated to a different movie while this was loading.
+        // Refine slug with full details to guarantee exact remake year matching (e.g. straw-dogs-2011 vs straw-dogs)
+        if (details) {
+          const baseSlug = slugify(details.title || details.name || movieObj.title || '');
+          const dateStr = details.release_date || details.first_air_date || movieObj.releaseDate || '';
+          const mYear = dateStr ? dateStr.split('-')[0] : '';
+          let isRemakeOrNewer = false;
+          if (mYear && baseSlug) {
+            const scannedOlder = scannedMovies.some(m => {
+              if (m.id === movieObj.id) return false;
+              if (slugify(m.title) !== baseSlug) return false;
+              const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
+              return otherYear && parseInt(otherYear) < parseInt(mYear);
+            });
+            if (scannedOlder) {
+              isRemakeOrNewer = true;
+            } else {
+              try {
+                const checkRes = await fetch(`https://api.themoviedb.org/3/search/${mediaType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(baseSlug.replace(/-/g, ' '))}`);
+                const checkData = await checkRes.json();
+                if (checkData && checkData.results) {
+                  isRemakeOrNewer = checkData.results.some(r => {
+                    if (r.id === movieObj.id) return false;
+                    if (slugify(r.title || r.name) !== baseSlug) return false;
+                    const rDate = r.release_date || r.first_air_date;
+                    const rYear = rDate ? rDate.split('-')[0] : '';
+                    return rYear && parseInt(rYear) < parseInt(mYear);
+                  });
+                }
+              } catch (e) { }
+            }
+          }
+          const refinedSlug = isRemakeOrNewer && mYear ? `${baseSlug}-${mYear}` : baseSlug;
+          const mediaRoute = mediaType === 'tv' ? 'series' : 'film';
+          if (refinedSlug) registerSlug(refinedSlug, movieObj.id, mediaRoute);
+          if (pushHistory) {
+            try { history.replaceState({ moviePage: movieObj.id }, '', `#${mediaRoute}/${refinedSlug}`); } catch (e) { }
+          }
+        }
         if (window.currentMoviePageObj !== movieObj) return;
         await resolveTitleLogo(details);
         await ensureFranchiseDetailsLoaded(movieObj, details);
