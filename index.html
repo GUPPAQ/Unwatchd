@@ -4738,8 +4738,12 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
 
     function getMoviePopularity(m) {
       if (!m) return 0;
-      if (typeof m.vote_count === 'number' && m.vote_count > 0) return m.vote_count;
-      return m.popularity || 0;
+      const pop = typeof m.popularity === 'number' ? m.popularity : 0;
+      const votes = typeof m.vote_count === 'number' ? m.vote_count : 0;
+      const rating = parseFloat(m.rating || m.vote_average || 0) || 0;
+
+      // True Popularity Formula: Combines TMDB popularity/trending + vote count volume + rating acclaim
+      return (pop * 15) + (votes * 0.25) + (rating * 40);
     }
 
     function createMovieCard(movieObj, delayIndex = 0) {
@@ -5673,7 +5677,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         }); break;
         case 'year_desc': moviesToShow.sort((a, b) => (b.release_date || '0').localeCompare(a.release_date || '0')); break;
         case 'year_asc': moviesToShow.sort((a, b) => (a.release_date || '9999').localeCompare(b.release_date || '9999')); break;
-        default: moviesToShow.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0)); break;
+        default: moviesToShow.sort((a, b) => getMoviePopularity(b) - getMoviePopularity(a)); break;
       }
 
       return { allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles };
