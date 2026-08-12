@@ -4885,41 +4885,51 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       const origNorm = normalizeTitle(origTitle);
       const date = getResultDate(item);
       const itemYear = date ? date.split('-')[0] : '';
+      const isPerson = item.__mediaType === 'person';
 
       let score = 0;
 
-      // 1. Exact Title Match
-      if (titleNorm === qNorm || titleNorm === cleanQNorm || origNorm === qNorm || origNorm === cleanQNorm) {
-        score += 5000;
-      }
-      // 2. Title starts with query
-      else if (titleNorm.startsWith(cleanQNorm) || origNorm.startsWith(cleanQNorm)) {
-        score += 2000;
-      }
-      // 3. Title contains query as distinct phrase/word
-      else if (titleNorm.includes(cleanQNorm) || origNorm.includes(cleanQNorm)) {
-        score += 800;
-      }
+      if (!isPerson) {
+        // --- MOVIE / TV SHOW SCORING ---
+        // 1. Exact Title Match
+        if (titleNorm === qNorm || titleNorm === cleanQNorm || origNorm === qNorm || origNorm === cleanQNorm) {
+          score += 10000;
+        }
+        // 2. Title starts with query
+        else if (titleNorm.startsWith(cleanQNorm) || origNorm.startsWith(cleanQNorm)) {
+          score += 5000;
+        }
+        // 3. Title contains query as distinct phrase/word
+        else if (titleNorm.includes(cleanQNorm) || origNorm.includes(cleanQNorm)) {
+          score += 2000;
+        }
 
-      // 4. Exact Year match (if user provided a year in search e.g. "Nowhere 1997")
-      if (targetYear && itemYear === targetYear) {
-        score += 3000;
-      }
+        // Exact Year match
+        if (targetYear && itemYear === targetYear) {
+          score += 4000;
+        }
 
-      // 5. Media type scoring:
-      if (item.__mediaType === 'movie' || item.__mediaType === 'tv') {
-        score += 500;
+        // Popularity / Vote Boost for Movies & TV
         const voteCount = item.vote_count || 0;
         const voteAvg = item.vote_average || 0;
         const popularity = item.popularity || 0;
-        score += Math.min(voteCount * 0.01 + voteAvg * 10 + popularity * 0.5, 300);
-      } else if (item.__mediaType === 'person') {
+        score += Math.min(voteCount * 0.05 + voteAvg * 20 + popularity * 2, 2000);
+      } else {
+        // --- PERSON SCORING ---
+        // 1. Exact Person Name Match (e.g. "Christopher Nolan")
         if (titleNorm === qNorm || titleNorm === cleanQNorm) {
-          score += 4500;
-        } else if (titleNorm.startsWith(cleanQNorm)) {
-          score += 1500;
+          score += 9000;
         }
-        score += Math.min((item.popularity || 0) * 2, 200);
+        // 2. Person Name starts with query (e.g. "Dexter Fletcher" when searching "Dexter")
+        else if (titleNorm.startsWith(cleanQNorm)) {
+          const isSingleWordQuery = !cleanQNorm.includes(' ');
+          score += isSingleWordQuery ? 800 : 2500;
+        } else if (titleNorm.includes(cleanQNorm)) {
+          score += 300;
+        }
+
+        // Popularity boost for person
+        score += Math.min((item.popularity || 0) * 2, 500);
       }
 
       return score;
