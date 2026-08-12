@@ -1255,25 +1255,7 @@
     </footer>
   </div>
 
-  <div id="movieModal"
-    class="fixed inset-0 z-[200] hidden items-center justify-center py-5 px-4 sm:px-6 pointer-events-none">
-    <div id="modalBackdrop"
-      class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 opacity-0 pointer-events-auto cursor-pointer will-change-opacity transform-gpu">
-    </div>
-    <button id="modalPrevBtn"
-      class="absolute left-1 sm:left-6 z-[210] bg-black/50 hover:bg-black/80 backdrop-blur-md text-white p-2 sm:p-3 rounded-full transition-all border border-white/10 opacity-0 pointer-events-auto hidden sm:flex items-center justify-center hover:scale-110"><svg
-        class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-      </svg></button>
-    <div id="modalContent"
-      class="relative w-full max-w-4xl max-h-[90dvh] glass-panel rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-8 opacity-0 pointer-events-auto flex flex-col bg-[#0b1121] overflow-y-auto overscroll-none will-change-transform transform-gpu">
-    </div>
-    <button id="modalNextBtn"
-      class="absolute right-1 sm:right-6 z-[210] bg-black/50 hover:bg-black/80 backdrop-blur-md text-white p-2 sm:p-3 rounded-full transition-all border border-white/10 opacity-0 pointer-events-auto hidden sm:flex items-center justify-center hover:scale-110"><svg
-        class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-      </svg></button>
-  </div>
+
 
   <div id="moviePageView" class="fixed inset-0 z-[220] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
 
@@ -1293,15 +1275,7 @@
     </div>
   </div>
 
-  <div id="actorModal"
-    class="fixed inset-0 z-[250] hidden items-center justify-center py-5 px-4 sm:px-6 pointer-events-none">
-    <div id="actorModalBackdrop"
-      class="absolute inset-0 bg-black/85 transition-opacity duration-300 opacity-0 pointer-events-auto cursor-pointer will-change-opacity transform-gpu">
-    </div>
-    <div id="actorModalContent"
-      class="relative w-full max-w-4xl max-h-[90dvh] rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-8 opacity-0 pointer-events-auto flex flex-col bg-[#0b1121] overflow-y-auto overscroll-none border border-white/10 will-change-transform transform-gpu">
-    </div>
-  </div>
+
 
   <!-- ALL CAST & CREW FULL PAGE VIEW -->
   <div id="allCastModal" class="fixed inset-0 z-[280] hidden flex-col bg-[#0b1121] overflow-y-auto overscroll-none">
@@ -1542,7 +1516,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     if (REGION_META.NO) REGION_META.NO.flag = '🇳🇴'; // Safe fallback
     const GENRE_MAP = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western' };
     function openStreamingService(webUrl, appUrl = null) { if (!isMobile || !appUrl || appUrl === 'null') { window.open(webUrl, "_blank"); return; } window.location.href = appUrl; setTimeout(() => { window.open(webUrl, "_blank"); }, 1200); }
-    const CORS_PROXIES = [(url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`, (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`];
+    const CORS_PROXIES = [(url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`, (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`, (url) => `https://thingproxy.freeboard.io/fetch/${url}`, (url) => `https://cors-proxy.htmldriven.com/?url=${encodeURIComponent(url)}`];
     const TMDB_PROVIDER_CACHE_KEY = (region) => `ps_providers_${region}_v13`;
     const TMDB_PROVIDER_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -5115,6 +5089,15 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       return [...movieResults, ...tvResults];
     }
     const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v12'; // bumped: extraction now reads title/year/slug from the LazyPoster wrapper, not the empty inner placeholder
+        window.clearTmdbCache = function() {
+      try {
+        localStorage.removeItem(TMDB_MATCH_CACHE_KEY);
+        tmdbMatchCache.clear();
+        console.log('TMDB Match Cache successfully cleared!');
+        return 'Cache cleared';
+      } catch(e) { console.warn('Cache clear error', e); }
+    };
+
     let tmdbMatchCache = new Map();
     try {
       const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
@@ -5482,7 +5465,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
             } catch (err) { console.warn('[Post-Scan Render]', err); }
             resetUI();
           }, 600);
-        } catch (err) { if (el.progressSection) el.progressSection.classList.add('hidden'); let msg = err.message || ''; if (msg.startsWith('USER_NOT_FOUND:')) { const u = msg.split(':')[1]; msg = `Profile not found: ${u}. Make sure the username is spelled correctly and is public.`; } else if (msg.startsWith('PROXY_FAILURE:')) { msg = `Network proxy connection failed while connecting to Letterboxd. Please check your internet connection or try again later.`; } if (el.formError) { el.formError.textContent = msg; el.formError.classList.remove('hidden'); } resetUI(); }
+        } catch (err) { if (el.progressSection) el.progressSection.classList.add('hidden'); let msg = err.message || ''; if (msg.startsWith('USER_NOT_FOUND:')) { const u = msg.split(':')[1]; msg = `Profile not found: ${u}. Make sure the username is spelled correctly and is public.`; } else if (msg.startsWith('PROXY_FAILURE:')) { msg = `Kunde inte nå Letterboxd via nätverks-proxy just nu. Kontrollera din internetanslutning eller försök igen om en stund.`; } if (el.formError) { el.formError.textContent = msg; el.formError.classList.remove('hidden'); } resetUI(); }
       });
     }
     // ── Actor Modal ──────────────────────────────────────────────────────────────
