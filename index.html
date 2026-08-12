@@ -4937,7 +4937,8 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       }
       if (!qNorm) return null;
       const nonPersonResults = results.filter(r => r.__mediaType !== 'person');
-      const candidateList = nonPersonResults.length > 0 ? nonPersonResults : results;
+      const moviesOnly = nonPersonResults.filter(r => r.__mediaType === 'movie');
+      const candidateList = (moviesOnly.length > 0 && queryObj.type !== 'tv') ? moviesOnly : (nonPersonResults.length > 0 ? nonPersonResults : results);
 
       const exactMatches = candidateList.filter(r => {
         const t = normalizeTitle(getResultTitle(r));
@@ -4952,10 +4953,10 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
             return d && Math.abs(parseInt(d.split('-')[0]) - qYear) <= 1;
           });
           if (exactYearMatches.length > 0) {
-            return exactYearMatches.sort((a, b) => (b.popularity || 0) - (a.popularity || 0) || (b.vote_count || 0) - (a.vote_count || 0))[0];
+            return exactYearMatches.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0];
           }
         }
-        return [...exactMatches].sort((a, b) => (b.popularity || 0) - (a.popularity || 0) || (b.vote_count || 0) - (a.vote_count || 0))[0];
+        return [...exactMatches].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0];
       }
 
       if (qYear) {
@@ -4964,7 +4965,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           return d && Math.abs(parseInt(d.split('-')[0]) - qYear) <= 1;
         });
         if (yearCandidates.length > 0) {
-          return yearCandidates.sort((a, b) => (b.popularity || 0) - (a.popularity || 0) || (b.vote_count || 0) - (a.vote_count || 0))[0];
+          return yearCandidates.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0];
         }
       }
 
@@ -4972,10 +4973,10 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       const filtered = candidateList.filter(r => {
         const t = normalizeTitle(getResultTitle(r));
         return [...qWords].some(w => t.includes(w));
-      }).sort((a, b) => (b.popularity || 0) - (a.popularity || 0) || (b.vote_count || 0) - (a.vote_count || 0));
+      }).sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0));
 
       if (filtered.length > 0) return filtered[0];
-      return [...candidateList].sort((a, b) => (b.popularity || 0) - (a.popularity || 0) || (b.vote_count || 0) - (a.vote_count || 0))[0] || null;
+      return [...candidateList].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0] || null;
     }
 
     function scoreSearchResult(item, queryRaw) {
@@ -5087,7 +5088,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
       return [...movieResults, ...tvResults];
     }
-    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v12'; // bumped: extraction now reads title/year/slug from the LazyPoster wrapper, not the empty inner placeholder
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v13'; // bumped: extraction now reads title/year/slug from the LazyPoster wrapper, not the empty inner placeholder
         window.clearTmdbCache = function() {
       try {
         localStorage.removeItem(TMDB_MATCH_CACHE_KEY);
