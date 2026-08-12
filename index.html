@@ -2127,6 +2127,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { if (scannedMovies.length > 0) { openInsightsPopup(); } el.statsBtn.blur(); }); }
     if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { const currentList = currentGroupedResults[activeTab] || []; if (currentList.length === 0) return; const randomIndex = Math.floor(Math.random() * currentList.length); openMoviePage(currentList[randomIndex]); }); }
     let trailerPlayer = null;
+    let isTrailerPaused = false;
 
     function ensureYouTubeApi(callback) {
       if (window.YT && window.YT.Player) {
@@ -3207,6 +3208,8 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       const allCast = details && details.credits && details.credits.cast ? details.credits.cast : [];
       const allCrew = details && details.credits && details.credits.crew ? details.credits.crew : [];
       window.currentMovieFullCredits = {
+        movieId: movieObj.id,
+        mediaType: movieObj.mediaType || (movieObj.first_air_date ? 'tv' : 'movie'),
         movieTitle: safeTitle,
         backdrop: (details && details.backdrop_path ? `https://image.tmdb.org/t/p/w1280${details.backdrop_path}` : movieObj.backdrop) || null,
         cast: allCast,
@@ -4110,6 +4113,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           ]);
         }
 
+        if (window.currentMoviePageObj !== movieObj) return;
         container.innerHTML = `<div id="moviePageInnerContent" class="opacity-0 transition-opacity duration-200">${generateFullMovieHTML(movieObj, details, true, 'lookup', true, collectionData)}</div>`;
         requestAnimationFrame(() => {
           const inner = document.getElementById('moviePageInnerContent');
@@ -4796,7 +4800,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : ''; const sort = el.filterSort ? el.filterSort.value : 'year_desc'; const genre = el.filterGenre ? el.filterGenre.value : 'all'; const decade = el.filterDecade ? el.filterDecade.value : 'all';
       const qNormFilter = normalizeTitle(query);
       let filtered = scannedMovies.filter(m => { const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter); const matchG = genre === 'all' || (m.genreIds && m.genreIds.some(id => GENRE_MAP[id] === genre)); const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade)); return matchQ && matchG && matchD; });
-      filtered.sort((a, b) => { if (sort === 'date_added') return (a.__scannedIndex !== undefined && b.__scannedIndex !== undefined) ? (a.__scannedIndex - b.__scannedIndex) : 0; if (sort === 'runtime_desc') return (b.runtime || 0) - (a.runtime || 0); if (sort === 'runtime_asc') return (a.runtime || 0) - (b.runtime || 0); if (sort === 'popularity') return getMoviePopularity(b) - getMoviePopularity(a); if (sort === 'az') return a.title.localeCompare(b.title); if (sort === 'za') return b.title.localeCompare(a.title); if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || 0)) - (parseFloat(getCachedRating(a) || 0)); if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || 0)) - (parseFloat(getCachedRating(b) || 0)); if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0'); if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(a.releaseDate || '9999'); return 0; });
+      filtered.sort((a, b) => { if (sort === 'date_added') return (a.__scannedIndex !== undefined && b.__scannedIndex !== undefined) ? (a.__scannedIndex - b.__scannedIndex) : 0; if (sort === 'runtime_desc') return (b.runtime || 0) - (a.runtime || 0); if (sort === 'runtime_asc') return (a.runtime || 0) - (b.runtime || 0); if (sort === 'popularity') return getMoviePopularity(b) - getMoviePopularity(a); if (sort === 'az') return a.title.localeCompare(b.title); if (sort === 'za') return b.title.localeCompare(a.title); if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || 0)) - (parseFloat(getCachedRating(a) || 0)); if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || 0)) - (parseFloat(getCachedRating(b) || 0)); if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0'); if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999'); return 0; });
       currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
       filtered.forEach(movie => {
         let regionData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData; let vpnInfo = null;
@@ -6001,6 +6005,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           ]);
         }
 
+        if (window.currentActorPageId !== actorId) return;
         container.innerHTML = `<div id="actorPageInnerContent" class="opacity-0 transition-opacity duration-200">${generateActorHTML(person, false, activeRole, true, true)}</div>`;
         requestAnimationFrame(() => {
           const inner = document.getElementById('actorPageInnerContent');
