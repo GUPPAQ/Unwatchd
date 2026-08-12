@@ -5387,17 +5387,27 @@
       }
       return best;
     }
-    const fetchProxyWithTimeout = async (proxyFn, targetUrl, timeoutMs = 4000) => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const raceProxies = async (targetUrl, validatorFn, timeoutMs = 6000) => {
+      const promises = CORS_PROXIES.map(async (proxyFn) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const url = proxyFn(targetUrl);
+          const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+          clearTimeout(timer);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          let txt = await res.text();
+          txt = unwrapProxyResponse(txt);
+          if (validatorFn(txt)) return txt;
+          throw new Error('Invalid content');
+        } catch (e) {
+          clearTimeout(timer);
+          throw e;
+        }
+      });
       try {
-        const res = await fetch(proxyFn(targetUrl), { cache: 'no-store', signal: controller.signal });
-        clearTimeout(timer);
-        if (!res.ok) return null;
-        let txt = await res.text();
-        return unwrapProxyResponse(txt);
-      } catch (e) {
-        clearTimeout(timer);
+        return await Promise.any(promises);
+      } catch (err) {
         return null;
       }
     };
@@ -5406,44 +5416,29 @@
       if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
       const cacheBust = Date.now();
 
-      // Engine 1: Try Letterboxd Watchlist RSS feed first (100% unblocked XML feed)
-      for (const proxy of CORS_PROXIES) {
-        try {
-          const rssTarget = `https://letterboxd.com/${targetUser}/watchlist/rss/?_=${cacheBust}`;
-          let rssTxt = await fetchProxyWithTimeout(proxy, rssTarget, 3500);
-          if (rssTxt && (rssTxt.includes('<item') || rssTxt.includes('<rss'))) {
-            const rssFilms = parseLetterboxdRSS(rssTxt);
-            if (rssFilms && rssFilms.length > 0) {
-              console.log(`[Letterboxd RSS Engine] Successfully fetched ${rssFilms.length} items from RSS feed!`);
-              return rssFilms;
-            }
-          }
-        } catch (e) {
-          console.warn('[Letterboxd RSS Fetch Attempt]', e);
+      // Engine 1: Race RSS Feed across all proxies in parallel
+      const rssTarget = `https://letterboxd.com/${targetUser}/watchlist/rss/?_=${cacheBust}`;
+      const rssTxt = await raceProxies(rssTarget, (txt) => txt && (txt.includes('<item') || txt.includes('<rss')), 5000);
+      if (rssTxt) {
+        const rssFilms = parseLetterboxdRSS(rssTxt);
+        if (rssFilms && rssFilms.length > 0) {
+          console.log(`[Letterboxd RSS Engine] Parallel race won! Extracted ${rssFilms.length} films from RSS.`);
+          return rssFilms;
         }
       }
 
-      // Engine 2: Fallback to HTML Watchlist Scraping
-      let page1Html = null; let successfulProxy = false;
-      for (const proxy of CORS_PROXIES) {
-        try {
-          const target = `https://letterboxd.com/${targetUser}/watchlist/page/1/?_=${cacheBust}`;
-          let txt = await fetchProxyWithTimeout(proxy, target, 4000);
-          if (txt && (txt.includes('letterboxd.com') || txt.includes('film-poster') || txt.includes('data-film-id'))) {
-            if (txt.includes('Page not found') || txt.includes('404 Not Found')) {
-              throw new Error(`USER_NOT_FOUND:${targetUser}`);
-            }
-            if (!isGenuineWatchlistPage(txt, targetUser)) continue;
-            page1Html = txt;
-            successfulProxy = true;
-            break;
-          }
-        } catch (e) {
-          console.warn('[Letterboxd Page 1 Fetch]', e);
-          if (e.message && e.message.startsWith('USER_NOT_FOUND')) throw e;
-        }
+      // Engine 2: Race HTML Watchlist Page 1 across all proxies in parallel
+      const htmlTarget = `https://letterboxd.com/${targetUser}/watchlist/page/1/?_=${cacheBust}`;
+      const page1Html = await raceProxies(htmlTarget, (txt) => {
+        if (!txt) return false;
+        if (txt.includes('Page not found') || txt.includes('404 Not Found')) return true; // Let downstream handle user not found
+        return isGenuineWatchlistPage(txt, targetUser);
+      }, 6000);
+
+      if (!page1Html) { throw new Error(`PROXY_FAILURE:${targetUser}`); }
+      if (page1Html.includes('Page not found') || page1Html.includes('404 Not Found')) {
+        throw new Error(`USER_NOT_FOUND:${targetUser}`);
       }
-      if (!successfulProxy || !page1Html) { throw new Error(`PROXY_FAILURE:${targetUser}`); }
 
       let totalPages = 1;
       try {
@@ -5459,16 +5454,10 @@
 
       const fetchSinglePage = async (page) => {
         if (page === 1) return page1Html;
-        for (const proxy of CORS_PROXIES) {
-          try {
-            const target = `https://letterboxd.com/${targetUser}/watchlist/page/${page}/?_=${cacheBust}`;
-            let txt = await fetchProxyWithTimeout(proxy, target, 4000);
-            if (txt && (txt.includes('letterboxd.com') || txt.includes('film-poster') || txt.includes('data-film-id')) && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser)) {
-              return txt;
-            }
-          } catch (e) { console.warn('[Letterboxd Page Proxy Fetch]', e); }
-        }
-        return null;
+        const target = `https://letterboxd.com/${targetUser}/watchlist/page/${page}/?_=${cacheBust}`;
+        return await raceProxies(target, (txt) => {
+          return txt && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser);
+        }, 5000);
       };
 
       const pagesToFetch = [];
