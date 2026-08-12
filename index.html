@@ -3174,7 +3174,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           const isCurrentMovie = m.id === movieObj.id;
           const recRating = getTmdbRating(m);
           const activeBorderClass = isCurrentMovie ? 'border border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : 'border border-white/5';
-          return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 ${isCurrentMovie ? '' : 'sm:hover:scale-[1.03]'}" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isCurrentMovie ? '' : (isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'}, '${mMediaType}')`)}">
+          return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 ${isCurrentMovie ? '' : 'sm:hover:scale-[1.03]'}" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isCurrentMovie ? '' : (isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`)}">
             <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 ${activeBorderClass} h-full">
               <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                 ${mPoster ? `<img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
@@ -3212,7 +3212,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           const mYear = mDate ? mDate.split('-')[0] : '';
           const isInWatchlist = watchlistIds.has(m.id);
           const recRating = getTmdbRating(m);
-          return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 sm:hover:scale-[1.03]" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '${mTitle.replace(/'/g, "\\'")}', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '${mTitle.replace(/'/g, "\\'")}', ${isModal ? 'false' : 'true'}, '${mMediaType}')`}">
+          return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 sm:hover:scale-[1.03]" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`}">
             <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full">
               <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                 <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">
@@ -3221,16 +3221,6 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
               ${recRating ? `<div class="absolute top-2.5 right-2.5 bg-black/85 px-2 py-0.5 rounded-lg text-[11px] font-black text-amber-400 border border-amber-500/30 shadow-lg z-20 flex items-center gap-1"><svg class="w-3 h-3 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${recRating}</div>` : ''}
               ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-black/85 w-6 h-6 rounded-md text-blue-400 border border-blue-500/30 shadow-lg flex items-center justify-center z-20" title="In Watchlist"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
-          </div>`;
-        }).join('');hite/5 h-full">
-              <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-                <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">
-                <div class="glare"></div>
-              </div>
-              ${recRating ? `<div class="absolute top-2.5 right-2.5 bg-black/85 px-2 py-0.5 rounded-lg text-[11px] font-black text-amber-400 border border-amber-500/30 shadow-lg z-20 flex items-center gap-1"><svg class="w-3 h-3 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${recRating}</div>` : ''}
-              ${isInWatchlist ? `<div class="absolute top-2.5 left-2.5 bg-black/85 w-6 h-6 rounded-md text-blue-400 border border-blue-500/30 shadow-lg flex items-center justify-center z-20" title="In Watchlist"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
-            </div>
-          </div>`;
         }).join('');
         const hasSimilarScroll = recs.length > 5;
         const similarScrollBtns = hasSimilarScroll
