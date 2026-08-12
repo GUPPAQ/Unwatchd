@@ -5612,6 +5612,19 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           const mediaType = m.media_type || (m.first_air_date ? 'tv' : 'movie');
           const key = `${mediaType}-${m.id}`;
           if (m.poster_path && mTitle && !seen.has(key)) {
+            const gIds = m.genre_ids || [];
+            const isTalkOrNews = gIds.includes(10767) || gIds.includes(10763);
+            const charStr = (m.character || '').trim();
+            const isSelfGuest = mediaType === 'tv' && (
+              charStr === 'Self' ||
+              charStr === 'Himself' ||
+              charStr === 'Herself' ||
+              charStr.startsWith('Self -') ||
+              charStr.includes('archive footage')
+            );
+            if (mediaType === 'tv' && (isTalkOrNews || isSelfGuest)) {
+              return;
+            }
             seen.add(key);
             allMovies.push({
               ...m,
