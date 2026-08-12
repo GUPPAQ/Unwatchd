@@ -3229,19 +3229,12 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       window.currentModalMovieId = requestId;
       let directors = [];
       if (isTvMedia && details) {
-        const createdBy = (details.created_by || []).map(c => ({
+        const seenD = new Set();
+        directors = (details.created_by || []).map(c => ({
           ...c,
           job: 'Creator',
           _role: 'Creator'
-        }));
-        const aggCrew = (details.aggregate_credits && Array.isArray(details.aggregate_credits.crew)) ? details.aggregate_credits.crew : [];
-        const tvDirectors = aggCrew.filter(c => c.jobs && c.jobs.some(j => j.job === 'Director')).map(c => ({
-          ...c,
-          job: 'Director',
-          _role: 'Director'
-        }));
-        const seenD = new Set();
-        directors = [...createdBy, ...tvDirectors].filter(d => {
+        })).filter(d => {
           if (!d.id || seenD.has(d.id)) return false;
           seenD.add(d.id);
           return true;
