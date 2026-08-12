@@ -2948,83 +2948,221 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       imgEl.replaceWith(heading);
     };
 
-                const FRANCHISE_GROUPS = [
-      // Dexter universe
-      [1405, 131927, 219937, 259909, 49530],
-      // Breaking Bad universe
-      [1396, 60059, 158704],
-      // Game of Thrones universe
-      [1399, 94997, 224372],
-      // Yellowstone universe
-      [73586, 118357, 157744, 157741],
-      // Big Bang Theory universe
-      [1418, 71728, 243875],
-      // Walking Dead universe
-      [1402, 62286, 194583, 211684, 206586],
-      // The Boys universe
-      [76479, 205715, 152483],
-      // Star Wars TV universe
-      [82856, 115036, 114461, 83867, 202879, 92830],
-      // Marvel MCU TV universe
-      [85271, 138501, 84958, 88396, 88329, 122226, 202555, 67178],
-      // DC / Peacemaker / Batman TV universe
-      [110492, 194764, 60708, 1412, 60735],
-      // Power universe
-      [54650, 97890, 124394, 119845],
-      // Star Trek universe
-      [655, 85949, 103516, 67198],
-      // CSI universe
-      [1431, 1620, 2458, 122194],
-      // NCIS universe
-      [4614, 17610, 61387, 124271, 243006],
-      // Law & Order universe
-      [549, 2734, 106158],
-      // Chicago universe
-      [44006, 58841, 62650],
-      // FBI universe
-      [80748, 94372, 121658],
-      // Suits universe
-      [37680, 85950, 259453],
-      // Bridgerton universe
-      [91239, 196454],
-      // The Office universe
-      [2316, 253941],
-      // Sons of Anarchy universe
-      [1409, 76231],
-      // Vampire Diaries universe
-      [18165, 46896, 79460],
-      // Avatar TLA universe
-      [82452, 33880],
-      // Money Heist universe
-      [71446, 146176]
+                    const FRANCHISE_GROUPS = [
+      // Breaking Bad Universe (TV + Movie)
+      [
+        { id: 1396, type: 'tv' },       // Breaking Bad
+        { id: 60059, type: 'tv' },      // Better Call Saul
+        { id: 559969, type: 'movie' },  // El Camino: A Breaking Bad Movie
+        { id: 158704, type: 'tv' }      // Slippin' Jimmy
+      ],
+      // Dexter Universe
+      [
+        { id: 1405, type: 'tv' },       // Dexter
+        { id: 131927, type: 'tv' },     // Dexter: New Blood
+        { id: 219937, type: 'tv' },     // Dexter: Original Sin
+        { id: 259909, type: 'tv' },     // Dexter: Resurrection
+        { id: 49530, type: 'tv' }       // Dexter: Early Cuts
+      ],
+      // Game of Thrones Universe
+      [
+        { id: 1399, type: 'tv' },       // Game of Thrones
+        { id: 94997, type: 'tv' },      // House of the Dragon
+        { id: 224372, type: 'tv' }      // A Knight of the Seven Kingdoms
+      ],
+      // Yellowstone Universe
+      [
+        { id: 73586, type: 'tv' },      // Yellowstone
+        { id: 118357, type: 'tv' },     // 1883
+        { id: 157744, type: 'tv' },     // 1923
+        { id: 157741, type: 'tv' }      // Landman
+      ],
+      // Batman & DC Universe (Movies + TV)
+      [
+        { id: 414906, type: 'movie' },  // The Batman
+        { id: 194764, type: 'tv' },     // The Penguin
+        { id: 436969, type: 'movie' },  // The Suicide Squad
+        { id: 110492, type: 'tv' },     // Peacemaker
+        { id: 60708, type: 'tv' }       // Gotham
+      ],
+      // Dune Universe (Movies + TV)
+      [
+        { id: 438631, type: 'movie' },  // Dune (2021)
+        { id: 693134, type: 'movie' },  // Dune: Part Two
+        { id: 93740, type: 'tv' }       // Dune: Prophecy
+      ],
+      // Star Wars Rogue One & Andor
+      [
+        { id: 330459, type: 'movie' },  // Rogue One: A Star Wars Story
+        { id: 83867, type: 'tv' }       // Andor
+      ],
+      // Big Bang Theory Universe
+      [
+        { id: 1418, type: 'tv' },       // Big Bang Theory
+        { id: 71728, type: 'tv' },      // Young Sheldon
+        { id: 243875, type: 'tv' }      // Georgie & Mandy
+      ],
+      // Walking Dead Universe
+      [
+        { id: 1402, type: 'tv' },
+        { id: 62286, type: 'tv' },
+        { id: 194583, type: 'tv' },
+        { id: 211684, type: 'tv' },
+        { id: 206586, type: 'tv' }
+      ],
+      // The Boys Universe
+      [
+        { id: 76479, type: 'tv' },
+        { id: 205715, type: 'tv' },
+        { id: 152483, type: 'tv' }
+      ],
+      // Firefly & Serenity (TV + Movie)
+      [
+        { id: 1437, type: 'tv' },       // Firefly
+        { id: 9334, type: 'movie' }     // Serenity
+      ],
+      // Deadwood (TV + Movie)
+      [
+        { id: 1407, type: 'tv' },       // Deadwood
+        { id: 501307, type: 'movie' }   // Deadwood: The Movie
+      ],
+      // Twin Peaks (TV + Movie)
+      [
+        { id: 1920, type: 'tv' },
+        { id: 60625, type: 'tv' },
+        { id: 1923, type: 'movie' }
+      ],
+      // Star Wars TV Universe
+      [
+        { id: 82856, type: 'tv' },      // The Mandalorian
+        { id: 115036, type: 'tv' },     // The Book of Boba Fett
+        { id: 114461, type: 'tv' },     // Ahsoka
+        { id: 83867, type: 'tv' },      // Andor
+        { id: 202879, type: 'tv' },     // Skeleton Crew
+        { id: 92830, type: 'tv' }       // Obi-Wan Kenobi
+      ],
+      // Marvel MCU TV Universe
+      [
+        { id: 85271, type: 'tv' },
+        { id: 138501, type: 'tv' },
+        { id: 84958, type: 'tv' },
+        { id: 88396, type: 'tv' },
+        { id: 88329, type: 'tv' },
+        { id: 122226, type: 'tv' },
+        { id: 202555, type: 'tv' },
+        { id: 67178, type: 'tv' }
+      ],
+      // Power Universe
+      [
+        { id: 54650, type: 'tv' },
+        { id: 97890, type: 'tv' },
+        { id: 124394, type: 'tv' },
+        { id: 119845, type: 'tv' }
+      ],
+      // Star Trek Universe
+      [
+        { id: 655, type: 'tv' },
+        { id: 85949, type: 'tv' },
+        { id: 103516, type: 'tv' },
+        { id: 67198, type: 'tv' }
+      ],
+      // CSI Universe
+      [
+        { id: 1431, type: 'tv' },
+        { id: 1620, type: 'tv' },
+        { id: 2458, type: 'tv' },
+        { id: 122194, type: 'tv' }
+      ],
+      // NCIS Universe
+      [
+        { id: 4614, type: 'tv' },
+        { id: 17610, type: 'tv' },
+        { id: 61387, type: 'tv' },
+        { id: 124271, type: 'tv' },
+        { id: 243006, type: 'tv' }
+      ],
+      // Law & Order Universe
+      [
+        { id: 549, type: 'tv' },
+        { id: 2734, type: 'tv' },
+        { id: 106158, type: 'tv' }
+      ],
+      // Chicago Universe
+      [
+        { id: 44006, type: 'tv' },
+        { id: 58841, type: 'tv' },
+        { id: 62650, type: 'tv' }
+      ],
+      // FBI Universe
+      [
+        { id: 80748, type: 'tv' },
+        { id: 94372, type: 'tv' },
+        { id: 121658, type: 'tv' }
+      ],
+      // Suits Universe
+      [
+        { id: 37680, type: 'tv' },
+        { id: 85950, type: 'tv' },
+        { id: 259453, type: 'tv' }
+      ],
+      // Bridgerton Universe
+      [
+        { id: 91239, type: 'tv' },
+        { id: 196454, type: 'tv' }
+      ],
+      // The Office Universe
+      [
+        { id: 2316, type: 'tv' },
+        { id: 253941, type: 'tv' }
+      ],
+      // Sons of Anarchy Universe
+      [
+        { id: 1409, type: 'tv' },
+        { id: 76231, type: 'tv' }
+      ],
+      // Vampire Diaries Universe
+      [
+        { id: 18165, type: 'tv' },
+        { id: 46896, type: 'tv' },
+        { id: 79460, type: 'tv' }
+      ],
+      // Avatar TLA Universe
+      [
+        { id: 82452, type: 'tv' },
+        { id: 33880, type: 'tv' }
+      ],
+      // Money Heist Universe
+      [
+        { id: 71446, type: 'tv' },
+        { id: 146176, type: 'tv' }
+      ]
     ];
 
     const TV_FRANCHISE_MAP = {};
     FRANCHISE_GROUPS.forEach(group => {
-      group.forEach(id => {
-        TV_FRANCHISE_MAP[id] = group.filter(otherId => otherId !== id);
+      group.forEach(item => {
+        TV_FRANCHISE_MAP[item.id] = group.filter(other => other.id !== item.id);
       });
     });
 
-    
     async function ensureFranchiseDetailsLoaded(movieObj, details) {
       if (!details || !movieObj) return;
-      const franchiseIds = TV_FRANCHISE_MAP[movieObj.id] || [];
-      if (franchiseIds.length === 0) return;
+      const franchiseItems = TV_FRANCHISE_MAP[movieObj.id] || [];
+      if (franchiseItems.length === 0) return;
 
       const recResults = (details.recommendations && details.recommendations.results) || [];
       const simResults = (details.similar && details.similar.results) || [];
       const existingIds = new Set([...recResults, ...simResults].map(m => m.id));
 
-      const missingIds = franchiseIds.filter(id => !existingIds.has(id));
-      if (missingIds.length > 0) {
+      const missingItems = franchiseItems.filter(item => !existingIds.has(item.id));
+      if (missingItems.length > 0) {
         const fetchedList = await Promise.all(
-          missingIds.map(id => fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_API_KEY}`).then(r => r.json()).catch(() => null))
+          missingItems.map(item => fetch(`https://api.themoviedb.org/3/${item.type}/${item.id}?api_key=${TMDB_API_KEY}`).then(r => r.json()).catch(() => null))
         );
         if (!details.recommendations) details.recommendations = { results: [] };
-        fetchedList.forEach(item => {
+        fetchedList.forEach((item, idx) => {
           if (item && item.id) {
-            item.media_type = 'tv';
+            item.media_type = missingItems[idx].type;
             details.recommendations.results.unshift(item);
           }
         });
@@ -3268,7 +3406,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           return dateA.localeCompare(dateB);
         });
         const watchlistIds = new Set(scannedMovies.map(m => m.id));
-        const collectionName = (collectionData && collectionData.name) || (details && details.belongs_to_collection && details.belongs_to_collection.name) || 'Related Films & Franchises';
+        const collectionName = (collectionData && collectionData.name) || (details && details.belongs_to_collection && details.belongs_to_collection.name) || 'Related Movies, Series & Franchises';
         const relatedCards = collectionParts.map((m) => {
           const mTitle = escapeHTML(m.title || m.name || '');
           const mMediaType = m.mediaType || m.media_type || (m.name && !m.title ? 'tv' : (movieObj.mediaType === 'tv' ? 'tv' : 'movie'));
@@ -3297,7 +3435,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           : '';
 
         const isTvItem = movieObj.mediaType === 'tv';
-        const sectionTitle = isTvItem ? (collectionName.includes('Franchise') || collectionName.includes('Series') ? collectionName : `Related Series & Franchises`) : collectionName;
+        const sectionTitle = isTvItem ? (collectionName.includes('Franchise') || collectionName.includes('Series') ? collectionName : `Related Movies, Series & Franchises`) : collectionName;
         const countLabel = isTvItem ? (collectionParts.length === 1 ? 'Series' : 'Series') : (collectionParts.length === 1 ? 'Film' : 'Films');
 
         relatedHtml = `<div class="space-y-2.5"><div class="flex items-center gap-2.5 flex-wrap"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-blue-400 flex items-center gap-2"><svg class="w-5 h-5 fill-current text-blue-400 shrink-0" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg><span>${escapeHTML(sectionTitle)}</span></h3><span class="bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>${collectionParts.length} ${countLabel}</span></div><div class="relative group/related">${relatedScrollBtns}<div id="relatedMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 px-0.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${relatedCards}</div></div></div>`;
