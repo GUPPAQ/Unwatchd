@@ -2948,6 +2948,27 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       imgEl.replaceWith(heading);
     };
 
+        const TV_FRANCHISE_MAP = {
+      // Breaking Bad universe
+      1396: [60059, 93405], 60059: [1396, 93405], 93405: [1396, 60059],
+      // Game of Thrones universe
+      1399: [94997, 215074], 94997: [1399, 215074], 215074: [1399, 94997],
+      // Yellowstone universe
+      73586: [118357, 136283], 118357: [73586, 136283], 136283: [73586, 118357],
+      // Big Bang Theory universe
+      1416: [71728, 220000], 71728: [1416, 220000], 220000: [1416, 71728],
+      // Walking Dead universe
+      1402: [62286, 153312, 157202, 203857], 62286: [1402, 153312, 157202, 203857], 153312: [1402, 62286, 157202, 203857], 157202: [1402, 62286, 153312, 203857], 203857: [1402, 62286, 153312, 157202],
+      // The Boys universe
+      76479: [205715, 157080], 205715: [76479, 157080], 157080: [76479, 205715],
+      // Star Wars series universe
+      82856: [92782, 114461, 114462, 114463], 92782: [82856, 114461, 114462], 114461: [82856, 92782, 114462], 114462: [82856, 92782, 114461],
+      // Marvel WandaVision / MCU series
+      85271: [88329, 92749, 92783], 88329: [85271, 92749], 92749: [85271, 88329],
+      // Office universe
+      2316: [11250], 11250: [2316]
+    };
+
     function generateFullMovieHTML(movieObj, details, isModal = false, context = 'lookup', isPage = false, collectionData = null) {
       const safeTitle = escapeHTML(movieObj.title || (details && details.title) || (details && details.name) || 'Untitled'); const year = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : 'N/A'; const runtime = details && details.runtime ? `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m` : ''; const genres = details && details.genres ? details.genres.map(g => escapeHTML(g.name)).slice(0, 3).join(' • ') : ''; const overview = details && details.overview ? escapeHTML(details.overview) : 'No synopsis available.';
       const titleLogo = getBestTitleLogo(details);
@@ -3144,11 +3165,30 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       let relatedHtml = '';
       let collectionParts = (collectionData && collectionData.parts) ? [...collectionData.parts] : [];
 
-      if (collectionParts.length === 0 && franchiseKey.length > 3) {
-        const franchiseParts = combinedRecs.filter(m => (m.title || m.name || '').toLowerCase().startsWith(franchiseKey) && m.id !== movieObj.id);
-        if (franchiseParts.length >= 1) {
+      if (collectionParts.length === 0) {
+        const tvFranchiseIds = TV_FRANCHISE_MAP[movieObj.id] || [];
+        const mappedTvParts = combinedRecs.filter(m => tvFranchiseIds.includes(m.id));
+
+        const mainTitleLower = safeTitle.toLowerCase();
+        const keywordParts = combinedRecs.filter(m => {
+          if (m.id === movieObj.id || tvFranchiseIds.includes(m.id)) return false;
+          const mNameLower = (m.name || m.title || '').toLowerCase();
+          const mOverviewLower = (m.overview || '').toLowerCase();
+
+          if (franchiseKey.length > 3 && mNameLower.startsWith(franchiseKey)) return true;
+          if (mNameLower.includes(mainTitleLower) || mainTitleLower.includes(mNameLower)) return true;
+
+          const franchiseWords = ['star wars', 'star trek', 'walking dead', 'yellowstone', 'chicago ', 'fbi:', 'fbi ', 'ncis', 'law & order', 'dragon', 'dune'];
+          for (const fw of franchiseWords) {
+            if (mainTitleLower.includes(fw) && mNameLower.includes(fw)) return true;
+          }
+          return false;
+        });
+
+        const combinedTvParts = [...mappedTvParts, ...keywordParts];
+        if (combinedTvParts.length >= 1) {
           const seenFIds = new Set();
-          collectionParts = [movieObj, ...franchiseParts].filter(m => {
+          collectionParts = [movieObj, ...combinedTvParts].filter(m => {
             if (seenFIds.has(m.id)) return false;
             seenFIds.add(m.id);
             return true;
