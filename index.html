@@ -3333,7 +3333,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         visibleFlatrate.forEach(p => { streamingHtml += makeProviderLink(p); });
       } else {
         const noSubText = cleanFlatrate.length > 0 ? 'Not available on your subscriptions' : 'Not available on subscription';
-        streamingHtml = `<div class="w-max max-w-full bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl flex items-center justify-center sm:justify-start"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
+        streamingHtml = `<div class="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-xl flex items-center justify-center text-center"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
       }
 
       let streamingHtmlDesktop = '';
@@ -3706,7 +3706,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       if (!data) return;
       const html = data.rentBuyCount > 0
         ? `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${data.rbLinksHtml}</div>`
-        : `<div class="w-max max-w-full bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Not available to rent or buy</p></div>`;
+        : `<div class="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-xl flex items-center justify-center text-center"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Not available to rent or buy</p></div>`;
       openCustomPopup(`Rent & Buy Options: ${data.title}`, html);
     };
 
