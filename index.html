@@ -1402,28 +1402,133 @@
         .replace(/\-\-+/g, '-')
         .replace(/^-+|-+$/g, '');
     }
-    function parseRouteInfo() {
+        const slugCacheMap = new Map();
+    function registerSlug(slug, id, type, role = '') {
+      if (slug && id) {
+        slugCacheMap.set(`${type}:${slug}`, { id, type, role });
+        slugCacheMap.set(slug, { id, type, role });
+      }
+    }
+        function parseRouteInfo() {
       const hash = window.location.hash || '';
       const path = window.location.pathname || '';
-      const route = hash || path;
-      if (!route) return null;
-      if (route.includes('film/') || route.includes('#movie-') || route.includes('/film/')) {
-        const isCast = route.includes('/cast') || route.includes('-cast');
-        const match = route.match(/(?:film\/|#movie-)(\d+)/);
-        if (match) return { type: isCast ? 'cast' : 'film', id: parseInt(match[1], 10) };
+      const rawRoute = (hash || path).replace(/^#/, '');
+      if (!rawRoute) return null;
+
+      const parts = rawRoute.split('/').filter(Boolean);
+      if (parts.length === 0) return null;
+
+      let category = parts[0].toLowerCase();
+      let rawSlug = parts[1] || '';
+      let subPath = parts[2] || '';
+
+      // Legacy fallback (e.g. #movie-122 or #actor-287)
+      if (category.startsWith('movie-')) {
+        const id = parseInt(category.replace('movie-', ''), 10);
+        if (!isNaN(id)) return { type: 'film', id, mediaType: 'movie' };
       }
-      const personMatch = route.match(/(?:actor\/|director\/|writer\/|producer\/|composer\/|#actor-)(\d+)/);
-      if (personMatch) {
+      if (category.startsWith('actor-')) {
+        const id = parseInt(category.replace('actor-', ''), 10);
+        if (!isNaN(id)) return { type: 'actor', id, role: 'Actor' };
+      }
+
+      if (!rawSlug && parts.length === 1) {
+        rawSlug = parts[0];
+        category = 'film';
+      }
+      if (!rawSlug) return null;
+
+      const isCast = subPath === 'cast' || rawSlug.endsWith('-cast');
+      const cleanSlug = rawSlug.replace(/-cast$/, '');
+
+      // Legacy/Numeric check (e.g. 122-pulp-fiction)
+      const numMatch = cleanSlug.match(/^(\d+)(?:-(.*))?$/);
+      if (numMatch) {
+        const id = parseInt(numMatch[1], 10);
+        if (category === 'film' || category === 'series' || category === 'movie') {
+          return { type: isCast ? 'cast' : 'film', id, mediaType: category === 'series' ? 'tv' : 'movie' };
+        }
         let role = 'Actor';
-        if (route.includes('director/')) role = 'Director';
-        else if (route.includes('writer/')) role = 'Writer';
-        else if (route.includes('producer/')) role = 'Producer';
-        else if (route.includes('composer/')) role = 'Composer';
-        return { type: 'actor', id: parseInt(personMatch[1], 10), role };
+        if (category === 'director') role = 'Director';
+        else if (category === 'writer') role = 'Writer';
+        else if (category === 'producer') role = 'Producer';
+        else if (category === 'composer') role = 'Composer';
+        return { type: 'actor', id, role };
       }
-      return null;
+
+      // Pure slug without numbers (e.g. pulp-fiction, brad-pitt)
+      let role = 'Actor';
+      if (category === 'director') role = 'Director';
+      else if (category === 'writer') role = 'Writer';
+      else if (category === 'producer') role = 'Producer';
+      else if (category === 'composer') role = 'Composer';
+
+      const cached = slugCacheMap.get(`${category}:${cleanSlug}`) || slugCacheMap.get(cleanSlug);
+      if (cached) {
+        return {
+          type: isCast ? 'cast' : (category === 'actor' || category === 'director' || category === 'writer' || category === 'producer' || category === 'composer' ? 'actor' : 'film'),
+          id: cached.id,
+          role: role || cached.role,
+          slug: cleanSlug,
+          category,
+          mediaType: category === 'series' ? 'tv' : 'movie'
+        };
+      }
+
+      return {
+        type: isCast ? 'cast' : (category === 'actor' || category === 'director' || category === 'writer' || category === 'producer' || category === 'composer' ? 'actor' : 'film'),
+        slug: cleanSlug,
+        category,
+        role,
+        mediaType: category === 'series' ? 'tv' : 'movie'
+      };
     }
-    const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
+
+    async function resolveRouteToId(routeInfo) {
+      if (!routeInfo) return null;
+      if (routeInfo.id) return routeInfo;
+      if (!routeInfo.slug) return routeInfo;
+
+      const slug = routeInfo.slug;
+      const category = routeInfo.category || '';
+
+      try {
+        if (category === 'actor' || category === 'director' || category === 'writer' || category === 'producer' || category === 'composer') {
+          const query = slug.replace(/-/g, ' ');
+          const res = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+          const data = await res.json();
+          if (data && data.results && data.results.length > 0) {
+            const match = data.results.find(p => slugify(p.name) === slug) || data.results[0];
+            routeInfo.id = match.id;
+            registerSlug(slug, match.id, 'actor', routeInfo.role);
+          }
+        } else if (category === 'series') {
+          const query = slug.replace(/-/g, ' ');
+          const res = await fetch(`https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+          const data = await res.json();
+          if (data && data.results && data.results.length > 0) {
+            const match = data.results.find(s => slugify(s.name || s.original_name) === slug) || data.results[0];
+            routeInfo.id = match.id;
+            routeInfo.mediaType = 'tv';
+            registerSlug(slug, match.id, 'series');
+          }
+        } else {
+          // 'film' or default
+          const query = slug.replace(/-/g, ' ');
+          const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+          const data = await res.json();
+          if (data && data.results && data.results.length > 0) {
+            const match = data.results.find(m => slugify(m.title || m.original_title) === slug) || data.results[0];
+            routeInfo.id = match.id;
+            routeInfo.mediaType = 'movie';
+            registerSlug(slug, match.id, 'film');
+          }
+        }
+      } catch (e) { console.warn('[Resolve Slug Route]', e); }
+
+      return routeInfo;
+    }
+const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     const ITEMS_PER_PAGE = 60;
     let currentRegion = localStorage.getItem('ps_region') || 'SE';
     let vpnModeEnabled = localStorage.getItem('ps_vpn_mode') === 'true';
@@ -2502,18 +2607,21 @@
     if (sharedMovieId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/movie/${sharedMovieId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(movie => { if (movie.id) { movie.__mediaType = 'movie'; el.quickSearchInput.value = movie.title; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(movie); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared Movie URL Fetch]', e); }); }
     else if (sharedTvId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/tv/${sharedTvId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(show => { if (show.id) { show.__mediaType = 'tv'; el.quickSearchInput.value = show.name; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(show); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared TV URL Fetch]', e); }); }
     else if (sharedActorId) { openActorPage(Number(sharedActorId)); window.history.replaceState({}, document.title, window.location.pathname); }
-    const initialRoute = parseRouteInfo();
-    if (initialRoute) {
-      if (initialRoute.type === 'film') {
-        const existing = scannedMovies.find(m => m.id === initialRoute.id);
-        if (existing) openMoviePage(existing, false); else openMoviePageById(initialRoute.id);
-      } else if (initialRoute.type === 'actor') {
-        openActorPage(initialRoute.id, '', initialRoute.role || '', false);
-      } else if (initialRoute.type === 'cast') {
-        const existing = scannedMovies.find(m => m.id === initialRoute.id);
-        if (existing) openMoviePage(existing, false); else openMoviePageById(initialRoute.id);
-        openFullCastModal(true);
-      }
+    const rawRoute = parseRouteInfo();
+    if (rawRoute) {
+      resolveRouteToId(rawRoute).then(initialRoute => {
+        if (!initialRoute || !initialRoute.id) return;
+        if (initialRoute.type === 'film') {
+          const existing = scannedMovies.find(m => m.id === initialRoute.id);
+          if (existing) openMoviePage(existing, false); else openMoviePageById(initialRoute.id, '', initialRoute.mediaType || 'movie');
+        } else if (initialRoute.type === 'actor') {
+          openActorPage(initialRoute.id, '', initialRoute.role || '', false);
+        } else if (initialRoute.type === 'cast') {
+          const existing = scannedMovies.find(m => m.id === initialRoute.id);
+          if (existing) openMoviePage(existing, false); else openMoviePageById(initialRoute.id, '', initialRoute.mediaType || 'movie');
+          openFullCastModal(true);
+        }
+      });
     }
     const DB_NAME = 'UnwatchdDB';
     const DB_VERSION = 1;
@@ -3724,7 +3832,9 @@
 
       if (pushHistory) {
         const slug = slugify(movieObj.title || '');
-        try { history.pushState({ moviePage: movieObj.id }, '', `#film/${movieObj.id}${slug ? '-' + slug : ''}`); } catch (e) { }
+        const mediaType = movieObj.mediaType === 'tv' ? 'series' : 'film';
+        if (slug) registerSlug(slug, movieObj.id, mediaType);
+        try { history.pushState({ moviePage: movieObj.id }, '', `#${mediaType}/${slug || movieObj.id}`); } catch (e) { }
       }
 
       try {
@@ -5555,7 +5665,8 @@
       if (actorId && person) {
         const slug = slugify(person.name || '');
         const prefix = `#${newRole.toLowerCase()}/`;
-        try { history.replaceState({ actorPage: actorId }, '', `${prefix}${actorId}${slug ? '-' + slug : ''}`); } catch (e) { }
+        if (slug) registerSlug(slug, actorId, 'actor', newRole);
+        try { history.replaceState({ actorPage: actorId }, '', `${prefix}${slug || actorId}`); } catch (e) { }
       }
 
       refreshActorFilmographyGrid();
@@ -5590,7 +5701,8 @@
         if (pushHistory) {
           const prefix = `#${activeRole.toLowerCase()}/`;
           const actorSlug = slugify(person.name || '');
-          try { history.pushState({ actorPage: actorId }, '', `${prefix}${actorId}${actorSlug ? '-' + actorSlug : ''}`); } catch (e) { }
+          if (actorSlug) registerSlug(actorSlug, actorId, 'actor', activeRole);
+          try { history.pushState({ actorPage: actorId }, '', `${prefix}${actorSlug || actorId}`); } catch (e) { }
         }
         const { watchlistMovies } = getActorMoviesList(person, false, activeRole);
         if (watchlistMovies.length === 0) actorMediaTypeFilter = 'all';
