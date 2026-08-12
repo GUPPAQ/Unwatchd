@@ -3227,7 +3227,30 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
 
       const requestId = movieObj.id;
       window.currentModalMovieId = requestId;
-      const directors = details && details.credits && details.credits.crew ? details.credits.crew.filter(c => c.job === 'Director') : [];
+      let directors = [];
+      if (isTvMedia && details) {
+        const createdBy = (details.created_by || []).map(c => ({
+          ...c,
+          job: 'Creator',
+          _role: 'Creator'
+        }));
+        const aggCrew = (details.aggregate_credits && Array.isArray(details.aggregate_credits.crew)) ? details.aggregate_credits.crew : [];
+        const tvDirectors = aggCrew.filter(c => c.jobs && c.jobs.some(j => j.job === 'Director')).map(c => ({
+          ...c,
+          job: 'Director',
+          _role: 'Director'
+        }));
+        const seenD = new Set();
+        directors = [...createdBy, ...tvDirectors].filter(d => {
+          if (!d.id || seenD.has(d.id)) return false;
+          seenD.add(d.id);
+          return true;
+        });
+      } else {
+        directors = details && details.credits && details.credits.crew
+          ? details.credits.crew.filter(c => c.job === 'Director').map(d => ({ ...d, _role: 'Director' }))
+          : [];
+      }
       const allCast = (details && details.aggregate_credits && Array.isArray(details.aggregate_credits.cast) && details.aggregate_credits.cast.length > 0)
         ? details.aggregate_credits.cast.map(c => ({
             ...c,
@@ -3245,7 +3268,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         directors: directors
       };
       const topCast = allCast.slice(0, 14);
-      const crewAndCast = [...directors.map(d => ({ ...d, _role: 'Director' })), ...topCast.map(c => ({ ...c, _role: c.character || '' }))];
+      const crewAndCast = [...directors, ...topCast.map(c => ({ ...c, _role: c.character || '' }))];
       const totalCastCount = directors.length + allCast.length;
       let castCrewHtml = '';
       if (crewAndCast.length > 0) {
