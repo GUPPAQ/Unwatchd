@@ -4009,8 +4009,6 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       }
     }
 
-    function checkOverviewOverflow() { }
-    function checkBioOverflow() { }
 
     const quickSearchHistoryStack = [];
     const watchlistModalHistoryStack = [];
@@ -4294,7 +4292,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; window.currentActiveMovieObj = null; };
           const backBtn = document.getElementById('movieBackBtn');
           if (backBtn) backBtn.onclick = navGoBack;
-          checkOverviewOverflow();
+          
           applyTiltToSimilarGrid();
           bindCastCrewDrag();
           scrollToQuickSearchResult();
@@ -4362,7 +4360,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         }
         await resolveTitleLogo(details);
         await ensureFranchiseDetailsLoaded(movieObj, details);
-        content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync', false, collectionData); verifyTitleLogos(); document.getElementById('closeModalBtn').onclick = closeModal; const movieBack = document.getElementById('movieBackBtn'); if (movieBack) movieBack.onclick = navGoBack; checkOverviewOverflow(); applyTiltToSimilarGrid(); bindCastCrewDrag(); const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0; const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0; content.scrollTop = 0;
+        content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync', false, collectionData); verifyTitleLogos(); document.getElementById('closeModalBtn').onclick = closeModal; const movieBack = document.getElementById('movieBackBtn'); if (movieBack) movieBack.onclick = navGoBack;  applyTiltToSimilarGrid(); bindCastCrewDrag(); const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0; const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0; content.scrollTop = 0;
       } catch (e) { console.warn('[Modal Detail Load]', e); content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
     }
 
