@@ -3381,8 +3381,9 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       let collectionParts = (collectionData && collectionData.parts) ? [...collectionData.parts] : [];
 
       if (collectionParts.length === 0) {
-        const tvFranchiseIds = TV_FRANCHISE_MAP[movieObj.id] || [];
-        const mappedTvParts = combinedRecs.filter(m => tvFranchiseIds.includes(m.id));
+        const franchiseItems = TV_FRANCHISE_MAP[movieObj.id] || [];
+        const franchiseIdSet = new Set(franchiseItems.map(item => typeof item === 'object' ? item.id : item));
+        const mappedTvParts = combinedRecs.filter(m => franchiseIdSet.has(m.id));
 
         const prefixParts = (franchiseKey.length > 3)
           ? combinedRecs.filter(m => (m.title || m.name || '').toLowerCase().startsWith(franchiseKey) && m.id !== movieObj.id)
