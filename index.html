@@ -4954,64 +4954,45 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         if (sm) qYear = parseInt(sm[1]);
       }
       if (!qNorm) return null;
-      const exactMatches = results.filter(r => normalizeTitle(getResultTitle(r)) === qNorm || normalizeTitle(getResultOriginalTitle(r)) === qNorm);
-      if (exactMatches.length === 1) {
+      const nonPersonResults = results.filter(r => r.__mediaType !== 'person');
+      const candidateList = nonPersonResults.length > 0 ? nonPersonResults : results;
+
+      const exactMatches = candidateList.filter(r => normalizeTitle(getResultTitle(r)) === qNorm || normalizeTitle(getResultOriginalTitle(r)) === qNorm);
+
+      if (exactMatches.length > 0) {
         if (qYear) {
-          const matchDate = getResultDate(exactMatches[0]);
-          if (matchDate) {
-            const matchYear = parseInt(matchDate.split('-')[0]);
-            if (!isNaN(matchYear) && Math.abs(matchYear - qYear) > 1) {
-            } else {
-              return exactMatches[0];
-            }
-          } else {
-            return exactMatches[0];
-          }
-        } else {
-          return exactMatches[0];
-        }
-      }
-      if (exactMatches.length > 1) {
-        if (qYear) {
-          const exactWithYear = exactMatches.find(r => getResultDate(r) && Math.abs(parseInt(getResultDate(r).split('-')[0]) - qYear) <= 1);
+          const exactWithYear = exactMatches.find(r => {
+            const d = getResultDate(r);
+            return d && Math.abs(parseInt(d.split('-')[0]) - qYear) <= 1;
+          });
           if (exactWithYear) return exactWithYear;
         }
-        if (queryObj.slug && !/-\d{4}$/.test(queryObj.slug)) {
-          const sortedByDate = [...exactMatches].filter(r => getResultDate(r)).sort((a, b) => {
-            const yA = parseInt(getResultDate(a).split('-')[0]) || 9999;
-            const yB = parseInt(getResultDate(b).split('-')[0]) || 9999;
-            return yA - yB;
-          });
-          if (sortedByDate.length > 0) return sortedByDate[0];
-        }
-        return [...exactMatches].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))[0];
+        // If no exact year match, sort exact title matches by popularity and return top
+        return [...exactMatches].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))[0];
       }
+
       if (qYear) {
-        const yearCandidates = results.filter(r => getResultDate(r) && Math.abs(parseInt(getResultDate(r).split('-')[0]) - qYear) <= 1);
-        if (yearCandidates.length) {
-          const exactTitleYear = yearCandidates.find(r => normalizeTitle(getResultTitle(r)) === qNorm || normalizeTitle(getResultOriginalTitle(r)) === qNorm);
-          if (exactTitleYear) return exactTitleYear;
-          const contains = yearCandidates.find(r => { const t = normalizeTitle(getResultTitle(r)); return t.includes(qNorm) || qNorm.includes(t); });
+        const yearCandidates = candidateList.filter(r => {
+          const d = getResultDate(r);
+          return d && Math.abs(parseInt(d.split('-')[0]) - qYear) <= 1;
+        });
+        if (yearCandidates.length > 0) {
+          const contains = yearCandidates.find(r => {
+            const t = normalizeTitle(getResultTitle(r));
+            return t.includes(qNorm) || qNorm.includes(t);
+          });
           if (contains) return contains;
-          const qWords = qNorm.split(' ').filter(w => w.length > 2);
-          const scored = yearCandidates.map(r => { const t = normalizeTitle(getResultTitle(r)); const shared = qWords.filter(w => t.includes(w)).length; return { r, shared }; }).sort((a, b) => b.shared - a.shared);
-          if (scored[0] && scored[0].shared > 0) return scored[0].r;
         }
       }
+
       const qWords = new Set(qNorm.split(' ').filter(w => w.length > 2));
-      const filtered = results.filter(r => {
+      const filtered = candidateList.filter(r => {
         const t = normalizeTitle(getResultTitle(r));
-        const words = t.split(' ');
-        return [...qWords].some(w => words.includes(w) || t.includes(w));
-      }).sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0));
+        return [...qWords].some(w => t.includes(w));
+      }).sort((a, b) => (b.popularity || 0) - (a.popularity || 0) || (b.vote_count || 0) - (a.vote_count || 0));
+
       if (filtered.length > 0) return filtered[0];
-      const top = [...results].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))[0];
-      if (top) {
-        const t = normalizeTitle(getResultTitle(top));
-        const shared = [...qWords].filter(w => t.includes(w)).length;
-        if (qWords.size === 0 || shared / qWords.size >= 0.5) return top;
-      }
-      return null;
+      return [...candidateList].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))[0] || null;
     }
 
     function scoreSearchResult(item, queryRaw) {
@@ -5123,7 +5104,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
       return [...movieResults, ...tvResults];
     }
-    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v9'; // bumped: extraction now reads title/year/slug from the LazyPoster wrapper, not the empty inner placeholder
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v10'; // bumped: extraction now reads title/year/slug from the LazyPoster wrapper, not the empty inner placeholder
     let tmdbMatchCache = new Map();
     try {
       const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
