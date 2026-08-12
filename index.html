@@ -2768,7 +2768,10 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       if (movieDetailsCache.has(cacheKey)) {
         return movieDetailsCache.get(cacheKey);
       }
-      const url = `https://api.themoviedb.org/3/${mediaType === 'tv' ? 'tv' : 'movie'}/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos,external_ids,recommendations,similar,watch/providers,images&include_image_language=en,null,sv`;
+      const appendParams = mediaType === 'tv'
+        ? 'credits,aggregate_credits,videos,external_ids,recommendations,similar,watch/providers,images'
+        : 'credits,videos,external_ids,recommendations,similar,watch/providers,images';
+      const url = `https://api.themoviedb.org/3/${mediaType === 'tv' ? 'tv' : 'movie'}/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=${appendParams}&include_image_language=en,null,sv`;
       try {
         const res = await fetch(url);
         const data = await res.json();
@@ -3205,7 +3208,12 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       const requestId = movieObj.id;
       window.currentModalMovieId = requestId;
       const directors = details && details.credits && details.credits.crew ? details.credits.crew.filter(c => c.job === 'Director') : [];
-      const allCast = details && details.credits && details.credits.cast ? details.credits.cast : [];
+      const allCast = (details && details.aggregate_credits && Array.isArray(details.aggregate_credits.cast) && details.aggregate_credits.cast.length > 0)
+        ? details.aggregate_credits.cast.map(c => ({
+            ...c,
+            character: (c.roles && c.roles[0] && c.roles[0].character) ? c.roles[0].character : (c.character || '')
+          }))
+        : (details && details.credits && details.credits.cast ? details.credits.cast : []);
       const allCrew = details && details.credits && details.credits.crew ? details.credits.crew : [];
       window.currentMovieFullCredits = {
         movieId: movieObj.id,
@@ -3403,8 +3411,8 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
 
       if (collectionParts.length > 1) {
         collectionParts.sort((a, b) => {
-          const dateA = a.release_date || a.first_air_date || a.releaseDate || '';
-          const dateB = b.release_date || b.first_air_date || b.releaseDate || '';
+          const dateA = a.release_date || a.first_air_date || a.releaseDate || '9999-99-99';
+          const dateB = b.release_date || b.first_air_date || b.releaseDate || '9999-99-99';
           return dateA.localeCompare(dateB);
         });
         const watchlistIds = new Set(scannedMovies.map(m => m.id));
