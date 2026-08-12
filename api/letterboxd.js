@@ -2,7 +2,7 @@ export const config = {
   runtime: 'edge',
 };
 
-export default async function handler(req) {
+export default async function (req) {
   const { searchParams } = new URL(req.url);
   const targetUrl = searchParams.get('url');
 
@@ -14,27 +14,11 @@ export default async function handler(req) {
   }
 
   try {
-    const parsed = new URL(targetUrl);
-    if (!parsed.hostname.endsWith('letterboxd.com')) {
-      return new Response(JSON.stringify({ error: 'Only letterboxd.com URLs are allowed' }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-  } catch (e) {
-    return new Response(JSON.stringify({ error: 'Invalid target URL' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
-  try {
     const res = await fetch(targetUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Cache-Control': 'no-cache'
+        'Accept-Language': 'en-US,en;q=0.9'
       }
     });
 
@@ -44,8 +28,7 @@ export default async function handler(req) {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'no-store, max-age=0'
+        'Content-Type': 'text/html; charset=utf-8'
       }
     });
   } catch (err) {
