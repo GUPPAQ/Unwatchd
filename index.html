@@ -4483,7 +4483,7 @@
                 else badgeLabel = 'ACTOR';
                 badgeColor = 'text-purple-400 border-purple-500/30';
               } else {
-                badgeLabel = 'MOVIE';
+                badgeLabel = 'FILM';
                 badgeColor = 'text-gray-400 border-gray-500/30';
               }
               const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR');
