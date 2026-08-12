@@ -4093,38 +4093,18 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       try {
         const mediaType = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
         const details = await getFullMovieDetails(movieObj.id, mediaType);
-        // Refine slug with full details to guarantee exact remake year matching (e.g. straw-dogs-2011 vs straw-dogs)
+        // Fast synchronous slug refinement without blocking extra network search fetches
         if (details) {
           const baseSlug = slugify(details.title || details.name || movieObj.title || '');
           const dateStr = details.release_date || details.first_air_date || movieObj.releaseDate || '';
           const mYear = dateStr ? dateStr.split('-')[0] : '';
-          let isRemakeOrNewer = false;
-          if (mYear && baseSlug) {
-            const scannedOlder = scannedMovies.some(m => {
-              if (m.id === movieObj.id) return false;
-              if (slugify(m.title) !== baseSlug) return false;
-              const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
-              return otherYear && parseInt(otherYear) < parseInt(mYear);
-            });
-            if (scannedOlder) {
-              isRemakeOrNewer = true;
-            } else {
-              try {
-                const checkRes = await fetch(`https://api.themoviedb.org/3/search/${mediaType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(baseSlug.replace(/-/g, ' '))}`);
-                const checkData = await checkRes.json();
-                if (checkData && checkData.results) {
-                  isRemakeOrNewer = checkData.results.some(r => {
-                    if (r.id === movieObj.id) return false;
-                    if (slugify(r.title || r.name) !== baseSlug) return false;
-                    const rDate = r.release_date || r.first_air_date;
-                    const rYear = rDate ? rDate.split('-')[0] : '';
-                    return rYear && parseInt(rYear) < parseInt(mYear);
-                  });
-                }
-              } catch (e) { }
-            }
-          }
-          const refinedSlug = isRemakeOrNewer && mYear ? `${baseSlug}-${mYear}` : baseSlug;
+          const scannedOlder = scannedMovies.some(m => {
+            if (m.id === movieObj.id) return false;
+            if (slugify(m.title) !== baseSlug) return false;
+            const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
+            return otherYear && mYear && parseInt(otherYear) < parseInt(mYear);
+          });
+          const refinedSlug = scannedOlder && mYear ? `${baseSlug}-${mYear}` : baseSlug;
           const mediaRoute = mediaType === 'tv' ? 'series' : 'film';
           if (refinedSlug) registerSlug(refinedSlug, movieObj.id, mediaRoute);
           if (pushHistory) {
@@ -4997,7 +4977,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       if (!qNorm) return null;
       const nonPersonResults = results.filter(r => r.__mediaType !== 'person');
       const moviesOnly = nonPersonResults.filter(r => r.__mediaType === 'movie');
-      const candidateList = (moviesOnly.length > 0 && queryObj.type !== 'tv') ? moviesOnly : (nonPersonResults.length > 0 ? nonPersonResults : results);
+      const candidateList = (queryObj.type === 'movie' && moviesOnly.length > 0) ? moviesOnly : (nonPersonResults.length > 0 ? nonPersonResults : results);
 
       const exactMatches = candidateList.filter(r => {
         const t = normalizeTitle(getResultTitle(r));
@@ -6050,7 +6030,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           const prefix = `#${activeRole.toLowerCase()}/`;
           const actorSlug = slugify(person.name || '');
           if (actorSlug) registerSlug(actorSlug, actorId, 'actor', activeRole);
-          try { history.pushState({ actorPage: actorId }, '', `${prefix}${actorSlug}`); } catch (e) { }
+          try { history.pushState({ actorPage: actorId }, '', `${prefix}${actorSlug || actorId}`); } catch (e) { }
         }
         const { watchlistMovies } = getActorMoviesList(person, false, activeRole);
         if (watchlistMovies.length === 0) actorMediaTypeFilter = 'all';
