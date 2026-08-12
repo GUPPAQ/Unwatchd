@@ -2881,22 +2881,30 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     // (not the DOM <img> tag's own onerror, which has proven unreliable for some TMDB entries).
     // Caches the definitive answer so generateFullMovieHTML's own getBestTitleLogo call — which
     // can't be made async — just reads the confirmed result instead of guessing.
+    function getDetailsCacheKey(details) {
+      if (!details || !details.id) return null;
+      const isTv = !!(details.first_air_date || details.number_of_seasons || details.name);
+      return `${isTv ? 'tv' : 'movie'}_${details.id}`;
+    }
+
     async function resolveTitleLogo(details) {
-      if (!details || !details.id) return;
-      if (validatedLogoCache.has(details.id)) return;
+      const key = getDetailsCacheKey(details);
+      if (!key) return;
+      if (validatedLogoCache.has(key)) return;
       try {
         const raw = getBestTitleLogoRaw(details);
-        if (!raw) { validatedLogoCache.set(details.id, null); return; }
+        if (!raw) { validatedLogoCache.set(key, null); return; }
         const ok = await preloadImageCheck(raw, 4000);
-        validatedLogoCache.set(details.id, ok ? raw : null);
+        validatedLogoCache.set(key, ok ? raw : null);
       } catch (err) {
         console.warn('[Title Logo Resolve]', err);
-        validatedLogoCache.set(details.id, null);
+        validatedLogoCache.set(key, null);
       }
     }
 
     function getBestTitleLogo(details) {
-      if (details && details.id && validatedLogoCache.has(details.id)) return validatedLogoCache.get(details.id);
+      const key = getDetailsCacheKey(details);
+      if (key && validatedLogoCache.has(key)) return validatedLogoCache.get(key);
       return getBestTitleLogoRaw(details);
     }
 
@@ -3300,7 +3308,6 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       const otherFlatrate = cleanFlatrate.filter(p => !selectedServiceIds.has(p.provider_id));
 
       const visibleFlatrate = userFlatrate.slice(0, 4);
-      const extraFlatrate = [...userFlatrate.slice(4), ...otherFlatrate];
 
       if (visibleFlatrate.length > 0) {
         visibleFlatrate.forEach(p => { streamingHtml += makeProviderLink(p); });
