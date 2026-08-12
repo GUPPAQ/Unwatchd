@@ -1490,11 +1490,15 @@
           }
         } else {
           // 'film' or default
-          const query = slug.replace(/-/g, ' ');
-          const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+          const yearMatch = slug.match(/-(\d{4})$/);
+          const targetYear = yearMatch ? yearMatch[1] : null;
+          const cleanSlug = targetYear ? slug.replace(/-\d{4}$/, '') : slug;
+          const query = cleanSlug.replace(/-/g, ' ');
+          const yearParam = targetYear ? `&primary_release_year=${targetYear}` : '';
+          const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}${yearParam}`);
           const data = await res.json();
           if (data && data.results && data.results.length > 0) {
-            const match = data.results.find(m => slugify(m.title || m.original_title) === slug) || data.results[0];
+            const match = data.results.find(m => slugify(m.title || m.original_title) === cleanSlug) || data.results[0];
             routeInfo.id = match.id;
             routeInfo.mediaType = 'movie';
             registerSlug(slug, match.id, 'film');
@@ -4065,7 +4069,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         const slug = slugify(movieObj.title || '');
         const mediaType = movieObj.mediaType === 'tv' ? 'series' : 'film';
         if (slug) registerSlug(slug, movieObj.id, mediaType);
-        try { history.pushState({ moviePage: movieObj.id }, '', `#${mediaType}/${slug || movieObj.id}`); } catch (e) { }
+        try { history.pushState({ moviePage: movieObj.id }, '', `#${mediaType}/${movieObj.id}-${slug || 'movie'}`); } catch (e) { }
       }
 
       try {
@@ -5978,7 +5982,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           const prefix = `#${activeRole.toLowerCase()}/`;
           const actorSlug = slugify(person.name || '');
           if (actorSlug) registerSlug(actorSlug, actorId, 'actor', activeRole);
-          try { history.pushState({ actorPage: actorId }, '', `${prefix}${actorSlug || actorId}`); } catch (e) { }
+          try { history.pushState({ actorPage: actorId }, '', `${prefix}${actorId}-${actorSlug || 'person'}`); } catch (e) { }
         }
         const { watchlistMovies } = getActorMoviesList(person, false, activeRole);
         if (watchlistMovies.length === 0) actorMediaTypeFilter = 'all';
