@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   const targetUrl = req.query.url;
   if (!targetUrl) {
     return res.status(400).json({ error: 'Missing url parameter' });
@@ -34,4 +34,4 @@ export default async function handler(req, res) {
     console.error('[Vercel Letterboxd Proxy Error]', err);
     return res.status(500).json({ error: err.message });
   }
-}
+};
