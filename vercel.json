@@ -7,10 +7,6 @@
     {
       "source": "/api/letterboxd",
       "destination": "/api/letterboxd.js"
-    },
-    {
-      "source": "/((?!api/).*)",
-      "destination": "/index.html"
     }
   ]
 }
