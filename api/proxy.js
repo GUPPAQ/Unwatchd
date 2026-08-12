@@ -1,7 +1,7 @@
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   const targetUrl = req.query.url;
   if (!targetUrl) {
-    return res.status(400).json({ error: 'Missing url parameter' });
+    return res.status(400).send('Missing url parameter');
   }
 
   try {
@@ -22,6 +22,6 @@ export default async function handler(req, res) {
     return res.status(response.status).send(text);
   } catch (err) {
     console.error('[Vercel CORS Proxy Error]', err);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).send(err.message);
   }
-}
+};
