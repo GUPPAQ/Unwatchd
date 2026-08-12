@@ -5273,14 +5273,6 @@
         return `<div class="p-10 text-center text-red-400">Error loading actor details.</div>`;
       }
       const isDirector = isPersonDirector(person, roleHint);
-      const actingCreditCount = person.movie_credits && person.movie_credits.cast
-        ? person.movie_credits.cast.filter(m => m.poster_path && m.title).length : 0;
-      const directingCreditCount = person.movie_credits && person.movie_credits.crew
-        ? person.movie_credits.crew.filter(m => m.poster_path && m.title && m.job === 'Director').length : 0;
-      // People with a real body of work on both sides (e.g. Eli Roth) get a toggle instead of the
-      // app silently picking one department and hiding the other entirely.
-      const hasDualRole = actingCreditCount >= 3 && directingCreditCount >= 2;
-      const roleToggleHtml = hasDualRole ? `<div class="inline-flex items-center p-1 bg-black/40 border border-white/10 rounded-full backdrop-blur-md"><button onclick="currentActorRoleHint='Actor'; actorModalWatchlistMode=false; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(${!isModal})" class="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all ${!isDirector ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'}">Actor</button><button onclick="currentActorRoleHint='Director'; actorModalWatchlistMode=false; actorCurrentPage=1; actorFilterQuery=''; actorFilterGenre='all'; actorFilterDecade='all'; actorFilterSort='popularity'; refreshActorFilmography(${!isModal})" class="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all ${isDirector ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'}">Director</button></div>` : '';
       const safeName = escapeHTML(person.name || 'Unknown');
       const profileImg = person.profile_path ? `https://image.tmdb.org/t/p/h632${person.profile_path}` : null;
       const birthday = person.birthday ? person.birthday : null;
@@ -5504,7 +5496,6 @@
                   ${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async" class="actor-hero-small-img hidden sm:block w-48 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 pointer-events-auto">` : `<div class="actor-hero-small-img hidden sm:flex w-48 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 pointer-events-auto">${safeName.charAt(0)}</div>`}
                   <div class="pointer-events-auto min-w-0 flex flex-col gap-1 sm:gap-2">
                     <h1 class="actor-hero-name text-3xl min-[400px]:text-4xl sm:text-7xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[0.98]">${safeName}</h1>
-                    ${roleToggleHtml ? `<div>${roleToggleHtml}</div>` : ''}
                     ${knownForTitle ? `<p class="actor-hero-known-for hidden sm:block text-sm sm:text-base font-medium text-gray-300 drop-shadow"><span class="text-blue-400 font-extrabold uppercase text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>` : ''}
                   </div>
                 </div>
