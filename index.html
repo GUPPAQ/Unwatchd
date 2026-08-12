@@ -4961,14 +4961,15 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
 
       if (exactMatches.length > 0) {
         if (qYear) {
-          const exactWithYear = exactMatches.find(r => {
+          const exactYearMatches = exactMatches.filter(r => {
             const d = getResultDate(r);
             return d && Math.abs(parseInt(d.split('-')[0]) - qYear) <= 1;
           });
-          if (exactWithYear) return exactWithYear;
+          if (exactYearMatches.length > 0) {
+            return exactYearMatches.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0];
+          }
         }
-        // If no exact year match, sort exact title matches by popularity and return top
-        return [...exactMatches].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))[0];
+        return [...exactMatches].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0];
       }
 
       if (qYear) {
@@ -4977,22 +4978,11 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           return d && Math.abs(parseInt(d.split('-')[0]) - qYear) <= 1;
         });
         if (yearCandidates.length > 0) {
-          const contains = yearCandidates.find(r => {
-            const t = normalizeTitle(getResultTitle(r));
-            return t.includes(qNorm) || qNorm.includes(t);
-          });
-          if (contains) return contains;
+          return yearCandidates.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0];
         }
       }
 
-      const qWords = new Set(qNorm.split(' ').filter(w => w.length > 2));
-      const filtered = candidateList.filter(r => {
-        const t = normalizeTitle(getResultTitle(r));
-        return [...qWords].some(w => t.includes(w));
-      }).sort((a, b) => (b.popularity || 0) - (a.popularity || 0) || (b.vote_count || 0) - (a.vote_count || 0));
-
-      if (filtered.length > 0) return filtered[0];
-      return [...candidateList].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))[0] || null;
+      return [...candidateList].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0] || null;
     }
 
     function scoreSearchResult(item, queryRaw) {
@@ -5104,7 +5094,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
       return [...movieResults, ...tvResults];
     }
-    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v10'; // bumped: extraction now reads title/year/slug from the LazyPoster wrapper, not the empty inner placeholder
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v11'; // bumped: extraction now reads title/year/slug from the LazyPoster wrapper, not the empty inner placeholder
     let tmdbMatchCache = new Map();
     try {
       const stored = localStorage.getItem(TMDB_MATCH_CACHE_KEY);
