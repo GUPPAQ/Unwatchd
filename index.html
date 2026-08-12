@@ -2948,29 +2948,110 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       imgEl.replaceWith(heading);
     };
 
-        const TV_FRANCHISE_MAP = {
+            const FRANCHISE_GROUPS = [
       // Breaking Bad universe
-      1396: [60059, 93405], 60059: [1396, 93405], 93405: [1396, 60059],
+      [1396, 60059, 93405, 197576],
       // Game of Thrones universe
-      1399: [94997, 215074], 94997: [1399, 215074], 215074: [1399, 94997],
+      [1399, 94997, 215074],
       // Yellowstone universe
-      73586: [118357, 136283], 118357: [73586, 136283], 136283: [73586, 118357],
+      [73586, 118357, 136283, 153443, 202029],
       // Big Bang Theory universe
-      1416: [71728, 220000], 71728: [1416, 220000], 220000: [1416, 71728],
+      [1416, 71728, 220000],
       // Walking Dead universe
-      1402: [62286, 153312, 157202, 203857], 62286: [1402, 153312, 157202, 203857], 153312: [1402, 62286, 157202, 203857], 157202: [1402, 62286, 153312, 203857], 203857: [1402, 62286, 153312, 157202],
+      [1402, 62286, 153312, 157202, 203857, 155200, 94305],
       // The Boys universe
-      76479: [205715, 157080], 205715: [76479, 157080], 157080: [76479, 205715],
-      // Star Wars series universe
-      82856: [92782, 114461, 114462, 114463], 92782: [82856, 114461, 114462], 114461: [82856, 92782, 114462], 114462: [82856, 92782, 114461],
-      // Marvel WandaVision / MCU series
-      85271: [88329, 92749, 92783], 88329: [85271, 92749], 92749: [85271, 88329],
-      // Office universe
-      2316: [11250], 11250: [2316]
-    };
+      [76479, 205715, 157080],
+      // Star Wars TV universe
+      [82856, 92782, 114461, 114462, 114463, 92749, 114464, 4194, 105971, 60554],
+      // Marvel MCU TV universe
+      [85271, 88329, 92749, 92783, 88328, 154587, 61889, 67178, 38472, 62126, 62127, 62250],
+      // DC / Batman / Peacemaker universe
+      [194764, 110492, 60708, 44217, 60735, 62688, 62643],
+      // Dexter universe
+      [1405, 117188, 242876],
+      // Power universe
+      [61550, 100010, 100011, 100012],
+      // Star Trek universe
+      [2009, 655, 580, 1855, 314, 67198, 85949, 103516, 85948],
+      // CSI universe
+      [1431, 1620, 2567, 61817, 124905],
+      // NCIS universe
+      [4614, 17610, 61379, 120999, 158141, 244583],
+      // Law & Order universe
+      [2734, 549, 103540],
+      // Chicago universe
+      [44006, 58841, 62650, 66782],
+      // FBI universe
+      [80748, 89247, 126485],
+      // Doctor Who universe
+      [57243, 2001, 4622],
+      // Suits universe
+      [37680, 88081, 246237],
+      // Bridgerton universe
+      [91363, 196136],
+      // The Office universe
+      [2316, 11250, 245084],
+      // Dune universe
+      [93740, 8388, 693134],
+      // Sons of Anarchy universe
+      [1409, 75805],
+      // Vampire Diaries universe
+      [18165, 48865, 79460],
+      // Avatar TLA universe
+      [456, 37854, 82452],
+      // Money Heist universe
+      [71446, 202250, 114868]
+    ];
+
+    const TV_FRANCHISE_MAP = {};
+    FRANCHISE_GROUPS.forEach(group => {
+      group.forEach(id => {
+        TV_FRANCHISE_MAP[id] = group.filter(otherId => otherId !== id);
+      });
+    });
+
+    
+    async function ensureFranchiseDetailsLoaded(movieObj, details) {
+      if (!details || !movieObj) return;
+      const franchiseIds = TV_FRANCHISE_MAP[movieObj.id] || [];
+      if (franchiseIds.length === 0) return;
+
+      const recResults = (details.recommendations && details.recommendations.results) || [];
+      const simResults = (details.similar && details.similar.results) || [];
+      const existingIds = new Set([...recResults, ...simResults].map(m => m.id));
+
+      const missingIds = franchiseIds.filter(id => !existingIds.has(id));
+      if (missingIds.length > 0) {
+        const fetchedList = await Promise.all(
+          missingIds.map(id => fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_API_KEY}`).then(r => r.json()).catch(() => null))
+        );
+        if (!details.recommendations) details.recommendations = { results: [] };
+        fetchedList.forEach(item => {
+          if (item && item.id) {
+            item.media_type = 'tv';
+            details.recommendations.results.unshift(item);
+          }
+        });
+      }
+    }
+
 
     function generateFullMovieHTML(movieObj, details, isModal = false, context = 'lookup', isPage = false, collectionData = null) {
-      const safeTitle = escapeHTML(movieObj.title || (details && details.title) || (details && details.name) || 'Untitled'); const year = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : 'N/A'; const runtime = details && details.runtime ? `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m` : ''; const genres = details && details.genres ? details.genres.map(g => escapeHTML(g.name)).slice(0, 3).join(' • ') : ''; const overview = details && details.overview ? escapeHTML(details.overview) : 'No synopsis available.';
+      const safeTitle = escapeHTML(movieObj.title || (details && details.title) || (details && details.name) || 'Untitled'); const year = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : 'N/A'; const isTvMedia = movieObj.mediaType === 'tv' || (details && details.number_of_episodes !== undefined);
+      let runtime = '';
+      if (isTvMedia && details) {
+        const seasons = details.number_of_seasons;
+        const episodes = details.number_of_episodes;
+        if (seasons && episodes) {
+          runtime = `${seasons} ${seasons === 1 ? 'Season' : 'Seasons'} • ${episodes} ${episodes === 1 ? 'Episode' : 'Episodes'}`;
+        } else if (episodes) {
+          runtime = `${episodes} ${episodes === 1 ? 'Episode' : 'Episodes'}`;
+        } else if (seasons) {
+          runtime = `${seasons} ${seasons === 1 ? 'Season' : 'Seasons'}`;
+        }
+      } else if (details && details.runtime) {
+        runtime = `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m`;
+      } const genres = details && details.genres ? details.genres.map(g => escapeHTML(g.name)).slice(0, 3).join(' • ') : ''; const overview = details && details.overview ? escapeHTML(details.overview) : 'No synopsis available.';
       const titleLogo = getBestTitleLogo(details);
       const titleHeaderHtml = titleLogo
         ? `<img src="${titleLogo}" alt="${safeTitle}" loading="eager" decoding="async" class="titleLogoImg max-h-20 sm:max-h-28 max-w-[280px] sm:max-w-[440px] object-contain mb-2 shrink-0" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`
@@ -3886,6 +3967,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         // Bail out quietly if the person has already navigated to a different movie while this was loading.
         if (window.currentMoviePageObj !== movieObj) return;
         await resolveTitleLogo(details);
+        await ensureFranchiseDetailsLoaded(movieObj, details);
         if (window.currentMoviePageObj !== movieObj) return;
         let collectionData = null;
         if (details && details.belongs_to_collection && details.belongs_to_collection.id) {
@@ -4071,6 +4153,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         el.quickSearchResult.classList.remove('hidden');
 
         getFullMovieDetails(movieObj.id, movieObj.mediaType).then(async details => {
+          await ensureFranchiseDetailsLoaded(movieObj, details);
           if (!window.currentActiveMovieObj || window.currentActiveMovieObj.id !== movieObj.id) return;
           let collectionData = null;
           if (details && details.belongs_to_collection && details.belongs_to_collection.id) {
@@ -4148,6 +4231,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           collectionData = await getCollectionDetails(details.belongs_to_collection.id);
         }
         await resolveTitleLogo(details);
+        await ensureFranchiseDetailsLoaded(movieObj, details);
         content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync', false, collectionData); verifyTitleLogos(); document.getElementById('closeModalBtn').onclick = closeModal; const movieBack = document.getElementById('movieBackBtn'); if (movieBack) movieBack.onclick = navGoBack; checkOverviewOverflow(); applyTiltToSimilarGrid(); bindCastCrewDrag(); const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0; const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0; content.scrollTop = 0;
       } catch (e) { console.warn('[Modal Detail Load]', e); content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
     }
