@@ -1556,11 +1556,9 @@
     const GENRE_MAP = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western' };
     function openStreamingService(webUrl, appUrl = null) { if (!isMobile || !appUrl || appUrl === 'null') { window.open(webUrl, "_blank"); return; } window.location.href = appUrl; setTimeout(() => { window.open(webUrl, "_blank"); }, 1200); }
     const CORS_PROXIES = [
-      (url) => `/api/letterboxd?url=${encodeURIComponent(url)}`,
-      (url) => `/api/letterboxd.js?url=${encodeURIComponent(url)}`,
-      (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
       (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-      (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`
+      (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
+      (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
     ];
     const TMDB_PROVIDER_CACHE_KEY = (region) => `ps_providers_${region}_v13`;
     const TMDB_PROVIDER_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -5060,6 +5058,60 @@
       return text;
     };
 
+    
+    const parseLetterboxdRSS = (xmlText) => {
+      if (!xmlText || typeof xmlText !== 'string') return null;
+      if (!xmlText.includes('<item') && !xmlText.includes('<rss')) return null;
+
+      try {
+        const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+        const items = Array.from(doc.querySelectorAll('item'));
+        if (!items || items.length === 0) return null;
+
+        const films = [];
+        items.forEach(item => {
+          const titleEl = item.querySelector('title');
+          const linkEl = item.querySelector('link');
+          const filmTitleEl = item.getElementsByTagName('letterboxd:filmTitle')[0] || item.querySelector('filmTitle');
+          const filmYearEl = item.getElementsByTagName('letterboxd:filmYear')[0] || item.querySelector('filmYear');
+
+          let rawTitle = titleEl ? titleEl.textContent.trim() : '';
+          let link = linkEl ? linkEl.textContent.trim() : '';
+          let title = filmTitleEl ? filmTitleEl.textContent.trim() : '';
+          let year = filmYearEl ? parseInt(filmYearEl.textContent.trim(), 10) : null;
+
+          if (!year && rawTitle) {
+            const m = rawTitle.match(/\((19\d\d|20\d\d)\)/);
+            if (m) year = parseInt(m[1], 10);
+          }
+
+          if (!title && rawTitle) {
+            title = rawTitle.replace(/\s*\((19\d\d|20\d\d)\)\s*$/, '').trim();
+          }
+
+          let slug = '';
+          if (link) {
+            const m = link.match(/\/film\/([^\/]+)/);
+            if (m) slug = m[1];
+          }
+
+          if (title) {
+            films.push({
+              title,
+              year,
+              slug,
+              filmId: slug || normalizeTitle(title)
+            });
+          }
+        });
+
+        return films.length > 0 ? films : null;
+      } catch (e) {
+        console.warn('[Letterboxd RSS Parse Error]', e);
+        return null;
+      }
+    };
+
     const isGenuineWatchlistPage = (rawHtml, targetUser) => {
       if (!rawHtml) return false;
       const html = unwrapProxyResponse(rawHtml);
@@ -5335,11 +5387,61 @@
       }
       return best;
     }
+    const fetchProxyWithTimeout = async (proxyFn, targetUrl, timeoutMs = 4000) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(proxyFn(targetUrl), { cache: 'no-store', signal: controller.signal });
+        clearTimeout(timer);
+        if (!res.ok) return null;
+        let txt = await res.text();
+        return unwrapProxyResponse(txt);
+      } catch (e) {
+        clearTimeout(timer);
+        return null;
+      }
+    };
+
     const fetchWatchlist = async (targetUser, labelPrefix) => {
-      let page1Html = null; let successfulProxy = false; if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
+      if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
       const cacheBust = Date.now();
+
+      // Engine 1: Try Letterboxd Watchlist RSS feed first (100% unblocked XML feed)
       for (const proxy of CORS_PROXIES) {
-        try { const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/1/?_=${cacheBust}`), { cache: 'no-store' }); if (res.ok) { let txt = await res.text(); txt = unwrapProxyResponse(txt); if (txt && (txt.includes('letterboxd.com') || txt.includes('film-poster') || txt.includes('data-film-id'))) { if (txt.includes('Page not found') || txt.includes('404 Not Found')) { throw new Error(`USER_NOT_FOUND:${targetUser}`); } if (!isGenuineWatchlistPage(txt, targetUser)) continue; page1Html = txt; successfulProxy = true; break; } } } catch (e) { console.warn('[Letterboxd Page 1 Fetch]', e); if (e.message.startsWith('USER_NOT_FOUND')) throw e; }
+        try {
+          const rssTarget = `https://letterboxd.com/${targetUser}/watchlist/rss/?_=${cacheBust}`;
+          let rssTxt = await fetchProxyWithTimeout(proxy, rssTarget, 3500);
+          if (rssTxt && (rssTxt.includes('<item') || rssTxt.includes('<rss'))) {
+            const rssFilms = parseLetterboxdRSS(rssTxt);
+            if (rssFilms && rssFilms.length > 0) {
+              console.log(`[Letterboxd RSS Engine] Successfully fetched ${rssFilms.length} items from RSS feed!`);
+              return rssFilms;
+            }
+          }
+        } catch (e) {
+          console.warn('[Letterboxd RSS Fetch Attempt]', e);
+        }
+      }
+
+      // Engine 2: Fallback to HTML Watchlist Scraping
+      let page1Html = null; let successfulProxy = false;
+      for (const proxy of CORS_PROXIES) {
+        try {
+          const target = `https://letterboxd.com/${targetUser}/watchlist/page/1/?_=${cacheBust}`;
+          let txt = await fetchProxyWithTimeout(proxy, target, 4000);
+          if (txt && (txt.includes('letterboxd.com') || txt.includes('film-poster') || txt.includes('data-film-id'))) {
+            if (txt.includes('Page not found') || txt.includes('404 Not Found')) {
+              throw new Error(`USER_NOT_FOUND:${targetUser}`);
+            }
+            if (!isGenuineWatchlistPage(txt, targetUser)) continue;
+            page1Html = txt;
+            successfulProxy = true;
+            break;
+          }
+        } catch (e) {
+          console.warn('[Letterboxd Page 1 Fetch]', e);
+          if (e.message && e.message.startsWith('USER_NOT_FOUND')) throw e;
+        }
       }
       if (!successfulProxy || !page1Html) { throw new Error(`PROXY_FAILURE:${targetUser}`); }
 
@@ -5359,12 +5461,10 @@
         if (page === 1) return page1Html;
         for (const proxy of CORS_PROXIES) {
           try {
-            const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/${page}/?_=${cacheBust}`), { cache: 'no-store' });
-            if (res.ok) {
-              let txt = await res.text(); txt = unwrapProxyResponse(txt);
-              if (txt && (txt.includes('letterboxd.com') || txt.includes('film-poster') || txt.includes('data-film-id')) && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser)) {
-                return txt;
-              }
+            const target = `https://letterboxd.com/${targetUser}/watchlist/page/${page}/?_=${cacheBust}`;
+            let txt = await fetchProxyWithTimeout(proxy, target, 4000);
+            if (txt && (txt.includes('letterboxd.com') || txt.includes('film-poster') || txt.includes('data-film-id')) && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser)) {
+              return txt;
             }
           } catch (e) { console.warn('[Letterboxd Page Proxy Fetch]', e); }
         }
