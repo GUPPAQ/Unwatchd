@@ -4742,8 +4742,8 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       const votes = typeof m.vote_count === 'number' ? m.vote_count : 0;
       const rating = parseFloat(m.rating || m.vote_average || 0) || 0;
 
-      // True Popularity Formula: Combines TMDB popularity/trending + vote count volume + rating acclaim
-      return (pop * 15) + (votes * 0.25) + (rating * 40);
+      // True Popularity Formula: Strong TMDB popularity weight + sqrt(votes) + squared rating
+      return (pop * 40) + (Math.sqrt(votes) * 12) + (Math.pow(rating, 2) * 8);
     }
 
     function createMovieCard(movieObj, delayIndex = 0) {
