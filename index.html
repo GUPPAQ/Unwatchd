@@ -5027,7 +5027,18 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         }
       });
     }
-    if (el.stopButton) el.stopButton.addEventListener('click', () => { if (isScanning) { cancelRequested = true; if (el.progressLabel) el.progressLabel.textContent = "Aborting search..."; } });
+    if (el.stopButton) {
+      el.stopButton.addEventListener('click', () => {
+        if (isScanning) {
+          cancelRequested = true;
+          isScanning = false;
+          if (el.progressSection) el.progressSection.classList.add('hidden');
+          if (el.progressLabel) el.progressLabel.textContent = '';
+          if (el.progressBar) el.progressBar.style.width = '0%';
+          resetUI();
+        }
+      });
+    }
     const isGenuineWatchlistPage = (html, targetUser) => { if (!html) return false; const doc = new DOMParser().parseFromString(html, 'text/html'); const title = (doc.title || '').toLowerCase(); const hasContainer = !!doc.querySelector('.poster-list'); const titleLooksRight = title.includes('watchlist') && title.includes(targetUser.toLowerCase()); return hasContainer || titleLooksRight; };
     function normalizeTitle(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
     function getFilmKey(obj) {
@@ -5529,9 +5540,12 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           for (let i = 0; i < titlesToProcess.length; i += BATCH_SIZE) {
             if (cancelRequested) break; const batch = titlesToProcess.slice(i, i + BATCH_SIZE); const pct = 15 + ((i / titlesToProcess.length) * 85);
             if (el.progressLabel) el.progressLabel.textContent = `Cross-referencing global database (${i + 1} of ${titlesToProcess.length})...`; if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%';
+            if (cancelRequested) break;
             await Promise.all(batch.map(async (qObj) => {
+              if (cancelRequested) return;
               try {
                 const best = await findBestMediaMatch(qObj);
+                if (cancelRequested || !best) return;
                 if (!best) return;
                 const mediaType = best.__mediaType === 'tv' ? 'tv' : 'movie';
                 const pUrl = `https://api.themoviedb.org/3/${mediaType}/${best.id}/watch/providers?api_key=${TMDB_API_KEY}`; const pRes = await fetch(pUrl); const pData = await pRes.json().catch(() => ({}));
