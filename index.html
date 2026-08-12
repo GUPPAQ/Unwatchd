@@ -2197,7 +2197,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       }
       const allCastModal = document.getElementById('allCastModal');
       const allCastModalOpen = allCastModal && !allCastModal.classList.contains('hidden');
-      const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); if (!modal) return; const isModalOpen = !modal.classList.contains('hidden');
+      const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); const isModalOpen = !!modal && !modal.classList.contains('hidden');
       if (e.key === 'Escape') {
         if (allCastModalOpen) { closeAllCastModal(); return; }
         if (actorModalOpen) { closeActorModal(); return; }
