@@ -2948,59 +2948,55 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       imgEl.replaceWith(heading);
     };
 
-            const FRANCHISE_GROUPS = [
-      // Breaking Bad universe
-      [1396, 60059, 93405, 197576],
-      // Game of Thrones universe
-      [1399, 94997, 215074],
-      // Yellowstone universe
-      [73586, 118357, 136283, 153443, 202029],
-      // Big Bang Theory universe
-      [1416, 71728, 220000],
-      // Walking Dead universe
-      [1402, 62286, 153312, 157202, 203857, 155200, 94305],
-      // The Boys universe
-      [76479, 205715, 157080],
-      // Star Wars TV universe
-      [82856, 92782, 114461, 114462, 114463, 92749, 114464, 4194, 105971, 60554],
-      // Marvel MCU TV universe
-      [85271, 88329, 92749, 92783, 88328, 154587, 61889, 67178, 38472, 62126, 62127, 62250],
-      // DC / Batman / Peacemaker universe
-      [194764, 110492, 60708, 44217, 60735, 62688, 62643],
+                const FRANCHISE_GROUPS = [
       // Dexter universe
-      [1405, 117188, 242876],
+      [1405, 131927, 219937, 259909, 49530],
+      // Breaking Bad universe
+      [1396, 60059, 158704],
+      // Game of Thrones universe
+      [1399, 94997, 224372],
+      // Yellowstone universe
+      [73586, 118357, 157744, 157741],
+      // Big Bang Theory universe
+      [1418, 71728, 243875],
+      // Walking Dead universe
+      [1402, 62286, 194583, 211684, 206586],
+      // The Boys universe
+      [76479, 205715, 152483],
+      // Star Wars TV universe
+      [82856, 115036, 114461, 83867, 202879, 92830],
+      // Marvel MCU TV universe
+      [85271, 138501, 84958, 88396, 88329, 122226, 202555, 67178],
+      // DC / Peacemaker / Batman TV universe
+      [110492, 194764, 60708, 1412, 60735],
       // Power universe
-      [61550, 100010, 100011, 100012],
+      [54650, 97890, 124394, 119845],
       // Star Trek universe
-      [2009, 655, 580, 1855, 314, 67198, 85949, 103516, 85948],
+      [655, 85949, 103516, 67198],
       // CSI universe
-      [1431, 1620, 2567, 61817, 124905],
+      [1431, 1620, 2458, 122194],
       // NCIS universe
-      [4614, 17610, 61379, 120999, 158141, 244583],
+      [4614, 17610, 61387, 124271, 243006],
       // Law & Order universe
-      [2734, 549, 103540],
+      [549, 2734, 106158],
       // Chicago universe
-      [44006, 58841, 62650, 66782],
+      [44006, 58841, 62650],
       // FBI universe
-      [80748, 89247, 126485],
-      // Doctor Who universe
-      [57243, 2001, 4622],
+      [80748, 94372, 121658],
       // Suits universe
-      [37680, 88081, 246237],
+      [37680, 85950, 259453],
       // Bridgerton universe
-      [91363, 196136],
+      [91239, 196454],
       // The Office universe
-      [2316, 11250, 245084],
-      // Dune universe
-      [93740, 8388, 693134],
+      [2316, 253941],
       // Sons of Anarchy universe
-      [1409, 75805],
+      [1409, 76231],
       // Vampire Diaries universe
-      [18165, 48865, 79460],
+      [18165, 46896, 79460],
       // Avatar TLA universe
-      [456, 37854, 82452],
+      [82452, 33880],
       // Money Heist universe
-      [71446, 202250, 114868]
+      [71446, 146176]
     ];
 
     const TV_FRANCHISE_MAP = {};
@@ -3250,23 +3246,11 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         const tvFranchiseIds = TV_FRANCHISE_MAP[movieObj.id] || [];
         const mappedTvParts = combinedRecs.filter(m => tvFranchiseIds.includes(m.id));
 
-        const mainTitleLower = safeTitle.toLowerCase();
-        const keywordParts = combinedRecs.filter(m => {
-          if (m.id === movieObj.id || tvFranchiseIds.includes(m.id)) return false;
-          const mNameLower = (m.name || m.title || '').toLowerCase();
-          const mOverviewLower = (m.overview || '').toLowerCase();
+        const prefixParts = (franchiseKey.length > 3)
+          ? combinedRecs.filter(m => (m.title || m.name || '').toLowerCase().startsWith(franchiseKey) && m.id !== movieObj.id)
+          : [];
 
-          if (franchiseKey.length > 3 && mNameLower.startsWith(franchiseKey)) return true;
-          if (mNameLower.includes(mainTitleLower) || mainTitleLower.includes(mNameLower)) return true;
-
-          const franchiseWords = ['star wars', 'star trek', 'walking dead', 'yellowstone', 'chicago ', 'fbi:', 'fbi ', 'ncis', 'law & order', 'dragon', 'dune'];
-          for (const fw of franchiseWords) {
-            if (mainTitleLower.includes(fw) && mNameLower.includes(fw)) return true;
-          }
-          return false;
-        });
-
-        const combinedTvParts = [...mappedTvParts, ...keywordParts];
+        const combinedTvParts = [...mappedTvParts, ...prefixParts];
         if (combinedTvParts.length >= 1) {
           const seenFIds = new Set();
           collectionParts = [movieObj, ...combinedTvParts].filter(m => {
