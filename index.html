@@ -1141,15 +1141,16 @@
           </button>
         </div>
         <div class="grid grid-cols-3 gap-2 w-full lg:w-auto lg:flex lg:items-center">
-          <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="sortLabel">Newest
-              First</span><select id="resultsSort" class="filter-select w-full lg:w-auto">
-              <option value="year_desc" selected>Newest First</option>
-              <option value="popularity">Popular</option>
-              <option value="az">A-Z</option>
-              <option value="za">Z-A</option>
+          <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="sortLabel">Recently
+              Added</span><select id="resultsSort" class="filter-select w-full lg:w-auto">
+              <option value="date_added" selected>Recently Added</option>
+              <option value="year_desc">Release Year (Newest)</option>
+              <option value="year_asc">Release Year (Oldest)</option>
+              <option value="popularity">Popularity</option>
               <option value="rating_desc">Highest Rated</option>
               <option value="rating_asc">Lowest Rated</option>
-              <option value="year_asc">Oldest First</option>
+              <option value="az">A-Z</option>
+              <option value="za">Z-A</option>
             </select></div>
           <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="genreLabel">All
               Genres</span><select id="resultsGenre" class="filter-select w-full lg:w-auto">
@@ -4790,10 +4791,10 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     function updateStats() { if (scannedMovies.length === 0) { if (el.statsBar) el.statsBar.classList.add('hidden'); return; } document.getElementById('stat-total').textContent = scannedMovies.length; let genreCounts = {}; let decadeCounts = {}; let totalRating = 0; let ratedCount = 0; scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genreCounts[GENRE_MAP[id]] = (genreCounts[GENRE_MAP[id]] || 0) + 1; }); if (m.releaseDate) { const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10; if (!isNaN(dec)) decadeCounts[dec] = (decadeCounts[dec] || 0) + 1; } const rVal = getCachedRating(m); if (rVal) { const r = parseFloat(rVal); if (!isNaN(r) && r > 0) { totalRating += r; ratedCount++; } } }); const topG = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a])[0] || '-'; const topD = Object.keys(decadeCounts).sort((a, b) => decadeCounts[b] - decadeCounts[a])[0]; const avg = ratedCount ? (totalRating / ratedCount).toFixed(1) : '-'; document.getElementById('stat-genre').textContent = topG; document.getElementById('stat-decade').innerHTML = topD ? `${topD}S` : '-'; const avgEl = document.getElementById('stat-avg'); if (avgEl) avgEl.textContent = avg; }
     function populateFilterDropdowns() { const genresSet = new Set(); const decadesSet = new Set(); scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genresSet.add(GENRE_MAP[id]); }); if (m.releaseDate) decadesSet.add(Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10); }); if (el.filterGenre) { el.filterGenre.innerHTML = '<option value="all">All Genres</option>'; Array.from(genresSet).sort().forEach(g => { el.filterGenre.innerHTML += `<option value="${g}">${g}</option>`; }); syncFilterLabel(el.filterGenre); } if (el.filterDecade) { el.filterDecade.innerHTML = '<option value="all">All Decades</option>'; Array.from(decadesSet).sort((a, b) => b - a).forEach(d => { if (!isNaN(d)) el.filterDecade.innerHTML += `<option value="${d}">${d}s</option>`; }); syncFilterLabel(el.filterDecade); } }
     function applyFiltersAndRender() {
-      const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : ''; const sort = el.filterSort ? el.filterSort.value : 'year_desc'; const genre = el.filterGenre ? el.filterGenre.value : 'all'; const decade = el.filterDecade ? el.filterDecade.value : 'all';
+      const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : ''; const sort = el.filterSort ? el.filterSort.value : 'date_added'; const genre = el.filterGenre ? el.filterGenre.value : 'all'; const decade = el.filterDecade ? el.filterDecade.value : 'all';
       const qNormFilter = normalizeTitle(query);
       let filtered = scannedMovies.filter(m => { const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter); const matchG = genre === 'all' || (m.genreIds && m.genreIds.some(id => GENRE_MAP[id] === genre)); const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade)); return matchQ && matchG && matchD; });
-      filtered.sort((a, b) => { if (sort === 'popularity') return getMoviePopularity(b) - getMoviePopularity(a); if (sort === 'az') return a.title.localeCompare(b.title); if (sort === 'za') return b.title.localeCompare(a.title); if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || 0)) - (parseFloat(getCachedRating(a) || 0)); if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || 0)) - (parseFloat(getCachedRating(b) || 0)); if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0'); if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(a.releaseDate || '9999'); return 0; });
+      filtered.sort((a, b) => { if (sort === 'date_added') return (a.__scannedIndex !== undefined && b.__scannedIndex !== undefined) ? (a.__scannedIndex - b.__scannedIndex) : 0; if (sort === 'popularity') return getMoviePopularity(b) - getMoviePopularity(a); if (sort === 'az') return a.title.localeCompare(b.title); if (sort === 'za') return b.title.localeCompare(a.title); if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || 0)) - (parseFloat(getCachedRating(a) || 0)); if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || 0)) - (parseFloat(getCachedRating(b) || 0)); if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0'); if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(a.releaseDate || '9999'); return 0; });
       currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
       filtered.forEach(movie => {
         let regionData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData; let vpnInfo = null;
@@ -5468,7 +5469,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
                 }
                 const bestTitle = getResultTitle(best);
                 const bestDate = getResultDate(best);
-                scannedMovies.push({ id: best.id, mediaType, title: bestTitle, poster: best.poster_path ? `https://image.tmdb.org/t/p/w500${best.poster_path}` : null, backdrop: best.backdrop_path ? `https://image.tmdb.org/t/p/w1280${best.backdrop_path}` : null, rating: best.vote_average ? best.vote_average.toFixed(1) : null, releaseDate: bestDate, popularity: typeof best.popularity === 'number' ? best.popularity : 0, vote_count: typeof best.vote_count === 'number' ? best.vote_count : 0, genreIds: best.genre_ids || [], url: (optimizedProviders[currentRegion] && optimizedProviders[currentRegion].link) ? optimizedProviders[currentRegion].link : `https://www.themoviedb.org/${mediaType}/${best.id}`, allProviders: optimizedProviders });
+                scannedMovies.push({ __scannedIndex: scannedMovies.length, id: best.id, mediaType, title: bestTitle, poster: best.poster_path ? `https://image.tmdb.org/t/p/w500${best.poster_path}` : null, backdrop: best.backdrop_path ? `https://image.tmdb.org/t/p/w1280${best.backdrop_path}` : null, rating: best.vote_average ? best.vote_average.toFixed(1) : null, releaseDate: bestDate, popularity: typeof best.popularity === 'number' ? best.popularity : 0, vote_count: typeof best.vote_count === 'number' ? best.vote_count : 0, genreIds: best.genre_ids || [], url: (optimizedProviders[currentRegion] && optimizedProviders[currentRegion].link) ? optimizedProviders[currentRegion].link : `https://www.themoviedb.org/${mediaType}/${best.id}`, allProviders: optimizedProviders });
               } catch (e) { console.warn('[TMDB Watch Provider Scan Fetch]', e); }
             })); await new Promise(r => setTimeout(r, TMDB_REQUEST_DELAY_MS));
           }
