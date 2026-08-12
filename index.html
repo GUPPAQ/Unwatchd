@@ -1555,11 +1555,10 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     const GENRE_MAP = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western' };
     function openStreamingService(webUrl, appUrl = null) { if (!isMobile || !appUrl || appUrl === 'null') { window.open(webUrl, "_blank"); return; } window.location.href = appUrl; setTimeout(() => { window.open(webUrl, "_blank"); }, 1200); }
     const CORS_PROXIES = [
+      (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
       (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
       (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-      (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
-      (url) => `https://thingproxy.freeboard.io/fetch/${url}`,
-      (url) => `https://cors-proxy.htmldriven.com/?url=${encodeURIComponent(url)}`
+      (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`
     ];
     const TMDB_PROVIDER_CACHE_KEY = (region) => `ps_providers_${region}_v13`;
     const TMDB_PROVIDER_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -5045,7 +5044,37 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
         }
       });
     }
-    const isGenuineWatchlistPage = (html, targetUser) => { if (!html) return false; const doc = new DOMParser().parseFromString(html, 'text/html'); const title = (doc.title || '').toLowerCase(); const hasContainer = !!doc.querySelector('.poster-list'); const titleLooksRight = title.includes('watchlist') && title.includes(targetUser.toLowerCase()); return hasContainer || titleLooksRight; };
+    const unwrapProxyResponse = (text) => {
+      if (!text || typeof text !== 'string') return '';
+      const trimmed = text.trim();
+      if (trimmed.startsWith('{') && trimmed.includes('"contents"')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          return parsed.contents || text;
+        } catch (e) {
+          return text;
+        }
+      }
+      return text;
+    };
+
+    const isGenuineWatchlistPage = (rawHtml, targetUser) => {
+      if (!rawHtml) return false;
+      const html = unwrapProxyResponse(rawHtml);
+      if (!html || typeof html !== 'string') return false;
+      const lower = html.toLowerCase();
+      if (lower.includes('page not found') || lower.includes('404 not found')) return false;
+      if (lower.includes('film-poster') || lower.includes('data-film-id') || lower.includes('poster-list')) return true;
+      try {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const title = (doc.title || '').toLowerCase();
+        const hasContainer = !!doc.querySelector('.poster-list, ul.poster-list, .film-poster');
+        const titleLooksRight = title.includes('watchlist') || (targetUser && title.includes(targetUser.toLowerCase()));
+        return hasContainer || titleLooksRight;
+      } catch (e) {
+        return false;
+      }
+    };
     function normalizeTitle(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
     function getFilmKey(obj) {
       if (obj.filmId) return 'lb-' + obj.filmId;
@@ -5308,7 +5337,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       let page1Html = null; let successfulProxy = false; if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
       const cacheBust = Date.now();
       for (const proxy of CORS_PROXIES) {
-        try { const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/1/?_=${cacheBust}`), { cache: 'no-store' }); if (res.ok) { const txt = await res.text(); if (txt && txt.includes('letterboxd.com')) { if (txt.includes('Page not found') || txt.includes('404 Not Found')) { throw new Error(`USER_NOT_FOUND:${targetUser}`); } if (!isGenuineWatchlistPage(txt, targetUser)) continue; page1Html = txt; successfulProxy = true; break; } } } catch (e) { console.warn('[Letterboxd Page 1 Fetch]', e); if (e.message.startsWith('USER_NOT_FOUND')) throw e; }
+        try { const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/1/?_=${cacheBust}`), { cache: 'no-store' }); if (res.ok) { let txt = await res.text(); txt = unwrapProxyResponse(txt); if (txt && (txt.includes('letterboxd.com') || txt.includes('film-poster') || txt.includes('data-film-id'))) { if (txt.includes('Page not found') || txt.includes('404 Not Found')) { throw new Error(`USER_NOT_FOUND:${targetUser}`); } if (!isGenuineWatchlistPage(txt, targetUser)) continue; page1Html = txt; successfulProxy = true; break; } } } catch (e) { console.warn('[Letterboxd Page 1 Fetch]', e); if (e.message.startsWith('USER_NOT_FOUND')) throw e; }
       }
       if (!successfulProxy || !page1Html) { throw new Error(`PROXY_FAILURE:${targetUser}`); }
 
@@ -5330,8 +5359,8 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
           try {
             const res = await fetch(proxy(`https://letterboxd.com/${targetUser}/watchlist/page/${page}/?_=${cacheBust}`), { cache: 'no-store' });
             if (res.ok) {
-              const txt = await res.text();
-              if (txt && txt.includes('letterboxd.com') && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser)) {
+              let txt = await res.text(); txt = unwrapProxyResponse(txt);
+              if (txt && (txt.includes('letterboxd.com') || txt.includes('film-poster') || txt.includes('data-film-id')) && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser)) {
                 return txt;
               }
             }
