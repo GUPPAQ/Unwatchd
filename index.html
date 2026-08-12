@@ -3860,9 +3860,9 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       }
     }
 
-    async function openMoviePageById(movieId, movieTitle = '', mediaType = 'movie') {
+    async function openMoviePageById(movieId, movieTitle = '', mediaType = 'movie', pushHistory = true) {
       const existing = scannedMovies.find(m => m.id === movieId && (m.mediaType || 'movie') === mediaType);
-      if (existing) { openMoviePage(existing); return; }
+      if (existing) { openMoviePage(existing, pushHistory); return; }
       try {
         const endpoint = mediaType === 'tv' ? 'tv' : 'movie';
         const res = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
@@ -3889,7 +3889,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
             movieObj.allProviders = pData.results;
           }
         } catch (pe) { console.warn('[Movie/TV Page Providers Fetch]', pe); }
-        openMoviePage(movieObj);
+        openMoviePage(movieObj, pushHistory);
       } catch (e) { console.error('[Movie Page By Id]', e); }
     }
 
@@ -3902,8 +3902,11 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
 
     function closeMoviePage() {
       clearQuickSearchInput();
-      if (location.hash.startsWith('#movie-')) { history.back(); }
-      else { hideMoviePageView(); }
+      if (window.location.hash) {
+        history.back();
+      } else {
+        hideMoviePageView();
+      }
     }
 
     function hideMoviePageView() {
@@ -4465,7 +4468,7 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       wrapper.style.animationDelay = `${delayIndex * 0.02}s`;
       const a = document.createElement('a');
       a.href = movieObj.url;
-      a.addEventListener('click', (e) => { e.preventDefault(); openMoviePage(movieObj); });
+      a.addEventListener('click', (e) => { e.preventDefault(); openMoviePage(movieObj, true); });
       a.className = 'tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full';
       const innerClip = document.createElement('div');
       innerClip.className = 'absolute inset-0 rounded-2xl overflow-hidden pointer-events-none';
@@ -5675,6 +5678,8 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     async function openActorPage(actorId, actorName = '', roleHint = '', pushHistory = true) {
       const container = document.getElementById('actorPageView');
       if (!container || !actorId) return;
+      hideMoviePageView();
+      hideAllCastModalView();
       stopHeroVideo();
 
       window.currentActorPageId = actorId;
@@ -5718,8 +5723,11 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
 
     function closeActorPage() {
       clearQuickSearchInput();
-      if (location.hash.startsWith('#actor-')) { history.back(); }
-      else { hideActorPageView(); }
+      if (window.location.hash) {
+        history.back();
+      } else {
+        hideActorPageView();
+      }
     }
 
     function hideActorPageView() {
