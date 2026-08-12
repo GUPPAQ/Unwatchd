@@ -3897,15 +3897,16 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
       hideMoviePageView();
       hideActorPageView();
       clearQuickSearchInput();
-      try { history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch (e) { }
+      if (window.location.hash) {
+        history.back();
+      }
     }
 
     function closeMoviePage() {
       clearQuickSearchInput();
+      hideMoviePageView();
       if (window.location.hash) {
         history.back();
-      } else {
-        hideMoviePageView();
       }
     }
 
@@ -5723,10 +5724,9 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
 
     function closeActorPage() {
       clearQuickSearchInput();
+      hideActorPageView();
       if (window.location.hash) {
         history.back();
-      } else {
-        hideActorPageView();
       }
     }
 
