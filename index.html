@@ -1264,16 +1264,17 @@
   <div id="actorPageView" class="fixed inset-0 z-[290] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
 
   <div id="genericPopupOverlay"
-    class="fixed inset-0 z-[500] hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+    class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl transition-all duration-300 opacity-0 pointer-events-none"
     onclick="if(event.target===this) closeGenericPopup()">
     <div id="genericPopupContent"
-      class="glass-panel bg-[#0f1730] border border-white/10 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6 relative shadow-[0_30px_60px_rgba(0,0,0,0.8)]">
+      class="bg-[#0b1121]/95 backdrop-blur-2xl border border-white/15 rounded-3xl max-w-lg w-full p-6 sm:p-8 relative shadow-[0_30px_90px_rgba(0,0,0,0.9)] transform scale-95 transition-all duration-300 opacity-0 max-h-[85vh] flex flex-col pointer-events-auto">
       <button onclick="closeGenericPopup()" aria-label="Close"
-        class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm"><svg
-          class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg></button>
-      <div id="genericPopupBody" class="pr-6"></div>
+        class="absolute top-5 right-5 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 text-gray-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-md backdrop-blur-md">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <div id="genericPopupBody" class="w-full overflow-y-auto overscroll-none pr-1"></div>
     </div>
   </div>
 
@@ -3664,10 +3665,20 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     function openCustomPopup(title, html) {
       const body = document.getElementById('genericPopupBody');
       const overlay = document.getElementById('genericPopupOverlay');
-      if (!body || !overlay) return;
-      body.innerHTML = `<h3 class="text-sm sm:text-base font-black uppercase tracking-widest text-blue-400 mb-4">${escapeHTML(title)}</h3>${html}`;
-      overlay.classList.remove('hidden');
+      const content = document.getElementById('genericPopupContent');
+      if (!body || !overlay || !content) return;
+      
+      body.innerHTML = `<div class="flex items-center gap-2.5 border-b border-white/10 pb-4 mb-5 pr-10"><span class="w-2 h-5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.8)] shrink-0"></span><h3 class="text-base sm:text-lg font-black uppercase tracking-widest text-white truncate">${escapeHTML(title)}</h3></div>${html}`;
+      
+      overlay.classList.remove('hidden', 'pointer-events-none');
       overlay.classList.add('flex');
+      
+      requestAnimationFrame(() => {
+        overlay.classList.remove('opacity-0');
+        overlay.classList.add('opacity-100');
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+      });
     }
 
     window.openExtraStreamingPopup = function (movieId) {
@@ -3702,24 +3713,43 @@ const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     function openTextPopup(title, text) {
       const body = document.getElementById('genericPopupBody');
       const overlay = document.getElementById('genericPopupOverlay');
-      if (!body || !overlay) return;
-      body.innerHTML = `<h3 class="text-sm font-black uppercase tracking-widest text-blue-400 mb-3">${escapeHTML(title)}</h3><p class="text-gray-200 text-base leading-relaxed font-medium">${text}</p>`;
-      overlay.classList.remove('hidden');
+      const content = document.getElementById('genericPopupContent');
+      if (!body || !overlay || !content) return;
+      
+      body.innerHTML = `<div class="flex items-center gap-2.5 border-b border-white/10 pb-4 mb-5 pr-10"><span class="w-2 h-5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.8)] shrink-0"></span><h3 class="text-base sm:text-lg font-black uppercase tracking-widest text-white truncate">${escapeHTML(title)}</h3></div><div class="bg-white/5 border border-white/10 p-5 sm:p-6 rounded-2xl text-gray-200 text-base sm:text-lg leading-relaxed font-medium max-h-[60vh] overflow-y-auto scrollbar-thin">${text}</div>`;
+      
+      overlay.classList.remove('hidden', 'pointer-events-none');
       overlay.classList.add('flex');
+      
+      requestAnimationFrame(() => {
+        overlay.classList.remove('opacity-0');
+        overlay.classList.add('opacity-100');
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+      });
     }
     function openInsightsPopup() {
       const bar = document.getElementById('statsBar');
       const body = document.getElementById('genericPopupBody');
       const overlay = document.getElementById('genericPopupOverlay');
-      if (!bar || !body || !overlay) return;
+      const content = document.getElementById('genericPopupContent');
+      if (!bar || !body || !overlay || !content) return;
       statsBarOriginalParent = bar.parentElement;
-      body.innerHTML = `<h3 class="text-sm font-black uppercase tracking-widest text-blue-400 mb-4">Insights</h3>`;
+      body.innerHTML = `<div class="flex items-center gap-2.5 border-b border-white/10 pb-4 mb-5 pr-10"><span class="w-2 h-5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.8)] shrink-0"></span><h3 class="text-base sm:text-lg font-black uppercase tracking-widest text-white">Watchlist Insights</h3></div>`;
       body.appendChild(bar);
       bar.classList.remove('hidden');
-      bar.classList.add('grid', 'grid-cols-2', 'gap-2.5');
+      bar.classList.add('grid', 'grid-cols-2', 'gap-3');
       if (el.statsBtn) el.statsBtn.classList.add('vpn-active');
-      overlay.classList.remove('hidden');
+      
+      overlay.classList.remove('hidden', 'pointer-events-none');
       overlay.classList.add('flex');
+      
+      requestAnimationFrame(() => {
+        overlay.classList.remove('opacity-0');
+        overlay.classList.add('opacity-100');
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+      });
     }
     // 2-line-clamped hero description with a "More" link that opens the full text in the popup
     // above, instead of expanding inline (used on the full-page movie/actor hero).
