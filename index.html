@@ -3597,13 +3597,13 @@
                 <div class="max-w-[1480px] mx-auto w-full flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-6">
                   <div class="max-w-3xl min-w-0 pointer-events-auto">
                     ${pageTitleHeaderHtml}
-                    <div class="flex flex-col gap-1 text-base sm:text-lg font-bold text-gray-200 mt-1.5 sm:mt-2">
+                    <div class="flex flex-col gap-1 text-base sm:text-lg font-bold text-gray-200 mt-2">
                       <div class="flex flex-wrap items-center gap-3">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}</div>
                       ${genres ? `<div class="text-blue-400 font-semibold text-base sm:text-lg">${genres}</div>` : ''}
                     </div>
-                    <div class="hidden sm:block mt-3">${createHeroOverviewHtml(overview, safeTitle)}</div>
+                    <div class="mt-2 sm:mt-3">${createHeroOverviewHtml(overview, safeTitle)}</div>
                   </div>
-                  <div class="flex items-center gap-3 pointer-events-auto shrink-0 mt-2 sm:mt-0">${pageTrailerBtnHtml}${soundBtnInlineHtml.replace('sm:hidden', '')}</div>
+                  <div class="flex items-center gap-3 pointer-events-auto shrink-0">${pageTrailerBtnHtml}${soundBtnInlineHtml.replace('sm:hidden', '')}</div>
                 </div>
               </div>
             </div>`
@@ -3627,7 +3627,7 @@
           </nav>
           ${heroBannerSectionHtml}
           <div class="max-w-[1480px] mx-auto px-6 sm:px-14 ${hasHero ? 'pt-0' : 'pt-8'} pb-10 flex flex-col gap-10">
-            <div class="sm:hidden space-y-3 p-4 rounded-2xl bg-white/[0.03] border border-white/10">${overviewHtml}</div><div class="lg:hidden">${watchNowCardHtml}</div>
+            <div class="lg:hidden">${watchNowCardHtml}</div>
             <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-x-14 lg:gap-x-20 gap-y-10 items-stretch">
               <div class="min-w-0">${castCrewHtml}</div>
               <aside class="hidden lg:flex flex-col h-full">${watchNowCardHtmlDesktop}</aside>
