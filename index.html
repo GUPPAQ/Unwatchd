@@ -891,6 +891,52 @@
         width: 12rem;
       }
     }
+  
+    /* Mobile-Only Track Peek & Landscape Lock */
+    @media (max-width: 640px) {
+      .cast-chip-card {
+        width: 29.5vw !important;
+        min-width: 104px !important;
+        max-width: 128px !important;
+        scroll-snap-align: start;
+      }
+      #relatedMoviesTrack .tilt-card,
+      #similarMoviesTrack .tilt-card {
+        width: 36.5vw !important;
+        min-width: 132px !important;
+        max-width: 162px !important;
+        scroll-snap-align: start;
+      }
+      /* Hide banner title/logo text on mobile since TMDB poster image already contains the title */
+      .movie-hero-title,
+      .titleLogoImg {
+        display: none !important;
+      }
+      #heroVideoIframe {
+        display: none !important;
+      }
+    }
+
+    @media screen and (max-width: 900px) and (orientation: landscape) {
+      body::before {
+        content: "Please rotate your phone to portrait mode";
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
+        background: #020617;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-align: center;
+        padding: 2rem;
+      }
+    }
+
   </style>
 </head>
 
@@ -3305,7 +3351,8 @@
         castCrewHtml = `<div class="space-y-2.5"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-gray-400">Cast &amp; Crew</h3><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-1, event)" aria-label="Scroll cast left" class="hidden sm:flex absolute -left-2 sm:-left-3.5 top-[56px] sm:top-[72px] md:top-[80px] -translate-y-1/2 z-50 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 text-gray-200 hover:text-white items-center justify-center backdrop-blur-md shadow-lg transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-90 hover:!opacity-100 hidden"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(1, event)" aria-label="Scroll cast right" class="hidden sm:flex absolute -right-2 sm:-right-3.5 top-[56px] sm:top-[72px] md:top-[80px] -translate-y-1/2 z-50 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 text-gray-200 hover:text-white items-center justify-center backdrop-blur-md shadow-lg transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-90 hover:!opacity-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"></path></svg></button><div id="castCrewTrack" class="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${chips}</div></div></div>`;
       }
       const bestTrailer = getBestTrailer(details);
-      const heroTrailer = bestTrailer && bestTrailer.official && /trailer/i.test(bestTrailer.name || '') ? bestTrailer : null;
+      const isMobileDevice = isMobile || (typeof window !== 'undefined' && window.innerWidth < 640);
+      const heroTrailer = (!isMobileDevice && bestTrailer && bestTrailer.official && /trailer/i.test(bestTrailer.name || '')) ? bestTrailer : null;
       const btnClass = "flex items-center justify-center sm:justify-start gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-3 rounded-xl transition-all text-sm font-bold text-gray-300 hover:text-white flex-1 sm:flex-none sm:min-w-[150px] whitespace-nowrap";
       const streamingBtnClass = "flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl transition-all text-sm sm:text-base font-bold text-gray-300 hover:text-white flex-1 sm:flex-none min-w-[140px]";
       const streamingBtnClassBig = "flex items-center gap-3.5 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl transition-all text-sm sm:text-base font-bold text-gray-300 hover:text-white w-full";
@@ -3582,7 +3629,8 @@
       }
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm font-bold text-gray-200"><div class="flex flex-wrap items-center gap-3">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}</div>${genres ? `<div class="flex items-center gap-3"><span class="hidden sm:inline text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span></div>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-wrap gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
+      const modalMobilePoster = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden w-full h-full object-cover object-center scale-105 transform-gpu blur-[1px] opacity-80">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm font-bold text-gray-200"><div class="flex flex-wrap items-center gap-3">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}</div>${genres ? `<div class="flex items-center gap-3"><span class="hidden sm:inline text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span></div>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-sm space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-wrap gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
     }
 
     function getShortText(text, limit = 195) {
