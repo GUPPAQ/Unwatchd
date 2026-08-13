@@ -2,6 +2,8 @@
   "name": "Unwatchd",
   "short_name": "Unwatchd",
   "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "icons": [
