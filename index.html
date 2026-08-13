@@ -3588,12 +3588,12 @@
 
         const heroPosterUrl = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
         const heroBannerSectionHtml = hasHero
-          ? `<div class="relative w-full h-[88dvh] sm:h-[100dvh] min-h-[560px]">
+          ? `<div class="relative w-full min-h-[100dvh] sm:h-[100dvh]">
               <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">
                 ${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hidden sm:block w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}
-                ${heroPosterUrl ? `<img src="${heroPosterUrl}" alt="${safeTitle} poster" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="sm:hidden w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="sm:hidden w-full h-full bg-gray-900"></div>`}
-                ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[45%] sm:h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div>
-              <div class="absolute inset-0 z-30 flex flex-col justify-end p-4 pb-2 sm:p-14 pointer-events-none">
+                ${heroPosterUrl ? `<img src="${heroPosterUrl}" alt="${safeTitle} poster" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="sm:hidden w-full h-full object-cover object-top scale-100 transform-gpu">` : `<div class="sm:hidden w-full h-full bg-gray-900"></div>`}
+                ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[55%] sm:h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div>
+              <div class="relative sm:absolute inset-0 z-30 flex flex-col justify-end p-5 pt-[55dvh] pb-6 sm:p-14 pointer-events-none">
                 <div class="max-w-[1480px] mx-auto w-full flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-6">
                   <div class="max-w-3xl min-w-0 pointer-events-auto">
                     ${pageTitleHeaderHtml}
