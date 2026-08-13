@@ -3595,15 +3595,16 @@
                 ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[50%] sm:h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/90 via-50% to-transparent to-100% pointer-events-none z-20"></div></div>
               <div class="absolute inset-x-0 bottom-0 z-30 p-4 pb-4 sm:p-14 pointer-events-none">
                 <div class="max-w-[1480px] mx-auto w-full flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-6">
-                  <div class="max-w-3xl min-w-0 pointer-events-auto">
+                  <div class="max-w-3xl min-w-0 pointer-events-auto flex flex-col">
                     ${pageTitleHeaderHtml}
                     <div class="flex flex-col gap-1 text-base sm:text-lg font-bold text-gray-200 mt-1.5 sm:mt-2">
                       <div class="flex flex-wrap items-center gap-3">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}</div>
                       ${genres ? `<div class="text-blue-400 font-semibold text-base sm:text-lg">${genres}</div>` : ''}
                     </div>
+                    <div class="flex items-center gap-3 mt-2 sm:hidden">${pageTrailerBtnHtml}${soundBtnInlineHtml}</div>
                     <div class="mt-2 sm:mt-3">${createHeroOverviewHtml(overview, safeTitle)}</div>
                   </div>
-                  <div class="flex items-center gap-3 pointer-events-auto shrink-0">${pageTrailerBtnHtml}${soundBtnInlineHtml.replace('sm:hidden', '')}</div>
+                  <div class="hidden sm:flex items-center gap-3 pointer-events-auto shrink-0">${pageTrailerBtnHtml}${soundBtnInlineHtml.replace('sm:hidden', '')}</div>
                 </div>
               </div>
             </div>`
