@@ -2,6 +2,8 @@
 <html lang="en">
 
 <head>
+  <meta name="screen-orientation" content="portrait">
+  <meta name="orientation" content="portrait">
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -739,10 +741,24 @@
     }
 
     /* Sizing rules: 2 movies on mobile / 4 on tablet / 6 on desktop; 3 actors on mobile / 5 on tablet / 6 on desktop */
-    #relatedMoviesTrack>.tilt-card,
-    #similarMoviesTrack>.tilt-card {
-      width: calc((100% - 1 * 1rem) / 2) !important;
-      flex-shrink: 0 !important;
+    @media (max-width: 639px) {
+      #relatedMoviesTrack>.tilt-card,
+      #similarMoviesTrack>.tilt-card {
+        width: calc((100% - 1rem) / 2.35) !important; /* Peek effect: shows 2 full cards + 35% of the 3rd card peeking */
+        flex-shrink: 0 !important;
+      }
+      #castCrewTrack>.cast-chip-card {
+        width: calc((100% - 2 * 0.75rem) / 3.4) !important; /* Peek effect: shows 3 full chips + 40% of the 4th chip peeking */
+        flex-shrink: 0 !important;
+      }
+    }
+
+    @media (min-width: 640px) {
+      #relatedMoviesTrack>.tilt-card,
+      #similarMoviesTrack>.tilt-card {
+        width: calc((100% - 3 * 1.25rem) / 4) !important;
+        flex-shrink: 0 !important;
+      }
     }
 
     @media (min-width: 640px) {
@@ -762,7 +778,7 @@
     }
 
     #castCrewTrack>.cast-chip-card {
-      width: calc((100% - 2 * 0.75rem) / 3) !important;
+      width: calc((100% - 2 * 0.75rem) / 3.4) !important;
       flex-shrink: 0 !important;
     }
 
@@ -905,6 +921,14 @@
         width: 12rem;
       }
     }
+  
+    /* Landscape Orientation Overlay for Mobile App */
+    @media (max-width: 900px) and (orientation: landscape) {
+      #landscapeNoticeOverlay {
+        display: flex !important;
+      }
+    }
+
   </style>
 </head>
 
@@ -3544,7 +3568,7 @@
       // Mute button placed directly next to the Watch Trailer button on all screen sizes
       const soundBtnInlineHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all cursor-pointer shadow-sm">${soundIconsInnerHtml}</button>` : '';
       const soundBtnHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn hidden sm:flex absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full items-center justify-center bg-black/60 hover:bg-black/90 active:scale-95 backdrop-blur-md border border-white/20 text-white transition-all cursor-pointer pointer-events-auto shadow-2xl">${soundIconsInnerHtml}</button>` : '';
-      const heroVideoHtml = heroTrailer ? `<div class="absolute inset-0 overflow-hidden pointer-events-none z-10 clip-mask"><iframe id="heroVideoIframe" src="https://www.youtube.com/embed/${heroTrailer.key}?autoplay=1&mute=${initialMuteParam}&controls=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&modestbranding=1&iv_load_policy=3&rel=0&vq=hd1080&cc_load_policy=0&cc_lang_pref=none&hl=en" title="${safeTitle} preview" allow="autoplay; encrypted-media" class="absolute pointer-events-none opacity-0 transition-opacity duration-700 transform-gpu" onload="onHeroVideoLoad(this)"></iframe></div><div id="heroFadeOverlay" class="absolute inset-0 bg-black opacity-0 transition-opacity duration-500 pointer-events-none z-15"></div>` : '';
+      const heroVideoHtml = ''; // Video auto-play removed; TMDB backdrop banner used instead, playback reserved for Watch Trailer button
 
       if (isPage) {
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
@@ -5644,6 +5668,13 @@
       for (const obj of extracted) { const k = getFilmKey(obj); if (!seen.has(k)) { seen.add(k); deduped.push(obj); } }
       return deduped;
     };
+    
+    try {
+      if (window.screen && window.screen.orientation && typeof window.screen.orientation.lock === 'function') {
+        window.screen.orientation.lock('portrait').catch(() => {});
+      }
+    } catch(e) {}
+
     function resetUI() {
       isScanning = false; cancelRequested = false;
       const startBtn = document.getElementById('startButton');
@@ -6774,6 +6805,15 @@
       return handleMovieClickFromContext(movieId, movieTitle, 'actor', forceInline, mediaType);
     }
   </script>
+  <!-- Mobile Landscape Lock Notice Overlay -->
+  <div id="landscapeNoticeOverlay" class="fixed inset-0 z-[9999] bg-[#020617]/95 backdrop-blur-xl hidden flex-col items-center justify-center p-6 text-center select-none pointer-events-auto">
+    <div class="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 mb-4 animate-bounce">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+    </div>
+    <h3 class="text-xl font-black uppercase tracking-widest text-white mb-2">Portrait Mode Only</h3>
+    <p class="text-sm font-medium text-gray-400 max-w-xs">Please rotate your device to portrait orientation for the best experience.</p>
+  </div>
+
 </body>
 
 </html>
