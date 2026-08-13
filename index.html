@@ -5712,11 +5712,7 @@
       return deduped;
     };
     
-    try {
-      if (window.screen && window.screen.orientation && typeof window.screen.orientation.lock === 'function') {
-        window.screen.orientation.lock('portrait').catch(() => {});
-      }
-    } catch(e) {}
+
 
     function resetUI() {
       isScanning = false; cancelRequested = false;
@@ -6847,6 +6843,7 @@
     async function handleActorFilmClick(movieId, movieTitle, forceInline = null, mediaType = 'movie') {
       return handleMovieClickFromContext(movieId, movieTitle, 'actor', forceInline, mediaType);
     }
+  }
   </script>
   <!-- Mobile Landscape Lock Notice Overlay -->
   <div id="landscapeNoticeOverlay" class="fixed inset-0 z-[9999] bg-[#020617]/95 backdrop-blur-xl hidden flex-col items-center justify-center p-6 text-center select-none pointer-events-auto">
