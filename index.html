@@ -1604,6 +1604,7 @@
     const GENRE_MAP = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western' };
     function openStreamingService(webUrl, appUrl = null) { if (!isMobile || !appUrl || appUrl === 'null') { window.open(webUrl, "_blank"); return; } window.location.href = appUrl; setTimeout(() => { window.open(webUrl, "_blank"); }, 1200); }
     const CORS_PROXIES = [
+      (url) => `/api/proxy?url=${encodeURIComponent(url)}`,
       (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
       (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
       (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
@@ -5458,27 +5459,43 @@
       }
       return best;
     }
+    const PROXY_LABELS = ['own-vercel', 'corsproxy.io', 'codetabs', 'allorigins'];
     const raceProxies = async (targetUrl, validatorFn, timeoutMs = 6000) => {
-      const promises = CORS_PROXIES.map(async (proxyFn) => {
+      const promises = CORS_PROXIES.map(async (proxyFn, idx) => {
+        const label = PROXY_LABELS[idx] || `proxy-${idx}`;
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
         try {
           const url = proxyFn(targetUrl);
           const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
           clearTimeout(timer);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          if (!res.ok) {
+            const bodyPreview = await res.text().catch(() => '');
+            console.warn(`[Proxy: ${label}] HTTP ${res.status} for ${targetUrl}`, bodyPreview.slice(0, 300));
+            throw new Error(`HTTP ${res.status}`);
+          }
           let txt = await res.text();
           txt = unwrapProxyResponse(txt);
-          if (validatorFn(txt)) return txt;
+          if (validatorFn(txt)) {
+            console.log(`[Proxy: ${label}] SUCCESS for ${targetUrl}`);
+            return txt;
+          }
+          console.warn(`[Proxy: ${label}] Invalid content (failed validator) for ${targetUrl}, length=${txt ? txt.length : 0}`, txt ? txt.slice(0, 300) : '(empty)');
           throw new Error('Invalid content');
         } catch (e) {
           clearTimeout(timer);
+          if (e.name === 'AbortError') {
+            console.warn(`[Proxy: ${label}] TIMEOUT after ${timeoutMs}ms for ${targetUrl}`);
+          } else if (!e.message.startsWith('HTTP') && e.message !== 'Invalid content') {
+            console.warn(`[Proxy: ${label}] NETWORK/CORS ERROR for ${targetUrl}:`, e.message);
+          }
           throw e;
         }
       });
       try {
         return await Promise.any(promises);
       } catch (err) {
+        console.error(`[raceProxies] All proxies failed for ${targetUrl}`, err.errors || err);
         return null;
       }
     };
