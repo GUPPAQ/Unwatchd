@@ -347,25 +347,52 @@
 
     .provider-glass {
       position: relative;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 50%, rgba(255, 255, 255, 0.01) 100%);
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 4px 14px rgba(0, 0, 0, 0.25);
       overflow: hidden;
     }
 
-    .provider-glass::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      pointer-events: none;
-      background: linear-gradient(120deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 30%);
-      opacity: 0.55;
+    .provider-glass:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
-    .provider-glass:hover {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.02) 100%);
-      border-color: rgba(255, 255, 255, 0.22);
+    .watchnow-vpn-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #9ca3af;
+      transition: all 0.2s ease;
+    }
+
+    .watchnow-vpn-toggle .watchnow-vpn-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.3);
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .watchnow-vpn-toggle:hover:not(.vpn-active) {
+        border-color: rgba(255, 255, 255, 0.3);
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    .watchnow-vpn-toggle.vpn-active {
+      background: rgba(59, 130, 246, 0.18) !important;
+      border-color: rgba(96, 165, 250, 0.5) !important;
+      color: rgb(147, 197, 253) !important;
+    }
+
+    .watchnow-vpn-toggle.vpn-active .watchnow-vpn-dot {
+      background: #60a5fa;
+      box-shadow: 0 0 6px rgba(96, 165, 250, 0.9);
     }
 
     .poster-badge-glass {
@@ -449,9 +476,8 @@
       border-radius: 0.75rem;
       transition: all 0.2s ease;
       cursor: pointer;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 60%, rgba(255, 255, 255, 0.01) 100%);
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
       color: #9ca3af;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -462,16 +488,6 @@
       gap: 6px;
       overflow: hidden;
       white-space: nowrap;
-    }
-
-    .tab-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      pointer-events: none;
-      background: linear-gradient(120deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 30%);
-      opacity: 0.6;
     }
 
     @media (min-width: 640px) {
@@ -485,15 +501,14 @@
 
     .tab-btn:hover:not(.active) {
       color: rgba(255, 255, 255, 0.85);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 60%, rgba(255, 255, 255, 0.02) 100%);
-      border-color: rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.18);
     }
 
     .tab-btn.active {
-      background: linear-gradient(180deg, rgba(59, 130, 246, 0.28) 0%, rgba(59, 130, 246, 0.14) 100%);
+      background: #3b82f6;
       color: white;
-      border-color: rgba(96, 165, 250, 0.45);
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 4px 12px rgba(0, 0, 0, 0.25);
+      border-color: #3b82f6;
     }
 
     .tab-badge {
@@ -874,7 +889,7 @@
     }
 
     #castCrewTrack>.cast-chip-card {
-      width: calc((100% - 2 * 0.75rem) / 3) !important;
+      width: calc((100% - 2 * 0.75rem) / 3.2) !important;
       flex-shrink: 0 !important;
     }
 
@@ -1318,7 +1333,7 @@
             </svg>
           </button>
         </div>
-        <div class="mobile-scroll-row gap-2 w-full lg:w-auto lg:flex lg:items-center">
+        <div class="grid grid-cols-2 gap-2 w-full lg:flex lg:w-auto lg:items-center">
           <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="sortLabel">Newest
               First</span><select id="resultsSort" class="filter-select w-full lg:w-auto">
               <option value="year_desc" selected>Newest First</option>
@@ -2311,6 +2326,31 @@
     updateVpnToggleVisual();
     if (el.vpnToggleBtn) el.vpnToggleBtn.addEventListener('click', () => setVpnMode(!vpnModeEnabled));
     if (el.vpnToggleBtnInline) el.vpnToggleBtnInline.addEventListener('click', () => { setVpnMode(!vpnModeEnabled); el.vpnToggleBtnInline.blur(); });
+    function toggleWatchNowVpn() {
+      setVpnMode(!vpnModeEnabled);
+      refreshMovieVpnView();
+    }
+    function refreshMovieVpnView() {
+      try {
+        const moviePageEl = document.getElementById('moviePageView');
+        if (moviePageEl && !moviePageEl.classList.contains('hidden') && window.currentMoviePageObj) {
+          openMoviePage(window.currentMoviePageObj, false);
+          return;
+        }
+      } catch (e) { }
+      try {
+        const modalEl = document.getElementById('movieModal');
+        if (modalEl && !modalEl.classList.contains('hidden') && typeof modalActiveMovieObj !== 'undefined' && modalActiveMovieObj) {
+          openMovieModal(modalActiveMovieObj, false, false);
+          return;
+        }
+      } catch (e) { }
+      try {
+        if (el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden') && window.currentActiveMovieObj) {
+          openMovieModal(window.currentActiveMovieObj, true, false);
+        }
+      } catch (e) { }
+    }
     const savedUsername = localStorage.getItem('ps_username'); if (savedUsername && el.usernameInput) el.usernameInput.value = savedUsername;
     const savedFriend = localStorage.getItem('ps_friend_username'); if (savedFriend && el.friendInput) { el.friendInput.value = savedFriend; if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); }
     if (el.toggleFriendBtn) { el.toggleFriendBtn.addEventListener('click', () => { if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.friendInput) el.friendInput.focus(); }); }
@@ -3517,9 +3557,29 @@
       };
 
       let streamingHtml = '';
-      const regionProviders = movieObj.regionData
+      let regionProviders = movieObj.regionData
         || (movieObj.allProviders && movieObj.allProviders[currentRegion])
         || (details && details['watch/providers'] && details['watch/providers'].results ? details['watch/providers'].results[currentRegion] : null);
+
+      let effectiveVpnInfo = null;
+      if (vpnModeEnabled && movieObj.allProviders) {
+        const flatrateHere = regionProviders?.flatrate || [];
+        const alreadySubscribedHere = flatrateHere.some(p => selectedServiceIds.has(p.provider_id));
+        if (!alreadySubscribedHere) {
+          for (const code of Object.keys(REGION_META)) {
+            if (code === currentRegion || !movieObj.allProviders[code]) continue;
+            const altData = movieObj.allProviders[code];
+            const altFlat = altData?.flatrate || [];
+            const matchedIds = altFlat.filter(p => selectedServiceIds.has(p.provider_id));
+            if (matchedIds.length > 0) { effectiveVpnInfo = { region: code, services: matchedIds.map(p => ({ label: p.provider_name })) }; regionProviders = altData; break; }
+          }
+        } else {
+          effectiveVpnInfo = movieObj.vpnInfo || null;
+        }
+      }
+
+      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''} px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider cursor-pointer shrink-0"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>VPN<span class="watchnow-vpn-dot"></span></button>`;
+      const watchNowHeaderHtml = `<div class="flex items-center justify-between gap-2"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div>`;
 
       const cleanFlatrate = filterAndDeduplicateProviders(regionProviders?.flatrate || []);
       const userFlatrate = cleanFlatrate.filter(p => selectedServiceIds.has(p.provider_id));
@@ -3703,16 +3763,16 @@
       const initialMuteParam = isHeroVideoMuted ? 1 : 0;
       const soundIconsInnerHtml = `<svg class="heroSoundIconMuted w-4 h-4 sm:w-5 sm:h-5 ${isHeroVideoMuted ? '' : 'hidden'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg><svg class="heroSoundIconUnmuted w-4 h-4 sm:w-5 sm:h-5 ${isHeroVideoMuted ? 'hidden' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>`;
       // Mute button placed directly next to the Watch Trailer button on all screen sizes
-      const soundBtnInlineHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white transition-all cursor-pointer shadow-sm">${soundIconsInnerHtml}</button>` : '';
-      const soundBtnHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn hidden sm:flex absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full items-center justify-center bg-black/75 hover:bg-black/90 active:scale-95 border border-white/20 text-white transition-all cursor-pointer pointer-events-auto shadow-2xl">${soundIconsInnerHtml}</button>` : '';
+      const soundBtnInlineHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn liquid-glass shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center active:scale-95 text-gray-300 hover:text-white transition-all cursor-pointer">${soundIconsInnerHtml}</button>` : '';
+      const soundBtnHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn liquid-glass hidden sm:flex absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full items-center justify-center active:scale-95 text-white transition-all cursor-pointer pointer-events-auto">${soundIconsInnerHtml}</button>` : '';
       const heroVideoHtml = heroTrailer ? `<div class="absolute inset-0 overflow-hidden pointer-events-none z-10 clip-mask"><iframe id="heroVideoIframe" src="https://www.youtube.com/embed/${heroTrailer.key}?autoplay=1&mute=${initialMuteParam}&controls=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&modestbranding=1&iv_load_policy=3&rel=0&vq=hd1080&cc_load_policy=0&cc_lang_pref=none&hl=en" title="${safeTitle} preview" allow="autoplay; encrypted-media" class="absolute pointer-events-none opacity-0 transition-opacity duration-700 transform-gpu" onload="onHeroVideoLoad(this)"></iframe></div><div id="heroFadeOverlay" class="absolute inset-0 bg-black opacity-0 transition-opacity duration-500 pointer-events-none z-15"></div>` : '';
 
       if (isPage) {
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
         const hasHero = !!(heroBackdropUrl || heroTrailer);
         const desktopStreamingGridClass = visibleFlatrate.length >= 3 ? 'grid grid-cols-2 gap-2.5' : 'flex flex-col gap-2.5';
-        const watchNowCardHtml = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div>`;
-        const watchNowCardHtmlDesktop = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] h-full flex flex-col justify-between space-y-3.5"><div class="space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="${desktopStreamingGridClass}">${streamingHtmlDesktop}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}</div>${rentBuyDropdownHtml}</div>`;
+        const watchNowCardHtml = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3.5">${watchNowHeaderHtml}<div class="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-3">${streamingHtml}</div>${effectiveVpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[effectiveVpnInfo.region].flag} Switch your VPN to ${REGION_META[effectiveVpnInfo.region].name} on ${effectiveVpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div>`;
+        const watchNowCardHtmlDesktop = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] h-full flex flex-col justify-between space-y-3.5"><div class="space-y-3.5">${watchNowHeaderHtml}<div class="${desktopStreamingGridClass}">${streamingHtmlDesktop}</div>${effectiveVpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[effectiveVpnInfo.region].flag} Switch your VPN to ${REGION_META[effectiveVpnInfo.region].name} on ${effectiveVpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}</div>${rentBuyDropdownHtml}</div>`;
 
         const heroPosterUrl = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
         const heroBannerSectionHtml = hasHero
@@ -3783,7 +3843,7 @@
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
       const modalMobilePoster = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3.5"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3><div class="flex flex-wrap gap-3">${streamingHtml}</div>${movieObj.vpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[movieObj.vpnInfo.region].flag} Switch your VPN to ${REGION_META[movieObj.vpnInfo.region].name} on ${movieObj.vpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3.5">${watchNowHeaderHtml}<div class="flex flex-wrap gap-3">${streamingHtml}</div>${effectiveVpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[effectiveVpnInfo.region].flag} Switch your VPN to ${REGION_META[effectiveVpnInfo.region].name} on ${effectiveVpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
     }
 
     function getShortText(text, limit = 195) {
@@ -6391,11 +6451,11 @@
             </div>
           </div>
           <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pt-0 pb-10 flex flex-col gap-10">
-            <div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-sm sm:text-base normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-3 text-base text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="mobile-scroll-row items-center gap-2 shrink-0 w-full lg:w-auto">${roleSelectWrapper}<div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div>
+            <div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-sm sm:text-base normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-3 text-base text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid grid-cols-2 items-center gap-2 w-full lg:flex lg:shrink-0 lg:w-auto">${roleSelectWrapper}<div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper filter-select-wrapper-lg flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div>
             <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${instaBtn}${twitterBtn}${shareBtn}</div>
           </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200 border-b border-white/5 pb-4"><span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black inline-flex items-center gap-1.5">${activeRoleIcon} ${allMovies.length} ${activeRole} Credits</span>${birthday ? `<span class="text-white font-extrabold">${birthday}</span>` : ''}${ageStr ? `<span class="text-gray-500">&bull;</span><span>${ageStr}</span>` : ''}${birthplace ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${birthplace}</span>` : ''}</div>${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-sm font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="mobile-scroll-row items-center gap-2 shrink-0 w-full lg:w-auto">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${instaBtn}${twitterBtn}${shareBtn}</div>`;
+      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200 border-b border-white/5 pb-4"><span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg shadow-sm text-xs font-black inline-flex items-center gap-1.5">${activeRoleIcon} ${allMovies.length} ${activeRole} Credits</span>${birthday ? `<span class="text-white font-extrabold">${birthday}</span>` : ''}${ageStr ? `<span class="text-gray-500">&bull;</span><span>${ageStr}</span>` : ''}${birthplace ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${birthplace}</span>` : ''}</div>${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-sm font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative"><svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-8 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-gray-500" style="font-size:14px !important">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid grid-cols-2 items-center gap-2 w-full lg:flex lg:shrink-0 lg:w-auto">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select lg:w-auto"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select lg:w-auto"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 lg:flex-none shrink-0 min-w-0 lg:w-auto"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select lg:w-auto"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${instaBtn}${twitterBtn}${shareBtn}</div>`;
     }
 
     let currentActorId = null;
