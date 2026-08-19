@@ -6460,15 +6460,13 @@
             <div id="actorPageHeroArt" class="absolute inset-0 overflow-hidden clip-mask">${bannerBackdropHtml}<div class="absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div>
             <div class="absolute inset-0 z-30 flex flex-col justify-end p-5 sm:p-14 pt-20 pb-8 sm:pb-16 pointer-events-none actor-hero-content">
               <div class="max-w-[1480px] mx-auto w-full flex flex-col gap-3 sm:gap-4">
-                <div class="flex flex-row items-center gap-4 sm:gap-8">
+                <div class="flex flex-row items-start gap-4 sm:gap-8">
                   ${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async" class="actor-hero-small-img hidden sm:block w-48 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 pointer-events-auto">` : `<div class="actor-hero-small-img hidden sm:flex w-48 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 pointer-events-auto">${safeName.charAt(0)}</div>`}
-                  <div class="pointer-events-auto min-w-0 flex flex-col gap-1 sm:gap-2">
+                  <div class="pointer-events-auto min-w-0 flex-1 flex flex-col gap-1 sm:gap-2">
                     <h1 class="actor-hero-name text-3xl min-[400px]:text-4xl sm:text-7xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[0.98]">${safeName}</h1>
                     ${knownForTitle ? `<p class="actor-hero-known-for hidden sm:block text-sm sm:text-base font-medium text-gray-300 drop-shadow"><span class="text-blue-400 font-extrabold uppercase text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>` : ''}
+                    <div class="mt-1 sm:mt-2 max-w-3xl">${bio ? createHeroOverviewHtml(bio, safeName) : ''}</div>
                   </div>
-                </div>
-                <div class="pointer-events-auto min-w-0 max-w-3xl">
-                  <div class="mt-1 sm:mt-2">${bio ? createHeroOverviewHtml(bio, safeName) : ''}</div>
                 </div>
               </div>
             </div>
