@@ -4047,12 +4047,25 @@
       // Mute button placed directly next to the Watch Trailer button on all screen sizes
       const soundBtnInlineHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn liquid-glass shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center active:scale-95 text-gray-300 hover:text-white transition-all cursor-pointer">${soundIconsInnerHtml}</button>` : '';
       const soundBtnHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn liquid-glass hidden sm:flex absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full items-center justify-center active:scale-95 text-white transition-all cursor-pointer pointer-events-auto">${soundIconsInnerHtml}</button>` : '';
-      const vpnBannerHtml = effectiveVpnInfo ? `<div class="mt-2.5 p-3 sm:p-3.5 rounded-xl bg-blue-950/40 border border-blue-500/20 flex flex-col gap-2">
+      let vpnServicesList = '';
+      if (effectiveVpnInfo) {
+        const rawServices = effectiveVpnInfo.services || (effectiveVpnInfo.service ? [effectiveVpnInfo.service] : []);
+        const serviceNames = (Array.isArray(rawServices) ? rawServices : [rawServices])
+          .map(s => (typeof s === 'string' ? s : (s?.label || s?.provider_name || s?.name || '')))
+          .filter(Boolean);
+        vpnServicesList = serviceNames.map(escapeHTML).join(', ');
+      }
+
+      const vpnRegionName = effectiveVpnInfo ? (REGION_META[effectiveVpnInfo.region]?.name || effectiveVpnInfo.region || '') : '';
+      const vpnRegionFlag = effectiveVpnInfo ? (REGION_META[effectiveVpnInfo.region]?.flag || '🌐') : '🌐';
+      const vpnWatchOnText = vpnServicesList ? ` to watch on <span class="text-white font-extrabold">${vpnServicesList}</span>` : ' to watch';
+
+      const vpnBannerHtml = (effectiveVpnInfo && vpnRegionName) ? `<div class="mt-2.5 p-3 sm:p-3.5 rounded-xl bg-blue-950/40 border border-blue-500/20 flex flex-col gap-2">
         <div class="flex items-start gap-2.5">
-          <span class="text-base sm:text-lg leading-none shrink-0 mt-0.5" aria-hidden="true">${REGION_META[effectiveVpnInfo.region]?.flag || '🌐'}</span>
+          <span class="text-base sm:text-lg leading-none shrink-0 mt-0.5" aria-hidden="true">${vpnRegionFlag}</span>
           <div class="flex-1 min-w-0">
             <p class="text-xs sm:text-[13px] font-semibold text-blue-200 leading-snug">
-              Switch your VPN to <span class="text-white font-extrabold">${REGION_META[effectiveVpnInfo.region]?.name || effectiveVpnInfo.region}</span> to watch on <span class="text-white font-extrabold">${effectiveVpnInfo.services.map(s => escapeHTML(s.label)).join(', ')}</span>
+              Switch your VPN to <span class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</span>${vpnWatchOnText}
             </p>
           </div>
         </div>
