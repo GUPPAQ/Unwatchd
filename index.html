@@ -888,12 +888,17 @@
       }
     }
 
-    /* Percentage-based on purpose: 3.4 divisor means ~3 full chips + a
-       clearly visible ~40% sliver of the 4th, as a proportion of the
-       track's own width — so the "you can scroll" hint holds on every
-       phone width (iPhone SE through Pro Max) without any breakpoint. */
+    /* Percentage-based Cast Chip Peek Formula:
+       The formula is percentage-based (% of the container's width), not fixed pixels or vw units.
+       Mathematical derivation for ~40% peek of the 4th actor card:
+       Within container width W, we display 3 full cards (C), 3 gaps of 0.75rem (gap-3 on mobile), plus 0.4 of the 4th card:
+         W = 3 * C + 3 * 0.75rem + 0.4 * C = 3.4 * C + 3 * 0.75rem
+         Solving for C: C = calc((100% - 3 * 0.75rem) / 3.4)
+       Visible portion of Card 4 = W - 3*C - 3*0.75rem = (3.4*C + 3*0.75rem) - 3*C - 3*0.75rem = 0.4*C.
+       Proportion of Card 4 visible = 0.4*C / C = exactly 40%, mathematically guaranteed on EVERY phone width (from iPhone SE to 17 Pro Max) without breakpoints.
+       Flex-shrink is locked to 0 to prevent shrinking under flex layout. */
     #castCrewTrack>.cast-chip-card {
-      width: calc((100% - 2 * 0.75rem) / 3.4) !important;
+      width: calc((100% - 3 * 0.75rem) / 3.4) !important;
       flex-shrink: 0 !important;
     }
 
@@ -1039,13 +1044,6 @@
 
     /* Mobile-Only Track Peek & Landscape Lock */
     @media (max-width: 640px) {
-      .cast-chip-card {
-        width: 29.5vw !important;
-        min-width: 104px !important;
-        max-width: 128px !important;
-        scroll-snap-align: start;
-      }
-
       #relatedMoviesTrack .tilt-card,
       #similarMoviesTrack .tilt-card {
         width: 36.5vw !important;
@@ -3523,7 +3521,7 @@
           const pName = escapeHTML(p.name);
           const pRole = escapeHTML(p._role);
           const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
-          return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint); }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-[110px] sm:w-[140px] shrink-0 group/person cursor-pointer select-none relative">
+          return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint); }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 shrink-0 group/person cursor-pointer select-none relative">
             <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
               <div class="w-full h-full rounded-full overflow-hidden">
                 ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
@@ -3536,7 +3534,7 @@
           </div>`;
         }).join('');
 
-        const seeAllChip = `<div onclick="if(!window.isCastDragging) openFullCastModal(${isPage ? 'true' : 'false'})" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-28 sm:w-36 md:w-40 shrink-0 group/person cursor-pointer select-none relative">
+        const seeAllChip = `<div onclick="if(!window.isCastDragging) openFullCastModal(${isPage ? 'true' : 'false'})" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 shrink-0 group/person cursor-pointer select-none relative">
           <div class="glow-card w-full aspect-square rounded-full border border-white/10 shadow-lg bg-gray-800 shrink-0 relative flex items-center justify-center">
             <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
           </div>
@@ -3561,10 +3559,84 @@
       const streamingBtnClassBig = "provider-glass flex items-center gap-3.5 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl transition-all text-sm sm:text-base font-bold text-gray-300 hover:text-white w-full";
       const streamingBtnClassHuge = "provider-glass flex items-center gap-3.5 px-5 py-4 rounded-xl transition-all text-base sm:text-lg font-bold text-gray-300 hover:text-white w-full";
 
-      const makeProviderLink = (p, extraText = '', mode = false) => {
-        let safeName = (p.provider_name || '').replace("with Ads", "").trim();
+      // Resolve full providers dictionary across all available regions
+      const allProvidersMap = movieObj.allProviders
+        || (details && details['watch/providers'] && details['watch/providers'].results)
+        || (movieDetailsCache.get(`${movieObj.mediaType === 'tv' ? 'tv' : 'movie'}_${movieObj.id}`)?.['watch/providers']?.results)
+        || null;
 
-        const providerMeta = currentProviders.find(cp => cp.id === p.provider_id) || null;
+      if (!movieObj.allProviders && allProvidersMap) {
+        movieObj.allProviders = allProvidersMap;
+      }
+
+      // True provider data for the user's active home region
+      const homeRegionData = (allProvidersMap && allProvidersMap[currentRegion])
+        || (!movieObj.vpnInfo ? movieObj.regionData : null)
+        || (details && details['watch/providers'] && details['watch/providers'].results ? details['watch/providers'].results[currentRegion] : null)
+        || null;
+
+      // Helper to match against user's selected services by ID or normalized name
+      const selectedNamesSet = new Set(
+        currentProviders
+          .filter(cp => selectedServiceIds.has(cp.id))
+          .map(cp => cleanNormalize(cp.name))
+      );
+      const isSubscribedProvider = (p) => {
+        if (!p) return false;
+        if (p.provider_id && selectedServiceIds.has(p.provider_id)) return true;
+        if (p.id && selectedServiceIds.has(p.id)) return true;
+        const norm = cleanNormalize(p.provider_name || p.name || '');
+        return norm ? selectedNamesSet.has(norm) : false;
+      };
+
+      let regionProviders = homeRegionData;
+      let effectiveVpnInfo = null;
+
+      if (vpnModeEnabled && allProvidersMap) {
+        const homeFlatrate = filterAndDeduplicateProviders(homeRegionData?.flatrate || []);
+        const isHomeSubscribed = homeFlatrate.some(isSubscribedProvider);
+
+        if (!isHomeSubscribed) {
+          // If movieObj already has valid vpnInfo computed and present in allProvidersMap
+          if (movieObj.vpnInfo && movieObj.vpnInfo.region && allProvidersMap[movieObj.vpnInfo.region]) {
+            const altData = allProvidersMap[movieObj.vpnInfo.region];
+            const altFlat = filterAndDeduplicateProviders(altData?.flatrate || []);
+            const matched = altFlat.filter(isSubscribedProvider);
+            if (matched.length > 0) {
+              effectiveVpnInfo = {
+                region: movieObj.vpnInfo.region,
+                services: matched.map(p => ({ label: p.provider_name || p.name }))
+              };
+              regionProviders = altData;
+            }
+          }
+
+          // If not resolved from movieObj.vpnInfo, iterate through all REGION_META regions
+          if (!effectiveVpnInfo) {
+            for (const code of Object.keys(REGION_META)) {
+              if (code === currentRegion || !allProvidersMap[code]) continue;
+              const altData = allProvidersMap[code];
+              const altFlat = filterAndDeduplicateProviders(altData?.flatrate || []);
+              const matched = altFlat.filter(isSubscribedProvider);
+              if (matched.length > 0) {
+                effectiveVpnInfo = {
+                  region: code,
+                  services: matched.map(p => ({ label: p.provider_name || p.name }))
+                };
+                regionProviders = altData;
+                break;
+              }
+            }
+          }
+        }
+      } else if (!regionProviders) {
+        regionProviders = movieObj.regionData || null;
+      }
+
+      const makeProviderLink = (p, extraText = '', mode = false) => {
+        let safeName = (p.provider_name || p.name || '').replace("with Ads", "").trim();
+
+        const providerMeta = currentProviders.find(cp => cp.id === (p.provider_id || p.id)) || null;
         let logoSrc = providerMeta ? providerMeta.logoPath : (p.logoPath || null);
         if (!logoSrc) {
           const local = localIconFor(safeName);
@@ -3575,7 +3647,8 @@
           logoSrc = local || tmdbLogo || logoDev;
         }
 
-        let link = getRegionServiceUrl(safeName, currentRegion, movieObj.title);
+        const effectiveRegion = (effectiveVpnInfo && effectiveVpnInfo.region) ? effectiveVpnInfo.region : currentRegion;
+        let link = getRegionServiceUrl(safeName, effectiveRegion, movieObj.title);
 
         const deeplink = getDeeplinkFor(safeName);
         const appLink = deeplink && deeplink.appUrl ? deeplink.appUrl(movieObj.title) : null;
@@ -3590,31 +3663,12 @@
       };
 
       let streamingHtml = '';
-      let regionProviders = movieObj.regionData
-        || (movieObj.allProviders && movieObj.allProviders[currentRegion])
-        || (details && details['watch/providers'] && details['watch/providers'].results ? details['watch/providers'].results[currentRegion] : null);
-
-      let effectiveVpnInfo = null;
-      if (vpnModeEnabled && movieObj.allProviders) {
-        const flatrateHere = regionProviders?.flatrate || [];
-        const alreadySubscribedHere = flatrateHere.some(p => selectedServiceIds.has(p.provider_id));
-        if (!alreadySubscribedHere) {
-          for (const code of Object.keys(REGION_META)) {
-            if (code === currentRegion || !movieObj.allProviders[code]) continue;
-            const altData = movieObj.allProviders[code];
-            const altFlat = altData?.flatrate || [];
-            const matchedIds = altFlat.filter(p => selectedServiceIds.has(p.provider_id));
-            if (matchedIds.length > 0) { effectiveVpnInfo = { region: code, services: matchedIds.map(p => ({ label: p.provider_name })) }; regionProviders = altData; break; }
-          }
-        }
-      }
-
       const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''} px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider cursor-pointer shrink-0"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>VPN<span class="watchnow-vpn-dot"></span></button>`;
       const watchNowHeaderHtml = `<div class="flex items-center justify-between gap-2"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div>`;
 
       const cleanFlatrate = filterAndDeduplicateProviders(regionProviders?.flatrate || []);
-      const userFlatrate = cleanFlatrate.filter(p => selectedServiceIds.has(p.provider_id));
-      const otherFlatrate = cleanFlatrate.filter(p => !selectedServiceIds.has(p.provider_id));
+      const userFlatrate = cleanFlatrate.filter(isSubscribedProvider);
+      const otherFlatrate = cleanFlatrate.filter(p => !isSubscribedProvider(p));
 
       const visibleFlatrate = userFlatrate.slice(0, 4);
 
@@ -3629,7 +3683,10 @@
       if (visibleFlatrate.length === 1) {
         streamingHtmlDesktop = makeProviderLink(visibleFlatrate[0], '', 'huge');
       } else if (visibleFlatrate.length > 1) {
-        visibleFlatrate.forEach(p => { streamingHtmlDesktop += makeProviderLink(p, '', 'medium'); });
+        streamingHtmlDesktop = makeProviderLink(visibleFlatrate[0], '', 'medium');
+        for (let i = 1; i < visibleFlatrate.length; i++) {
+          streamingHtmlDesktop += makeProviderLink(visibleFlatrate[i], '', 'medium');
+        }
       } else {
         streamingHtmlDesktop = streamingHtml;
       }
@@ -3798,12 +3855,14 @@
       const soundBtnHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn liquid-glass hidden sm:flex absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full items-center justify-center active:scale-95 text-white transition-all cursor-pointer pointer-events-auto">${soundIconsInnerHtml}</button>` : '';
       const heroVideoHtml = heroTrailer ? `<div class="absolute inset-0 overflow-hidden pointer-events-none z-10 clip-mask"><iframe id="heroVideoIframe" src="https://www.youtube.com/embed/${heroTrailer.key}?autoplay=1&mute=${initialMuteParam}&controls=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&modestbranding=1&iv_load_policy=3&rel=0&vq=hd1080&cc_load_policy=0&cc_lang_pref=none&hl=en" title="${safeTitle} preview" allow="autoplay; encrypted-media" class="absolute pointer-events-none opacity-0 transition-opacity duration-700 transform-gpu" onload="onHeroVideoLoad(this)"></iframe></div><div id="heroFadeOverlay" class="absolute inset-0 bg-black opacity-0 transition-opacity duration-500 pointer-events-none z-15"></div>` : '';
 
+      const vpnBannerHtml = effectiveVpnInfo ? `<div class="mt-1 space-y-0.5"><p class="text-[10px] uppercase tracking-widest text-blue-400 flex items-center gap-1.5 font-bold">${REGION_META[effectiveVpnInfo.region]?.flag || '🌐'} Switch your VPN to ${REGION_META[effectiveVpnInfo.region]?.name || effectiveVpnInfo.region} on ${effectiveVpnInfo.services.map(s => s.label).join(', ')} to watch</p><p class="text-[9.5px] text-gray-400/80 font-medium leading-tight">* Note: VPN compatibility may vary as some streaming providers actively block VPN connections.</p></div>` : '';
+
       if (isPage) {
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
         const hasHero = !!(heroBackdropUrl || heroTrailer);
         const desktopStreamingGridClass = visibleFlatrate.length >= 3 ? 'grid grid-cols-2 gap-2.5' : 'flex flex-col gap-2.5';
-        const watchNowCardHtml = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3.5">${watchNowHeaderHtml}<div class="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-3">${streamingHtml}</div>${effectiveVpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[effectiveVpnInfo.region].flag} Switch your VPN to ${REGION_META[effectiveVpnInfo.region].name} on ${effectiveVpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div>`;
-        const watchNowCardHtmlDesktop = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] h-full flex flex-col justify-between space-y-3.5"><div class="space-y-3.5">${watchNowHeaderHtml}<div class="${desktopStreamingGridClass}">${streamingHtmlDesktop}</div>${effectiveVpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[effectiveVpnInfo.region].flag} Switch your VPN to ${REGION_META[effectiveVpnInfo.region].name} on ${effectiveVpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}</div>${rentBuyDropdownHtml}</div>`;
+        const watchNowCardHtml = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3.5">${watchNowHeaderHtml}<div class="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-3">${streamingHtml}</div>${vpnBannerHtml}${rentBuyDropdownHtml}</div>`;
+        const watchNowCardHtmlDesktop = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] h-full flex flex-col justify-between space-y-3.5"><div class="space-y-3.5">${watchNowHeaderHtml}<div class="${desktopStreamingGridClass}">${streamingHtmlDesktop}</div>${vpnBannerHtml}</div>${rentBuyDropdownHtml}</div>`;
 
         const heroPosterUrl = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
         const heroBannerSectionHtml = hasHero
@@ -3874,7 +3933,7 @@
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
       const modalMobilePoster = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3.5">${watchNowHeaderHtml}<div class="flex flex-wrap gap-3">${streamingHtml}</div>${effectiveVpnInfo ? `<p class="text-[10px] uppercase tracking-widest text-blue-400 mt-1 flex items-center gap-1.5 font-bold">${REGION_META[effectiveVpnInfo.region].flag} Switch your VPN to ${REGION_META[effectiveVpnInfo.region].name} on ${effectiveVpnInfo.services.map(s => s.label).join(', ')} to watch</p>` : ''}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3.5">${watchNowHeaderHtml}<div class="flex flex-wrap gap-3">${streamingHtml}</div>${vpnBannerHtml}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
     }
 
     function getShortText(text, limit = 195) {
@@ -5193,18 +5252,36 @@
       let filtered = scannedMovies.filter(m => { const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter); const matchG = genre === 'all' || (m.genreIds && m.genreIds.some(id => GENRE_MAP[id] === genre)); const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade)); return matchQ && matchG && matchD; });
       filtered.sort((a, b) => { if (sort === 'runtime_desc') return (b.runtime || 0) - (a.runtime || 0); if (sort === 'runtime_asc') return (a.runtime || 0) - (b.runtime || 0); if (sort === 'popularity') return getMoviePopularity(b) - getMoviePopularity(a); if (sort === 'az') return a.title.localeCompare(b.title); if (sort === 'za') return b.title.localeCompare(a.title); if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || 0)) - (parseFloat(getCachedRating(a) || 0)); if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || 0)) - (parseFloat(getCachedRating(b) || 0)); if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0'); if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999'); return 0; });
       currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
+      const selectedNamesFilterSet = new Set(
+        currentProviders
+          .filter(cp => selectedServiceIds.has(cp.id))
+          .map(cp => cleanNormalize(cp.name))
+      );
+      const isSubscribedScan = (p) => {
+        if (!p) return false;
+        if (p.provider_id && selectedServiceIds.has(p.provider_id)) return true;
+        if (p.id && selectedServiceIds.has(p.id)) return true;
+        const norm = cleanNormalize(p.provider_name || p.name || '');
+        return norm ? selectedNamesFilterSet.has(norm) : false;
+      };
+
       filtered.forEach(movie => {
-        let regionData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData; let vpnInfo = null;
+        let regionData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData;
+        let vpnInfo = null;
         if (vpnModeEnabled && movie.allProviders) {
           const flatrateHere = regionData?.flatrate || [];
-          const alreadySubscribedHere = flatrateHere.some(p => selectedServiceIds.has(p.provider_id));
+          const alreadySubscribedHere = flatrateHere.some(isSubscribedScan);
           if (!alreadySubscribedHere) {
             for (const code of Object.keys(REGION_META)) {
               if (code === currentRegion || !movie.allProviders[code]) continue;
               const altData = movie.allProviders[code];
               const altFlat = altData?.flatrate || [];
-              const matchedIds = altFlat.filter(p => selectedServiceIds.has(p.provider_id));
-              if (matchedIds.length > 0) { vpnInfo = { region: code, services: matchedIds.map(p => ({ label: p.provider_name })) }; regionData = altData; break; }
+              const matchedIds = altFlat.filter(isSubscribedScan);
+              if (matchedIds.length > 0) {
+                vpnInfo = { region: code, services: matchedIds.map(p => ({ label: p.provider_name || p.name })) };
+                regionData = altData;
+                break;
+              }
             }
           }
         }
@@ -5215,8 +5292,8 @@
         const rent = (regionData.rent || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
         const buy = (regionData.buy || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
 
-        const matchedSubscribed = flatrate.filter(p => selectedServiceIds.has(p.provider_id));
-        const matchedUnsubscribed = flatrate.filter(p => !selectedServiceIds.has(p.provider_id));
+        const matchedSubscribed = flatrate.filter(isSubscribedScan);
+        const matchedUnsubscribed = flatrate.filter(p => !isSubscribedScan(p));
 
         if (matchedSubscribed.length > 0) {
           baseObj.subtext = vpnInfo ? `${matchedSubscribed.map(s => s.provider_name).join(', ')} · ${REGION_META[vpnInfo.region]?.flag || ''} VPN` : matchedSubscribed.map(s => s.provider_name).join(', ');
