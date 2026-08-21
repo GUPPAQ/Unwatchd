@@ -4062,7 +4062,7 @@
 
       const vpnBannerHtml = (effectiveVpnInfo && vpnRegionName) ? `<div class="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/15">
         <span class="text-sm leading-none shrink-0" aria-hidden="true">${vpnRegionFlag}</span>
-        <p class="text-[11px] sm:text-xs text-blue-300/90 font-semibold leading-tight min-w-0">VPN → <span class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</span>${vpnServicesList ? ` · ${vpnServicesList}` : ''}<span class="text-gray-500 font-medium ml-1" title="Streaming availability may vary as some providers block VPN connections">*</span></p>
+        <p class="text-[11px] sm:text-xs text-blue-300/90 font-semibold leading-tight min-w-0">Available in <span class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</span>${vpnServicesList ? ` on ${vpnServicesList}` : ''} via VPN</p>
       </div>` : '';
 
       if (isPage) {
