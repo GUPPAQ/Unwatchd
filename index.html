@@ -4642,15 +4642,22 @@
     }
 
     function stopHeroVideo() {
-      const iframe = document.getElementById('heroVideoIframe');
-      if (iframe) {
-        try {
-          iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-          iframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
-        } catch (e) { console.warn('[Hero Video Stop]', e); }
-        iframe.src = '';
-        iframe.remove();
-      }
+      try {
+        const iframe = document.getElementById('heroVideoIframe');
+        if (iframe) {
+          try {
+            if (iframe.contentWindow && typeof iframe.contentWindow.postMessage === 'function') {
+              iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+              iframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+            }
+          } catch (e) { }
+          try {
+            iframe.src = 'about:blank';
+            if (typeof iframe.remove === 'function') iframe.remove();
+            else if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+          } catch (e) { }
+        }
+      } catch (e) { }
     }
 
 
@@ -4720,8 +4727,8 @@
       window.currentMoviePageObj = movieObj;
       document.body.classList.add('modal-open');
       container.classList.remove('hidden');
-      hideActorPageView();
-      hideAllCastModalView();
+      try { hideActorPageView(); } catch (e) { }
+      try { hideAllCastModalView(); } catch (e) { }
       container.scrollTop = 0;
       container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
 
@@ -4743,57 +4750,74 @@
 
       try {
         const mediaType = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
-        const details = await getFullMovieDetails(movieObj.id, mediaType);
+        let details = null;
+        try {
+          details = await getFullMovieDetails(movieObj.id, mediaType);
+        } catch (e) {
+          console.warn('[Full Movie Details Fetch]', e);
+        }
+
         // Fast synchronous slug refinement without blocking extra network search fetches
         if (details) {
-          const baseSlug = slugify(details.title || details.name || movieObj.title || '');
-          const dateStr = details.release_date || details.first_air_date || movieObj.releaseDate || '';
-          const mYear = dateStr ? dateStr.split('-')[0] : '';
-          const scannedOlder = scannedMovies.some(m => {
-            if (m.id === movieObj.id) return false;
-            if (slugify(m.title) !== baseSlug) return false;
-            const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
-            return otherYear && mYear && parseInt(otherYear) < parseInt(mYear);
-          });
-          const refinedSlug = scannedOlder && mYear ? `${baseSlug}-${mYear}` : baseSlug;
-          const mediaRoute = mediaType === 'tv' ? 'series' : 'film';
-          if (refinedSlug) registerSlug(refinedSlug, movieObj.id, mediaRoute);
-          if (pushHistory) {
-            try { history.replaceState({ moviePage: movieObj.id }, '', `#${mediaRoute}/${refinedSlug}`); } catch (e) { }
-          }
+          try {
+            const baseSlug = slugify(details.title || details.name || movieObj.title || '');
+            const dateStr = details.release_date || details.first_air_date || movieObj.releaseDate || '';
+            const mYear = dateStr ? dateStr.split('-')[0] : '';
+            const scannedOlder = scannedMovies.some(m => {
+              if (m.id === movieObj.id) return false;
+              if (slugify(m.title) !== baseSlug) return false;
+              const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
+              return otherYear && mYear && parseInt(otherYear) < parseInt(mYear);
+            });
+            const refinedSlug = scannedOlder && mYear ? `${baseSlug}-${mYear}` : baseSlug;
+            const mediaRoute = mediaType === 'tv' ? 'series' : 'film';
+            if (refinedSlug) registerSlug(refinedSlug, movieObj.id, mediaRoute);
+            if (pushHistory) {
+              try { history.replaceState({ moviePage: movieObj.id }, '', `#${mediaRoute}/${refinedSlug}`); } catch (e) { }
+            }
+          } catch (e) { }
         }
+
         if (window.currentMoviePageObj !== movieObj) return;
-        await resolveTitleLogo(details);
-        await ensureFranchiseDetailsLoaded(movieObj, details);
+
+        try { await resolveTitleLogo(details); } catch (e) { }
+        try { await ensureFranchiseDetailsLoaded(movieObj, details); } catch (e) { }
+
         if (window.currentMoviePageObj !== movieObj) return;
+
         let collectionData = null;
         if (details && details.belongs_to_collection && details.belongs_to_collection.id) {
-          collectionData = await getCollectionDetails(details.belongs_to_collection.id);
+          try {
+            collectionData = await getCollectionDetails(details.belongs_to_collection.id);
+          } catch (e) { }
         }
 
         const backdropUrl = details && details.backdrop_path ? `https://image.tmdb.org/t/p/w1280${details.backdrop_path}` : movieObj.backdrop;
         if (backdropUrl) {
-          const img = new Image();
-          img.src = backdropUrl;
-          await Promise.race([
-            new Promise(r => { img.onload = r; img.onerror = r; }),
-            new Promise(r => setTimeout(r, 250))
-          ]);
+          try {
+            const img = new Image();
+            img.src = backdropUrl;
+            await Promise.race([
+              new Promise(r => { img.onload = r; img.onerror = r; }),
+              new Promise(r => setTimeout(r, 250))
+            ]);
+          } catch (e) { }
         }
 
         if (window.currentMoviePageObj !== movieObj) return;
-        container.innerHTML = `<div id="moviePageInnerContent" class="opacity-0 transition-opacity duration-200">${generateFullMovieHTML(movieObj, details, true, 'lookup', true, collectionData)}</div>`;
+        const html = generateFullMovieHTML(movieObj, details, true, 'lookup', true, collectionData);
+        container.innerHTML = `<div id="moviePageInnerContent" class="opacity-0 transition-opacity duration-200">${html}</div>`;
         requestAnimationFrame(() => {
           const inner = document.getElementById('moviePageInnerContent');
           if (inner) inner.classList.remove('opacity-0');
         });
-        verifyTitleLogos();
-        applyTiltToSimilarGrid();
-        bindCastCrewDrag();
+        try { verifyTitleLogos(); } catch (e) { }
+        try { applyTiltToSimilarGrid(); } catch (e) { }
+        try { bindCastCrewDrag(); } catch (e) { }
         container.scrollTop = 0;
         setTimeout(() => { const f = document.getElementById('heroVideoIframe'); if (f) fitHeroVideoCover(f); }, 500);
       } catch (e) {
-        console.error('[Movie Page]', e);
+        console.error('[Movie Page Render]', e);
         container.innerHTML = `<div class="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6"><p class="text-red-400 font-bold">Couldn't load this title.</p><button onclick="closeMoviePage()" class="text-blue-400 text-sm font-bold underline">Go back</button></div>`;
       }
     }
