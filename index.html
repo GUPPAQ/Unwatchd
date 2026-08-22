@@ -4286,7 +4286,7 @@
         regionProviders = movieObj.regionData || null;
       }
 
-      const makeProviderLink = (p, extraText = '', mode = false) => {
+      const makeProviderLink = (p, extraText = '', mode = 'pill') => {
         let safeName = (p.provider_name || p.name || '').replace("with Ads", "").trim();
 
         const providerMeta = currentProviders.find(cp => cp.id === (p.provider_id || p.id)) || null;
@@ -4310,14 +4310,16 @@
           link = deeplink.searchUrl(movieObj.title);
         }
 
-        const btnStyle = mode === 'huge' ? streamingBtnClassHuge : (mode === 'medium' || mode === true ? streamingBtnClassBig : streamingBtnClass);
-        const iconStyle = mode === 'huge' ? 'w-9 h-9 sm:w-10 sm:h-10' : ((mode === 'medium' || mode === true) ? 'w-7 h-7 sm:w-8 sm:h-8' : 'w-7 h-7 sm:w-8 sm:h-8');
-        return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="${btnStyle}"><div class="${iconStyle} flex-shrink-0 rounded-[22.5%] overflow-hidden shadow-sm pointer-events-none">${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}</div><span class="truncate min-w-0">${escapeHTML(safeName)}${extraText}</span></a>`;
+        if (mode === 'single') {
+          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all text-sm font-bold text-gray-200 hover:text-white w-full"><div class="flex items-center gap-3 min-w-0"><div class="w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-sm pointer-events-none">${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}</div><span class="truncate min-w-0 text-sm sm:text-base font-bold">${escapeHTML(safeName)}${extraText}</span></div><span class="px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-wider shrink-0 flex items-center gap-1 group-hover/prov:bg-blue-500 group-hover/prov:text-white transition-all"><span>Stream</span><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></span></a>`;
+        }
+
+        return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center gap-2.5 px-3 py-2.5 sm:px-3.5 sm:py-2.5 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-white w-full"><div class="w-7 h-7 rounded-lg overflow-hidden shrink-0 shadow-sm pointer-events-none">${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}</div><span class="truncate min-w-0 font-bold">${escapeHTML(safeName)}${extraText}</span></a>`;
       };
 
       let streamingHtml = '';
       const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''} px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider cursor-pointer shrink-0"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>VPN<span class="watchnow-vpn-dot"></span></button>`;
-      const watchNowHeaderHtml = `<div class="flex items-center justify-between gap-2"><h3 class="text-sm font-black uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div>`;
+      const watchNowHeaderHtml = `<div class="flex items-center justify-between gap-2 mb-1"><h3 class="text-xs sm:text-sm font-black uppercase tracking-widest text-blue-400 flex items-center gap-1.5"><span class="w-1.5 h-3.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>Watch Options</h3>${vpnToggleBtnHtml}</div>`;
 
       const cleanFlatrate = filterAndDeduplicateProviders(regionProviders?.flatrate || []);
       const userFlatrate = cleanFlatrate.filter(isSubscribedProvider);
@@ -4325,24 +4327,16 @@
 
       const visibleFlatrate = userFlatrate.slice(0, 4);
 
-      if (visibleFlatrate.length > 0) {
-        visibleFlatrate.forEach(p => { streamingHtml += makeProviderLink(p); });
+      if (visibleFlatrate.length === 1) {
+        streamingHtml = makeProviderLink(visibleFlatrate[0], '', 'single');
+      } else if (visibleFlatrate.length > 1) {
+        streamingHtml = visibleFlatrate.map(p => makeProviderLink(p, '', 'pill')).join('');
       } else {
-        const noSubText = cleanFlatrate.length > 0 ? 'Not available on your subscriptions' : 'Not available on subscription';
+        const noSubText = cleanFlatrate.length > 0 ? 'Not on your active subscriptions' : 'Not available on subscription';
         streamingHtml = `<div class="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-xl flex items-center justify-center text-center"><p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
       }
 
-      let streamingHtmlDesktop = '';
-      if (visibleFlatrate.length === 1) {
-        streamingHtmlDesktop = makeProviderLink(visibleFlatrate[0], '', 'huge');
-      } else if (visibleFlatrate.length > 1) {
-        streamingHtmlDesktop = makeProviderLink(visibleFlatrate[0], '', 'medium');
-        for (let i = 1; i < visibleFlatrate.length; i++) {
-          streamingHtmlDesktop += makeProviderLink(visibleFlatrate[i], '', 'medium');
-        }
-      } else {
-        streamingHtmlDesktop = streamingHtml;
-      }
+      let streamingHtmlDesktop = streamingHtml;
 
       const rent = filterAndDeduplicateProviders(regionProviders?.rent || [], true);
       const buy = filterAndDeduplicateProviders(regionProviders?.buy || [], true);
@@ -4357,11 +4351,11 @@
       });
 
       let userFlatrateLinksHtml = '';
-      userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, '', true); });
+      userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, '', 'pill'); });
       let otherFlatrateLinksHtml = '';
-      otherFlatrate.forEach(p => { otherFlatrateLinksHtml += makeProviderLink(p, '', true); });
+      otherFlatrate.forEach(p => { otherFlatrateLinksHtml += makeProviderLink(p, '', 'pill'); });
       let rbLinksHtml = '';
-      rbMap.forEach(val => { rbLinksHtml += makeProviderLink(val.p, '', true); });
+      rbMap.forEach(val => { rbLinksHtml += makeProviderLink(val.p, '', 'pill'); });
 
       const extraStreamingCount = Math.max(0, cleanFlatrate.length - visibleFlatrate.length);
 
@@ -4376,10 +4370,10 @@
       });
 
       const hasExtra = extraStreamingCount > 0;
-      const extraBtnHtml = hasExtra ? `<button type="button" onclick="openExtraStreamingPopup(${movieObj.id})" class="w-full py-2.5 px-3 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 active:scale-95 border border-blue-500/30 text-blue-400 text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm"><span class="flex items-center gap-1.5 truncate"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>More</span><span class="bg-blue-500/30 px-2 py-0.5 rounded-md text-[10px] font-black text-white shrink-0 ml-1">+${extraStreamingCount}</span></button>` : '';
-      const rentBuyBtnHtml = `<button type="button" onclick="openRentBuyPopup(${movieObj.id})" class="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm"><span class="flex items-center gap-1.5 truncate"><svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"></path></svg>Rent / Buy</span><span class="bg-white/10 px-2 py-0.5 rounded-md text-[10px] font-black text-gray-300 shrink-0 ml-1">${rbMap.size}</span></button>`;
+      const extraBtnHtml = hasExtra ? `<button type="button" onclick="openExtraStreamingPopup(${movieObj.id})" class="w-full py-2 px-3 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 active:scale-95 border border-blue-500/30 text-blue-400 text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm"><span class="flex items-center gap-1.5 truncate"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>More</span><span class="bg-blue-500/30 px-2 py-0.5 rounded-md text-[10px] font-black text-white shrink-0 ml-1">+${extraStreamingCount}</span></button>` : '';
+      const rentBuyBtnHtml = `<button type="button" onclick="openRentBuyPopup(${movieObj.id})" class="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm"><span class="flex items-center gap-1.5 truncate"><svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"></path></svg>Rent / Buy</span><span class="bg-white/10 px-2 py-0.5 rounded-md text-[10px] font-black text-gray-300 shrink-0 ml-1">${rbMap.size}</span></button>`;
 
-      const rentBuyDropdownHtml = `<div class="grid ${hasExtra ? 'grid-cols-2' : 'grid-cols-1'} gap-2 pt-3 border-t border-blue-500/20">${extraBtnHtml}${rentBuyBtnHtml}</div>`;
+      const rentBuyDropdownHtml = `<div class="grid ${hasExtra ? 'grid-cols-2' : 'grid-cols-1'} gap-2 pt-2.5 border-t border-white/10">${extraBtnHtml}${rentBuyBtnHtml}</div>`;
 
       const hasMovieHistory = isModal ? watchlistModalHistoryStack.length > 0 : quickSearchHistoryStack.length > 0;
       const movieBackBtn = hasMovieHistory ? `<button id="movieBackBtn" onclick="navGoBack()" aria-label="Go back" class="pointer-events-auto mt-4 ml-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
@@ -4527,9 +4521,9 @@
       if (isPage) {
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
         const hasHero = !!(heroBackdropUrl || heroTrailer);
-        const desktopStreamingGridClass = visibleFlatrate.length >= 3 ? 'grid grid-cols-2 gap-2.5' : 'flex flex-col gap-2.5';
-        const watchNowCardHtml = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3.5">${watchNowHeaderHtml}<div class="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-3">${streamingHtml}</div>${vpnBannerHtml}${rentBuyDropdownHtml}</div>`;
-        const watchNowCardHtmlDesktop = `<div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] h-full flex flex-col justify-between space-y-3.5"><div class="space-y-3.5">${watchNowHeaderHtml}<div class="${desktopStreamingGridClass}">${streamingHtmlDesktop}</div>${vpnBannerHtml}</div>${rentBuyDropdownHtml}</div>`;
+        const desktopStreamingGridClass = visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2 sm:gap-2.5' : 'flex flex-col gap-2.5';
+        const watchNowCardHtml = `<div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3">${watchNowHeaderHtml}<div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2 sm:gap-2.5' : 'flex flex-col gap-2.5'}">${streamingHtml}</div>${vpnBannerHtml}${rentBuyDropdownHtml}</div>`;
+        const watchNowCardHtmlDesktop = `<div class="p-4.5 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex flex-col justify-center space-y-3">${watchNowHeaderHtml}<div class="${desktopStreamingGridClass}">${streamingHtmlDesktop}</div>${vpnBannerHtml}${rentBuyDropdownHtml}</div>`;
 
         const heroPosterUrl = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
         const heroBannerSectionHtml = hasHero
@@ -4586,9 +4580,9 @@
           ${heroBannerSectionHtml}
           <div class="max-w-[1480px] mx-auto px-6 sm:px-14 ${hasHero ? 'pt-0' : 'pt-8'} pb-10 flex flex-col gap-10">
             <div class="lg:hidden">${watchNowCardHtml}</div>
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-x-14 lg:gap-x-20 gap-y-10 items-stretch">
-              <div class="min-w-0">${castCrewHtml}</div>
-              <aside class="hidden lg:flex flex-col h-full">${watchNowCardHtmlDesktop}</aside>
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px] gap-x-10 xl:gap-x-14 gap-y-8 items-center">
+              <div class="min-w-0 flex flex-col justify-center">${castCrewHtml}</div>
+              <aside class="hidden lg:flex flex-col justify-center">${watchNowCardHtmlDesktop}</aside>
             </div>
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
             ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
@@ -4600,7 +4594,7 @@
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
       const modalMobilePoster = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3.5">${watchNowHeaderHtml}<div class="flex flex-wrap gap-3">${streamingHtml}</div>${vpnBannerHtml}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-[0_8px_25px_rgba(0,0,0,0.4)] space-y-3">${watchNowHeaderHtml}<div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2 sm:gap-2.5' : 'flex flex-col gap-2.5'}">${streamingHtml}</div>${vpnBannerHtml}${rentBuyDropdownHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
     }
 
     function getShortText(text, limit = 195) {
