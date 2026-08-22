@@ -2847,25 +2847,23 @@
       const reelTrack = document.getElementById('rouletteReelTrack');
       const backdropImg = document.getElementById('rouletteBackdropImg');
       const titleEl = document.getElementById('rouletteTitle');
-      const metaRating = document.getElementById('rouletteRating');
-      const metaYear = document.getElementById('rouletteYear');
-      const metaRuntime = document.getElementById('rouletteRuntime');
-      const metaGenre = document.getElementById('rouletteGenre');
-      const streamingSec = document.getElementById('rouletteStreamingSection');
+      const metaLine = document.getElementById('rouletteMetaLine');
       const spinStatus = document.getElementById('rouletteSpinStatus');
       const resultDetails = document.getElementById('rouletteResultDetails');
+      const viewBtn = document.getElementById('rouletteViewBtn');
+      const respinBtn = document.getElementById('rouletteRespinBtn');
+      const respinSvg = document.getElementById('rouletteRespinSvg');
 
-      if (body) { body.classList.remove('roulette-spinning', 'roulette-revealed'); }
+      if (body) body.classList.remove('roulette-spinning', 'roulette-revealed');
       if (reelTrack) { reelTrack.innerHTML = ''; reelTrack.style.transition = 'none'; reelTrack.style.transform = 'translateX(0px)'; }
       if (spinStatus) { spinStatus.style.display = 'flex'; spinStatus.innerHTML = `<svg class="w-4 h-4 animate-spin text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Spinning the reel...</span>`; }
       if (resultDetails) { resultDetails.style.display = 'none'; resultDetails.classList.remove('roulette-info-reveal'); }
       if (backdropImg) { backdropImg.style.opacity = '0'; backdropImg.src = ''; }
       if (titleEl) titleEl.textContent = '';
-      if (metaRating) { metaRating.classList.add('hidden'); metaRating.classList.remove('inline-flex'); }
-      if (metaYear) metaYear.textContent = '';
-      if (metaRuntime) metaRuntime.textContent = '';
-      if (metaGenre) metaGenre.textContent = '';
-      if (streamingSec) streamingSec.innerHTML = '';
+      if (metaLine) metaLine.innerHTML = '';
+      if (viewBtn) { viewBtn.disabled = true; viewBtn.onclick = null; }
+      if (respinBtn) respinBtn.disabled = false;
+      if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
     }
 
     function openRouletteModal() {
