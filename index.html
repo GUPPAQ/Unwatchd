@@ -4617,9 +4617,12 @@
       const vpnRegionName = effectiveVpnInfo ? (REGION_META[effectiveVpnInfo.region]?.name || effectiveVpnInfo.region || '') : '';
       const vpnRegionFlag = effectiveVpnInfo ? (REGION_META[effectiveVpnInfo.region]?.flag || '🌐') : '🌐';
 
-      const vpnBannerHtml = (effectiveVpnInfo && vpnRegionName) ? `<div class="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/15">
-        <span class="text-sm leading-none shrink-0" aria-hidden="true">${vpnRegionFlag}</span>
-        <p class="text-[11px] sm:text-xs text-blue-300/90 font-semibold leading-tight min-w-0">Available in <span class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</span>${vpnServicesList ? ` on ${vpnServicesList}` : ''} via VPN</p>
+      const vpnBannerHtml = (effectiveVpnInfo && vpnRegionName) ? `<div class="mt-2 flex flex-col gap-1 px-0.5 animate-fade">
+        <div class="flex items-center gap-1.5 text-xs font-semibold text-blue-300">
+          <span class="text-sm shrink-0" aria-hidden="true">${vpnRegionFlag}</span>
+          <span class="truncate">Available in <span class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</span>${vpnServicesList ? ` on ${vpnServicesList}` : ''} via VPN</span>
+        </div>
+        <p class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight">*Some streaming services may detect or restrict VPN connections</p>
       </div>` : '';
 
       if (isPage) {
@@ -4684,10 +4687,10 @@
               <div class="watch-options-box p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col justify-between gap-2.5">
                 <div class="flex-1 flex flex-col min-h-0">
                   <div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2 h-full' : 'flex flex-col h-full'}">${streamingHtml}</div>
-                  ${vpnBannerHtml}
                 </div>
                 ${rentBuyDropdownHtml}
               </div>
+              ${vpnBannerHtml}
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_400px] gap-x-10 xl:gap-x-12 items-start">
               <div class="min-w-0">${castCrewHtml}</div>
@@ -4696,10 +4699,10 @@
                 <div id="desktopWatchOptionsBox" class="watch-options-box p-3 sm:p-3.5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col justify-between" style="height: 146px; min-height: 146px;">
                   <div class="flex-1 flex flex-col min-h-0 pb-2.5">
                     <div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2 h-full' : 'flex flex-col h-full'}">${streamingHtml}</div>
-                    ${vpnBannerHtml}
                   </div>
                   ${rentBuyDropdownHtml}
                 </div>
+                ${vpnBannerHtml}
               </aside>
             </div>
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
@@ -4712,7 +4715,7 @@
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
       const modalMobilePoster = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="space-y-2.5"><div class="flex items-center justify-between"><h3 class="text-sm sm:text-base font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div><div class="p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5"><div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-2'}">${streamingHtml}</div>${vpnBannerHtml}${rentBuyDropdownHtml}</div></div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="space-y-2.5"><div class="flex items-center justify-between"><h3 class="text-sm sm:text-base font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div><div class="p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5"><div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-2'}">${streamingHtml}</div>${rentBuyDropdownHtml}</div>${vpnBannerHtml}</div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-wrap items-center gap-3 z-10">${letterboxdBtn}${imdbBtn}${shareBtn}</div>`;
     }
 
     function getShortText(text, limit = 195) {
