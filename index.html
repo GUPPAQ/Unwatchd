@@ -4321,18 +4321,35 @@
         if (mode === 'popup') {
           const actionLabel = extraText || (modeExtra && modeExtra.type ? modeExtra.type : 'Stream');
           const isRentBuy = actionLabel === 'Rent' || actionLabel === 'Buy' || actionLabel === 'Rent/Buy';
-          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-3.5 p-3.5 sm:p-4 rounded-2xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-white/10 active:scale-[0.98] w-full shadow-md">
+          const isUnsubscribed = actionLabel === 'Unsubscribed';
+          const isSubscribed = actionLabel === 'Subscription';
+
+          let btnText = 'Watch';
+          let btnClass = 'bg-blue-500/20 text-blue-400 group-hover/prov:bg-blue-500 group-hover/prov:text-white';
+
+          if (isRentBuy) {
+            btnText = actionLabel;
+            btnClass = 'bg-white/10 text-gray-300 group-hover/prov:bg-white/20 group-hover/prov:text-white';
+          } else if (isUnsubscribed) {
+            btnText = 'Subscribe';
+            btnClass = 'bg-white/10 text-gray-300 group-hover/prov:bg-white/20 group-hover/prov:text-white';
+          } else {
+            btnText = 'Watch';
+            btnClass = 'bg-blue-500/20 text-blue-400 group-hover/prov:bg-blue-500 group-hover/prov:text-white';
+          }
+
+          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-3.5 p-3.5 sm:p-4 rounded-2xl transition-all border ${isSubscribed ? 'border-blue-500/30 bg-blue-950/20 hover:border-blue-500/60 hover:bg-blue-900/30' : 'border-white/10 hover:border-white/25 hover:bg-white/10'} active:scale-[0.98] w-full shadow-md">
             <div class="flex items-center gap-3.5 min-w-0">
               <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
                 ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
               </div>
               <div class="flex flex-col min-w-0 text-left">
-                <span class="truncate text-sm sm:text-base font-black text-white group-hover/prov:text-blue-300 transition-colors">${escapeHTML(safeName)}</span>
-                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">${actionLabel}</span>
+                <span class="truncate text-sm sm:text-base font-black text-white ${isSubscribed ? 'group-hover/prov:text-blue-300' : 'group-hover/prov:text-gray-200'} transition-colors">${escapeHTML(safeName)}</span>
+                <span class="text-[11px] font-extrabold ${isSubscribed ? 'text-blue-400/80' : 'text-gray-400'} uppercase tracking-wider">${actionLabel}</span>
               </div>
             </div>
-            <span class="px-3.5 py-1.5 rounded-xl bg-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-wider shrink-0 flex items-center gap-1.5 group-hover/prov:bg-blue-500 group-hover/prov:text-white transition-all shadow-sm">
-              <span>${isRentBuy ? actionLabel : 'Watch'}</span>
+            <span class="px-3.5 py-1.5 rounded-xl ${btnClass} text-xs font-black uppercase tracking-wider shrink-0 flex items-center gap-1.5 transition-all shadow-sm">
+              <span>${btnText}</span>
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </span>
           </a>`;
