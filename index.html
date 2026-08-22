@@ -1122,38 +1122,40 @@
       scroll-snap-align: start;
     }
 
-    /* Sizing rules: 2 movies on mobile / 4 on tablet / 6 on desktop; 3 actors on mobile / 5 on tablet / 6 on desktop */
+    /* Sizing rules with touch peek effect:
+       - Movies: 2.35 on mobile, 3.4 on tablet (iPad portrait), 4.4 on iPad landscape, 5.4 on wide desktop
+       - Cast: 3.4 on mobile, 4.35 on tablet (iPad portrait), 5.35 on iPad landscape & desktop (5 actors + peek) */
     #relatedMoviesTrack>.tilt-card,
     #similarMoviesTrack>.tilt-card {
-      width: calc((100% - 1 * 1rem) / 2) !important;
+      width: calc((100% - 2 * 1rem) / 2.35) !important;
       flex-shrink: 0 !important;
     }
 
     @media (min-width: 640px) {
-
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 3 * 1.25rem) / 4) !important;
+        width: calc((100% - 3 * 1.25rem) / 3.4) !important;
       }
     }
 
     @media (min-width: 1024px) {
-
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 5 * 1.25rem) / 6) !important;
+        width: calc((100% - 4 * 1.25rem) / 4.4) !important;
+      }
+    }
+
+    @media (min-width: 1280px) {
+      #relatedMoviesTrack>.tilt-card,
+      #similarMoviesTrack>.tilt-card {
+        width: calc((100% - 5 * 1.25rem) / 5.4) !important;
       }
     }
 
     /* Percentage-based Cast Chip Peek Formula:
-       The formula is percentage-based (% of the container's width), not fixed pixels or vw units.
-       Mathematical derivation for ~40% peek of the 4th actor card:
-       Within container width W, we display 3 full cards (C), 3 gaps of 0.75rem (gap-3 on mobile), plus 0.4 of the 4th card:
-         W = 3 * C + 3 * 0.75rem + 0.4 * C = 3.4 * C + 3 * 0.75rem
-         Solving for C: C = calc((100% - 3 * 0.75rem) / 3.4)
-       Visible portion of Card 4 = W - 3*C - 3*0.75rem = (3.4*C + 3*0.75rem) - 3*C - 3*0.75rem = 0.4*C.
-       Proportion of Card 4 visible = 0.4*C / C = exactly 40%, mathematically guaranteed on EVERY phone width (from iPhone SE to 17 Pro Max) without breakpoints.
-       Flex-shrink is locked to 0 to prevent shrinking under flex layout. */
+       - Mobile: 3 full cards + 40% peek of 4th (3.4)
+       - Tablet (iPad portrait): 4 full cards + 35% peek of 5th (4.35)
+       - iPad landscape & Desktop: 5 full cards + 35% peek of 6th (5.35) */
     #castCrewTrack>.cast-chip-card {
       width: calc((100% - 3 * 0.75rem) / 3.4) !important;
       flex-shrink: 0 !important;
@@ -1161,13 +1163,13 @@
 
     @media (min-width: 640px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 4 * 1rem) / 5) !important;
+        width: calc((100% - 4 * 1rem) / 4.35) !important;
       }
     }
 
     @media (min-width: 1024px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 5 * 1rem) / 6) !important;
+        width: calc((100% - 5 * 1rem) / 5.35) !important;
       }
     }
 
@@ -1299,15 +1301,8 @@
       }
     }
 
-    /* Mobile-Only Track Peek & Landscape Lock */
+    /* Mobile-Only Landscape Lock & Title Handling */
     @media (max-width: 640px) {
-      #relatedMoviesTrack .tilt-card,
-      #similarMoviesTrack .tilt-card {
-        width: 36.5vw !important;
-        min-width: 132px !important;
-        max-width: 162px !important;
-        scroll-snap-align: start;
-      }
 
       /* Hide banner title/logo text on mobile since TMDB poster image already contains the title */
       .movie-hero-title,
@@ -4353,6 +4348,18 @@
       const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle liquid-glass active:scale-95${vpnModeEnabled ? ' vpn-active' : ''} px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider cursor-pointer shrink-0 text-white flex items-center gap-1.5 transition-all"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span>VPN</span><span class="watchnow-vpn-dot"></span></button>`;
       const watchNowHeaderHtml = `<div class="flex items-center justify-between h-7"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div>`;
 
+      const rent = filterAndDeduplicateProviders(regionProviders?.rent || [], true);
+      const buy = filterAndDeduplicateProviders(regionProviders?.buy || [], true);
+      const rbMap = new Map();
+
+      rent.forEach(p => {
+        rbMap.set(p.provider_id, { p, type: 'Rent' });
+      });
+      buy.forEach(p => {
+        if (rbMap.has(p.provider_id)) { rbMap.get(p.provider_id).type = 'Rent/Buy'; }
+        else { rbMap.set(p.provider_id, { p, type: 'Buy' }); }
+      });
+
       const allStreamingRaw = [
         ...(regionProviders?.flatrate || []),
         ...(regionProviders?.free || []),
@@ -4371,24 +4378,15 @@
       } else if (otherFlatrate.length > 0) {
         const noSubText = 'Not on your active subscriptions';
         streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
+      } else if (rbMap.size > 0) {
+        const noSubText = 'Only available to rent or buy';
+        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
       } else {
         const noSubText = 'Not available to stream';
         streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
       }
 
       let streamingHtmlDesktop = streamingHtml;
-
-      const rent = filterAndDeduplicateProviders(regionProviders?.rent || [], true);
-      const buy = filterAndDeduplicateProviders(regionProviders?.buy || [], true);
-      const rbMap = new Map();
-
-      rent.forEach(p => {
-        rbMap.set(p.provider_id, { p, type: 'Rent' });
-      });
-      buy.forEach(p => {
-        if (rbMap.has(p.provider_id)) { rbMap.get(p.provider_id).type = 'Rent/Buy'; }
-        else { rbMap.set(p.provider_id, { p, type: 'Buy' }); }
-      });
 
       let userFlatrateLinksHtml = '';
       userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, 'Subscription', 'popup'); });
@@ -4799,7 +4797,8 @@
 
       let html = '';
       if (!hasAny) {
-        html = `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2"><svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg><p class="text-xs font-black uppercase tracking-widest text-gray-400">Not available to stream</p></div>`;
+        const fallbackMsg = (data && data.rentBuyCount > 0) ? 'Only available to rent or buy' : 'Not available to stream';
+        html = `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2"><svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg><p class="text-xs font-black uppercase tracking-widest text-gray-400">${fallbackMsg}</p></div>`;
       } else {
         html = `<div class="space-y-6">
           ${hasUser ? `
