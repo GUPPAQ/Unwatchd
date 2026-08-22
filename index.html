@@ -714,6 +714,168 @@
       pointer-events: none;
     }
 
+    /* Premium popup header */
+    .premium-popup-header {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding-bottom: 1rem;
+      margin-bottom: 1.25rem;
+      padding-right: 2.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      position: relative;
+    }
+    .premium-popup-header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(59,130,246,0.6), transparent);
+    }
+    .premium-popup-header .header-accent {
+      width: 3px;
+      height: 1.25rem;
+      border-radius: 9999px;
+      background: linear-gradient(180deg, #3b82f6, #6366f1);
+      box-shadow: 0 0 12px rgba(59,130,246,0.8), 0 0 4px rgba(99,102,241,0.5);
+      flex-shrink: 0;
+    }
+    .premium-popup-header h3 {
+      font-size: 0.875rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: white;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    @media (min-width: 640px) {
+      .premium-popup-header h3 {
+        font-size: 1rem;
+      }
+    }
+
+    /* Stat cards for Insights popup */
+    .insight-stat-card {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 0.875rem;
+      border-radius: 0.875rem;
+      background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+    .insight-stat-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 15%;
+      bottom: 15%;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+    }
+    .insight-stat-card:hover {
+      border-color: rgba(255,255,255,0.15);
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      transform: translateY(-1px);
+    }
+    .insight-stat-card.stat-blue::before { background: linear-gradient(180deg, #3b82f6, #2563eb); box-shadow: 0 0 8px rgba(59,130,246,0.5); }
+    .insight-stat-card.stat-purple::before { background: linear-gradient(180deg, #a855f7, #7c3aed); box-shadow: 0 0 8px rgba(168,85,247,0.5); }
+    .insight-stat-card.stat-teal::before { background: linear-gradient(180deg, #14b8a6, #0d9488); box-shadow: 0 0 8px rgba(20,184,166,0.5); }
+    .insight-stat-card.stat-amber::before { background: linear-gradient(180deg, #f59e0b, #d97706); box-shadow: 0 0 8px rgba(245,158,11,0.5); }
+    .insight-stat-card .stat-icon {
+      font-size: 1.125rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .insight-stat-card .stat-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #9ca3af;
+      flex-shrink: 0;
+    }
+    .insight-stat-card .stat-value {
+      font-weight: 800;
+      color: white;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Premium text container for description popups */
+    .premium-text-body {
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.3), inset 0 -1px 4px rgba(0,0,0,0.1);
+      padding: 1.25rem 1.5rem;
+      border-radius: 1rem;
+      color: #e5e7eb;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-weight: 500;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    @media (min-width: 640px) {
+      .premium-text-body {
+        padding: 1.5rem 1.75rem;
+        font-size: 1.125rem;
+      }
+    }
+
+    /* Popup open/close animations */
+    @keyframes popupSlideIn {
+      0% { transform: scale(0.95) translateY(16px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes popupSlideOut {
+      0% { transform: scale(1) translateY(0); opacity: 1; }
+      100% { transform: scale(0.97) translateY(8px); opacity: 0; }
+    }
+    @keyframes popupOverlayIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    @keyframes popupOverlayOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .popup-animate-in {
+      animation: popupSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .popup-animate-out {
+      animation: popupSlideOut 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+    .popup-overlay-in {
+      animation: popupOverlayIn 0.3s ease-out forwards;
+    }
+    .popup-overlay-out {
+      animation: popupOverlayOut 0.2s ease-in forwards;
+    }
+
+    /* Popup content stagger animations */
+    @keyframes popupContentFadeIn {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .popup-content-stagger > * {
+      opacity: 0;
+      animation: popupContentFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .popup-content-stagger > *:nth-child(1) { animation-delay: 0.05s; }
+    .popup-content-stagger > *:nth-child(2) { animation-delay: 0.1s; }
+    .popup-content-stagger > *:nth-child(3) { animation-delay: 0.15s; }
+    .popup-content-stagger > *:nth-child(4) { animation-delay: 0.2s; }
+    .popup-content-stagger > *:nth-child(5) { animation-delay: 0.25s; }
+
     /* Roulette loading dots */
     .roulette-loading-dots span {
       display: inline-block;
@@ -1568,17 +1730,17 @@
   <div id="actorPageView" class="fixed inset-0 z-[290] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
 
   <div id="genericPopupOverlay"
-    class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm transition-all duration-300 opacity-0 pointer-events-none"
+    class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm"
     onclick="if(event.target===this) closeGenericPopup()">
     <div id="genericPopupContent"
-      class="premium-popup-panel rounded-3xl max-w-lg w-full p-6 sm:p-8 relative shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)] transform scale-95 transition-all duration-300 opacity-0 max-h-[85vh] flex flex-col pointer-events-auto">
+      class="premium-popup-panel rounded-3xl max-w-lg w-full p-6 sm:p-8 relative shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)] max-h-[85vh] flex flex-col pointer-events-auto">
       <button onclick="closeGenericPopup()" aria-label="Close"
-        class="absolute top-5 right-5 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full liquid-glass active:scale-95 text-gray-300 hover:text-white flex items-center justify-center transition-all cursor-pointer">
+        class="absolute top-4 right-4 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full liquid-glass active:scale-95 text-gray-300 hover:text-white flex items-center justify-center transition-all cursor-pointer">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
-      <div id="genericPopupBody" class="w-full overflow-y-auto overscroll-none pr-1"></div>
+      <div id="genericPopupBody" class="w-full overflow-y-auto overscroll-none pr-1 popup-content-stagger"></div>
     </div>
   </div>
 
@@ -1654,7 +1816,7 @@
   <!-- FULL SCREEN TRAILER POPUP MODAL -->
   <div id="trailerModal" class="fixed inset-0 z-[300] hidden items-center justify-center p-0 pointer-events-none">
     <div id="trailerModalBackdrop"
-      class="absolute inset-0 bg-black transition-opacity duration-300 opacity-0 pointer-events-auto cursor-pointer">
+      class="absolute inset-0 bg-black/95 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-auto cursor-pointer">
     </div>
     <div id="trailerModalContainer"
       class="relative w-full h-full max-w-none max-h-none transition-all duration-300 transform translate-y-8 opacity-0 pointer-events-auto flex flex-col bg-black overflow-hidden border-none">
@@ -1677,10 +1839,10 @@
 
   <!-- WATCHLIST ROULETTE MODAL -->
   <div id="rouletteModal"
-    class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm transition-all duration-300 opacity-0 pointer-events-none"
+    class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm"
     onclick="if(event.target===this) closeRouletteModal()">
     <div id="rouletteModalContent"
-      class="premium-popup-panel rounded-3xl max-w-md w-full relative shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)] transform scale-95 transition-all duration-300 opacity-0 max-h-[90vh] flex flex-col pointer-events-auto overflow-hidden">
+      class="premium-popup-panel rounded-3xl max-w-md w-full relative shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)] max-h-[90vh] flex flex-col pointer-events-auto overflow-hidden">
       
       <!-- Blurred backdrop poster -->
       <div id="rouletteBackdropPoster" class="absolute inset-0 z-0 overflow-hidden rounded-3xl">
@@ -1700,9 +1862,9 @@
       <div id="rouletteBody" class="relative z-10 w-full flex flex-col items-center text-center p-6 sm:p-8 overflow-y-auto overscroll-none">
         
         <!-- Header -->
-        <div class="flex items-center gap-2.5 w-full mb-6">
-          <span class="w-2 h-5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.8)] shrink-0"></span>
-          <h3 class="text-base sm:text-lg font-black uppercase tracking-widest text-white truncate">Watchlist Roulette</h3>
+        <div class="premium-popup-header w-full">
+          <span class="header-accent"></span>
+          <h3>Watchlist Roulette</h3>
         </div>
 
         <!-- Poster Card -->
@@ -1756,14 +1918,14 @@
 
   <!-- MOVIE DETAILS POPUP MODAL (DESKTOP / INLINE) -->
   <div id="movieModal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 sm:p-6" onclick="if(event.target===this) closeModal()">
-    <div id="modalBackdrop" class="absolute inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer"></div>
-    <div id="modalContent" class="relative z-10 bg-[#0b1121] border border-white/15 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_25px_80px_rgba(0,0,0,0.8)]"></div>
+    <div id="modalBackdrop" class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer"></div>
+    <div id="modalContent" class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]"></div>
   </div>
 
   <!-- ACTOR DETAILS POPUP MODAL (DESKTOP / INLINE) -->
   <div id="actorModal" class="fixed inset-0 z-[210] hidden items-center justify-center p-4 sm:p-6" onclick="if(event.target===this) closeActorModal()">
-    <div id="actorModalBackdrop" class="absolute inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer"></div>
-    <div id="actorModalContent" class="relative z-10 bg-[#0b1121] border border-white/15 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_25px_80px_rgba(0,0,0,0.8)]"></div>
+    <div id="actorModalBackdrop" class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer"></div>
+    <div id="actorModalContent" class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]"></div>
   </div>
 
   <script>
@@ -2595,14 +2757,13 @@
 
       resetRouletteUI();
 
-      modal.classList.remove('hidden', 'pointer-events-none');
+      modal.classList.remove('hidden', 'popup-overlay-out');
       modal.classList.add('flex');
 
       requestAnimationFrame(() => {
-        modal.classList.remove('opacity-0');
-        modal.classList.add('opacity-100');
-        content.classList.remove('scale-95', 'opacity-0');
-        content.classList.add('scale-100', 'opacity-100');
+        modal.classList.add('popup-overlay-in');
+        content.classList.remove('popup-animate-out');
+        content.classList.add('popup-animate-in');
       });
 
       spinRoulette();
@@ -2612,14 +2773,19 @@
       const modal = document.getElementById('rouletteModal');
       const content = document.getElementById('rouletteModalContent');
       if (!modal) return;
-      modal.classList.add('hidden', 'pointer-events-none');
-      modal.classList.remove('flex');
-      modal.classList.remove('opacity-100');
-      modal.classList.add('opacity-0');
+
       if (content) {
-        content.classList.remove('scale-100', 'opacity-100');
-        content.classList.add('scale-95', 'opacity-0');
+        content.classList.remove('popup-animate-in');
+        content.classList.add('popup-animate-out');
       }
+      modal.classList.remove('popup-overlay-in');
+      modal.classList.add('popup-overlay-out');
+
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex', 'popup-overlay-out');
+        if (content) content.classList.remove('popup-animate-out');
+      }, 220);
     }
 
     async function spinRoulette() {
@@ -4346,17 +4512,31 @@
     let statsBarOriginalParent = null;
     function closeGenericPopup() {
       const overlay = document.getElementById('genericPopupOverlay');
+      const content = document.getElementById('genericPopupContent');
       if (!overlay) return;
-      overlay.classList.add('hidden');
-      overlay.classList.remove('flex');
-      const bar = document.getElementById('statsBar');
-      if (bar && statsBarOriginalParent) {
-        statsBarOriginalParent.appendChild(bar);
-        statsBarOriginalParent = null;
-        bar.classList.add('hidden');
-        bar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3');
-        if (el.statsBtn) el.statsBtn.classList.remove('vpn-active');
+
+      // Animate out
+      if (content) {
+        content.classList.remove('popup-animate-in');
+        content.classList.add('popup-animate-out');
       }
+      overlay.classList.remove('popup-overlay-in');
+      overlay.classList.add('popup-overlay-out');
+
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex', 'popup-overlay-out');
+        if (content) content.classList.remove('popup-animate-out');
+
+        const bar = document.getElementById('statsBar');
+        if (bar && statsBarOriginalParent) {
+          statsBarOriginalParent.appendChild(bar);
+          statsBarOriginalParent = null;
+          bar.classList.add('hidden');
+          bar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3');
+          if (el.statsBtn) el.statsBtn.classList.remove('vpn-active');
+        }
+      }, 220);
     }
     function handleSpotifyMarqueeEnter(cardEl) {
       if (!cardEl) return;
@@ -4433,23 +4613,30 @@
       });
     }
 
-    function openCustomPopup(title, html) {
-      const body = document.getElementById('genericPopupBody');
+    function _openGenericPopupAnimated() {
       const overlay = document.getElementById('genericPopupOverlay');
       const content = document.getElementById('genericPopupContent');
-      if (!body || !overlay || !content) return;
+      if (!overlay || !content) return;
 
-      body.innerHTML = `<div class="flex items-center gap-2.5 border-b border-white/10 pb-4 mb-5 pr-10"><span class="w-2 h-5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.8)] shrink-0"></span><h3 class="text-base sm:text-lg font-black uppercase tracking-widest text-white truncate">${escapeHTML(title)}</h3></div>${html}`;
-
-      overlay.classList.remove('hidden', 'pointer-events-none');
+      overlay.classList.remove('hidden', 'popup-overlay-out');
       overlay.classList.add('flex');
 
       requestAnimationFrame(() => {
-        overlay.classList.remove('opacity-0');
-        overlay.classList.add('opacity-100');
-        content.classList.remove('scale-95', 'opacity-0');
-        content.classList.add('scale-100', 'opacity-100');
+        overlay.classList.add('popup-overlay-in');
+        content.classList.remove('popup-animate-out');
+        content.classList.add('popup-animate-in');
       });
+    }
+
+    function _premiumHeaderHTML(title) {
+      return `<div class="premium-popup-header"><span class="header-accent"></span><h3>${escapeHTML(title)}</h3></div>`;
+    }
+
+    function openCustomPopup(title, html) {
+      const body = document.getElementById('genericPopupBody');
+      if (!body) return;
+      body.innerHTML = `${_premiumHeaderHTML(title)}${html}`;
+      _openGenericPopupAnimated();
     }
 
     window.openExtraStreamingPopup = function (movieId) {
@@ -4483,44 +4670,49 @@
 
     function openTextPopup(title, text) {
       const body = document.getElementById('genericPopupBody');
-      const overlay = document.getElementById('genericPopupOverlay');
-      const content = document.getElementById('genericPopupContent');
-      if (!body || !overlay || !content) return;
-
-      body.innerHTML = `<div class="flex items-center gap-2.5 border-b border-white/10 pb-4 mb-5 pr-10"><span class="w-2 h-5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.8)] shrink-0"></span><h3 class="text-base sm:text-lg font-black uppercase tracking-widest text-white truncate">${escapeHTML(title)}</h3></div><div class="bg-white/5 border border-white/10 p-5 sm:p-6 rounded-2xl text-gray-200 text-base sm:text-lg leading-relaxed font-medium max-h-[60vh] overflow-y-auto scrollbar-thin">${text}</div>`;
-
-      overlay.classList.remove('hidden', 'pointer-events-none');
-      overlay.classList.add('flex');
-
-      requestAnimationFrame(() => {
-        overlay.classList.remove('opacity-0');
-        overlay.classList.add('opacity-100');
-        content.classList.remove('scale-95', 'opacity-0');
-        content.classList.add('scale-100', 'opacity-100');
-      });
+      if (!body) return;
+      body.innerHTML = `${_premiumHeaderHTML(title)}<div class="premium-text-body">${text}</div>`;
+      _openGenericPopupAnimated();
     }
+
     function openInsightsPopup() {
       const bar = document.getElementById('statsBar');
       const body = document.getElementById('genericPopupBody');
-      const overlay = document.getElementById('genericPopupOverlay');
-      const content = document.getElementById('genericPopupContent');
-      if (!bar || !body || !overlay || !content) return;
+      if (!bar || !body) return;
       statsBarOriginalParent = bar.parentElement;
-      body.innerHTML = `<div class="flex items-center gap-2.5 border-b border-white/10 pb-4 mb-5 pr-10"><span class="w-2 h-5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.8)] shrink-0"></span><h3 class="text-base sm:text-lg font-black uppercase tracking-widest text-white">Watchlist Insights</h3></div>`;
-      body.appendChild(bar);
-      bar.classList.remove('hidden');
-      bar.classList.add('grid', 'grid-cols-2', 'gap-3');
+
+      // Read current stat values
+      const total = document.getElementById('stat-total')?.textContent || '0';
+      const genre = document.getElementById('stat-genre')?.textContent || '-';
+      const decade = document.getElementById('stat-decade')?.textContent || '-';
+      const avg = document.getElementById('stat-avg')?.textContent || '-';
+
+      body.innerHTML = `${_premiumHeaderHTML('Watchlist Insights')}
+        <div class="grid grid-cols-2 gap-3">
+          <div class="insight-stat-card stat-blue">
+            <span class="stat-icon">🎬</span>
+            <span class="stat-label">Total</span>
+            <span class="stat-value">${escapeHTML(total)}</span>
+          </div>
+          <div class="insight-stat-card stat-purple">
+            <span class="stat-icon">🍿</span>
+            <span class="stat-label">Genre</span>
+            <span class="stat-value">${escapeHTML(genre)}</span>
+          </div>
+          <div class="insight-stat-card stat-teal">
+            <span class="stat-icon">🕰</span>
+            <span class="stat-label">Decade</span>
+            <span class="stat-value">${escapeHTML(decade)}</span>
+          </div>
+          <div class="insight-stat-card stat-amber">
+            <span class="stat-icon">⭐</span>
+            <span class="stat-label">Rating</span>
+            <span class="stat-value">${escapeHTML(avg)}</span>
+          </div>
+        </div>`;
+
       if (el.statsBtn) el.statsBtn.classList.add('vpn-active');
-
-      overlay.classList.remove('hidden', 'pointer-events-none');
-      overlay.classList.add('flex');
-
-      requestAnimationFrame(() => {
-        overlay.classList.remove('opacity-0');
-        overlay.classList.add('opacity-100');
-        content.classList.remove('scale-95', 'opacity-0');
-        content.classList.add('scale-100', 'opacity-100');
-      });
+      _openGenericPopupAnimated();
     }
     // 2-line-clamped hero description with a "More" link that opens the full text in the popup
     // above, instead of expanding inline (used on the full-page movie/actor hero).
