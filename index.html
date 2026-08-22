@@ -4389,7 +4389,7 @@
       let userFlatrateLinksHtml = '';
       userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, 'Subscription', 'popup'); });
       let otherFlatrateLinksHtml = '';
-      otherFlatrate.forEach(p => { otherFlatrateLinksHtml += makeProviderLink(p, 'Stream', 'popup'); });
+      otherFlatrate.forEach(p => { otherFlatrateLinksHtml += makeProviderLink(p, 'Unsubscribed', 'popup'); });
       let rbLinksHtml = '';
       rbMap.forEach(val => { rbLinksHtml += makeProviderLink(val.p, val.type, 'popup', { type: val.type }); });
 
@@ -4811,7 +4811,7 @@
             <div>
               <h4 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-gray-500"></span>
-                ${hasUser ? 'Other Available Services' : 'Available Streaming Services'}
+                Unsubscribed
               </h4>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.otherFlatrateLinksHtml}</div>
             </div>
