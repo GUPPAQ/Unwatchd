@@ -1349,7 +1349,7 @@
     }
 
     @media screen and (max-width: 900px) and (orientation: landscape) {
-      body::before {
+      body:not(.trailer-open)::before {
         content: "Please rotate your phone to portrait mode";
         position: fixed;
         inset: 0;
@@ -5760,6 +5760,7 @@
     }
 
     function openTrailerModal(videoKey, movieTitle) {
+      document.body.classList.add('trailer-open');
       if (document.activeElement && typeof document.activeElement.blur === 'function') {
         document.activeElement.blur();
       }
@@ -5833,6 +5834,7 @@
     }
 
     function closeTrailerModal() {
+      document.body.classList.remove('trailer-open');
       const modal = document.getElementById('trailerModal');
       const backdrop = document.getElementById('trailerModalBackdrop');
       const container = document.getElementById('trailerModalContainer');
