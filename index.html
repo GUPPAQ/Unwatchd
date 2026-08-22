@@ -2552,6 +2552,36 @@
       return { provider_name: cleanName, provider_id: p.provider_id, logoPath, logo_path: p.logo_path };
     }
 
+    const GLOBAL_PROVIDER_PRIORITY = {
+      'netflix': 1,
+      'max': 2,
+      'hbomax': 2,
+      'disneyplus': 3,
+      'primevideo': 4,
+      'amazonprimevideo': 4,
+      'appletv': 5,
+      'appletvplus': 5,
+      'skyshowtime': 6,
+      'viaplay': 7,
+      'svtplay': 8,
+      'tv4play': 9,
+      'discoveryplus': 10,
+      'tele2play': 11,
+      'sfanytime': 12
+    };
+
+    function getProviderPriority(p) {
+      if (!p) return 9999;
+      const norm = cleanNormalize(p.provider_name || p.name || '');
+      if (norm && Object.prototype.hasOwnProperty.call(GLOBAL_PROVIDER_PRIORITY, norm)) {
+        return GLOBAL_PROVIDER_PRIORITY[norm];
+      }
+      if (typeof p.display_priority === 'number') {
+        return 100 + p.display_priority;
+      }
+      return 9999;
+    }
+
     function filterAndDeduplicateProviders(list, isRentBuy = false) {
       if (!Array.isArray(list)) return [];
       const map = new Map();
@@ -2564,7 +2594,7 @@
           }
         }
       }
-      return [...map.values()];
+      return [...map.values()].sort((a, b) => getProviderPriority(a) - getProviderPriority(b));
     }
 
     async function fetchProvidersForRegion(region) {
