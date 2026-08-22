@@ -1996,8 +1996,8 @@
       const isCast = subPath === 'cast' || rawSlug.endsWith('-cast');
       const cleanSlug = rawSlug.replace(/-cast$/, '');
 
-      // Legacy/Numeric check (e.g. 122-pulp-fiction)
-      const numMatch = cleanSlug.match(/^(\d+)(?:-(.*))?$/);
+      // Legacy/Numeric check (e.g. 122-pulp-fiction with explicit text after number)
+      const numMatch = cleanSlug.match(/^(\d{5,})(?:-(.*))$/);
       if (numMatch) {
         const id = parseInt(numMatch[1], 10);
         if (category === 'film' || category === 'series' || category === 'movie') {
@@ -2011,7 +2011,7 @@
         return { type: 'actor', id, role };
       }
 
-      // Pure slug without numbers (e.g. pulp-fiction, brad-pitt)
+      // Pure slug without numbers (e.g. pulp-fiction, nuremberg-2025, brad-pitt)
       let role = 'Actor';
       if (category === 'director') role = 'Director';
       else if (category === 'writer') role = 'Writer';
@@ -2047,6 +2047,17 @@
       const slug = routeInfo.slug;
       const category = routeInfo.category || '';
 
+      // Check if this slug exists in scannedMovies (from Letterboxd or active scan)
+      if (category === 'film' || category === 'movie' || category === 'series' || !category) {
+        const foundInScan = scannedMovies.find(m => m.slug === slug);
+        if (foundInScan) {
+          routeInfo.id = foundInScan.id;
+          routeInfo.mediaType = foundInScan.mediaType || (category === 'series' ? 'tv' : 'movie');
+          registerSlug(slug, foundInScan.id, category);
+          return routeInfo;
+        }
+      }
+
       try {
         if (category === 'actor' || category === 'director' || category === 'writer' || category === 'producer' || category === 'composer') {
           const query = slug.replace(/-/g, ' ');
@@ -2058,42 +2069,125 @@
             registerSlug(slug, match.id, 'actor', routeInfo.role);
           }
         } else if (category === 'series') {
-          const query = slug.replace(/-/g, ' ');
-          const res = await fetch(`https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
-          const data = await res.json();
-          if (data && data.results && data.results.length > 0) {
-            const match = data.results.find(s => slugify(s.name || s.original_name) === slug) || data.results[0];
-            routeInfo.id = match.id;
-            routeInfo.mediaType = 'tv';
-            registerSlug(slug, match.id, 'series');
+          let baseSlug = slug;
+          let targetYear = null;
+          let dupIdx = 0;
+          const yearDupMatch = slug.match(/^(.+?)-((?:19|20)\d\d)-(\d+)$/);
+          if (yearDupMatch) {
+            baseSlug = yearDupMatch[1]; targetYear = yearDupMatch[2]; dupIdx = parseInt(yearDupMatch[3], 10);
+          } else {
+            const yearMatch = slug.match(/^(.+?)-((?:19|20)\d\d)$/);
+            if (yearMatch) {
+              baseSlug = yearMatch[1]; targetYear = yearMatch[2];
+            } else {
+              const dupMatch = slug.match(/^(.+?)-(\d{1,2})$/);
+              if (dupMatch) {
+                baseSlug = dupMatch[1]; dupIdx = parseInt(dupMatch[2], 10);
+              }
+            }
+          }
+
+          const query = baseSlug.replace(/-/g, ' ');
+          const url1 = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`;
+          const url2 = targetYear ? `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&first_air_date_year=${targetYear}` : null;
+          const [res1, res2] = await Promise.all([
+            fetch(url1).then(r => r.json()).catch(() => ({})),
+            url2 ? fetch(url2).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
+          ]);
+          const combined = dedupeMediaResults([...(res2.results || []).map(r => ({ ...r, __mediaType: 'tv' })), ...(res1.results || []).map(r => ({ ...r, __mediaType: 'tv' }))]);
+
+          if (combined.length > 0) {
+            let match = null;
+            if (targetYear) {
+              const yearMatches = combined.filter(s => {
+                const isExact = slugify(s.name || s.original_name) === baseSlug;
+                const d = s.first_air_date || '';
+                return isExact && (d.startsWith(targetYear) || Math.abs(parseInt(d.slice(0, 4)) - parseInt(targetYear)) <= 1);
+              });
+              if (yearMatches.length > 0) {
+                match = yearMatches[dupIdx] || yearMatches[0];
+              }
+            }
+            if (!match) {
+              const exacts = combined.filter(s => slugify(s.name || s.original_name) === baseSlug);
+              if (exacts.length > 0) {
+                exacts.sort((a, b) => (a.first_air_date || '9999').localeCompare(b.first_air_date || '9999'));
+                match = exacts[dupIdx] || exacts[0];
+              } else {
+                match = combined[0];
+              }
+            }
+            if (match) {
+              routeInfo.id = match.id;
+              routeInfo.mediaType = 'tv';
+              registerSlug(slug, match.id, 'series');
+            }
           }
         } else {
           // 'film' or default
-          const yearMatch = slug.match(/-(\d{4})$/);
-          const targetYear = yearMatch ? yearMatch[1] : null;
-          const cleanSlug = targetYear ? slug.replace(/-\d{4}$/, '') : slug;
-          const query = cleanSlug.replace(/-/g, ' ');
-          const yearParam = targetYear ? `&primary_release_year=${targetYear}` : '';
-          const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}${yearParam}`);
-          const data = await res.json();
-          if (data && data.results && data.results.length > 0) {
-            let match = null;
-            if (targetYear) {
-              match = data.results.find(m => m.release_date && m.release_date.startsWith(targetYear));
-            }
-            if (!match) {
-              // Sort exact title matches by release date ascending so original comes first
-              const exacts = data.results.filter(m => slugify(m.title || m.original_title) === cleanSlug);
-              if (exacts.length > 0) {
-                exacts.sort((a, b) => (a.release_date || '9999').localeCompare(b.release_date || '9999'));
-                match = exacts[0];
-              } else {
-                match = data.results[0];
+          let baseSlug = slug;
+          let targetYear = null;
+          let dupIdx = 0;
+          const yearDupMatch = slug.match(/^(.+?)-((?:19|20)\d\d)-(\d+)$/);
+          if (yearDupMatch) {
+            baseSlug = yearDupMatch[1]; targetYear = yearDupMatch[2]; dupIdx = parseInt(yearDupMatch[3], 10);
+          } else {
+            const yearMatch = slug.match(/^(.+?)-((?:19|20)\d\d)$/);
+            if (yearMatch) {
+              baseSlug = yearMatch[1]; targetYear = yearMatch[2];
+            } else {
+              const dupMatch = slug.match(/^(.+?)-(\d{1,2})$/);
+              if (dupMatch) {
+                baseSlug = dupMatch[1]; dupIdx = parseInt(dupMatch[2], 10);
               }
             }
-            routeInfo.id = match.id;
-            routeInfo.mediaType = 'movie';
-            registerSlug(slug, match.id, 'film');
+          }
+
+          const query = baseSlug.replace(/-/g, ' ');
+          const url1 = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`;
+          const url2 = targetYear ? `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&primary_release_year=${targetYear}` : null;
+          const [res1, res2] = await Promise.all([
+            fetch(url1).then(r => r.json()).catch(() => ({})),
+            url2 ? fetch(url2).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
+          ]);
+          let combined = dedupeMediaResults([...(res2.results || []).map(r => ({ ...r, __mediaType: 'movie' })), ...(res1.results || []).map(r => ({ ...r, __mediaType: 'movie' }))]);
+
+          // Fallback if targetYear was part of actual title e.g. blade-runner-2049
+          if (combined.length === 0 && targetYear) {
+            const rawQuery = slug.replace(/-/g, ' ');
+            const rawRes = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(rawQuery)}`).then(r => r.json()).catch(() => ({}));
+            combined = (rawRes.results || []).map(r => ({ ...r, __mediaType: 'movie' }));
+          }
+
+          if (combined.length > 0) {
+            let match = null;
+            if (targetYear) {
+              const yearMatches = combined.filter(m => {
+                const isExact = slugify(m.title || m.original_title) === baseSlug;
+                const d = m.release_date || '';
+                return isExact && (d.startsWith(targetYear) || Math.abs(parseInt(d.slice(0, 4)) - parseInt(targetYear)) <= 1);
+              });
+              if (yearMatches.length > 0) {
+                match = yearMatches[dupIdx] || yearMatches[0];
+              } else {
+                const anyYear = combined.filter(m => (m.release_date || '').startsWith(targetYear));
+                if (anyYear.length > 0) match = anyYear[0];
+              }
+            }
+            if (!match) {
+              const exacts = combined.filter(m => slugify(m.title || m.original_title) === baseSlug);
+              if (exacts.length > 0) {
+                exacts.sort((a, b) => (a.release_date || '9999').localeCompare(b.release_date || '9999'));
+                match = exacts[dupIdx] || exacts[0];
+              } else {
+                match = combined[0];
+              }
+            }
+            if (match) {
+              routeInfo.id = match.id;
+              routeInfo.mediaType = 'movie';
+              registerSlug(slug, match.id, 'film');
+            }
           }
         }
       } catch (e) { console.warn('[Resolve Slug Route]', e); }
@@ -3479,7 +3573,8 @@
             id: m.id, mediaType: m.mediaType, title: m.title, poster: m.poster,
             backdrop: m.backdrop, rating: m.rating, releaseDate: m.releaseDate,
             popularity: m.popularity || 0, vote_count: m.vote_count || 0,
-            genreIds: m.genreIds, url: m.url, allProviders: m.allProviders
+            genreIds: m.genreIds, url: m.url, allProviders: m.allProviders,
+            slug: m.slug || null
           }));
           localStorage.setItem('ps_last_scan', JSON.stringify(compact));
         } catch (e2) { console.warn('[Compact Scan Storage localStorage Write]', e2); }
@@ -3531,6 +3626,13 @@
     loadScanFromStorage().then(scanData => {
       if (scanData && scanData.movies && scanData.movies.length > 0) {
         scannedMovies = scanData.movies;
+        if (Array.isArray(scannedMovies)) {
+          scannedMovies.forEach(m => {
+            if (m.slug && m.id) {
+              registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
+            }
+          });
+        }
         if (scanData.isFriendMatch !== undefined) {
           isFriendMatchActive = scanData.isFriendMatch;
         } else {
@@ -5091,6 +5193,55 @@
     // ---------------- Full-page movie view ----------------
     window.currentMoviePageObj = null;
 
+    async function getCanonicalMovieSlug(movieObj, details = null) {
+      if (movieObj && movieObj.slug) return movieObj.slug;
+      const title = (details && (details.title || details.name)) || (movieObj && (movieObj.title || movieObj.name)) || '';
+      const baseSlug = slugify(title);
+      if (!baseSlug) return '';
+      const dateStr = (details && (details.release_date || details.first_air_date)) || (movieObj && (movieObj.releaseDate || movieObj.release_date || movieObj.first_air_date)) || '';
+      const mYear = dateStr ? dateStr.split('-')[0] : '';
+      const mediaType = (details && details.first_air_date) || (movieObj && movieObj.mediaType === 'tv') ? 'tv' : 'movie';
+      const mId = (details && details.id) || (movieObj && movieObj.id);
+
+      // 1. Check if another film in scannedMovies has the same title
+      if (Array.isArray(scannedMovies) && mYear) {
+        const sameTitleScanned = scannedMovies.filter(m => slugify(m.title) === baseSlug);
+        if (sameTitleScanned.length > 1) {
+          sameTitleScanned.sort((a, b) => (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999'));
+          if (sameTitleScanned[0].id !== mId) {
+            const sameYear = sameTitleScanned.filter(m => (m.releaseDate || '').startsWith(mYear));
+            const dupIdx = sameYear.findIndex(m => m.id === mId);
+            if (dupIdx > 0) return `${baseSlug}-${mYear}-${dupIdx}`;
+            return `${baseSlug}-${mYear}`;
+          }
+        }
+      }
+
+      if (!mYear) return baseSlug;
+
+      // 2. Query TMDB search to see if this is an original or duplicate title
+      try {
+        const searchEndpoint = mediaType === 'tv' ? 'search/tv' : 'search/movie';
+        const res = await fetch(`https://api.themoviedb.org/3/${searchEndpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`);
+        const data = await res.json();
+        if (data && data.results && data.results.length > 0) {
+          const exacts = data.results.filter(m => slugify(m.title || m.original_title || m.name || m.original_name) === baseSlug);
+          if (exacts.length > 1) {
+            exacts.sort((a, b) => (a.release_date || a.first_air_date || '9999').localeCompare(b.release_date || b.first_air_date || '9999'));
+            if (exacts[0].id !== mId) {
+              // This is a newer or duplicate release! Append release year.
+              const sameYear = exacts.filter(m => (m.release_date || m.first_air_date || '').startsWith(mYear));
+              const dupIdx = sameYear.findIndex(m => m.id === mId);
+              if (dupIdx > 0) return `${baseSlug}-${mYear}-${dupIdx}`;
+              return `${baseSlug}-${mYear}`;
+            }
+          }
+        }
+      } catch (e) { console.warn('[Canonical Slug Fetch]', e); }
+
+      return baseSlug;
+    }
+
     async function openMoviePage(movieObj, pushHistory = true) {
       const container = document.getElementById('moviePageView');
       if (!container || !movieObj) return;
@@ -5103,16 +5254,19 @@
       container.scrollTop = 0;
       container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
 
-      // Initial fallback slug push before async resolution
+      // Initial fast fallback slug push before async resolution
+      let initialSlug = movieObj.slug || '';
       const initialBaseSlug = slugify(movieObj.title || '');
       const initialYear = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : (movieObj.release_date ? movieObj.release_date.split('-')[0] : '');
-      const initialHasOlder = scannedMovies.some(m => {
-        if (m.id === movieObj.id) return false;
-        if (slugify(m.title) !== initialBaseSlug) return false;
-        const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
-        return otherYear && initialYear && parseInt(otherYear) < parseInt(initialYear);
-      });
-      const initialSlug = initialHasOlder && initialYear ? `${initialBaseSlug}-${initialYear}` : initialBaseSlug;
+      if (!initialSlug) {
+        const initialHasOlder = scannedMovies.some(m => {
+          if (m.id === movieObj.id) return false;
+          if (slugify(m.title) !== initialBaseSlug) return false;
+          const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
+          return otherYear && initialYear && parseInt(otherYear) < parseInt(initialYear);
+        });
+        initialSlug = initialHasOlder && initialYear ? `${initialBaseSlug}-${initialYear}` : initialBaseSlug;
+      }
       const initialMediaType = movieObj.mediaType === 'tv' ? 'series' : 'film';
       if (initialSlug) registerSlug(initialSlug, movieObj.id, initialMediaType);
       if (pushHistory) {
@@ -5128,26 +5282,18 @@
           console.warn('[Full Movie Details Fetch]', e);
         }
 
-        // Fast synchronous slug refinement without blocking extra network search fetches
-        if (details) {
-          try {
-            const baseSlug = slugify(details.title || details.name || movieObj.title || '');
-            const dateStr = details.release_date || details.first_air_date || movieObj.releaseDate || '';
-            const mYear = dateStr ? dateStr.split('-')[0] : '';
-            const scannedOlder = scannedMovies.some(m => {
-              if (m.id === movieObj.id) return false;
-              if (slugify(m.title) !== baseSlug) return false;
-              const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
-              return otherYear && mYear && parseInt(otherYear) < parseInt(mYear);
-            });
-            const refinedSlug = scannedOlder && mYear ? `${baseSlug}-${mYear}` : baseSlug;
-            const mediaRoute = mediaType === 'tv' ? 'series' : 'film';
-            if (refinedSlug) registerSlug(refinedSlug, movieObj.id, mediaRoute);
+        // Canonical slug refinement
+        try {
+          const mediaRoute = mediaType === 'tv' ? 'series' : 'film';
+          const refinedSlug = await getCanonicalMovieSlug(movieObj, details);
+          if (refinedSlug) {
+            movieObj.slug = refinedSlug;
+            registerSlug(refinedSlug, movieObj.id, mediaRoute);
             if (pushHistory) {
               try { history.replaceState({ moviePage: movieObj.id }, '', `#${mediaRoute}/${refinedSlug}`); } catch (e) { }
             }
-          } catch (e) { }
-        }
+          }
+        } catch (e) { }
 
         if (window.currentMoviePageObj !== movieObj) return;
 
@@ -6705,7 +6851,28 @@
                 }
                 const bestTitle = getResultTitle(best);
                 const bestDate = getResultDate(best);
-                const runtimeMinutes = best.runtime || (best.episode_run_time ? best.episode_run_time[0] : 0) || 0; scannedMovies.push({ __scannedIndex: qObj.extractedIndex !== undefined ? qObj.extractedIndex : scannedMovies.length, runtime: runtimeMinutes, id: best.id, mediaType, title: bestTitle, poster: best.poster_path ? `https://image.tmdb.org/t/p/w500${best.poster_path}` : null, backdrop: best.backdrop_path ? `https://image.tmdb.org/t/p/w1280${best.backdrop_path}` : null, rating: best.vote_average ? best.vote_average.toFixed(1) : null, releaseDate: bestDate, popularity: typeof best.popularity === 'number' ? best.popularity : 0, vote_count: typeof best.vote_count === 'number' ? best.vote_count : 0, genreIds: best.genre_ids || [], url: (optimizedProviders[currentRegion] && optimizedProviders[currentRegion].link) ? optimizedProviders[currentRegion].link : `https://www.themoviedb.org/${mediaType}/${best.id}`, allProviders: optimizedProviders });
+                const filmSlug = qObj.slug || null;
+                const runtimeMinutes = best.runtime || (best.episode_run_time ? best.episode_run_time[0] : 0) || 0;
+                scannedMovies.push({
+                  __scannedIndex: qObj.extractedIndex !== undefined ? qObj.extractedIndex : scannedMovies.length,
+                  runtime: runtimeMinutes,
+                  id: best.id,
+                  mediaType,
+                  title: bestTitle,
+                  poster: best.poster_path ? `https://image.tmdb.org/t/p/w500${best.poster_path}` : null,
+                  backdrop: best.backdrop_path ? `https://image.tmdb.org/t/p/w1280${best.backdrop_path}` : null,
+                  rating: best.vote_average ? best.vote_average.toFixed(1) : null,
+                  releaseDate: bestDate,
+                  popularity: typeof best.popularity === 'number' ? best.popularity : 0,
+                  vote_count: typeof best.vote_count === 'number' ? best.vote_count : 0,
+                  genreIds: best.genre_ids || [],
+                  url: (optimizedProviders[currentRegion] && optimizedProviders[currentRegion].link) ? optimizedProviders[currentRegion].link : `https://www.themoviedb.org/${mediaType}/${best.id}`,
+                  allProviders: optimizedProviders,
+                  slug: filmSlug
+                });
+                if (filmSlug && best.id) {
+                  registerSlug(filmSlug, best.id, mediaType === 'tv' ? 'series' : 'film');
+                }
               } catch (e) { console.warn('[TMDB Watch Provider Scan Fetch]', e); }
             })); await new Promise(r => setTimeout(r, TMDB_REQUEST_DELAY_MS));
           }
