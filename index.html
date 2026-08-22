@@ -4368,6 +4368,10 @@
           link = deeplink.searchUrl(movieObj.title);
         }
 
+        const isVpnProvider = !!(effectiveVpnInfo && effectiveVpnInfo.region && effectiveVpnInfo.region !== currentRegion);
+        const vpnRegionName = isVpnProvider ? (REGION_META[effectiveVpnInfo.region]?.name || effectiveVpnInfo.region || '') : '';
+        const vpnRegionFlag = isVpnProvider ? (REGION_META[effectiveVpnInfo.region]?.flag || '🌐') : '🌐';
+
         if (mode === 'popup') {
           const actionLabel = extraText || (modeExtra && modeExtra.type ? modeExtra.type : 'Stream');
           const isRentBuy = actionLabel === 'Rent' || actionLabel === 'Buy' || actionLabel === 'Rent/Buy';
@@ -4377,7 +4381,10 @@
               <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
                 ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
               </div>
-              <span class="truncate text-sm sm:text-base font-extrabold text-white group-hover/prov:text-blue-300 transition-colors">${escapeHTML(safeName)}</span>
+              <div class="flex flex-col min-w-0">
+                <span class="truncate text-sm sm:text-base font-extrabold text-white group-hover/prov:text-blue-300 transition-colors leading-tight">${escapeHTML(safeName)}</span>
+                ${isVpnProvider ? `<span class="text-xs text-blue-300 font-semibold truncate leading-tight mt-0.5 flex items-center gap-1"><span class="text-xs leading-none shrink-0" aria-hidden="true">${vpnRegionFlag}</span><span>Available in <strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
+              </div>
             </div>
             <div class="shrink-0 flex items-center gap-2">
               ${isRentBuy ? `<span class="px-2.5 py-1 rounded-lg bg-white/10 text-gray-300 text-[10.5px] font-extrabold uppercase tracking-wider">${actionLabel}</span>` : ''}
@@ -4392,7 +4399,10 @@
               <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
                 ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-sm font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
               </div>
-              <span class="truncate min-w-0 text-base sm:text-lg font-black text-white group-hover/prov:text-blue-300 transition-colors tracking-tight">${escapeHTML(safeName)}${extraText}</span>
+              <div class="flex flex-col min-w-0">
+                <span class="truncate min-w-0 text-base sm:text-lg font-black text-white group-hover/prov:text-blue-300 transition-colors tracking-tight leading-tight">${escapeHTML(safeName)}${extraText}</span>
+                ${isVpnProvider ? `<span class="text-xs sm:text-[13px] text-blue-300 font-semibold truncate leading-tight mt-0.5 flex items-center gap-1.5"><span class="text-xs leading-none shrink-0" aria-hidden="true">${vpnRegionFlag}</span><span>Available in <strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
+              </div>
             </div>
             <svg class="w-5 h-5 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
           </a>`;
@@ -4403,7 +4413,10 @@
             <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
               ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
             </div>
-            <span class="truncate min-w-0 text-xs sm:text-sm font-black text-white group-hover/prov:text-blue-300 transition-colors">${escapeHTML(safeName)}${extraText}</span>
+            <div class="flex flex-col min-w-0">
+              <span class="truncate min-w-0 text-xs sm:text-sm font-black text-white group-hover/prov:text-blue-300 transition-colors leading-tight">${escapeHTML(safeName)}${extraText}</span>
+              ${isVpnProvider ? `<span class="text-[10.5px] sm:text-[11px] text-blue-300 font-semibold truncate leading-tight mt-0.5 flex items-center gap-1"><span class="text-xs leading-none shrink-0" aria-hidden="true">${vpnRegionFlag}</span><span>In <strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
+            </div>
           </div>
           <svg class="w-4 h-4 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
         </a>`;
@@ -4478,22 +4491,6 @@
       const rentBuyBtnHtml = `<button type="button" onclick="openRentBuyPopup(${movieObj.id})" class="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white text-xs font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm"><span class="flex items-center gap-1.5 truncate"><svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>Rent / Buy</span><span class="bg-white/10 px-1.5 py-0.5 rounded-md text-[10.5px] font-black text-gray-300 shrink-0 ml-1">${rbMap.size}</span></button>`;
 
       const rentBuyDropdownHtml = `<div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 shrink-0">${extraBtnHtml}${rentBuyBtnHtml}</div>`;
-
-      const isVpnActive = !!(effectiveVpnInfo && effectiveVpnInfo.region && effectiveVpnInfo.region !== currentRegion);
-      const vpnRegionName = isVpnActive ? (REGION_META[effectiveVpnInfo.region]?.name || effectiveVpnInfo.region || '') : '';
-      const vpnRegionFlag = isVpnActive ? (REGION_META[effectiveVpnInfo.region]?.flag || '🌐') : '🌐';
-      let vpnServicesList = '';
-      if (effectiveVpnInfo) {
-        const rawServices = effectiveVpnInfo.services || (effectiveVpnInfo.service ? [effectiveVpnInfo.service] : []);
-        const serviceNames = (Array.isArray(rawServices) ? rawServices : [rawServices])
-          .map(s => (typeof s === 'string' ? s : (s?.label || s?.provider_name || s?.name || '')))
-          .filter(Boolean);
-        vpnServicesList = serviceNames.map(escapeHTML).join(', ');
-      }
-      const vpnTextHtml = (isVpnActive && vpnRegionName) ? `<div class="flex items-center gap-1.5 pt-1.5 px-0.5 min-w-0 text-[11px] text-blue-300 font-semibold truncate leading-tight shrink-0">
-        <span class="text-xs leading-none shrink-0" aria-hidden="true">${vpnRegionFlag}</span>
-        <span class="truncate">Available in <strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong>${vpnServicesList ? ` on ${vpnServicesList}` : ''} via VPN*</span>
-      </div>` : '';
 
       const hasMovieHistory = isModal ? watchlistModalHistoryStack.length > 0 : quickSearchHistoryStack.length > 0;
       const movieBackBtn = hasMovieHistory ? `<button id="movieBackBtn" onclick="navGoBack()" aria-label="Go back" class="pointer-events-auto mt-4 ml-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
@@ -4682,10 +4679,9 @@
           <div class="max-w-[1480px] mx-auto px-6 sm:px-14 ${hasHero ? 'pt-0' : 'pt-8'} pb-10 flex flex-col gap-10">
             <div class="lg:hidden space-y-2.5">
               ${watchNowHeaderHtml}
-              <div class="watch-options-box p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col justify-between gap-2">
+              <div class="watch-options-box p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col justify-between gap-2.5">
                 <div class="flex-1 flex flex-col min-h-0">
-                  <div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col'}">${streamingHtml}</div>
-                  ${vpnTextHtml}
+                  <div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2 h-full' : 'flex flex-col h-full'}">${streamingHtml}</div>
                 </div>
                 ${rentBuyDropdownHtml}
               </div>
@@ -4696,8 +4692,7 @@
                 ${watchNowHeaderHtml}
                 <div id="desktopWatchOptionsBox" class="watch-options-box p-3 sm:p-3.5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col justify-between" style="height: 146px; min-height: 146px;">
                   <div class="flex-1 flex flex-col justify-center min-h-0">
-                    <div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col'}">${streamingHtml}</div>
-                    ${vpnTextHtml}
+                    <div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2 h-full' : 'flex flex-col h-full'}">${streamingHtml}</div>
                   </div>
                   ${rentBuyDropdownHtml}
                 </div>
@@ -4716,7 +4711,7 @@
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
       const modalMobilePoster = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="space-y-2.5"><div class="flex items-center justify-between"><h3 class="text-sm sm:text-base font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div><div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2"><div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col'}">${streamingHtml}</div>${vpnTextHtml}${rentBuyDropdownHtml}</div></div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 z-10"><div class="flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${shareBtn}</div>${effectiveVpnInfo ? `<p class="text-[11px] text-gray-500 font-medium leading-tight text-center sm:text-right">*Some streaming services may detect or restrict VPN connections</p>` : ''}</div>`;
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="space-y-2.5"><div class="flex items-center justify-between"><h3 class="text-sm sm:text-base font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div><div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5"><div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col'}">${streamingHtml}</div>${rentBuyDropdownHtml}</div></div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 z-10"><div class="flex flex-wrap items-center gap-3">${letterboxdBtn}${imdbBtn}${shareBtn}</div>${effectiveVpnInfo ? `<p class="text-[11px] text-gray-500 font-medium leading-tight text-center sm:text-right">*Some streaming services may detect or restrict VPN connections</p>` : ''}</div>`;
     }
 
     function getShortText(text, limit = 195) {
