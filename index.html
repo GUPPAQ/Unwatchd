@@ -124,7 +124,17 @@
 
     .hero-mobile-aspect {
       width: 100%;
-      aspect-ratio: 2 / 3;
+      position: relative;
+      height: 85dvh;
+      min-height: 560px;
+    }
+
+    @media (min-width: 640px) and (max-width: 1023px) and (orientation: portrait) {
+      .hero-mobile-aspect {
+        width: 100%;
+        height: 85dvh;
+        min-height: 720px;
+      }
     }
 
     .hero-portrait-block {
@@ -143,9 +153,8 @@
     @media (min-width: 1024px), (min-width: 640px) and (orientation: landscape) {
       .hero-mobile-aspect {
         width: 100%;
-        aspect-ratio: auto;
         height: 100dvh;
-        max-height: none;
+        min-height: 100dvh;
       }
       .hero-portrait-block {
         display: none !important;
@@ -4681,39 +4690,31 @@
         const hasHero = !!(heroBackdropUrl || heroTrailer);
         const heroPosterUrl = getTextlessPosterUrl(details, movieObj.poster);
         const heroBannerSectionHtml = hasHero
-          ? `<div class="relative w-full">
-              <div class="relative w-full hero-mobile-aspect">
-                <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">
-                  ${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-landscape-block w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}
-                  ${heroPosterUrl ? `<img src="${heroPosterUrl}" alt="" aria-hidden="true" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40 transform-gpu"><img src="${heroPosterUrl}" alt="${safeTitle} poster" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : `<div class="hero-portrait-block w-full h-full bg-gray-900"></div>`}
-                  ${heroVideoHtml}<div class="hero-landscape-block absolute inset-x-0 bottom-0 h-16 sm:h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/60 via-30% to-transparent to-100% sm:via-[#0b1121]/75 sm:via-40% pointer-events-none z-20"></div>
-                </div>
-                <!-- Desktop / Landscape: title/overview overlaid on the image -->
-                <div class="hero-landscape-block absolute inset-x-0 bottom-0 z-30 p-14 pointer-events-none">
-                  <div class="max-w-[1480px] mx-auto w-full flex flex-row items-end justify-between gap-6">
-                    <div class="max-w-3xl min-w-0 pointer-events-auto">
-                      ${pageTitleHeaderHtml}
-                      <div class="flex flex-wrap items-center gap-3 text-lg font-bold text-gray-200 mt-2">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span>` : ''}</div>
-                      <div class="mt-3">${createHeroOverviewHtml(overview, safeTitle)}</div>
-                    </div>
-                    <div class="flex items-center gap-3 pointer-events-auto shrink-0">${pageTrailerBtnHtml}${soundBtnInlineHtml.replace('sm:hidden', '')}</div>
-                  </div>
-                </div>
+          ? `<div class="relative w-full hero-mobile-aspect">
+              <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">
+                ${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-landscape-block w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}
+                ${heroPosterUrl ? `<img src="${heroPosterUrl}" alt="" aria-hidden="true" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40 transform-gpu"><img src="${heroPosterUrl}" alt="${safeTitle} poster" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : `<div class="hero-portrait-block w-full h-full bg-gray-900"></div>`}
+                ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-4/5 sm:h-[70%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-45% to-transparent to-100% pointer-events-none z-20"></div>
               </div>
-              <!-- Mobile & iPad Portrait: title/overview flow directly below the poster image -->
-              <div class="hero-portrait-block relative z-30 px-5 sm:px-14 pt-3 pb-6 bg-[#0b1121]">
-                <div class="max-w-3xl min-w-0">
-                  ${pageTitleHeaderHtml}
-                  <!-- Mobile & iPad Portrait Single-Row Rating, Year, Runtime & Genre -->
-                  <div class="flex items-center gap-2 text-sm font-bold text-gray-200 mt-1.5 whitespace-nowrap overflow-x-auto no-scrollbar">
-                    ${modalRatingBadgeHtml}
-                    <span class="text-white font-extrabold">${year}</span>
-                    ${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}
-                    ${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span>` : ''}
+              <!-- Content overlay: sits directly over the bottom of the poster/backdrop on all screens -->
+              <div class="absolute inset-x-0 bottom-0 z-30 p-5 sm:p-10 lg:p-14 pointer-events-none">
+                <div class="max-w-[1480px] mx-auto w-full flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-6">
+                  <div class="max-w-3xl min-w-0 pointer-events-auto flex flex-col gap-2 sm:gap-2.5">
+                    ${pageTitleHeaderHtml}
+                    <!-- Rating, Year, Runtime & Genres -->
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg font-bold text-gray-200">
+                      ${modalRatingBadgeHtml}
+                      <span class="text-white font-extrabold">${year}</span>
+                      ${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}
+                      ${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span>` : ''}
+                    </div>
+                    <div class="mt-1 max-w-3xl">${createHeroOverviewHtml(overview, safeTitle)}</div>
                   </div>
-                  <div class="mt-2.5">${createHeroOverviewHtml(overview, safeTitle)}</div>
+                  <div class="flex items-center gap-3 pointer-events-auto shrink-0 mt-1 lg:mt-0">
+                    ${pageTrailerBtnHtml}
+                    ${soundBtnInlineHtml.replace('sm:hidden', '')}
+                  </div>
                 </div>
-                <div class="flex items-center gap-3 mt-3">${pageTrailerBtnHtml}${soundBtnInlineHtml.replace('sm:hidden', '')}</div>
               </div>
             </div>`
           : `<div class="relative w-full pt-24 pb-8 sm:pb-12 px-6 sm:px-14 bg-gradient-to-b from-[#111827] via-[#0f172a] to-[#0b1121] border-b border-white/5">
