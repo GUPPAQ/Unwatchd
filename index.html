@@ -1122,9 +1122,9 @@
       scroll-snap-align: start;
     }
 
-    /* Sizing rules with uniform 35% touch peek effect:
-       - Movies: 2.35 on mobile, 3.35 on tablet (iPad portrait), 4.35 on iPad landscape, 5.35 on wide desktop
-       - Cast: 3.35 on mobile, 3.35 on tablet (iPad portrait), 4.35 on iPad landscape (4 actors + peek), 5.35 on wide desktop */
+    /* Sizing rules:
+       - Touch/Mobile/Tablet: 35% peek effect for swipe discoverability
+       - Desktop (>= 1280px): EXACTLY 6 items, flush and cleanly aligned (0 peek) */
     #relatedMoviesTrack>.tilt-card,
     #similarMoviesTrack>.tilt-card {
       width: calc((100% - 2 * 1rem) / 2.35) !important;
@@ -1148,15 +1148,15 @@
     @media (min-width: 1280px) {
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 5 * 1.25rem) / 5.35) !important;
+        width: calc((100% - 5 * 1.25rem) / 6) !important;
       }
     }
 
-    /* Percentage-based Cast Chip Peek Formula (Uniform 35% Peek):
-       - Mobile: 3 full cards + 35% peek of 4th (3.35)
-       - Tablet (iPad portrait): 3 full cards + 35% peek of 4th (3.35)
-       - iPad landscape: 4 full cards + 35% peek of 5th (4.35)
-       - Wide Desktop: 5 full cards + 35% peek of 6th (5.35) */
+    /* Cast Chip Sizing:
+       - Mobile: 3 full cards + 35% peek (3.35)
+       - Tablet (iPad portrait): 3 full cards + 35% peek (3.35)
+       - iPad landscape: 4 full cards + 35% peek (4.35)
+       - Desktop (>= 1280px): EXACTLY 6 actors, flush and cleanly aligned */
     #castCrewTrack>.cast-chip-card {
       width: calc((100% - 3 * 0.75rem) / 3.35) !important;
       flex-shrink: 0 !important;
@@ -1176,7 +1176,7 @@
 
     @media (min-width: 1280px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 5 * 1rem) / 5.35) !important;
+        width: calc((100% - 5 * 1rem) / 6) !important;
       }
     }
 
