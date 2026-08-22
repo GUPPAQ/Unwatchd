@@ -361,9 +361,6 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      color: #9ca3af;
       transition: all 0.2s ease;
     }
 
@@ -371,28 +368,21 @@
       width: 6px;
       height: 6px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.4);
       transition: background 0.2s ease, box-shadow 0.2s ease;
       flex-shrink: 0;
     }
 
-    @media (hover: hover) and (pointer: fine) {
-      .watchnow-vpn-toggle:hover:not(.vpn-active) {
-        border-color: rgba(255, 255, 255, 0.3);
-        color: rgba(255, 255, 255, 0.9);
-        background: rgba(255, 255, 255, 0.08);
-      }
-    }
-
     .watchnow-vpn-toggle.vpn-active {
-      background: rgba(59, 130, 246, 0.18) !important;
-      border-color: rgba(96, 165, 250, 0.5) !important;
-      color: rgb(147, 197, 253) !important;
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.45) 0%, rgba(37, 99, 235, 0.25) 100%) !important;
+      border-color: rgba(96, 165, 250, 0.6) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
     }
 
     .watchnow-vpn-toggle.vpn-active .watchnow-vpn-dot {
       background: #60a5fa;
-      box-shadow: 0 0 6px rgba(96, 165, 250, 0.9);
+      box-shadow: 0 0 8px rgba(96, 165, 250, 1);
     }
 
     .poster-badge-glass {
@@ -4360,7 +4350,7 @@
       };
 
       let streamingHtml = '';
-      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''} px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider cursor-pointer shrink-0"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>VPN<span class="watchnow-vpn-dot"></span></button>`;
+      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle liquid-glass active:scale-95${vpnModeEnabled ? ' vpn-active' : ''} px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider cursor-pointer shrink-0 text-white flex items-center gap-1.5 transition-all"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span>VPN</span><span class="watchnow-vpn-dot"></span></button>`;
       const watchNowHeaderHtml = `<div class="flex items-center justify-between h-7"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div>`;
 
       const allStreamingRaw = [
@@ -4422,7 +4412,7 @@
 
       const displayExtraCount = extraStreamingCount > 0 ? `+${extraStreamingCount}` : (otherFlatrate.length > 0 ? `+${otherFlatrate.length}` : (cleanFlatrate.length > 0 ? `${cleanFlatrate.length}` : ''));
       const extraBtnHtml = `<button type="button" onclick="openExtraStreamingPopup(${movieObj.id})" class="w-full py-1.5 px-2.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 active:scale-95 border border-blue-500/30 text-blue-400 text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm"><span class="flex items-center gap-1.5 truncate"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>More</span>${displayExtraCount ? `<span class="bg-blue-500/30 px-1.5 py-0.5 rounded-md text-[10px] font-black text-white shrink-0 ml-1">${displayExtraCount}</span>` : `<svg class="w-3 h-3 text-blue-400 shrink-0 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>`}</button>`;
-      const rentBuyBtnHtml = `<button type="button" onclick="openRentBuyPopup(${movieObj.id})" class="w-full py-1.5 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm"><span class="flex items-center gap-1.5 truncate"><svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"></path></svg>Rent / Buy</span><span class="bg-white/10 px-1.5 py-0.5 rounded-md text-[10px] font-black text-gray-300 shrink-0 ml-1">${rbMap.size}</span></button>`;
+      const rentBuyBtnHtml = `<button type="button" onclick="openRentBuyPopup(${movieObj.id})" class="w-full py-1.5 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm"><span class="flex items-center gap-1.5 truncate"><svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>Rent / Buy</span><span class="bg-white/10 px-1.5 py-0.5 rounded-md text-[10px] font-black text-gray-300 shrink-0 ml-1">${rbMap.size}</span></button>`;
 
       const rentBuyDropdownHtml = `<div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 shrink-0">${extraBtnHtml}${rentBuyBtnHtml}</div>`;
 
@@ -4840,7 +4830,7 @@
       if (!data) return;
       const html = data.rentBuyCount > 0
         ? `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.rbLinksHtml}</div>`
-        : `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2"><svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg><p class="text-xs font-black uppercase tracking-widest text-gray-400">Not available to rent or buy</p></div>`;
+        : `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2"><svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg><p class="text-xs font-black uppercase tracking-widest text-gray-400">Not available to rent or buy</p></div>`;
       openCustomPopup(`Rent & Buy Options: ${data.title}`, html);
     };
 
