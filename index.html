@@ -4337,10 +4337,26 @@
         }
 
         if (mode === 'single') {
-          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all text-sm font-bold text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-blue-500/50 hover:bg-white/10 shadow-sm"><div class="flex items-center gap-3.5 min-w-0"><div class="w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-sm pointer-events-none">${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}</div><span class="truncate min-w-0 text-base font-extrabold text-white group-hover/prov:text-blue-300 transition-colors">${escapeHTML(safeName)}${extraText}</span></div><svg class="w-5 h-5 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></a>`;
+          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-4 px-4 sm:px-5 py-3.5 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-blue-500/50 hover:bg-white/10 shadow-md">
+            <div class="flex items-center gap-4 min-w-0">
+              <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
+                ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-sm font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
+              </div>
+              <span class="truncate min-w-0 text-lg sm:text-xl font-black text-white group-hover/prov:text-blue-300 transition-colors tracking-tight">${escapeHTML(safeName)}${extraText}</span>
+            </div>
+            <svg class="w-6 h-6 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1.5 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+          </a>`;
         }
 
-        return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-white w-full h-full min-w-0 border border-white/10 hover:border-blue-500/50 hover:bg-white/10 shadow-sm"><div class="flex items-center gap-2.5 min-w-0"><div class="w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-sm pointer-events-none">${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}</div><span class="truncate min-w-0 font-bold text-white group-hover/prov:text-blue-300 transition-colors">${escapeHTML(safeName)}${extraText}</span></div><svg class="w-4 h-4 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-0.5 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></a>`;
+        return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-3 px-3.5 sm:px-4 py-3 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full min-w-0 border border-white/10 hover:border-blue-500/50 hover:bg-white/10 shadow-md">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
+              ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
+            </div>
+            <span class="truncate min-w-0 text-sm sm:text-base font-black text-white group-hover/prov:text-blue-300 transition-colors">${escapeHTML(safeName)}${extraText}</span>
+          </div>
+          <svg class="w-5 h-5 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </a>`;
       };
 
       let streamingHtml = '';
@@ -4364,10 +4380,10 @@
         streamingHtml = visibleFlatrate.map(p => makeProviderLink(p, '', 'pill')).join('');
       } else if (otherFlatrate.length > 0) {
         const noSubText = 'Not on your active subscriptions';
-        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 px-4 py-3 rounded-xl flex items-center justify-center text-center"><p class="text-xs font-bold uppercase tracking-wider text-gray-400">${noSubText}</p></div>`;
+        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
       } else {
         const noSubText = 'Not available to stream';
-        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 px-4 py-3 rounded-xl flex items-center justify-center text-center"><p class="text-xs font-bold uppercase tracking-wider text-gray-400">${noSubText}</p></div>`;
+        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
       }
 
       let streamingHtmlDesktop = streamingHtml;
