@@ -124,11 +124,39 @@
 
     .hero-mobile-aspect {
       aspect-ratio: 2 / 3;
+      max-height: 80vh;
     }
 
-    @media (min-width: 640px) {
+    .hero-portrait-block {
+      display: block !important;
+    }
+    .hero-portrait-flex {
+      display: flex !important;
+    }
+    .hero-landscape-block {
+      display: none !important;
+    }
+    .hero-landscape-flex {
+      display: none !important;
+    }
+
+    @media (min-width: 1024px), (min-width: 640px) and (orientation: landscape) {
       .hero-mobile-aspect {
         aspect-ratio: auto;
+        height: 100dvh;
+        max-height: none;
+      }
+      .hero-portrait-block {
+        display: none !important;
+      }
+      .hero-portrait-flex {
+        display: none !important;
+      }
+      .hero-landscape-block {
+        display: block !important;
+      }
+      .hero-landscape-flex {
+        display: flex !important;
       }
     }
 
@@ -3753,6 +3781,20 @@
       img.src = url;
     }
 
+    function getTextlessPosterUrl(details, fallbackPoster = null) {
+      if (details && details.images && Array.isArray(details.images.posters)) {
+        const noLangPosters = details.images.posters.filter(p => !p.iso_639_1 || p.iso_639_1 === 'null' || p.iso_639_1 === 'xx');
+        if (noLangPosters.length > 0) {
+          noLangPosters.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.vote_average || 0) - (a.vote_average || 0));
+          return "https://image.tmdb.org/t/p/w780" + noLangPosters[0].file_path;
+        }
+      }
+      if (details && details.poster_path) {
+        return "https://image.tmdb.org/t/p/w780" + details.poster_path;
+      }
+      return fallbackPoster || null;
+    }
+
     async function getFullMovieDetails(movieId, mediaType = 'movie') {
       const cacheKey = `${mediaType}_${movieId}`;
       if (movieDetailsCache.has(cacheKey)) {
@@ -3768,7 +3810,9 @@
         if (data && data.id) {
           movieDetailsCache.set(cacheKey, data);
           if (data.backdrop_path) preloadImage(`https://image.tmdb.org/t/p/w1280${data.backdrop_path}`);
-          if (data.poster_path) preloadImage(`https://image.tmdb.org/t/p/w500${data.poster_path}`);
+          const textless = getTextlessPosterUrl(data, data.poster_path ? `https://image.tmdb.org/t/p/w780${data.poster_path}` : null);
+          if (textless) preloadImage(textless);
+          else if (data.poster_path) preloadImage(`https://image.tmdb.org/t/p/w500${data.poster_path}`);
         }
         return data;
       } catch (e) {
@@ -4634,17 +4678,17 @@
       if (isPage) {
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
         const hasHero = !!(heroBackdropUrl || heroTrailer);
-        const heroPosterUrl = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
+        const heroPosterUrl = getTextlessPosterUrl(details, movieObj.poster);
         const heroBannerSectionHtml = hasHero
           ? `<div class="relative w-full">
               <div class="relative w-full hero-mobile-aspect sm:h-[100dvh]">
                 <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">
-                  ${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hidden sm:block w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}
-                  ${heroPosterUrl ? `<img src="${heroPosterUrl}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${heroPosterUrl}" alt="${safeTitle} poster" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : `<div class="sm:hidden w-full h-full bg-gray-900"></div>`}
-                  ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-16 sm:h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/60 via-30% to-transparent to-100% sm:via-[#0b1121]/75 sm:via-40% pointer-events-none z-20"></div>
+                  ${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-landscape-block w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}
+                  ${heroPosterUrl ? `<img src="${heroPosterUrl}" alt="" aria-hidden="true" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${heroPosterUrl}" alt="${safeTitle} poster" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-portrait-block absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : `<div class="hero-portrait-block w-full h-full bg-gray-900"></div>`}
+                  ${heroVideoHtml}<div class="hero-landscape-block absolute inset-x-0 bottom-0 h-16 sm:h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/60 via-30% to-transparent to-100% sm:via-[#0b1121]/75 sm:via-40% pointer-events-none z-20"></div>
                 </div>
-                <!-- Desktop: title/overview overlaid on the image -->
-                <div class="hidden sm:block absolute inset-x-0 bottom-0 z-30 p-14 pointer-events-none">
+                <!-- Desktop / Landscape: title/overview overlaid on the image -->
+                <div class="hero-landscape-block absolute inset-x-0 bottom-0 z-30 p-14 pointer-events-none">
                   <div class="max-w-[1480px] mx-auto w-full flex flex-row items-end justify-between gap-6">
                     <div class="max-w-3xl min-w-0 pointer-events-auto">
                       ${pageTitleHeaderHtml}
@@ -4655,11 +4699,11 @@
                   </div>
                 </div>
               </div>
-              <!-- Mobile: title/overview flow directly below the poster image -->
-              <div class="sm:hidden relative z-30 px-5 pt-3 pb-6 bg-[#0b1121]">
+              <!-- Mobile & iPad Portrait: title/overview flow directly below the poster image -->
+              <div class="hero-portrait-block relative z-30 px-5 sm:px-14 pt-3 pb-6 bg-[#0b1121]">
                 <div class="max-w-3xl min-w-0">
                   ${pageTitleHeaderHtml}
-                  <!-- Mobile Single-Row Rating, Year, Runtime & Genre (never wraps) -->
+                  <!-- Mobile & iPad Portrait Single-Row Rating, Year, Runtime & Genre -->
                   <div class="flex items-center gap-2 text-sm font-bold text-gray-200 mt-1.5 whitespace-nowrap overflow-x-auto no-scrollbar">
                     ${modalRatingBadgeHtml}
                     <span class="text-white font-extrabold">${year}</span>
@@ -4727,8 +4771,8 @@
       }
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
-      const modalMobilePoster = (details && details.poster_path ? "https://image.tmdb.org/t/p/w780" + details.poster_path : (movieObj.poster || null));
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="sm:hidden absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hidden sm:block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hidden sm:block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="space-y-2.5"><div class="flex items-center justify-between"><h3 class="text-sm sm:text-base font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div><div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5"><div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col'}">${streamingHtml}</div>${rentBuyDropdownHtml}</div></div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-3 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1"><div class="flex items-center gap-2"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div>${effectiveVpnInfo ? `<p class="text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right">*Some streaming services may detect or restrict VPN connections</p>` : ''}</div></div>`;
+      const modalMobilePoster = getTextlessPosterUrl(details, movieObj.poster);
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="" aria-hidden="true" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-60 transform-gpu"><img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-contain object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div class="space-y-3">${overviewHtml}</div><div class="space-y-2.5"><div class="flex items-center justify-between"><h3 class="text-sm sm:text-base font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div><div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5"><div class="${visibleFlatrate.length >= 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col'}">${streamingHtml}</div>${rentBuyDropdownHtml}</div></div><div class="flex flex-col gap-3.5 sm:gap-4">${castCrewHtml}${relatedHtml}${similarHtml}</div></div><div class="bg-[#0f172a] p-6 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-3 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1"><div class="flex items-center gap-2"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div>${effectiveVpnInfo ? `<p class="text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right">*Some streaming services may detect or restrict VPN connections</p>` : ''}</div></div>`;
     }
 
     function getShortText(text, limit = 195) {
