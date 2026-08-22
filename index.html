@@ -6122,8 +6122,11 @@
                 badgeLabel = 'FILM';
                 badgeColor = 'text-gray-400 border-gray-500/30';
               }
-              const ratingOrDept = isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR');
-              row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="text-blue-400 text-[10px] font-bold">${escapeHTML(ratingOrDept)}</span></div>`;
+              const ratingOrDept = item.matchedRole
+                ? `${item.matchedRole}${item.vote_average && item.vote_average > 0 ? ` • TMDB ${item.vote_average.toFixed(1)}` : ''}`
+                : (isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR'));
+              const subtitleColor = item.matchedRole ? 'text-amber-400 font-extrabold' : 'text-blue-400';
+              row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="${subtitleColor} text-[10px]">${escapeHTML(ratingOrDept)}</span></div>`;
               row.addEventListener('click', () => {
                 el.quickSearchInput.value = displayTitle;
                 el.searchDropdown.classList.add('hidden');
@@ -6329,8 +6332,24 @@
       return [...candidateList].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0] || null;
     }
 
+    const personCreditsCache = new Map();
+    async function getPersonCombinedCredits(personId) {
+      if (!personId) return null;
+      if (personCreditsCache.has(personId)) return personCreditsCache.get(personId);
+      try {
+        const res = await fetch(`https://api.themoviedb.org/3/person/${personId}/combined_credits?api_key=${TMDB_API_KEY}`);
+        const data = await res.json();
+        personCreditsCache.set(personId, data);
+        return data;
+      } catch (e) {
+        return null;
+      }
+    }
+
     function scoreSearchResult(item, queryRaw) {
       if (!item || !queryRaw) return 0;
+      let score = item.__keywordBoost || 0;
+
       const qNorm = normalizeTitle(queryRaw);
       const yearMatch = queryRaw.match(/\b(19\d\d|20\d\d)\b/);
       const targetYear = yearMatch ? yearMatch[1] : null;
@@ -6345,7 +6364,20 @@
       const itemYear = date ? date.split('-')[0] : '';
       const isPerson = item.__mediaType === 'person';
 
-      let score = 0;
+      // Check word coverage: how many words of the query match title or matched role
+      const queryWords = cleanQNorm.split(/\s+/).filter(w => w.length > 1 && !['by', 'with', 'the', 'and'].includes(w));
+      if (queryWords.length > 0) {
+        const fullContext = `${titleNorm} ${origNorm} ${item.matchedRole ? normalizeTitle(item.matchedRole) : ''}`;
+        let matchedWords = 0;
+        queryWords.forEach(w => {
+          if (fullContext.includes(w)) matchedWords++;
+        });
+        if (matchedWords === queryWords.length && queryWords.length > 1) {
+          score += 20000;
+        } else {
+          score += matchedWords * 3000;
+        }
+      }
 
       if (!isPerson) {
         // --- MOVIE / TV SHOW SCORING ---
@@ -6364,14 +6396,14 @@
 
         // Exact Year match
         if (targetYear && itemYear === targetYear) {
-          score += 4000;
+          score += 6000;
         }
 
         // Popularity / Vote Boost for Movies & TV
         const voteCount = item.vote_count || 0;
         const voteAvg = item.vote_average || 0;
         const popularity = item.popularity || 0;
-        score += Math.min(voteCount * 0.05 + voteAvg * 20 + popularity * 2, 2000);
+        score += Math.min(voteCount * 0.05 + voteAvg * 20 + popularity * 2, 2500);
       } else {
         // --- PERSON SCORING ---
         // 1. Exact Person Name Match (e.g. "Christopher Nolan")
@@ -6394,34 +6426,161 @@
     }
 
     async function searchMultiMedia(titleQuery) {
-      const yearMatch = titleQuery.match(/\b(19\d\d|20\d\d)\b/);
+      if (!titleQuery || typeof titleQuery !== 'string') return [];
+      const cleanRaw = titleQuery.trim();
+      if (cleanRaw.length < 2) return [];
+
+      const yearMatch = cleanRaw.match(/\b(19\d\d|20\d\d)\b/);
       const targetYear = yearMatch ? yearMatch[1] : null;
-      const cleanQuery = targetYear ? titleQuery.replace(/\b(19\d\d|20\d\d)\b/, '').trim() : titleQuery;
+      const cleanQuery = targetYear ? cleanRaw.replace(/\b(19\d\d|20\d\d)\b/, '').replace(/\s+/g, ' ').trim() : cleanRaw;
 
-      const url1 = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}`;
-      const promises = [fetch(url1).then(r => r.json()).catch(() => ({}))];
-
-      if (cleanQuery && cleanQuery !== titleQuery && cleanQuery.length >= 2) {
-        const url2 = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanQuery)}`;
-        promises.push(fetch(url2).then(r => r.json()).catch(() => ({})));
+      // Primary multi search
+      const searches = [
+        fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanRaw)}`).then(r => r.json()).catch(() => ({}))
+      ];
+      if (cleanQuery && cleanQuery !== cleanRaw && cleanQuery.length >= 2) {
+        searches.push(
+          fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanQuery)}`).then(r => r.json()).catch(() => ({}))
+        );
       }
 
+      // Decompose into Title + Person or Keyword chunks (e.g. "fight club David Fincher", "nosferatu Lily Rose Depp")
+      const strippedQuery = cleanQuery.replace(/\b(by|with|directed by|starring|dir|featuring|feat|and)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+      const words = strippedQuery.split(/\s+/).filter(Boolean);
+
+      const candidateSplits = [];
+      if (words.length >= 2) {
+        for (let i = 1; i < words.length; i++) {
+          const partA = words.slice(0, i).join(' ').trim();
+          const partB = words.slice(i).join(' ').trim();
+          if (partA.length >= 2 && partB.length >= 2) {
+            candidateSplits.push([partA, partB]);
+            candidateSplits.push([partB, partA]);
+          }
+        }
+      }
+
+      const personLookups = new Set();
+      const mediaLookups = new Set();
+      candidateSplits.forEach(([partA, partB]) => {
+        personLookups.add(partA);
+        personLookups.add(partB);
+        mediaLookups.add(partA);
+        mediaLookups.add(partB);
+      });
+
+      const personPromises = Array.from(personLookups).slice(0, 6).map(name =>
+        fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(name)}`)
+          .then(r => r.json())
+          .then(data => ({ name, results: (data.results || []).slice(0, 3) }))
+          .catch(() => ({ name, results: [] }))
+      );
+
+      const mediaPromises = Array.from(mediaLookups).slice(0, 4).map(term =>
+        fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(term)}`)
+          .then(r => r.json())
+          .then(data => ({ term, results: (data.results || []).slice(0, 5) }))
+          .catch(() => ({ term, results: [] }))
+      );
+
       try {
-        const responses = await Promise.all(promises);
-        const seenIds = new Set();
+        const [mainResponses, personResponses, mediaResponses] = await Promise.all([
+          Promise.all(searches),
+          Promise.all(personPromises),
+          Promise.all(mediaPromises)
+        ]);
+
+        const seenKeys = new Set();
         const results = [];
-        responses.forEach(data => {
-          (data.results || []).forEach(r => {
-            const key = r.id + '_' + (r.media_type || 'movie');
-            if ((r.media_type === 'movie' || r.media_type === 'tv' || r.media_type === 'person') && !seenIds.has(key)) {
-              seenIds.add(key);
-              results.push({ ...r, __mediaType: r.media_type });
+
+        function addResult(item, mediaType = null, extraData = {}) {
+          const type = mediaType || item.media_type || item.__mediaType || (item.title ? 'movie' : (item.name && item.first_air_date ? 'tv' : (item.profile_path ? 'person' : 'movie')));
+          if (type !== 'movie' && type !== 'tv' && type !== 'person') return;
+          const key = `${type}_${item.id}`;
+          if (seenKeys.has(key)) {
+            const existing = results.find(r => `${r.__mediaType}_${r.id}` === key);
+            if (existing) {
+              if (extraData.matchedRole && !existing.matchedRole) existing.matchedRole = extraData.matchedRole;
+              if (extraData.__keywordBoost && (!existing.__keywordBoost || existing.__keywordBoost < extraData.__keywordBoost)) {
+                existing.__keywordBoost = extraData.__keywordBoost;
+              }
             }
+            return;
+          }
+          seenKeys.add(key);
+          results.push({ ...item, __mediaType: type, ...extraData });
+        }
+
+        // 1. Add main multi-search results
+        mainResponses.forEach(data => {
+          (data.results || []).forEach(r => addResult(r));
+        });
+
+        // 2. Add media sub-query results
+        mediaResponses.forEach(mObj => {
+          mObj.results.forEach(r => addResult(r));
+        });
+
+        // 3. Add person search results and cross-reference their film credits
+        const allFoundPeople = [];
+        personResponses.forEach(pObj => {
+          pObj.results.forEach(p => {
+            addResult(p, 'person');
+            allFoundPeople.push(p);
           });
         });
+
+        const creditsPromises = allFoundPeople.slice(0, 5).map(async (person) => {
+          const credits = await getPersonCombinedCredits(person.id);
+          if (!credits) return;
+
+          const isDirector = (person.known_for_department === 'Directing') || ((person.job || '') === 'Director');
+          const isWriter = person.known_for_department === 'Writing';
+
+          const allCredits = [
+            ...(credits.crew || []).map(c => ({ ...c, __crewRole: c.job || 'Crew' })),
+            ...(credits.cast || []).map(c => ({ ...c, __castRole: c.character || 'Cast' }))
+          ];
+
+          candidateSplits.forEach(([partA, partB]) => {
+            const pNorm = normalizeTitle(person.name);
+            const partANorm = normalizeTitle(partA);
+            const partBNorm = normalizeTitle(partB);
+
+            const personMatchesA = pNorm.includes(partANorm) || partANorm.includes(pNorm);
+            const personMatchesB = pNorm.includes(partBNorm) || partBNorm.includes(pNorm);
+
+            if (!personMatchesA && !personMatchesB) return;
+            const targetTitleNorm = personMatchesA ? partBNorm : partANorm;
+
+            allCredits.forEach(cr => {
+              const crTitle = normalizeTitle(cr.title || cr.name || cr.original_title || cr.original_name);
+              if (!crTitle) return;
+
+              const exactTitle = crTitle === targetTitleNorm;
+              const startsTitle = crTitle.startsWith(targetTitleNorm);
+              const containsTitle = crTitle.includes(targetTitleNorm) || targetTitleNorm.includes(crTitle);
+
+              if (exactTitle || startsTitle || containsTitle) {
+                const wasDirector = cr.__crewRole === 'Director' || isDirector;
+                const wasWriter = cr.__crewRole === 'Writer' || isWriter;
+                let roleDescription = `Starring ${person.name}`;
+                if (wasDirector) roleDescription = `Directed by ${person.name}`;
+                else if (wasWriter) roleDescription = `Written by ${person.name}`;
+
+                addResult(cr, cr.media_type || (cr.first_air_date ? 'tv' : 'movie'), {
+                  matchedRole: roleDescription,
+                  __keywordBoost: exactTitle ? 60000 : (startsTitle ? 40000 : 25000)
+                });
+              }
+            });
+          });
+        });
+
+        await Promise.all(creditsPromises);
         return results;
       } catch (e) {
-        console.warn('[TMDB Search Multi Fallback]', e);
+        console.warn('[Enhanced Search Multi Error]', e);
         return searchBothMedia(titleQuery);
       }
     }
