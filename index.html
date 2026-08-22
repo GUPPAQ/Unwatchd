@@ -2841,6 +2841,7 @@
     // WATCHLIST ROULETTE (Cinematic)
     // =========================================================================
     let isRouletteSpinning = false;
+    let rouletteSpinGeneration = 0;
 
     function resetRouletteUI() {
       const body = document.getElementById('rouletteBody');
@@ -2892,6 +2893,7 @@
 
       // Force-reset spinning state so reopening works cleanly
       isRouletteSpinning = false;
+      rouletteSpinGeneration++;
 
       if (content) {
         content.classList.remove('popup-animate-in');
@@ -2911,6 +2913,8 @@
     async function spinRoulette() {
       if (isRouletteSpinning) return;
       isRouletteSpinning = true;
+      rouletteSpinGeneration++;
+      const myGeneration = rouletteSpinGeneration;
 
       const body = document.getElementById('rouletteBody');
       const reelViewport = document.getElementById('rouletteReelViewport');
@@ -3016,6 +3020,9 @@
 
       // Await deceleration completion
       await new Promise(r => setTimeout(r, spinDuration * 1000 + 60));
+
+      // Bail out if spin was cancelled (modal closed or respin triggered)
+      if (myGeneration !== rouletteSpinGeneration) return;
 
       // Highlight winning card in the reel
       const winnerCardEl = reelTrack.querySelector(`.roulette-reel-card[data-index="${WINNER_INDEX}"]`);
