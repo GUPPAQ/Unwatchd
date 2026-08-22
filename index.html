@@ -620,34 +620,43 @@
     }
 
     /* ── Roulette CS Case Opening Styles ── */
-    @keyframes needleGlow {
-      0%, 100% { filter: drop-shadow(0 0 6px rgba(251,191,36,0.85)); }
-      50% { filter: drop-shadow(0 0 16px rgba(251,191,36,1)); }
+    @keyframes needlePulse {
+      0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 8px rgba(251,191,36,0.7)); }
+      50% { opacity: 1; filter: drop-shadow(0 0 22px rgba(251,191,36,1)) drop-shadow(0 0 40px rgba(251,191,36,0.4)); }
     }
     @keyframes winnerCardPop {
-      0% { transform: scale(1); box-shadow: 0 0 0 rgba(251,191,36,0); }
-      40% { transform: scale(1.08); box-shadow: 0 0 35px rgba(251,191,36,0.85); }
-      100% { transform: scale(1.04); box-shadow: 0 0 25px rgba(251,191,36,0.65); }
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251,191,36,0), inset 0 0 0 0 rgba(251,191,36,0); }
+      50% { transform: scale(1.06); box-shadow: 0 0 50px 8px rgba(251,191,36,0.7), 0 0 100px 20px rgba(251,191,36,0.2); }
+      100% { transform: scale(1.03); box-shadow: 0 0 30px 4px rgba(251,191,36,0.5), 0 0 60px 12px rgba(251,191,36,0.15); }
+    }
+    @keyframes winnerBorderGlow {
+      0%, 100% { border-color: rgba(251,191,36,0.7); }
+      50% { border-color: rgba(251,191,36,1); }
     }
     @keyframes rouletteSpinIcon {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
     @keyframes rouletteTextReveal {
-      0% { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+      0% { opacity: 0; transform: translateY(14px); filter: blur(6px); }
       100% { opacity: 1; transform: translateY(0); filter: blur(0); }
     }
 
     .roulette-needle {
-      animation: needleGlow 1.6s ease-in-out infinite;
+      animation: needlePulse 1.8s ease-in-out infinite;
+    }
+    .roulette-reel-card {
+      border: 2px solid rgba(255,255,255,0.08);
+      transition: border-color 0.3s, transform 0.4s, box-shadow 0.4s;
     }
     .roulette-winner-highlight {
-      animation: winnerCardPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: winnerCardPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards, winnerBorderGlow 2s ease-in-out 0.6s infinite;
       border-color: rgba(251, 191, 36, 0.95) !important;
+      border-width: 3px !important;
       z-index: 10;
     }
     .roulette-info-reveal {
-      animation: rouletteTextReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: rouletteTextReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     .roulette-spin-active {
       animation: rouletteSpinIcon 0.6s linear infinite;
@@ -1846,22 +1855,28 @@
         </div>
 
         <!-- CS CASE OPENING HORIZONTAL REEL VIEWPORT -->
-        <div id="rouletteReelViewport" class="relative w-full h-[180px] sm:h-[220px] overflow-hidden rounded-2xl border border-white/15 bg-black/60 shadow-[inset_0_4px_30px_rgba(0,0,0,0.9),0_15px_40px_rgba(0,0,0,0.7)] mb-5 flex items-center">
+        <div id="rouletteReelViewport" class="relative w-full h-[200px] sm:h-[260px] overflow-hidden rounded-2xl bg-black/80 shadow-[inset_0_2px_40px_rgba(0,0,0,0.95),inset_0_-2px_40px_rgba(0,0,0,0.95)] mb-5 flex items-center" style="border: 1px solid rgba(255,255,255,0.08);">
           
           <!-- Left & Right Gradient Shadows / Edge Fades -->
-          <div class="absolute inset-y-0 left-0 w-16 sm:w-28 bg-gradient-to-r from-[#080c1c] via-[#080c1c]/85 to-transparent z-20 pointer-events-none"></div>
-          <div class="absolute inset-y-0 right-0 w-16 sm:w-28 bg-gradient-to-l from-[#080c1c] via-[#080c1c]/85 to-transparent z-20 pointer-events-none"></div>
+          <div class="absolute inset-y-0 left-0 w-20 sm:w-32 z-20 pointer-events-none" style="background: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);"></div>
+          <div class="absolute inset-y-0 right-0 w-20 sm:w-32 z-20 pointer-events-none" style="background: linear-gradient(to left, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);"></div>
+
+          <!-- Top & Bottom subtle vignette -->
+          <div class="absolute inset-x-0 top-0 h-8 z-20 pointer-events-none" style="background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);"></div>
+          <div class="absolute inset-x-0 bottom-0 h-8 z-20 pointer-events-none" style="background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);"></div>
 
           <!-- Vertical Center Selector Indicator (CS Needle) -->
-          <div id="rouletteNeedle" class="roulette-needle absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-0.5 sm:w-1 bg-gradient-to-b from-amber-400 via-amber-300 to-amber-500 z-30 pointer-events-none shadow-[0_0_15px_rgba(251,191,36,1)]">
-            <!-- Top pointer triangle -->
-            <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] sm:border-l-[8px] border-l-transparent border-r-[6px] sm:border-r-[8px] border-r-transparent border-t-[8px] sm:border-t-[10px] border-t-amber-400 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]"></div>
-            <!-- Bottom pointer triangle -->
-            <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] sm:border-l-[8px] border-l-transparent border-r-[6px] sm:border-r-[8px] border-r-transparent border-b-[8px] sm:border-b-[10px] border-b-amber-400 filter drop-shadow-[0_-2px_4px_rgba(0,0,0,0.9)]"></div>
+          <div id="rouletteNeedle" class="roulette-needle absolute top-0 bottom-0 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex flex-col items-center">
+            <!-- Top triangle -->
+            <div class="w-0 h-0 border-l-[7px] sm:border-l-[9px] border-l-transparent border-r-[7px] sm:border-r-[9px] border-r-transparent border-t-[10px] sm:border-t-[12px] border-t-amber-400 shrink-0" style="filter: drop-shadow(0 2px 6px rgba(251,191,36,0.8));"></div>
+            <!-- Vertical line -->
+            <div class="flex-1 w-[2px] sm:w-[3px] bg-gradient-to-b from-amber-400 via-amber-300/80 to-amber-400" style="box-shadow: 0 0 12px rgba(251,191,36,0.9), 0 0 30px rgba(251,191,36,0.3);"></div>
+            <!-- Bottom triangle -->
+            <div class="w-0 h-0 border-l-[7px] sm:border-l-[9px] border-l-transparent border-r-[7px] sm:border-r-[9px] border-r-transparent border-b-[10px] sm:border-b-[12px] border-b-amber-400 shrink-0" style="filter: drop-shadow(0 -2px 6px rgba(251,191,36,0.8));"></div>
           </div>
 
           <!-- Sliding Horizontal Strip -->
-          <div id="rouletteReelTrack" class="flex items-center gap-3 will-change-transform transform-gpu px-4">
+          <div id="rouletteReelTrack" class="flex items-center gap-2.5 sm:gap-3 will-change-transform transform-gpu px-4">
             <!-- Dynamically populated with movie poster cards -->
           </div>
 
@@ -2975,8 +2990,8 @@
       reelTrack.innerHTML = reelItems.map((m, idx) => {
         const posterUrl = m.poster || '';
         const safeTitle = escapeHTML(m.title || 'Movie');
-        return `<div class="roulette-reel-card shrink-0 w-28 sm:w-36 aspect-[2/3] rounded-xl overflow-hidden relative border border-white/10 bg-[#0c1225] shadow-lg flex items-center justify-center transition-all duration-300" data-index="${idx}">
-          ${posterUrl ? `<img src="${posterUrl}" class="w-full h-full object-cover pointer-events-none" loading="eager" alt="${safeTitle}">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-bold text-gray-400 p-2 text-center">${safeTitle}</div>`}
+        return `<div class="roulette-reel-card shrink-0 w-[120px] sm:w-[150px] aspect-[2/3] rounded-xl sm:rounded-2xl overflow-hidden relative bg-[#0a0e1a] shadow-[0_8px_30px_rgba(0,0,0,0.7)] flex items-center justify-center" data-index="${idx}">
+          ${posterUrl ? `<img src="${posterUrl}" class="w-full h-full object-cover pointer-events-none" loading="eager" alt="${safeTitle}">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800/80 text-xs font-bold text-gray-500 p-2 text-center">${safeTitle}</div>`}
         </div>`;
       }).join('');
 
@@ -2991,7 +3006,7 @@
       // Calculate landing metrics
       const firstCard = reelTrack.querySelector('.roulette-reel-card');
       const cardWidth = firstCard ? firstCard.offsetWidth : 144;
-      const gap = 12; // gap-3 = 12px
+      const gap = reelViewport.offsetWidth >= 640 ? 12 : 10; // gap-2.5 / gap-3
       const viewportWidth = reelViewport ? reelViewport.offsetWidth : 600;
 
       // Authentic CS-style subtle random landing offset within card (-25% to +25%)
