@@ -4321,7 +4321,7 @@
       const isMobileDevice = isMobile || (typeof window !== 'undefined' && window.innerWidth < 640);
       const heroTrailer = (!isMobileDevice && bestTrailer && bestTrailer.official && /trailer/i.test(bestTrailer.name || '')) ? bestTrailer : null;
       const btnClass = "flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2.5 bg-white/5 hover:bg-white/10 border border-white/10 px-2 sm:px-4 py-2.5 sm:py-3 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-300 hover:text-white flex-1 sm:flex-none sm:min-w-[130px] whitespace-nowrap min-w-0";
-      const trailerBtnClass = "flex items-center justify-center sm:justify-start gap-2 sm:gap-3 liquid-glass px-3.5 py-1.5 sm:px-5 sm:py-3 rounded-full sm:rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-white shrink-0 sm:flex-none sm:min-w-[150px] whitespace-nowrap shadow-sm";
+      const trailerBtnClass = "flex items-center justify-center gap-2 sm:gap-2.5 liquid-glass px-4 py-2.5 sm:px-5 sm:py-3.5 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-white w-full sm:w-auto sm:min-w-[150px] whitespace-nowrap shadow-md cursor-pointer active:scale-95";
       const streamingBtnClass = "provider-glass flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl transition-all text-sm sm:text-base font-bold text-gray-300 hover:text-white flex-1 sm:flex-none min-w-[140px]";
       const streamingBtnClassBig = "provider-glass flex items-center gap-3.5 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl transition-all text-sm sm:text-base font-bold text-gray-300 hover:text-white w-full";
       const streamingBtnClassHuge = "provider-glass flex items-center gap-3.5 px-5 py-4 rounded-xl transition-all text-base sm:text-lg font-bold text-gray-300 hover:text-white w-full";
@@ -4479,8 +4479,8 @@
       };
 
       let streamingHtml = '';
-      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle liquid-glass active:scale-95${vpnModeEnabled ? ' vpn-active' : ''} px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider cursor-pointer shrink-0 text-white flex items-center gap-1.5 transition-all"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span>VPN</span><span class="watchnow-vpn-dot"></span></button>`;
-      const watchNowHeaderHtml = `<div class="flex items-center justify-between h-7"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3>${vpnToggleBtnHtml}</div>`;
+      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle liquid-glass active:scale-95${vpnModeEnabled ? ' vpn-active' : ''} px-4 py-2.5 sm:px-5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider cursor-pointer text-white flex items-center justify-center gap-2 transition-all w-full sm:w-auto shadow-md"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span>VPN</span><span class="watchnow-vpn-dot"></span></button>`;
+      const watchNowHeaderHtml = `<div class="flex items-center justify-between h-7"><h3 class="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div>`;
 
       const rent = filterAndDeduplicateProviders(regionProviders?.rent || [], true);
       const buy = filterAndDeduplicateProviders(regionProviders?.buy || [], true);
@@ -4703,9 +4703,10 @@
                     </div>
                     <div class="mt-1 max-w-3xl">${createHeroOverviewHtml(overview, safeTitle)}</div>
                   </div>
-                  <div class="flex items-center gap-3 pointer-events-auto shrink-0 mt-1 lg:mt-0">
+                  <div class="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3 pointer-events-auto w-full lg:w-auto shrink-0 mt-1 lg:mt-0">
                     ${pageTrailerBtnHtml}
-                    ${soundBtnInlineHtml.replace('sm:hidden', '')}
+                    ${vpnToggleBtnHtml}
+                    ${soundBtnInlineHtml ? soundBtnInlineHtml.replace('sm:hidden', '') : ''}
                   </div>
                 </div>
               </div>
@@ -4717,7 +4718,7 @@
                   <div class="flex flex-wrap items-center gap-3 text-base sm:text-lg font-bold text-gray-200 mt-2">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-blue-400 font-semibold">${genres}</span>` : ''}</div>
                   <div class="mt-3">${createHeroOverviewHtml(overview, safeTitle)}</div>
                 </div>
-                <div class="flex items-center gap-3 shrink-0">${pageTrailerBtnHtml}${soundBtnInlineHtml.replace('sm:hidden', '')}</div>
+                <div class="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3 pointer-events-auto w-full sm:w-auto shrink-0">${pageTrailerBtnHtml}${vpnToggleBtnHtml}${soundBtnInlineHtml ? soundBtnInlineHtml.replace('sm:hidden', '') : ''}</div>
               </div>
             </div>`;
 
