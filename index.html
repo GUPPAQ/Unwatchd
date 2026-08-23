@@ -5438,16 +5438,33 @@
       const mediaType = (details && details.first_air_date) || (movieObj && movieObj.mediaType === 'tv') ? 'tv' : 'movie';
       const mId = (details && details.id) || (movieObj && movieObj.id);
 
-      // If movieObj already has a disambiguated slug with a duplicate index (e.g. presence-2025-1 or presence-2025-2)
+      // If movieObj already has a disambiguated slug ending with a duplicate index (e.g. -2025-1 or -2025-2), keep it!
       if (movieObj && movieObj.slug && movieObj.slug.startsWith(baseSlug)) {
         if (mYear && new RegExp(`-${mYear}-\\d+$`).test(movieObj.slug)) {
           return movieObj.slug;
         }
       }
 
+      // 1. Check if scannedMovies already has multiple films with the same title
+      if (Array.isArray(scannedMovies) && scannedMovies.length > 0) {
+        const sameTitleScanned = scannedMovies.filter(m => slugify(m.title) === baseSlug);
+        if (sameTitleScanned.length > 1 && mYear) {
+          const sortedScanned = sortExactMediaMatches(sameTitleScanned);
+          const sameYear = sortedScanned.filter(m => (m.releaseDate || '').startsWith(mYear));
+          if (sameYear.length > 1) {
+            const dupIdx = sameYear.findIndex(m => m.id === mId);
+            if (dupIdx > 0) return `${baseSlug}-${mYear}-${dupIdx}`;
+            return `${baseSlug}-${mYear}`;
+          }
+          if (sortedScanned[0].id !== mId) {
+            return `${baseSlug}-${mYear}`;
+          }
+        }
+      }
+
       if (!mYear) return baseSlug;
 
-      // Query TMDB search to see if this is an original, newer, or duplicate-year release
+      // 2. Query TMDB search to see if this is an original, newer, or duplicate-year release
       try {
         const searchEndpoint = mediaType === 'tv' ? 'search/tv' : 'search/movie';
         const res = await fetch(`https://api.themoviedb.org/3/${searchEndpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`);
