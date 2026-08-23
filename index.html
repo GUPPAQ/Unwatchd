@@ -2036,30 +2036,24 @@
       });
 
       titleGroups.forEach((group, base) => {
-        if (group.length === 1) {
-          const m = group[0];
-          const yr = (m.releaseDate || '').split('-')[0];
-          if (!m.slug || !m.slug.startsWith(base)) {
-            m.slug = yr ? `${base}-${yr}` : base;
-          }
-          registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
-          return;
-        }
-
         const sorted = sortExactMediaMatches(group);
+        const yearGroups = new Map();
+
         sorted.forEach(m => {
           const yr = (m.releaseDate || '').split('-')[0];
-          const sameYr = sorted.filter(x => (x.releaseDate || '').startsWith(yr));
-          if (sameYr.length > 1) {
-            const dupIdx = sameYr.findIndex(x => x.id === m.id);
-            m.slug = dupIdx > 0 ? `${base}-${yr}-${dupIdx}` : `${base}-${yr}`;
-          } else if (yr) {
-            m.slug = `${base}-${yr}`;
-          } else {
-            const dupIdx = sorted.findIndex(x => x.id === m.id);
-            m.slug = dupIdx > 0 ? `${base}-${dupIdx}` : base;
-          }
-          registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
+          if (!yearGroups.has(yr)) yearGroups.set(yr, []);
+          yearGroups.get(yr).push(m);
+        });
+
+        yearGroups.forEach((mList, yr) => {
+          mList.forEach((m, idx) => {
+            if (yr) {
+              m.slug = idx > 0 ? `${base}-${yr}-${idx}` : `${base}-${yr}`;
+            } else {
+              m.slug = idx > 0 ? `${base}-${idx}` : base;
+            }
+            registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
+          });
         });
       });
     }
