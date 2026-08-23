@@ -3810,7 +3810,24 @@
     function getTextlessPosterUrl(details, fallbackPoster = null) {
       if (!details) return fallbackPoster || null;
 
-      // 1. Textless backdrop (no language tag) sorted by vote count (guaranteed clean & textless by TMDB rules)
+      // 1. High-confidence textless poster (curated/voted by TMDB community)
+      if (details.images && Array.isArray(details.images.posters)) {
+        const noLangPosters = details.images.posters
+          .filter(p => (!p.iso_639_1 || p.iso_639_1 === 'null' || p.iso_639_1 === 'xx') && p.file_path !== details.poster_path)
+          .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.vote_average || 0) - (a.vote_average || 0));
+
+        if (noLangPosters.length > 0) {
+          const topP = noLangPosters[0];
+          const votes = topP.vote_count || 0;
+          const avg = topP.vote_average || 0;
+          // Genuine textless vertical posters that have clear community approval
+          if (votes >= 4 || (votes >= 2 && avg >= 2.5) || (votes >= 1 && avg >= 4.0)) {
+            return "https://image.tmdb.org/t/p/w780" + topP.file_path;
+          }
+        }
+      }
+
+      // 2. Textless backdrop (no language tag) sorted by vote count (guaranteed clean & textless by TMDB rules)
       if (details.images && Array.isArray(details.images.backdrops)) {
         const noLangBackdrops = details.images.backdrops
           .filter(b => !b.iso_639_1 || b.iso_639_1 === 'null' || b.iso_639_1 === 'xx')
@@ -3821,12 +3838,7 @@
         }
       }
 
-      // 2. Default backdrop path
-      if (details.backdrop_path) {
-        return "https://image.tmdb.org/t/p/w1280" + details.backdrop_path;
-      }
-
-      // 3. Textless poster if no backdrops exist
+      // 3. Any textless poster fallback
       if (details.images && Array.isArray(details.images.posters)) {
         const noLangPosters = details.images.posters
           .filter(p => (!p.iso_639_1 || p.iso_639_1 === 'null' || p.iso_639_1 === 'xx') && p.file_path !== details.poster_path)
@@ -3837,7 +3849,12 @@
         }
       }
 
-      // 4. Default poster
+      // 4. Default backdrop
+      if (details.backdrop_path) {
+        return "https://image.tmdb.org/t/p/w1280" + details.backdrop_path;
+      }
+
+      // 5. Default poster
       if (details.poster_path) {
         return "https://image.tmdb.org/t/p/w780" + details.poster_path;
       }
