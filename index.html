@@ -2236,10 +2236,13 @@
             const sortedExacts = sortExactMediaMatches(exacts);
 
             if (targetYear) {
-              const yearMatches = sortedExacts.filter(m => {
-                const d = m.release_date || m.first_air_date || '';
-                return d.startsWith(targetYear) || Math.abs(parseInt(d.slice(0, 4)) - parseInt(targetYear)) <= 1;
-              });
+              let yearMatches = sortedExacts.filter(m => (m.release_date || m.first_air_date || '').startsWith(targetYear));
+              if (yearMatches.length === 0) {
+                yearMatches = sortedExacts.filter(m => {
+                  const d = m.release_date || m.first_air_date || '';
+                  return Math.abs(parseInt(d.slice(0, 4)) - parseInt(targetYear)) <= 1;
+                });
+              }
               if (yearMatches.length > 0) {
                 match = yearMatches[dupIdx] || yearMatches[0];
               } else {
