@@ -3948,7 +3948,8 @@
       try {
         const raw = getBestTitleLogoRaw(details);
         if (!raw) { validatedLogoCache.set(key, null); return; }
-        const ok = await preloadImageCheck(raw, 4000);
+        let ok = await preloadImageCheck(raw, 8000);
+        if (!ok) ok = await preloadImageCheck(raw, 6000); // retry once
         validatedLogoCache.set(key, ok ? raw : null);
       } catch (err) {
         console.warn('[Title Logo Resolve]', err);
@@ -5211,7 +5212,7 @@
           if (!img.complete || img.naturalWidth === 0) {
             if (window.onTitleLogoError) window.onTitleLogoError(img);
           }
-        }, 1200);
+        }, 3000);
       });
     }
 
