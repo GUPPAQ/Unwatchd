@@ -2025,34 +2025,37 @@
     }
     function assignUniqueScannedSlugs(movies) {
       if (!Array.isArray(movies) || movies.length === 0) return;
-      const titleGroups = new Map();
+      // First pass: preserve existing valid slugs or create base-year default if missing
       movies.forEach(m => {
-        const base = slugify(m.title || '');
+        const title = m.title || '';
+        const base = slugify(title);
         if (!base) return;
-        if (!titleGroups.has(base)) titleGroups.set(base, []);
-        titleGroups.get(base).push(m);
-      });
-      titleGroups.forEach((group, base) => {
-        if (group.length === 1) {
-          if (!group[0].slug) group[0].slug = base;
-          registerSlug(group[0].slug, group[0].id, group[0].mediaType === 'tv' ? 'series' : 'film');
-          return;
-        }
-        const sorted = sortExactMediaMatches(group);
-        sorted.forEach(m => {
+        let s = m.slug || '';
+        if (!s || !s.startsWith(base)) {
           const yr = (m.releaseDate || '').split('-')[0];
-          const sameYr = sorted.filter(x => (x.releaseDate || '').startsWith(yr));
-          if (sorted[0].id === m.id && sameYr.length === 1) {
-            m.slug = base;
-          } else if (yr) {
-            const dupIdx = sameYr.findIndex(x => x.id === m.id);
-            m.slug = dupIdx > 0 ? `${base}-${yr}-${dupIdx}` : `${base}-${yr}`;
-          } else {
-            const dupIdx = sorted.findIndex(x => x.id === m.id);
-            m.slug = dupIdx > 0 ? `${base}-${dupIdx}` : base;
+          s = yr ? `${base}-${yr}` : base;
+        }
+        m.slug = s;
+      });
+
+      // Second pass: handle any exact duplicate slugs within scannedMovies
+      const slugCounts = new Map();
+      movies.forEach(m => {
+        if (!m.slug) return;
+        slugCounts.set(m.slug, (slugCounts.get(m.slug) || 0) + 1);
+      });
+
+      const seenIndices = new Map();
+      movies.forEach(m => {
+        if (!m.slug) return;
+        if ((slugCounts.get(m.slug) || 0) > 1) {
+          const idx = seenIndices.get(m.slug) || 0;
+          seenIndices.set(m.slug, idx + 1);
+          if (idx > 0) {
+            m.slug = `${m.slug}-${idx}`;
           }
-          registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
-        });
+        }
+        registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
       });
     }
     function parseRouteInfo() {
@@ -5430,26 +5433,16 @@
       const mediaType = (details && details.first_air_date) || (movieObj && movieObj.mediaType === 'tv') ? 'tv' : 'movie';
       const mId = (details && details.id) || (movieObj && movieObj.id);
 
-      // 1. Check if another film in scannedMovies has the same title
-      if (Array.isArray(scannedMovies) && scannedMovies.length > 0) {
-        const sameTitleScanned = scannedMovies.filter(m => slugify(m.title) === baseSlug);
-        if (sameTitleScanned.length > 1) {
-          const sortedScanned = sortExactMediaMatches(sameTitleScanned);
-          const sameYear = sortedScanned.filter(m => (m.releaseDate || '').startsWith(mYear));
-          if (sortedScanned[0].id !== mId || sameYear.length > 1) {
-            const dupIdx = sameYear.findIndex(m => m.id === mId);
-            if (dupIdx > 0) return `${baseSlug}-${mYear}-${dupIdx}`;
-            return `${baseSlug}-${mYear}`;
-          }
-          return baseSlug;
-        } else if (sameTitleScanned.length === 1 && sameTitleScanned[0].id === mId && sameTitleScanned[0].slug) {
-          return sameTitleScanned[0].slug;
+      // If movieObj already has an unambiguous slug containing its release year (e.g. rocky-1976 or presence-2025-1)
+      if (movieObj && movieObj.slug && movieObj.slug.startsWith(baseSlug)) {
+        if (mYear && movieObj.slug.includes(`-${mYear}`)) {
+          return movieObj.slug;
         }
       }
 
       if (!mYear) return baseSlug;
 
-      // 2. Query TMDB search to compute canonical slug
+      // Query TMDB search to see if this is an original or duplicate/newer release
       try {
         const searchEndpoint = mediaType === 'tv' ? 'search/tv' : 'search/movie';
         const res = await fetch(`https://api.themoviedb.org/3/${searchEndpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`);
@@ -5484,30 +5477,13 @@
       container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
 
       // Initial fast fallback slug push before async resolution
-      let initialSlug = '';
+      let initialSlug = movieObj.slug || '';
       const initialBaseSlug = slugify(movieObj.title || '');
       const initialYear = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : (movieObj.release_date ? movieObj.release_date.split('-')[0] : '');
-      if (Array.isArray(scannedMovies) && scannedMovies.length > 0 && initialBaseSlug) {
-        const sameTitleScanned = scannedMovies.filter(m => slugify(m.title) === initialBaseSlug);
-        if (sameTitleScanned.length > 1 && initialYear) {
-          const sortedScanned = sortExactMediaMatches(sameTitleScanned);
-          const sameYear = sortedScanned.filter(m => (m.releaseDate || '').startsWith(initialYear));
-          if (sortedScanned[0].id !== movieObj.id || sameYear.length > 1) {
-            const dupIdx = sameYear.findIndex(m => m.id === movieObj.id);
-            initialSlug = dupIdx > 0 ? `${initialBaseSlug}-${initialYear}-${dupIdx}` : `${initialBaseSlug}-${initialYear}`;
-          } else {
-            initialSlug = initialBaseSlug;
-          }
-        } else if (sameTitleScanned.length === 1 && sameTitleScanned[0].id === movieObj.id && sameTitleScanned[0].slug) {
-          initialSlug = sameTitleScanned[0].slug;
-        }
-      }
-      if (!initialSlug) {
-        if (movieObj.slug && movieObj.slug.startsWith(initialBaseSlug) && /-(\d+)$/.test(movieObj.slug)) {
-          initialSlug = movieObj.slug;
-        } else {
-          initialSlug = initialBaseSlug;
-        }
+      if (initialSlug && initialSlug.startsWith(initialBaseSlug) && initialYear && initialSlug.includes(`-${initialYear}`)) {
+        // initialSlug is already valid with year (e.g. rocky-1976 or presence-2025-1)
+      } else {
+        initialSlug = initialBaseSlug;
       }
       const initialMediaType = movieObj.mediaType === 'tv' ? 'series' : 'film';
       if (initialSlug) registerSlug(initialSlug, movieObj.id, initialMediaType);
