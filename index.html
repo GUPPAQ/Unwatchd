@@ -3814,6 +3814,15 @@
           return "https://image.tmdb.org/t/p/w780" + noLangPosters[0].file_path;
         }
       }
+      if (details && details.images && Array.isArray(details.images.backdrops)) {
+        const noLangBackdrops = details.images.backdrops.filter(b => !b.iso_639_1 || b.iso_639_1 === 'null' || b.iso_639_1 === 'xx');
+        if (noLangBackdrops.length > 0) {
+          return "https://image.tmdb.org/t/p/w1280" + noLangBackdrops[0].file_path;
+        }
+      }
+      if (details && details.backdrop_path) {
+        return "https://image.tmdb.org/t/p/w1280" + details.backdrop_path;
+      }
       if (details && details.poster_path) {
         return "https://image.tmdb.org/t/p/w780" + details.poster_path;
       }
