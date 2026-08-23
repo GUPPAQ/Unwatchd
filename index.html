@@ -2013,6 +2013,16 @@
         slugCacheMap.set(slug, { id, type, role });
       }
     }
+    function sortExactMediaMatches(items) {
+      return items.slice().sort((a, b) => {
+        const dateA = a.release_date || a.first_air_date || a.releaseDate || '';
+        const dateB = b.release_date || b.first_air_date || b.releaseDate || '';
+        if (dateA && dateB && dateA !== dateB) return dateA.localeCompare(dateB);
+        if (dateA && !dateB) return -1;
+        if (!dateA && dateB) return 1;
+        return (a.id || 0) - (b.id || 0);
+      });
+    }
     function parseRouteInfo() {
       const hash = window.location.hash || '';
       const path = window.location.pathname || '';
@@ -2143,25 +2153,28 @@
             fetch(url1).then(r => r.json()).catch(() => ({})),
             url2 ? fetch(url2).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
           ]);
-          const combined = dedupeMediaResults([...(res2.results || []).map(r => ({ ...r, __mediaType: 'tv' })), ...(res1.results || []).map(r => ({ ...r, __mediaType: 'tv' }))]);
+          let combined = dedupeMediaResults([...(res2.results || []).map(r => ({ ...r, __mediaType: 'tv' })), ...(res1.results || []).map(r => ({ ...r, __mediaType: 'tv' }))]);
 
           if (combined.length > 0) {
             let match = null;
+            const exacts = combined.filter(s => slugify(s.name || s.original_name) === baseSlug);
+            const sortedExacts = sortExactMediaMatches(exacts);
+
             if (targetYear) {
-              const yearMatches = combined.filter(s => {
-                const isExact = slugify(s.name || s.original_name) === baseSlug;
+              const yearMatches = sortedExacts.filter(s => {
                 const d = s.first_air_date || '';
-                return isExact && (d.startsWith(targetYear) || Math.abs(parseInt(d.slice(0, 4)) - parseInt(targetYear)) <= 1);
+                return d.startsWith(targetYear) || Math.abs(parseInt(d.slice(0, 4)) - parseInt(targetYear)) <= 1;
               });
               if (yearMatches.length > 0) {
                 match = yearMatches[dupIdx] || yearMatches[0];
+              } else {
+                const anyYear = sortExactMediaMatches(combined.filter(s => (s.first_air_date || '').startsWith(targetYear)));
+                if (anyYear.length > 0) match = anyYear[dupIdx] || anyYear[0];
               }
             }
             if (!match) {
-              const exacts = combined.filter(s => slugify(s.name || s.original_name) === baseSlug);
-              if (exacts.length > 0) {
-                exacts.sort((a, b) => (a.first_air_date || '9999').localeCompare(b.first_air_date || '9999'));
-                match = exacts[dupIdx] || exacts[0];
+              if (sortedExacts.length > 0) {
+                match = sortedExacts[dupIdx] || sortedExacts[0];
               } else {
                 match = combined[0];
               }
@@ -2210,24 +2223,24 @@
 
           if (combined.length > 0) {
             let match = null;
+            const exacts = combined.filter(m => slugify(m.title || m.original_title) === baseSlug);
+            const sortedExacts = sortExactMediaMatches(exacts);
+
             if (targetYear) {
-              const yearMatches = combined.filter(m => {
-                const isExact = slugify(m.title || m.original_title) === baseSlug;
+              const yearMatches = sortedExacts.filter(m => {
                 const d = m.release_date || '';
-                return isExact && (d.startsWith(targetYear) || Math.abs(parseInt(d.slice(0, 4)) - parseInt(targetYear)) <= 1);
+                return d.startsWith(targetYear) || Math.abs(parseInt(d.slice(0, 4)) - parseInt(targetYear)) <= 1;
               });
               if (yearMatches.length > 0) {
                 match = yearMatches[dupIdx] || yearMatches[0];
               } else {
-                const anyYear = combined.filter(m => (m.release_date || '').startsWith(targetYear));
-                if (anyYear.length > 0) match = anyYear[0];
+                const anyYear = sortExactMediaMatches(combined.filter(m => (m.release_date || '').startsWith(targetYear)));
+                if (anyYear.length > 0) match = anyYear[dupIdx] || anyYear[0];
               }
             }
             if (!match) {
-              const exacts = combined.filter(m => slugify(m.title || m.original_title) === baseSlug);
-              if (exacts.length > 0) {
-                exacts.sort((a, b) => (a.release_date || '9999').localeCompare(b.release_date || '9999'));
-                match = exacts[dupIdx] || exacts[0];
+              if (sortedExacts.length > 0) {
+                match = sortedExacts[dupIdx] || sortedExacts[0];
               } else {
                 match = combined[0];
               }
@@ -3624,12 +3637,14 @@
         if (!initialRoute || !initialRoute.id) return;
         if (initialRoute.type === 'film') {
           const existing = scannedMovies.find(m => m.id === initialRoute.id);
-          if (existing) openMoviePage(existing, false); else openMoviePageById(initialRoute.id, '', initialRoute.mediaType || 'movie');
+          if (existing) openMoviePage(existing.slug ? existing : { ...existing, slug: initialRoute.slug }, false);
+          else openMoviePageById(initialRoute.id, '', initialRoute.mediaType || 'movie', false, initialRoute.slug);
         } else if (initialRoute.type === 'actor') {
           openActorPage(initialRoute.id, '', initialRoute.role || '', false);
         } else if (initialRoute.type === 'cast') {
           const existing = scannedMovies.find(m => m.id === initialRoute.id);
-          if (existing) openMoviePage(existing, false); else openMoviePageById(initialRoute.id, '', initialRoute.mediaType || 'movie');
+          if (existing) openMoviePage(existing.slug ? existing : { ...existing, slug: initialRoute.slug }, false);
+          else openMoviePageById(initialRoute.id, '', initialRoute.mediaType || 'movie', false, initialRoute.slug);
           openFullCastModal(true);
         }
       });
@@ -5390,12 +5405,14 @@
       const mId = (details && details.id) || (movieObj && movieObj.id);
 
       // 1. Check if another film in scannedMovies has the same title
-      if (Array.isArray(scannedMovies) && mYear) {
+      if (Array.isArray(scannedMovies) && scannedMovies.length > 0) {
         const sameTitleScanned = scannedMovies.filter(m => slugify(m.title) === baseSlug);
-        if (sameTitleScanned.length > 1) {
-          sameTitleScanned.sort((a, b) => (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999'));
-          if (sameTitleScanned[0].id !== mId) {
-            const sameYear = sameTitleScanned.filter(m => (m.releaseDate || '').startsWith(mYear));
+        const existing = sameTitleScanned.find(m => m.id === mId);
+        if (existing && existing.slug) return existing.slug;
+        if (sameTitleScanned.length > 1 && mYear) {
+          const sortedScanned = sortExactMediaMatches(sameTitleScanned);
+          const sameYear = sortedScanned.filter(m => (m.releaseDate || '').startsWith(mYear));
+          if (sortedScanned[0].id !== mId || sameYear.length > 1) {
             const dupIdx = sameYear.findIndex(m => m.id === mId);
             if (dupIdx > 0) return `${baseSlug}-${mYear}-${dupIdx}`;
             return `${baseSlug}-${mYear}`;
@@ -5405,7 +5422,7 @@
 
       if (!mYear) return baseSlug;
 
-      // 2. Query TMDB search to see if this is an original or duplicate title
+      // 2. Query TMDB search to compute canonical slug
       try {
         const searchEndpoint = mediaType === 'tv' ? 'search/tv' : 'search/movie';
         const res = await fetch(`https://api.themoviedb.org/3/${searchEndpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`);
@@ -5413,10 +5430,9 @@
         if (data && data.results && data.results.length > 0) {
           const exacts = data.results.filter(m => slugify(m.title || m.original_title || m.name || m.original_name) === baseSlug);
           if (exacts.length > 1) {
-            exacts.sort((a, b) => (a.release_date || a.first_air_date || '9999').localeCompare(b.release_date || b.first_air_date || '9999'));
-            if (exacts[0].id !== mId) {
-              // This is a newer or duplicate release! Append release year.
-              const sameYear = exacts.filter(m => (m.release_date || m.first_air_date || '').startsWith(mYear));
+            const sorted = sortExactMediaMatches(exacts);
+            const sameYear = sorted.filter(m => (m.release_date || m.first_air_date || '').startsWith(mYear));
+            if (sorted[0].id !== mId || sameYear.length > 1) {
               const dupIdx = sameYear.findIndex(m => m.id === mId);
               if (dupIdx > 0) return `${baseSlug}-${mYear}-${dupIdx}`;
               return `${baseSlug}-${mYear}`;
@@ -5525,9 +5541,9 @@
       }
     }
 
-    async function openMoviePageById(movieId, movieTitle = '', mediaType = 'movie', pushHistory = true) {
+    async function openMoviePageById(movieId, movieTitle = '', mediaType = 'movie', pushHistory = true, slug = '') {
       const existing = scannedMovies.find(m => m.id === movieId && (m.mediaType || 'movie') === mediaType);
-      if (existing) { openMoviePage(existing, pushHistory); return; }
+      if (existing) { openMoviePage(existing.slug ? existing : { ...existing, slug }, pushHistory); return; }
       try {
         const endpoint = mediaType === 'tv' ? 'tv' : 'movie';
         const res = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
@@ -5543,6 +5559,7 @@
           releaseDate: movie.release_date || movie.first_air_date || null,
           genreIds: movie.genre_ids || (movie.genres ? movie.genres.map(g => g.id) : []),
           url: `https://www.themoviedb.org/${endpoint}/${movie.id}`,
+          slug: slug || '',
           regionData: null,
           allProviders: null
         };
@@ -5625,7 +5642,7 @@
             const isMoviePageOpen = container && !container.classList.contains('hidden');
             if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== routeInfo.id) {
               const existing = scannedMovies.find(m => m.id === routeInfo.id);
-              if (existing) openMoviePage(existing, false); else openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false);
+              if (existing) openMoviePage(existing.slug ? existing : { ...existing, slug: routeInfo.slug }, false); else openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false, routeInfo.slug);
             }
             openFullCastModal(true);
           } else if (routeInfo.type === 'film') {
@@ -5635,7 +5652,7 @@
             const isMoviePageOpen = window.currentMoviePageObj && window.currentMoviePageObj.id === routeInfo.id;
             if (!isMoviePageOpen) {
               const existing = scannedMovies.find(m => m.id === routeInfo.id);
-              if (existing) openMoviePage(existing, false); else openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false);
+              if (existing) openMoviePage(existing.slug ? existing : { ...existing, slug: routeInfo.slug }, false); else openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false, routeInfo.slug);
             }
             hideActorPageView();
           } else if (routeInfo.type === 'actor') {
