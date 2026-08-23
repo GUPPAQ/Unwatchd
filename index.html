@@ -2017,9 +2017,20 @@
       return items.slice().sort((a, b) => {
         const dateA = a.release_date || a.first_air_date || a.releaseDate || '';
         const dateB = b.release_date || b.first_air_date || b.releaseDate || '';
+        const yearA = dateA ? dateA.split('-')[0] : '9999';
+        const yearB = dateB ? dateB.split('-')[0] : '9999';
+        if (yearA !== yearB) return yearA.localeCompare(yearB);
+
+        // Same year: primary/major release with higher vote count and popularity comes first
+        const vcA = a.vote_count || a.voteCount || 0;
+        const vcB = b.vote_count || b.voteCount || 0;
+        if (vcA !== vcB) return vcB - vcA;
+
+        const popA = a.popularity || 0;
+        const popB = b.popularity || 0;
+        if (popA !== popB) return popB - popA;
+
         if (dateA && dateB && dateA !== dateB) return dateA.localeCompare(dateB);
-        if (dateA && !dateB) return -1;
-        if (!dateA && dateB) return 1;
         return (a.id || 0) - (b.id || 0);
       });
     }
