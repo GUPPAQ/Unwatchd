@@ -1997,6 +1997,7 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
     };
+    const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     function slugify(text) {
       if (!text) return '';
       return text.toString().toLowerCase().trim()
@@ -2013,6 +2014,41 @@
         slugCacheMap.set(slug, { id, type, role });
       }
     }
+    function dedupeMediaResults(list) {
+      const seen = new Set();
+      const out = [];
+      for (const r of list) {
+        const k = `${r.__mediaType || 'movie'}-${r.id}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        out.push(r);
+      }
+      return out;
+    }
+
+    async function fetchMediaCandidates(titleQuery, targetYear, mediaType = 'movie') {
+      const baseSlug = slugify(titleQuery);
+      const query = baseSlug.replace(/-/g, ' ');
+      const endpoint = mediaType === 'tv' ? 'search/tv' : 'search/movie';
+      const yearParam = targetYear ? (mediaType === 'tv' ? `&first_air_date_year=${targetYear}` : `&primary_release_year=${targetYear}`) : '';
+
+      const url1 = `https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`;
+      const url2 = targetYear ? `https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}${yearParam}` : null;
+
+      const [res1, res2] = await Promise.all([
+        fetch(url1).then(r => r.json()).catch(() => ({})),
+        url2 ? fetch(url2).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
+      ]);
+
+      let combined = dedupeMediaResults([...(res2.results || []).map(r => ({ ...r, __mediaType: mediaType })), ...(res1.results || []).map(r => ({ ...r, __mediaType: mediaType }))]);
+
+      if (combined.length === 0 && targetYear) {
+        const rawRes = await fetch(`https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(titleQuery)}`).then(r => r.json()).catch(() => ({}));
+        combined = (rawRes.results || []).map(r => ({ ...r, __mediaType: mediaType }));
+      }
+      return combined;
+    }
+
     function sortExactMediaMatches(items) {
       return items.slice().sort((a, b) => {
         const dateA = a.release_date || a.first_air_date || a.releaseDate || '';
@@ -2172,66 +2208,8 @@
             routeInfo.id = match.id;
             registerSlug(slug, match.id, 'actor', routeInfo.role);
           }
-        } else if (category === 'series') {
-          let baseSlug = slug;
-          let targetYear = null;
-          let dupIdx = 0;
-          const yearDupMatch = slug.match(/^(.+?)-((?:19|20)\d\d)-(\d+)$/);
-          if (yearDupMatch) {
-            baseSlug = yearDupMatch[1]; targetYear = yearDupMatch[2]; dupIdx = parseInt(yearDupMatch[3], 10);
-          } else {
-            const yearMatch = slug.match(/^(.+?)-((?:19|20)\d\d)$/);
-            if (yearMatch) {
-              baseSlug = yearMatch[1]; targetYear = yearMatch[2];
-            } else {
-              const dupMatch = slug.match(/^(.+?)-(\d{1,2})$/);
-              if (dupMatch) {
-                baseSlug = dupMatch[1]; dupIdx = parseInt(dupMatch[2], 10);
-              }
-            }
-          }
-
-          const query = baseSlug.replace(/-/g, ' ');
-          const url1 = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`;
-          const url2 = targetYear ? `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&first_air_date_year=${targetYear}` : null;
-          const [res1, res2] = await Promise.all([
-            fetch(url1).then(r => r.json()).catch(() => ({})),
-            url2 ? fetch(url2).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
-          ]);
-          let combined = dedupeMediaResults([...(res2.results || []).map(r => ({ ...r, __mediaType: 'tv' })), ...(res1.results || []).map(r => ({ ...r, __mediaType: 'tv' }))]);
-
-          if (combined.length > 0) {
-            let match = null;
-            const exacts = combined.filter(s => slugify(s.name || s.original_name) === baseSlug);
-            const sortedExacts = sortExactMediaMatches(exacts);
-
-            if (targetYear) {
-              const yearMatches = sortedExacts.filter(s => {
-                const d = s.first_air_date || '';
-                return d.startsWith(targetYear) || Math.abs(parseInt(d.slice(0, 4)) - parseInt(targetYear)) <= 1;
-              });
-              if (yearMatches.length > 0) {
-                match = yearMatches[dupIdx] || yearMatches[0];
-              } else {
-                const anyYear = sortExactMediaMatches(combined.filter(s => (s.first_air_date || '').startsWith(targetYear)));
-                if (anyYear.length > 0) match = anyYear[dupIdx] || anyYear[0];
-              }
-            }
-            if (!match) {
-              if (sortedExacts.length > 0) {
-                match = sortedExacts[dupIdx] || sortedExacts[0];
-              } else {
-                match = combined[0];
-              }
-            }
-            if (match) {
-              routeInfo.id = match.id;
-              routeInfo.mediaType = 'tv';
-              registerSlug(slug, match.id, 'series');
-            }
-          }
         } else {
-          // 'film' or default
+          const mediaType = category === 'series' ? 'tv' : 'movie';
           let baseSlug = slug;
           let targetYear = null;
           let dupIdx = 0;
@@ -2250,36 +2228,22 @@
             }
           }
 
-          const query = baseSlug.replace(/-/g, ' ');
-          const url1 = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`;
-          const url2 = targetYear ? `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&primary_release_year=${targetYear}` : null;
-          const [res1, res2] = await Promise.all([
-            fetch(url1).then(r => r.json()).catch(() => ({})),
-            url2 ? fetch(url2).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
-          ]);
-          let combined = dedupeMediaResults([...(res2.results || []).map(r => ({ ...r, __mediaType: 'movie' })), ...(res1.results || []).map(r => ({ ...r, __mediaType: 'movie' }))]);
-
-          // Fallback if targetYear was part of actual title e.g. blade-runner-2049
-          if (combined.length === 0 && targetYear) {
-            const rawQuery = slug.replace(/-/g, ' ');
-            const rawRes = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(rawQuery)}`).then(r => r.json()).catch(() => ({}));
-            combined = (rawRes.results || []).map(r => ({ ...r, __mediaType: 'movie' }));
-          }
+          const combined = await fetchMediaCandidates(baseSlug, targetYear, mediaType);
 
           if (combined.length > 0) {
             let match = null;
-            const exacts = combined.filter(m => slugify(m.title || m.original_title) === baseSlug);
+            const exacts = combined.filter(m => slugify(m.title || m.original_title || m.name || m.original_name) === baseSlug);
             const sortedExacts = sortExactMediaMatches(exacts);
 
             if (targetYear) {
               const yearMatches = sortedExacts.filter(m => {
-                const d = m.release_date || '';
+                const d = m.release_date || m.first_air_date || '';
                 return d.startsWith(targetYear) || Math.abs(parseInt(d.slice(0, 4)) - parseInt(targetYear)) <= 1;
               });
               if (yearMatches.length > 0) {
                 match = yearMatches[dupIdx] || yearMatches[0];
               } else {
-                const anyYear = sortExactMediaMatches(combined.filter(m => (m.release_date || '').startsWith(targetYear)));
+                const anyYear = sortExactMediaMatches(combined.filter(m => (m.release_date || m.first_air_date || '').startsWith(targetYear)));
                 if (anyYear.length > 0) match = anyYear[dupIdx] || anyYear[0];
               }
             }
@@ -2292,8 +2256,8 @@
             }
             if (match) {
               routeInfo.id = match.id;
-              routeInfo.mediaType = 'movie';
-              registerSlug(slug, match.id, 'film');
+              routeInfo.mediaType = mediaType;
+              registerSlug(slug, match.id, mediaType === 'tv' ? 'series' : 'film');
             }
           }
         }
@@ -2301,7 +2265,6 @@
 
       return routeInfo;
     }
-    const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     const ITEMS_PER_PAGE = 60;
     let currentRegion = localStorage.getItem('ps_region') || 'SE';
     let vpnModeEnabled = localStorage.getItem('ps_vpn_mode') === 'true';
@@ -5471,11 +5434,9 @@
 
       // 2. Query TMDB search to see if this is an original, newer, or duplicate-year release
       try {
-        const searchEndpoint = mediaType === 'tv' ? 'search/tv' : 'search/movie';
-        const res = await fetch(`https://api.themoviedb.org/3/${searchEndpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`);
-        const data = await res.json();
-        if (data && data.results && data.results.length > 0) {
-          const exacts = data.results.filter(m => slugify(m.title || m.original_title || m.name || m.original_name) === baseSlug);
+        const combined = await fetchMediaCandidates(title, mYear, mediaType);
+        if (combined && combined.length > 0) {
+          const exacts = combined.filter(m => slugify(m.title || m.original_title || m.name || m.original_name) === baseSlug);
           if (exacts.length > 1) {
             const sorted = sortExactMediaMatches(exacts);
             const sameYear = sorted.filter(m => (m.release_date || m.first_air_date || '').startsWith(mYear));
