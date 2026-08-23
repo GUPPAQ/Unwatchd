@@ -2023,6 +2023,38 @@
         return (a.id || 0) - (b.id || 0);
       });
     }
+    function assignUniqueScannedSlugs(movies) {
+      if (!Array.isArray(movies) || movies.length === 0) return;
+      const titleGroups = new Map();
+      movies.forEach(m => {
+        const base = slugify(m.title || '');
+        if (!base) return;
+        if (!titleGroups.has(base)) titleGroups.set(base, []);
+        titleGroups.get(base).push(m);
+      });
+      titleGroups.forEach((group, base) => {
+        if (group.length === 1) {
+          if (!group[0].slug) group[0].slug = base;
+          registerSlug(group[0].slug, group[0].id, group[0].mediaType === 'tv' ? 'series' : 'film');
+          return;
+        }
+        const sorted = sortExactMediaMatches(group);
+        sorted.forEach(m => {
+          const yr = (m.releaseDate || '').split('-')[0];
+          const sameYr = sorted.filter(x => (x.releaseDate || '').startsWith(yr));
+          if (sorted[0].id === m.id && sameYr.length === 1) {
+            m.slug = base;
+          } else if (yr) {
+            const dupIdx = sameYr.findIndex(x => x.id === m.id);
+            m.slug = dupIdx > 0 ? `${base}-${yr}-${dupIdx}` : `${base}-${yr}`;
+          } else {
+            const dupIdx = sorted.findIndex(x => x.id === m.id);
+            m.slug = dupIdx > 0 ? `${base}-${dupIdx}` : base;
+          }
+          registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
+        });
+      });
+    }
     function parseRouteInfo() {
       const hash = window.location.hash || '';
       const path = window.location.pathname || '';
@@ -3670,6 +3702,7 @@
 
     async function saveScanToStorage(movies, isFriendMatch) {
       if (!Array.isArray(movies)) return;
+      assignUniqueScannedSlugs(movies);
       try {
         const db = await openDB();
         if (db) {
@@ -3740,13 +3773,7 @@
     loadScanFromStorage().then(scanData => {
       if (scanData && scanData.movies && scanData.movies.length > 0) {
         scannedMovies = scanData.movies;
-        if (Array.isArray(scannedMovies)) {
-          scannedMovies.forEach(m => {
-            if (m.slug && m.id) {
-              registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
-            }
-          });
-        }
+        assignUniqueScannedSlugs(scannedMovies);
         if (scanData.isFriendMatch !== undefined) {
           isFriendMatchActive = scanData.isFriendMatch;
         } else {
@@ -5395,7 +5422,6 @@
     window.currentMoviePageObj = null;
 
     async function getCanonicalMovieSlug(movieObj, details = null) {
-      if (movieObj && movieObj.slug) return movieObj.slug;
       const title = (details && (details.title || details.name)) || (movieObj && (movieObj.title || movieObj.name)) || '';
       const baseSlug = slugify(title);
       if (!baseSlug) return '';
@@ -5407,9 +5433,7 @@
       // 1. Check if another film in scannedMovies has the same title
       if (Array.isArray(scannedMovies) && scannedMovies.length > 0) {
         const sameTitleScanned = scannedMovies.filter(m => slugify(m.title) === baseSlug);
-        const existing = sameTitleScanned.find(m => m.id === mId);
-        if (existing && existing.slug) return existing.slug;
-        if (sameTitleScanned.length > 1 && mYear) {
+        if (sameTitleScanned.length > 1) {
           const sortedScanned = sortExactMediaMatches(sameTitleScanned);
           const sameYear = sortedScanned.filter(m => (m.releaseDate || '').startsWith(mYear));
           if (sortedScanned[0].id !== mId || sameYear.length > 1) {
@@ -5417,6 +5441,9 @@
             if (dupIdx > 0) return `${baseSlug}-${mYear}-${dupIdx}`;
             return `${baseSlug}-${mYear}`;
           }
+          return baseSlug;
+        } else if (sameTitleScanned.length === 1 && sameTitleScanned[0].id === mId && sameTitleScanned[0].slug) {
+          return sameTitleScanned[0].slug;
         }
       }
 
@@ -5457,17 +5484,30 @@
       container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
 
       // Initial fast fallback slug push before async resolution
-      let initialSlug = movieObj.slug || '';
+      let initialSlug = '';
       const initialBaseSlug = slugify(movieObj.title || '');
       const initialYear = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : (movieObj.release_date ? movieObj.release_date.split('-')[0] : '');
+      if (Array.isArray(scannedMovies) && scannedMovies.length > 0 && initialBaseSlug) {
+        const sameTitleScanned = scannedMovies.filter(m => slugify(m.title) === initialBaseSlug);
+        if (sameTitleScanned.length > 1 && initialYear) {
+          const sortedScanned = sortExactMediaMatches(sameTitleScanned);
+          const sameYear = sortedScanned.filter(m => (m.releaseDate || '').startsWith(initialYear));
+          if (sortedScanned[0].id !== movieObj.id || sameYear.length > 1) {
+            const dupIdx = sameYear.findIndex(m => m.id === movieObj.id);
+            initialSlug = dupIdx > 0 ? `${initialBaseSlug}-${initialYear}-${dupIdx}` : `${initialBaseSlug}-${initialYear}`;
+          } else {
+            initialSlug = initialBaseSlug;
+          }
+        } else if (sameTitleScanned.length === 1 && sameTitleScanned[0].id === movieObj.id && sameTitleScanned[0].slug) {
+          initialSlug = sameTitleScanned[0].slug;
+        }
+      }
       if (!initialSlug) {
-        const initialHasOlder = scannedMovies.some(m => {
-          if (m.id === movieObj.id) return false;
-          if (slugify(m.title) !== initialBaseSlug) return false;
-          const otherYear = m.releaseDate ? m.releaseDate.split('-')[0] : '';
-          return otherYear && initialYear && parseInt(otherYear) < parseInt(initialYear);
-        });
-        initialSlug = initialHasOlder && initialYear ? `${initialBaseSlug}-${initialYear}` : initialBaseSlug;
+        if (movieObj.slug && movieObj.slug.startsWith(initialBaseSlug) && /-(\d+)$/.test(movieObj.slug)) {
+          initialSlug = movieObj.slug;
+        } else {
+          initialSlug = initialBaseSlug;
+        }
       }
       const initialMediaType = movieObj.mediaType === 'tv' ? 'series' : 'film';
       if (initialSlug) registerSlug(initialSlug, movieObj.id, initialMediaType);
