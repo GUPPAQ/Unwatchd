@@ -97,12 +97,17 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100dvh;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
       background-image: radial-gradient(circle at 50% 0%, #171b24 0%, #0d0f14 55%, #08090c 100%);
       z-index: -1;
       pointer-events: none;
-      transform: translateZ(0);
+      transform: translate3d(0, 0, 0);
+      -webkit-transform: translate3d(0, 0, 0);
+      will-change: transform;
+      contain: strict;
     }
 
     .safe-area-wrapper {
@@ -204,7 +209,7 @@
       place-items: center;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
-      transform: translateZ(0);
+      transform: translate3d(0, 0, 0);
     }
 
     .logo-wrapper img {
@@ -213,7 +218,7 @@
       display: block;
       object-fit: cover;
       border-radius: inherit;
-      transform: translateZ(0);
+      transform: translate3d(0, 0, 0);
       -webkit-user-drag: none;
       pointer-events: none;
     }
@@ -232,7 +237,7 @@
       }
 
       .service-btn:not(.selected):not(.locked):hover .logo-wrapper {
-        box-shadow: 0 0 14px rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.12);
       }
     }
 
@@ -241,7 +246,7 @@
     }
 
     .service-btn.selected .logo-wrapper {
-      box-shadow: 0 0 0 2px #ffffff, 0 0 14px rgba(255, 255, 255, 0.35);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85), 0 0 8px rgba(255, 255, 255, 0.18);
     }
 
     .service-btn.locked {
@@ -601,8 +606,10 @@
     .glow-card {
       position: relative;
       overflow: visible !important;
-      transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-        box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      transform: translate3d(0, 0, 0);
+      -webkit-transform: translate3d(0, 0, 0);
     }
 
     .glow-card:hover,
@@ -613,11 +620,18 @@
 
     .tilt-card {
       overflow: visible !important;
+      transform: translate3d(0, 0, 0);
+      -webkit-transform: translate3d(0, 0, 0);
+      contain: layout style;
+      content-visibility: auto;
+      contain-intrinsic-size: auto 280px;
     }
 
     .tilt-card-inner {
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
+      transform: translate3d(0, 0, 0);
+      -webkit-transform: translate3d(0, 0, 0);
     }
 
     .load-fill {
@@ -647,17 +661,17 @@
     @keyframes fadeUp {
       from {
         opacity: 0;
-        transform: translateY(15px);
+        transform: translate3d(0, 12px, 0);
       }
 
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate3d(0, 0, 0);
       }
     }
 
     .animate-fade {
-      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       opacity: 0;
     }
 
@@ -1066,7 +1080,7 @@
 
     /* Inline Service Browser Styles */
     .add-services-btn {
-      border: 2px dashed rgba(255, 255, 255, 0.12);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
       background: rgba(255, 255, 255, 0.02);
       border-radius: 1.5rem;
       padding: 2.5rem 1.5rem;
@@ -1733,7 +1747,7 @@
         </div>
       </div>
       <div id="activeGridContainer"
-        class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-5 sm:gap-6 perspective-1000 min-h-[300px] content-start">
+        class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-5 sm:gap-6 min-h-[300px] content-start">
       </div>
       <div id="paginationControls" class="flex justify-center items-center gap-2 mt-12 mb-4 hidden"></div>
     </section>
@@ -3459,7 +3473,7 @@
 
         // Append Add button at the end
         const addBtn = document.createElement('button');
-        addBtn.className = 'service-btn service-tile outline-none group border-2 border-dashed border-white/20 hover:border-white/40 rounded-[22.5%] transition-all flex items-center justify-center bg-white/5 hover:bg-white/10';
+        addBtn.className = 'service-btn service-tile outline-none group border border-dashed border-white/20 hover:border-white/40 rounded-[22.5%] transition-all flex items-center justify-center bg-white/5 hover:bg-white/10';
         addBtn.title = 'Add more services';
         addBtn.innerHTML = `<svg class="w-8 h-8 text-gray-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>`;
         addBtn.addEventListener('click', () => { if (!isScanning) openBrowser(); });
@@ -3791,28 +3805,34 @@
         }
       }
     });
+    let isPageScrolling = false;
+    let pageScrollTimer = null;
+    window.addEventListener('scroll', () => {
+      isPageScrolling = true;
+      if (pageScrollTimer) clearTimeout(pageScrollTimer);
+      pageScrollTimer = setTimeout(() => { isPageScrolling = false; }, 90);
+    }, { passive: true });
+
     function apply3DTilt(cardElement) {
       if (isMobile) return;
-      let rect = null;
       let rafId = null;
-      cardElement.addEventListener('mouseenter', () => { rect = cardElement.getBoundingClientRect(); });
       cardElement.addEventListener('mousemove', (e) => {
-        if (!rect) rect = cardElement.getBoundingClientRect();
-        if (rafId) return;
+        if (isPageScrolling || rafId) return;
+        const w = cardElement.clientWidth || 150;
+        const h = cardElement.clientHeight || 225;
+        const x = e.offsetX;
+        const y = e.offsetY;
         rafId = requestAnimationFrame(() => {
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          const rotateX = ((y - (rect.height / 2)) / (rect.height / 2)) * -10;
-          const rotateY = ((x - (rect.width / 2)) / (rect.width / 2)) * 10;
-          cardElement.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.03, 1.03, 1.03)`;
+          const rotateX = ((y - (h / 2)) / (h / 2)) * -8;
+          const rotateY = ((x - (w / 2)) / (w / 2)) * 8;
+          cardElement.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.025, 1.025, 1.025)`;
           rafId = null;
         });
-      });
+      }, { passive: true });
       cardElement.addEventListener('mouseleave', () => {
         if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-        rect = null;
-        cardElement.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-      });
+        cardElement.style.transform = '';
+      }, { passive: true });
     }
     const movieDetailsCache = new Map();
     const preloadedImagesSet = new Set();
@@ -6249,13 +6269,10 @@
       const innerClip = document.createElement('div');
       innerClip.className = 'absolute inset-0 rounded-2xl overflow-hidden pointer-events-none';
       if (movieObj.poster) {
-        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
+        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover transform-gpu">`;
       } else {
         innerClip.innerHTML = `<div class="absolute inset-0 flex items-center justify-center p-4 text-center font-bold text-gray-500 text-xs">${safeTitle}</div>`;
       }
-      const glare = document.createElement('div');
-      glare.className = 'glare';
-      innerClip.appendChild(glare);
       a.appendChild(innerClip);
 
       const tmdbRating = getTmdbRating(movieObj);
@@ -7806,7 +7823,7 @@
             </div>
           </div>
           <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pt-0 pb-10 flex flex-col gap-10">
-            <div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div>
+            <div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 content-start">${filmographyHtml}</div></div>
           <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             ${actorActionBtnsHtml}
             <div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5">
@@ -7816,7 +7833,7 @@
           </div>
         </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0d1017] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#11151f] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">${actorActionBtnsHtml}<div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5 grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div>`;
+      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0d1017] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 content-start">${filmographyHtml}</div></div></div><div class="bg-[#11151f] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">${actorActionBtnsHtml}<div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5 grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div>`;
     }
 
     let currentActorId = null;
