@@ -619,14 +619,14 @@
     #castCrewTrack,
     #relatedMoviesTrack,
     #similarMoviesTrack {
-      padding-top: 14px !important;
-      padding-bottom: 16px !important;
-      padding-left: 6px !important;
-      padding-right: 6px !important;
-      margin-top: -14px !important;
-      margin-bottom: -16px !important;
-      margin-left: -6px !important;
-      margin-right: -6px !important;
+      padding-top: 20px !important;
+      padding-bottom: 24px !important;
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+      margin-top: -20px !important;
+      margin-bottom: -24px !important;
+      margin-left: -8px !important;
+      margin-right: -8px !important;
     }
 
     .tilt-card-inner {
@@ -4676,7 +4676,7 @@
           const isInWatchlist = watchlistIds.has(m.id);
           const isCurrentMovie = m.id === movieObj.id;
           const recRating = getTmdbRating(m);
-          const activeBorderClass = isCurrentMovie ? 'border-2 border-blue-400 ring-2 ring-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.45)]' : 'border border-white/5';
+          const activeBorderClass = isCurrentMovie ? 'border border-blue-500' : 'border border-white/5';
           return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 ${isCurrentMovie ? '' : 'sm:hover:scale-[1.03]'}" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isCurrentMovie ? '' : (isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`)}">
             <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 ${activeBorderClass} h-full">
               <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
