@@ -511,18 +511,16 @@
     .tab-btn {
       position: relative;
       flex: 1;
-      padding: 0.6rem 0.5rem;
-      font-size: 0.7rem;
+      padding: 0.5rem 0.5rem;
+      font-size: 0.75rem;
       font-weight: 700;
       text-align: center;
-      border-radius: 0.75rem;
+      border-radius: 0.5rem;
       transition: all 0.2s ease;
       cursor: pointer;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid transparent;
+      background: transparent;
       color: #9ca3af;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
       display: flex;
       flex-direction: row;
       align-items: center;
@@ -530,40 +528,47 @@
       gap: 6px;
       overflow: hidden;
       white-space: nowrap;
+      user-select: none;
     }
 
     @media (min-width: 640px) {
       .tab-btn {
-        padding: 0.75rem 1rem;
-        font-size: 0.75rem;
-        letter-spacing: 0.06em;
-        gap: 8px;
+        padding: 0.45rem 0.875rem;
+        font-size: 0.8125rem;
+        gap: 7px;
       }
     }
 
     .tab-btn:hover:not(.active) {
-      color: white;
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .tab-btn:active {
+      transform: scale(0.98);
     }
 
     .tab-btn.active {
-      background: rgba(59, 130, 246, 0.15);
-      color: rgb(147, 197, 253);
+      background: rgba(59, 130, 246, 0.25);
+      color: #60a5fa;
       border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
     }
 
     .tab-badge {
-      background: rgba(0, 0, 0, 0.5);
-      padding: 2px 8px;
-      border-radius: 99px;
-      font-size: 0.7rem;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1.5px 6.5px;
+      border-radius: 9999px;
+      font-size: 0.6875rem;
       font-weight: 800;
+      color: #9ca3af;
+      line-height: 1.2;
+      transition: all 0.2s ease;
     }
 
     .tab-btn.active .tab-badge {
       background: rgba(59, 130, 246, 0.35);
-      color: white;
+      color: #ffffff;
     }
 
     .page-btn {
@@ -1671,7 +1676,7 @@
       <div id="categoriesBar"
         class="glass-panel rounded-2xl p-2.5 sm:p-3 mb-6 flex flex-col xl:flex-row gap-3 xl:gap-4 xl:items-center animate-fade relative"
         style="animation-delay: 0.1s;">
-        <div class="grid grid-cols-2 gap-2 w-full xl:flex xl:flex-1 xl:gap-2">
+        <div class="grid grid-cols-2 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full xl:flex xl:flex-1 xl:gap-1.5">
           <button class="tab-btn active" data-tab="stream">Available <span id="tabCount-stream"
               class="tab-badge">0</span></button>
           <button class="tab-btn" data-tab="rentbuy">Rent / Buy <span id="tabCount-rentbuy"
@@ -1838,13 +1843,13 @@
               </button>
             </div>
             <div
-              class="flex items-center gap-1.5 p-1 bg-black/50 border border-white/15 rounded-xl w-full sm:w-auto shrink-0 shadow-lg">
+              class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full sm:w-auto shrink-0">
               <button id="allCastTabAll" onclick="setAllCastTab('all')"
-                class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-500/25 text-blue-400 border border-blue-500/40 text-center shadow-sm">All</button>
+                class="tab-btn active">All</button>
               <button id="allCastTabCast" onclick="setAllCastTab('cast')"
-                class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white border border-transparent text-center">Cast</button>
+                class="tab-btn">Cast</button>
               <button id="allCastTabCrew" onclick="setAllCastTab('crew')"
-                class="all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white border border-transparent text-center">Crew</button>
+                class="tab-btn">Crew</button>
             </div>
           </div>
         </div>
@@ -6037,11 +6042,7 @@
       ['all', 'cast', 'crew'].forEach(t => {
         const btn = document.getElementById(`allCastTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
         if (!btn) return;
-        if (t === currentAllCastActiveTab) {
-          btn.className = 'all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-500/25 text-blue-400 border border-blue-500/40 text-center shadow-sm';
-        } else {
-          btn.className = 'all-cast-tab flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white border border-transparent text-center';
-        }
+        btn.classList.toggle('active', t === currentAllCastActiveTab);
       });
     }
 
@@ -7633,10 +7634,10 @@
 
       const mediaFilterTabsHtml = `
         <div class="grid grid-cols-2 items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl shrink-0 w-full sm:flex sm:w-auto">
-          <button type="button" class="all-cast-tab flex-1 sm:flex-initial px-2 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-center whitespace-nowrap ${actorMediaTypeFilter === 'watchlist' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()">Watchlist ${watchlistMovies.length > 0 ? `<span class="ml-1 opacity-60">${watchlistMovies.length}</span>` : '<span class="ml-1 opacity-60">0</span>'}</button>
-          <button type="button" class="all-cast-tab flex-1 sm:flex-initial px-2 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-center whitespace-nowrap ${actorMediaTypeFilter === 'movie' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()">Films <span class="ml-1 opacity-60">${movieOnlyCount}</span></button>
-          <button type="button" class="all-cast-tab flex-1 sm:flex-initial px-2 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-center whitespace-nowrap ${actorMediaTypeFilter === 'tv' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmographyGrid()">Series <span class="ml-1 opacity-60">${tvCount}</span></button>
-          <button type="button" class="all-cast-tab flex-1 sm:flex-initial px-2 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-center whitespace-nowrap ${actorMediaTypeFilter === 'all' ? 'bg-blue-500/25 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-gray-400 hover:text-white border border-transparent'}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()">All <span class="ml-1 opacity-60">${allMovies.length}</span></button>
+          <button type="button" class="tab-btn ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()">Watchlist <span class="tab-badge">${watchlistMovies.length}</span></button>
+          <button type="button" class="tab-btn ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()">Films <span class="tab-badge">${movieOnlyCount}</span></button>
+          <button type="button" class="tab-btn ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmographyGrid()">Series <span class="tab-badge">${tvCount}</span></button>
+          <button type="button" class="tab-btn ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()">All <span class="tab-badge">${allMovies.length}</span></button>
         </div>`;
 
       const roleIcons = {
