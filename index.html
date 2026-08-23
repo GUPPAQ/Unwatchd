@@ -3810,28 +3810,43 @@
     function getTextlessPosterUrl(details, fallbackPoster = null) {
       if (!details) return fallbackPoster || null;
 
-      // 1. Textless poster (no language tag)
+      // 1. Check for genuine textless posters that have positive community votes and aren't the default text poster
       if (details.images && Array.isArray(details.images.posters)) {
-        const noLangPosters = details.images.posters.filter(p => !p.iso_639_1 || p.iso_639_1 === 'null' || p.iso_639_1 === 'xx');
-        if (noLangPosters.length > 0) {
+        const noLangPosters = details.images.posters
+          .filter(p => (!p.iso_639_1 || p.iso_639_1 === 'null' || p.iso_639_1 === 'xx') && p.file_path !== details.poster_path)
+          .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.vote_average || 0) - (a.vote_average || 0));
+
+        if (noLangPosters.length > 0 && (noLangPosters[0].vote_count || 0) >= 2) {
           return "https://image.tmdb.org/t/p/w780" + noLangPosters[0].file_path;
         }
       }
 
-      // 2. Textless backdrop (no language tag) as background fallback
+      // 2. Textless backdrop (no language tag) sorted by vote count
       if (details.images && Array.isArray(details.images.backdrops)) {
-        const noLangBackdrops = details.images.backdrops.filter(b => !b.iso_639_1 || b.iso_639_1 === 'null' || b.iso_639_1 === 'xx');
+        const noLangBackdrops = details.images.backdrops
+          .filter(b => !b.iso_639_1 || b.iso_639_1 === 'null' || b.iso_639_1 === 'xx')
+          .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.vote_average || 0) - (a.vote_average || 0));
+
         if (noLangBackdrops.length > 0) {
           return "https://image.tmdb.org/t/p/w1280" + noLangBackdrops[0].file_path;
         }
       }
 
-      // 3. Default backdrop
+      // 3. Fallback to unvoted textless poster if no backdrops are available
+      if (details.images && Array.isArray(details.images.posters)) {
+        const noLangPosters = details.images.posters
+          .filter(p => (!p.iso_639_1 || p.iso_639_1 === 'null' || p.iso_639_1 === 'xx') && p.file_path !== details.poster_path);
+        if (noLangPosters.length > 0) {
+          return "https://image.tmdb.org/t/p/w780" + noLangPosters[0].file_path;
+        }
+      }
+
+      // 4. Default backdrop
       if (details.backdrop_path) {
         return "https://image.tmdb.org/t/p/w1280" + details.backdrop_path;
       }
 
-      // 4. Default poster
+      // 5. Default poster
       if (details.poster_path) {
         return "https://image.tmdb.org/t/p/w780" + details.poster_path;
       }
