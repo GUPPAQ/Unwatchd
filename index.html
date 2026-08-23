@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Unwatchd | Watchlist Filter</title>
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#08090c">
   <link rel="icon" href="./icons/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16x16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32x32.png">
@@ -27,9 +27,9 @@
     rel="stylesheet" />
   <style>
     :root {
-      --bg-base: #020617;
-      --panel-bg: rgba(15, 23, 42, 0.6);
-      --accent: #3b82f6;
+      --bg-base: #08090c;
+      --panel-bg: rgba(18, 22, 30, 0.65);
+      --accent: #ffffff;
     }
 
     .ytp-pause-overlay,
@@ -365,7 +365,7 @@
 
     select.filter-select option,
     select.region-select option {
-      background: #0f172a;
+      background: #0d1017;
       color: white;
     }
 
@@ -425,15 +425,15 @@
     }
 
     .watchnow-vpn-toggle.vpn-active {
-      background: rgba(59, 130, 246, 0.22) !important;
-      border-color: rgba(96, 165, 250, 0.45) !important;
-      color: #93c5fd !important;
+      background: rgba(255, 255, 255, 0.15) !important;
+      border-color: rgba(255, 255, 255, 0.4) !important;
+      color: #ffffff !important;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
     }
 
     .watchnow-vpn-toggle.vpn-active .watchnow-vpn-dot {
-      background: #60a5fa;
-      box-shadow: none;
+      background: #ffffff;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
     }
 
     .poster-badge-glass {
@@ -550,10 +550,10 @@
     }
 
     .tab-btn.active {
-      background: rgba(59, 130, 246, 0.25);
-      color: #60a5fa;
-      border-color: rgba(59, 130, 246, 0.4);
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.35);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
     }
 
     .tab-badge {
@@ -568,7 +568,7 @@
     }
 
     .tab-btn.active .tab-badge {
-      background: rgba(59, 130, 246, 0.35);
+      background: rgba(255, 255, 255, 0.2);
       color: #ffffff;
     }
 
@@ -706,7 +706,7 @@
 
     /* Premium popup panel style */
     .premium-popup-panel {
-      background: linear-gradient(165deg, rgba(15, 25, 50, 0.97) 0%, rgba(8, 12, 28, 0.98) 100%);
+      background: linear-gradient(165deg, rgba(18, 22, 30, 0.98) 0%, rgba(10, 12, 16, 0.99) 100%);
       border: 1px solid transparent;
       background-clip: padding-box;
       position: relative;
@@ -717,19 +717,18 @@
       inset: -1px;
       border-radius: inherit;
       padding: 1px;
-      background: linear-gradient(165deg, rgba(59,130,246,0.3) 0%, rgba(255,255,255,0.1) 30%, rgba(255,255,255,0.05) 70%, rgba(59,130,246,0.2) 100%);
+      background: linear-gradient(165deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 30%, rgba(255,255,255,0.05) 70%, rgba(255,255,255,0.15) 100%);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
       pointer-events: none;
-      animation: popupBorderGlow 4s ease-in-out infinite;
     }
     .premium-popup-panel::after {
       content: '';
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      background: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.08) 0%, transparent 60%);
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.05) 0%, transparent 60%);
       pointer-events: none;
     }
 
@@ -751,14 +750,14 @@
       left: 0;
       width: 75px;
       height: 1px;
-      background: linear-gradient(90deg, rgba(59,130,246,0.6), transparent);
+      background: linear-gradient(90deg, rgba(255,255,255,0.4), transparent);
     }
     .premium-popup-header .header-accent {
       width: 4px;
       height: 1.5rem;
       border-radius: 9999px;
-      background: linear-gradient(180deg, #3b82f6, #6366f1);
-      box-shadow: 0 0 14px rgba(59,130,246,0.85), 0 0 5px rgba(99,102,241,0.5);
+      background: #ffffff;
+      box-shadow: 0 0 10px rgba(255,255,255,0.5);
       flex-shrink: 0;
     }
     .premium-popup-header h3 {
@@ -805,7 +804,7 @@
       background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
       transform: translateY(-2px);
     }
-    .insight-stat-card.stat-blue::before { background: linear-gradient(180deg, #3b82f6, #2563eb); box-shadow: 0 0 10px rgba(59,130,246,0.6); }
+    .insight-stat-card.stat-blue::before { background: linear-gradient(180deg, #ffffff, #9ca3af); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
     .insight-stat-card.stat-purple::before { background: linear-gradient(180deg, #a855f7, #7c3aed); box-shadow: 0 0 10px rgba(168,85,247,0.6); }
     .insight-stat-card.stat-teal::before { background: linear-gradient(180deg, #14b8a6, #0d9488); box-shadow: 0 0 10px rgba(20,184,166,0.6); }
     .insight-stat-card.stat-amber::before { background: linear-gradient(180deg, #f59e0b, #d97706); box-shadow: 0 0 10px rgba(245,158,11,0.6); }
@@ -908,7 +907,7 @@
       display: inline-block;
       width: 6px; height: 6px;
       border-radius: 50%;
-      background: rgba(59,130,246,0.8);
+      background: rgba(255,255,255,0.8);
       margin: 0 3px;
       animation: rouletteDotPulse 1.2s ease-in-out infinite;
     }
@@ -987,9 +986,9 @@
     }
 
     .vpn-active {
-      background: rgba(59, 130, 246, 0.15) !important;
-      border-color: rgba(59, 130, 246, 0.4) !important;
-      color: rgb(147, 197, 253) !important;
+      background: rgba(255, 255, 255, 0.15) !important;
+      border-color: rgba(255, 255, 255, 0.4) !important;
+      color: #ffffff !important;
     }
 
     #vpnToggleBtn,
@@ -1017,14 +1016,14 @@
       }
 
       #rouletteBtn:hover {
-        background-color: rgba(59, 130, 246, 0.2) !important;
-        border-color: rgba(59, 130, 246, 0.3) !important;
-        color: rgb(147, 197, 253) !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        color: #ffffff !important;
       }
 
       .add-services-btn:hover {
-        border-color: rgba(59, 130, 246, 0.35);
-        background: rgba(59, 130, 246, 0.06);
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.05);
         transform: translateY(-1px);
       }
 
@@ -1133,9 +1132,9 @@
     }
 
     .actor-toggle-btn.active {
-      background: rgba(59, 130, 246, 0.15);
+      background: rgba(255, 255, 255, 0.15);
       color: white;
-      border-color: rgba(59, 130, 246, 0.3);
+      border-color: rgba(255, 255, 255, 0.4);
     }
 
     .actor-toggle-btn:hover:not(.active) {
@@ -1743,7 +1742,7 @@
       <div class="flex items-center justify-center gap-2.5 max-w-lg mx-auto">
         <a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img
             src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
-            alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
+            alt="TMDB Logo" class="h-3 sm:h-3.5 grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all"></a>
         <p
           class="text-[11px] sm:text-xs text-gray-400 font-medium text-center sm:text-left">
           This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
@@ -1761,7 +1760,7 @@
     class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm"
     onclick="if(event.target===this) closeGenericPopup()">
     <div id="genericPopupContent"
-      class="premium-popup-panel rounded-3xl max-w-xl md:max-w-2xl w-full p-6 sm:p-9 relative shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)] max-h-[88vh] flex flex-col pointer-events-auto">
+      class="premium-popup-panel rounded-3xl max-w-xl md:max-w-2xl w-full p-6 sm:p-9 relative shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_40px_rgba(255,255,255,0.03)] max-h-[88vh] flex flex-col pointer-events-auto">
       <button onclick="closeGenericPopup()" aria-label="Close"
         class="absolute top-4 right-4 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full liquid-glass active:scale-95 text-white flex items-center justify-center transition-all cursor-pointer">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1876,12 +1875,12 @@
     class="fixed inset-0 z-[600] hidden items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md"
     onclick="if(event.target===this) closeRouletteModal()">
     <div id="rouletteModalContent"
-      class="premium-popup-panel rounded-3xl max-w-2xl lg:max-w-3xl w-full relative shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_80px_rgba(59,130,246,0.12)] max-h-[95vh] flex flex-col pointer-events-auto overflow-hidden border border-white/15">
+      class="premium-popup-panel rounded-3xl max-w-2xl lg:max-w-3xl w-full relative shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_40px_rgba(255,255,255,0.04)] max-h-[95vh] flex flex-col pointer-events-auto overflow-hidden border border-white/15">
       
       <!-- Blurred backdrop poster -->
       <div id="rouletteBackdropPoster" class="absolute inset-0 z-0 overflow-hidden rounded-3xl">
         <img id="rouletteBackdropImg" src="" alt="" class="w-full h-full object-cover scale-125 blur-[50px] opacity-0 transition-opacity duration-700 pointer-events-none" />
-        <div class="absolute inset-0 bg-gradient-to-b from-[#080c1c]/90 via-[#080c1c]/80 to-[#080c1c]/95 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-[#08090c]/90 via-[#08090c]/80 to-[#08090c]/95 pointer-events-none"></div>
       </div>
 
       <!-- Close Button -->
@@ -1974,13 +1973,13 @@
   <!-- MOVIE DETAILS POPUP MODAL (DESKTOP / INLINE) -->
   <div id="movieModal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 sm:p-6" onclick="if(event.target===this) closeModal()">
     <div id="modalBackdrop" class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer"></div>
-    <div id="modalContent" class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]"></div>
+    <div id="modalContent" class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_40px_rgba(255,255,255,0.03)]"></div>
   </div>
 
   <!-- ACTOR DETAILS POPUP MODAL (DESKTOP / INLINE) -->
   <div id="actorModal" class="fixed inset-0 z-[210] hidden items-center justify-center p-4 sm:p-6" onclick="if(event.target===this) closeActorModal()">
     <div id="actorModalBackdrop" class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer"></div>
-    <div id="actorModalContent" class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]"></div>
+    <div id="actorModalContent" class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_40px_rgba(255,255,255,0.03)]"></div>
   </div>
 
   <script>
@@ -2883,11 +2882,11 @@
         if (!btn) return;
         if (vpnModeEnabled) {
           btn.classList.add('vpn-active'); btn.classList.remove('text-gray-500', 'text-gray-400');
-          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-white'); dot.classList.remove('shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-white'); dot.classList.remove('shadow-[0_0_6px_rgba(255,255,255,0.8)]'); }
         } else {
           btn.classList.remove('vpn-active');
           if (btn.id === 'vpnToggleBtn') btn.classList.add('text-gray-500'); else btn.classList.add('text-gray-400');
-          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-white', 'shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-white', 'shadow-[0_0_6px_rgba(255,255,255,0.8)]'); }
         }
       });
     }
@@ -4803,7 +4802,7 @@
               ${movieActionBtnsHtml}
               <div class="flex flex-col items-start lg:items-end gap-1.5 w-full lg:w-auto">
                 <div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5">
-                  <a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
+                  <a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5 grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all"></a>
                   <span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
                 </div>
                 ${effectiveVpnInfo ? `<p class="text-[11px] text-gray-500 font-medium leading-tight text-left lg:text-right w-full lg:w-auto px-1">*Some streaming services may detect or restrict VPN connections</p>` : ''}
@@ -7684,7 +7683,7 @@
       const closeBtn = `<div class="sticky top-0 z-[60] w-full h-0 flex ${backBtn ? 'justify-between' : 'justify-end'} pointer-events-none">${backBtn}<button id="closeActorModalBtn" onclick="${isModal ? 'closeModal()' : 'closeQuickSearchInline()'}" aria-label="Close" class="pointer-events-auto mt-4 mr-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>`;
       const extIds = person.external_ids || {};
       const instaBtn = extIds.instagram_id ? `<a href="https://instagram.com/${escapeHTML(extIds.instagram_id)}" target="_blank" class="${btnClass}"><svg class="w-4 h-4 sm:w-5 sm:h-5 text-pink-500 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg><span>Instagram</span></a>` : '';
-      const twitterBtn = extIds.twitter_id ? `<a href="https://x.com/${escapeHTML(extIds.twitter_id)}" target="_blank" class="${btnClass}"><svg class="w-4 h-4 sm:w-4.5 sm:h-4.5 text-sky-400 fill-current shrink-0" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>X (Twitter)</span></a>` : '';
+      const twitterBtn = extIds.twitter_id ? `<a href="https://x.com/${escapeHTML(extIds.twitter_id)}" target="_blank" class="${btnClass}"><svg class="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white fill-current shrink-0" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>X (Twitter)</span></a>` : '';
       const letterboxdBtn = lbSlug ? `<a href="https://letterboxd.com/actor/${escapeHTML(lbSlug)}/" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/letterboxd.png" alt="Letterboxd" class="w-full h-full block object-cover"></div><span>Letterboxd</span></a>` : '';
       const imdbBtn = imdbId ? `<a href="https://www.imdb.com/name/${escapeHTML(imdbId)}/" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full block object-cover"></div><span>IMDb</span></a>` : '';
       const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?actor=${tmdbId}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-green-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg><span>Copy Link</span></button>`;
@@ -7811,13 +7810,13 @@
           <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             ${actorActionBtnsHtml}
             <div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5">
-              <a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
+              <a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5 grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all"></a>
               <span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
             </div>
           </div>
         </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0d1017] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#11151f] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">${actorActionBtnsHtml}<div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div>`;
+      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0d1017] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#11151f] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">${actorActionBtnsHtml}<div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5 grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div>`;
     }
 
     let currentActorId = null;
