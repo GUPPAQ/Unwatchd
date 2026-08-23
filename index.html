@@ -2144,6 +2144,10 @@
         const id = parseInt(category.replace('movie-', ''), 10);
         if (!isNaN(id)) return { type: 'film', id, mediaType: 'movie' };
       }
+      if (category.startsWith('series-') || category.startsWith('tv-')) {
+        const id = parseInt(category.replace(/^(series|tv)-/, ''), 10);
+        if (!isNaN(id)) return { type: 'film', id, mediaType: 'tv' };
+      }
       if (category.startsWith('actor-')) {
         const id = parseInt(category.replace('actor-', ''), 10);
         if (!isNaN(id)) return { type: 'actor', id, role: 'Actor' };
@@ -2157,23 +2161,28 @@
 
       const isCast = subPath === 'cast' || rawSlug.endsWith('-cast');
       const cleanSlug = rawSlug.replace(/-cast$/, '');
+      const isTvCategory = category === 'series' || category === 'tv' || category === 'show';
 
-      // Legacy/Numeric check (e.g. 122-pulp-fiction with explicit text after number)
+      // Legacy/Numeric check (e.g. 122-pulp-fiction or 100757-outer-banks)
       const numMatch = cleanSlug.match(/^(\d{5,})(?:-(.*))$/);
       if (numMatch) {
         const id = parseInt(numMatch[1], 10);
-        if (category === 'film' || category === 'series' || category === 'movie') {
-          return { type: isCast ? 'cast' : 'film', id, mediaType: category === 'series' ? 'tv' : 'movie' };
+        const titleSlug = numMatch[2] || '';
+        const cached = slugCacheMap.get(cleanSlug) || (titleSlug ? slugCacheMap.get(titleSlug) : null);
+        const mediaType = cached ? (cached.type === 'series' || cached.type === 'tv' ? 'tv' : (cached.type === 'film' || cached.type === 'movie' ? 'movie' : (isTvCategory ? 'tv' : 'movie'))) : (isTvCategory ? 'tv' : 'movie');
+
+        if (category === 'film' || category === 'series' || category === 'movie' || category === 'tv') {
+          return { type: isCast ? 'cast' : 'film', id, mediaType, slug: cleanSlug };
         }
         let role = 'Actor';
         if (category === 'director') role = 'Director';
         else if (category === 'writer') role = 'Writer';
         else if (category === 'producer') role = 'Producer';
         else if (category === 'composer') role = 'Composer';
-        return { type: 'actor', id, role };
+        return { type: 'actor', id, role, slug: cleanSlug };
       }
 
-      // Pure slug without numbers (e.g. pulp-fiction, nuremberg-2025, brad-pitt)
+      // Pure slug without numbers (e.g. pulp-fiction, outer-banks-2020, brad-pitt)
       let role = 'Actor';
       if (category === 'director') role = 'Director';
       else if (category === 'writer') role = 'Writer';
@@ -2182,13 +2191,14 @@
 
       const cached = slugCacheMap.get(`${category}:${cleanSlug}`) || slugCacheMap.get(cleanSlug);
       if (cached) {
+        const isTvCached = cached.type === 'series' || cached.type === 'tv' || isTvCategory;
         return {
           type: isCast ? 'cast' : (category === 'actor' || category === 'director' || category === 'writer' || category === 'producer' || category === 'composer' ? 'actor' : 'film'),
           id: cached.id,
           role: role || cached.role,
           slug: cleanSlug,
           category,
-          mediaType: category === 'series' ? 'tv' : 'movie'
+          mediaType: isTvCached ? 'tv' : 'movie'
         };
       }
 
@@ -2197,7 +2207,7 @@
         slug: cleanSlug,
         category,
         role,
-        mediaType: category === 'series' ? 'tv' : 'movie'
+        mediaType: isTvCategory ? 'tv' : 'movie'
       };
     }
 
@@ -2208,14 +2218,16 @@
 
       const slug = routeInfo.slug;
       const category = routeInfo.category || '';
+      const isTvCategory = category === 'series' || category === 'tv' || category === 'show';
 
       // Check if this slug exists in scannedMovies (from Letterboxd or active scan)
-      if (category === 'film' || category === 'movie' || category === 'series' || !category) {
-        const foundInScan = scannedMovies.find(m => m.slug === slug);
+      if (category === 'film' || category === 'movie' || category === 'series' || category === 'tv' || !category) {
+        const cleanSlugPart = slug.replace(/^(\d{5,})-/, '');
+        const foundInScan = scannedMovies.find(m => m.slug === slug || (cleanSlugPart && m.slug === cleanSlugPart));
         if (foundInScan) {
           routeInfo.id = foundInScan.id;
-          routeInfo.mediaType = foundInScan.mediaType || (category === 'series' ? 'tv' : 'movie');
-          registerSlug(slug, foundInScan.id, category);
+          routeInfo.mediaType = foundInScan.mediaType || (isTvCategory ? 'tv' : 'movie');
+          registerSlug(slug, foundInScan.id, routeInfo.mediaType === 'tv' ? 'series' : 'film');
           return routeInfo;
         }
       }
@@ -3669,13 +3681,13 @@
       resolveRouteToId(rawRoute).then(initialRoute => {
         if (!initialRoute || !initialRoute.id) return;
         if (initialRoute.type === 'film') {
-          const existing = scannedMovies.find(m => m.id === initialRoute.id);
+          const existing = scannedMovies.find(m => m.id === initialRoute.id && (m.mediaType || 'movie') === (initialRoute.mediaType || 'movie'));
           if (existing) openMoviePage(existing.slug ? existing : { ...existing, slug: initialRoute.slug }, false);
           else openMoviePageById(initialRoute.id, '', initialRoute.mediaType || 'movie', false, initialRoute.slug);
         } else if (initialRoute.type === 'actor') {
           openActorPage(initialRoute.id, '', initialRoute.role || '', false);
         } else if (initialRoute.type === 'cast') {
-          const existing = scannedMovies.find(m => m.id === initialRoute.id);
+          const existing = scannedMovies.find(m => m.id === initialRoute.id && (m.mediaType || 'movie') === (initialRoute.mediaType || 'movie'));
           if (existing) openMoviePage(existing.slug ? existing : { ...existing, slug: initialRoute.slug }, false);
           else openMoviePageById(initialRoute.id, '', initialRoute.mediaType || 'movie', false, initialRoute.slug);
           openFullCastModal(true);
@@ -5582,9 +5594,31 @@
       const existing = scannedMovies.find(m => m.id === movieId && (m.mediaType || 'movie') === mediaType);
       if (existing) { openMoviePage(existing.slug ? existing : { ...existing, slug }, pushHistory); return; }
       try {
-        const endpoint = mediaType === 'tv' ? 'tv' : 'movie';
-        const res = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
-        const movie = await res.json();
+        let endpoint = mediaType === 'tv' ? 'tv' : 'movie';
+        let res = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
+        let movie = await res.json();
+
+        // If a title slug is present and the fetched result does not match the slug, check if the alternate media type (tv vs movie) is the true match
+        if (slug && movie && movie.id) {
+          const fetchedSlug = slugify(movie.title || movie.name || '');
+          const cleanTargetSlug = slug.replace(/^(\d{5,})-/, '').replace(/-cast$/, '');
+          if (cleanTargetSlug && !fetchedSlug.includes(cleanTargetSlug) && !cleanTargetSlug.includes(fetchedSlug)) {
+            const altEndpoint = endpoint === 'tv' ? 'movie' : 'tv';
+            try {
+              const altRes = await fetch(`https://api.themoviedb.org/3/${altEndpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
+              const altMovie = await altRes.json();
+              if (altMovie && altMovie.id) {
+                const altSlug = slugify(altMovie.title || altMovie.name || '');
+                if (altSlug.includes(cleanTargetSlug) || cleanTargetSlug.includes(altSlug)) {
+                  movie = altMovie;
+                  endpoint = altEndpoint;
+                  mediaType = altEndpoint === 'tv' ? 'tv' : 'movie';
+                }
+              }
+            } catch (e) { }
+          }
+        }
+
         if (!movie || !movie.id) return;
         const movieObj = {
           id: movie.id,
@@ -5677,8 +5711,9 @@
             hideActorPageView();
             const container = document.getElementById('moviePageView');
             const isMoviePageOpen = container && !container.classList.contains('hidden');
-            if (!isMoviePageOpen || !window.currentMoviePageObj || window.currentMoviePageObj.id !== routeInfo.id) {
-              const existing = scannedMovies.find(m => m.id === routeInfo.id);
+            const isCurrentMatch = isMoviePageOpen && window.currentMoviePageObj && window.currentMoviePageObj.id === routeInfo.id && (window.currentMoviePageObj.mediaType || 'movie') === (routeInfo.mediaType || 'movie');
+            if (!isCurrentMatch) {
+              const existing = scannedMovies.find(m => m.id === routeInfo.id && (m.mediaType || 'movie') === (routeInfo.mediaType || 'movie'));
               if (existing) openMoviePage(existing.slug ? existing : { ...existing, slug: routeInfo.slug }, false); else openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false, routeInfo.slug);
             }
             openFullCastModal(true);
@@ -5686,9 +5721,9 @@
             hideAllCastModalView();
             const container = document.getElementById('moviePageView');
             if (container) container.classList.remove('hidden');
-            const isMoviePageOpen = window.currentMoviePageObj && window.currentMoviePageObj.id === routeInfo.id;
-            if (!isMoviePageOpen) {
-              const existing = scannedMovies.find(m => m.id === routeInfo.id);
+            const isCurrentMatch = window.currentMoviePageObj && window.currentMoviePageObj.id === routeInfo.id && (window.currentMoviePageObj.mediaType || 'movie') === (routeInfo.mediaType || 'movie');
+            if (!isCurrentMatch) {
+              const existing = scannedMovies.find(m => m.id === routeInfo.id && (m.mediaType || 'movie') === (routeInfo.mediaType || 'movie'));
               if (existing) openMoviePage(existing.slug ? existing : { ...existing, slug: routeInfo.slug }, false); else openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false, routeInfo.slug);
             }
             hideActorPageView();
@@ -5984,10 +6019,14 @@
       allCastCurrentPage = 1;
 
       if (isPage && !location.hash.includes('/cast') && !location.hash.includes('-cast')) {
-        const mId = window.currentMovieFullCredits.movieId || '0';
+        const mId = window.currentMovieFullCredits?.movieId || window.currentMoviePageObj?.id || '0';
         const castMovieObj = scannedMovies.find(m => m.id === Number(mId)) || window.currentActiveMovieObj || window.currentMoviePageObj;
-        const castSlug = slugify(castMovieObj?.title || '');
-        try { history.pushState({ allCastPage: true, movieId: mId }, '', `#film/${mId}${castSlug ? '-' + castSlug : ''}/cast`); } catch (e) { }
+        const isTv = castMovieObj?.mediaType === 'tv' || window.currentMoviePageObj?.mediaType === 'tv';
+        const mediaRoute = isTv ? 'series' : 'film';
+        const rawSlug = castMovieObj?.slug || window.currentMoviePageObj?.slug || slugify(castMovieObj?.title || window.currentMovieFullCredits?.movieTitle || '');
+        const cleanSlug = rawSlug ? rawSlug.replace(/-cast$/, '') : '';
+        const targetSlug = cleanSlug || `${mId}`;
+        try { history.pushState({ allCastPage: true, movieId: mId, mediaType: isTv ? 'tv' : 'movie' }, '', `#${mediaRoute}/${targetSlug}/cast`); } catch (e) { }
       }
 
       const searchInput = document.getElementById('allCastSearchInput');
