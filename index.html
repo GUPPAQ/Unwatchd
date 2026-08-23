@@ -636,12 +636,12 @@
 
     .load-fill {
       position: relative;
-      background: linear-gradient(90deg, #4b5563, #9ca3af, #ffffff, #9ca3af, #4b5563);
+      background: linear-gradient(90deg, #1d4ed8, #3b82f6, #93c5fd, #3b82f6, #1d4ed8);
       background-size: 300% 100%;
       animation: sleekGradient 2.5s ease-in-out infinite;
       transition: width 0.3s ease-out;
       border-radius: 9999px;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.6), inset 0 0 6px rgba(96, 165, 250, 0.4);
     }
 
     @keyframes sleekGradient {
@@ -1366,7 +1366,7 @@
         position: fixed;
         inset: 0;
         z-index: 999999;
-        background: #020617;
+        background: #060913;
         color: #ffffff;
         display: flex;
         align-items: center;
@@ -1482,10 +1482,10 @@
             </div>
           </div>
           <button id="quickSearchBtn"
-            class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-widest px-8 transition-colors border-l border-white/10">Search</button>
+            class="bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 hover:text-white text-xs font-bold uppercase tracking-widest px-8 transition-colors border-l border-white/10">Search</button>
         </div>
         <div id="searchDropdown"
-          class="absolute top-full left-0 w-full mt-2 bg-[#11151f] rounded-xl hidden flex-col z-[100] max-h-96 overflow-y-auto custom-scrollbar shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-white/15">
+          class="absolute top-full left-0 w-full mt-2 bg-[#0a0e1c] rounded-xl hidden flex-col z-[100] max-h-96 overflow-y-auto custom-scrollbar shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-blue-500/20">
         </div>
       </div>
     </section>
@@ -1527,7 +1527,7 @@
         <div id="serviceBrowser" class="hidden animate-fade">
           <div class="glass-panel rounded-3xl border border-white/10 overflow-hidden">
             <div
-              class="p-5 border-b border-white/10 flex flex-col sm:flex-row gap-4 sm:items-center justify-between bg-[#0d1017]/60">
+              class="p-5 border-b border-white/10 flex flex-col sm:flex-row gap-4 sm:items-center justify-between bg-[#060913]/60">
               <div>
                 <h3 class="text-white font-bold text-sm uppercase tracking-widest">Choose your services</h3>
                 <p class="text-gray-500 text-xs mt-1"><span id="browserSelectedCount">0</span> selected • Click to
@@ -1558,11 +1558,11 @@
             </div>
 
             <div
-              class="p-4 border-t border-white/10 bg-[#0d1017]/90 flex flex-col sm:flex-row gap-3 justify-between items-center">
+              class="p-4 border-t border-white/10 bg-[#060913]/90 flex flex-col sm:flex-row gap-3 justify-between items-center">
               <button id="serviceBrowserCancel"
                 class="w-full sm:w-auto text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white px-5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition-colors outline-none">Cancel</button>
               <button id="serviceBrowserSave"
-                class="w-full sm:w-auto execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-xs rounded-xl px-8 py-3 shadow-[0_0_20px_rgba(255,255,255,0.1)] outline-none">Save
+                class="w-full sm:w-auto execute-btn bg-blue-600 hover:bg-blue-500 text-white font-extrabold uppercase tracking-widest text-xs rounded-xl px-8 py-3 shadow-[0_0_20px_rgba(59,130,246,0.3)] outline-none">Save
                 selection</button>
             </div>
           </div>
@@ -1598,7 +1598,7 @@
             </button>
           </div>
           <button id="startButton"
-            class="execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-sm rounded-xl px-12 py-4 shadow-[0_0_20px_rgba(255,255,255,0.1)] shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">Execute</button>
+            class="execute-btn bg-blue-600 hover:bg-blue-500 text-white font-extrabold uppercase tracking-widest text-sm rounded-xl px-12 py-4 shadow-[0_0_20px_rgba(59,130,246,0.3)] shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">Execute</button>
         </div>
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1">
           <button id="toggleFriendBtn"
@@ -3084,7 +3084,7 @@
       reelTrack.innerHTML = reelItems.map((m, idx) => {
         const posterUrl = m.poster || '';
         const safeTitle = escapeHTML(m.title || 'Movie');
-        return `<div class="roulette-reel-card shrink-0 w-[120px] sm:w-[150px] aspect-[2/3] rounded-xl sm:rounded-2xl overflow-hidden relative bg-[#0a0e1a] shadow-[0_8px_30px_rgba(0,0,0,0.7)] flex items-center justify-center" data-index="${idx}">
+        return `<div class="roulette-reel-card shrink-0 w-[120px] sm:w-[150px] aspect-[2/3] rounded-xl sm:rounded-2xl overflow-hidden relative bg-[#060913] border border-blue-500/20 shadow-[0_8px_30px_rgba(0,0,0,0.7)] flex items-center justify-center" data-index="${idx}">
           ${posterUrl ? `<img src="${posterUrl}" class="w-full h-full object-cover pointer-events-none" loading="eager" alt="${safeTitle}">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800/80 text-xs font-bold text-gray-500 p-2 text-center">${safeTitle}</div>`}
         </div>`;
       }).join('');
@@ -4307,7 +4307,7 @@
         ? `<img src="${titleLogo}" alt="${safeTitle}" loading="eager" decoding="async" class="titleLogoImg pageTitleImg max-h-28 sm:max-h-40 max-w-[360px] sm:max-w-[620px] object-contain mb-3 shrink-0 mx-auto lg:mx-0" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`
         : `<h1 class="movie-hero-title text-4xl min-[400px]:text-5xl sm:text-7xl md:text-8xl lg:text-[5.5rem] font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[0.95] mb-3 text-center lg:text-left">${safeTitle}</h1>`;
       const tmdbRating = getTmdbRating(movieObj) || (details && details.vote_average ? details.vote_average.toFixed(1) : null);
-      const modalRatingBadgeHtml = tmdbRating ? `<div id="modalRatingBadge" class="poster-badge-glass bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-extrabold text-white border border-white/15 shadow-md inline-flex items-center gap-1.5 shrink-0"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${tmdbRating}</div>` : '';
+      const modalRatingBadgeHtml = tmdbRating ? `<div id="modalRatingBadge" class="poster-badge-glass bg-[#060913]/80 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-extrabold text-white border border-white/15 shadow-md inline-flex items-center gap-1.5 shrink-0"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${tmdbRating}</div>` : '';
       const imdbId = details && details.external_ids && details.external_ids.imdb_id ? details.external_ids.imdb_id : (movieObj.imdbId || null);
 
       const requestId = movieObj.id;
@@ -4627,7 +4627,7 @@
         : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${trailerBtnClass}"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></a>`;
       const pageTrailerBtnHtml = trailerHeaderBtn;
       const shareParam = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
-      const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-green-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg><span>Copy Link</span></button>`;
+      const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-blue-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg><span>Copy Link</span></button>`;
       const movieActionBtns = [trailerActionBtn, letterboxdBtn, imdbBtn, shareBtn].filter(Boolean);
       const movieActionBtnsGrid = movieActionBtns.length >= 4 ? 'grid-cols-2 lg:grid-cols-3' : (movieActionBtns.length === 3 ? 'grid-cols-3' : 'grid-cols-2');
       const movieActionBtnsHtml = `<div class="grid ${movieActionBtnsGrid} sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">${movieActionBtns.join('')}</div>`;
@@ -4691,8 +4691,8 @@
                 ${mPoster ? `<img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
                 <div class="glare"></div>
               </div>
-              ${isCurrentMovie ? `<div class="absolute top-2.5 right-2.5 bg-white text-black px-2.5 py-0.5 rounded-full text-[10px] font-black border border-white/40 shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-20 uppercase tracking-wider">Viewing</div>` : (recRating ? `<div class="poster-badge-glass absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${recRating}</div>` : '')}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-full text-white border border-white/20 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${isCurrentMovie ? `<div class="absolute top-2.5 right-2.5 bg-blue-600 text-white px-2.5 py-0.5 rounded-full text-[10px] font-black border border-blue-400/40 shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-20 uppercase tracking-wider">Viewing</div>` : (recRating ? `<div class="poster-badge-glass absolute top-2.5 right-2.5 bg-[#060913]/80 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${recRating}</div>` : '')}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#060913]/80 w-7.5 h-7.5 rounded-full text-white border border-white/20 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         }).join('');
@@ -4729,7 +4729,7 @@
                 <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">
                 <div class="glare"></div>
               </div>
-              ${recRating ? `<div class="poster-badge-glass absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${recRating}</div>` : ''}
+              ${recRating ? `<div class="poster-badge-glass absolute top-2.5 right-2.5 bg-[#060913]/80 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${recRating}</div>` : ''}
             </div>
           </div>`;
         }).join('');
@@ -5779,7 +5779,7 @@
           if (details && details.belongs_to_collection && details.belongs_to_collection.id) {
             collectionData = await getCollectionDetails(details.belongs_to_collection.id);
           }
-          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 animate-fade flex flex-col bg-[#0d1017] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup', false, collectionData)}</div>`;
+          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 animate-fade flex flex-col bg-[#060913] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup', false, collectionData)}</div>`;
           const closeBtn = document.getElementById('closeModalBtn');
           if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; window.currentActiveMovieObj = null; };
           const backBtn = document.getElementById('movieBackBtn');
@@ -6043,7 +6043,7 @@
       if (bannerArtEl) {
         bannerArtEl.innerHTML = backdrop
           ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">`
-          : `<div class="w-full h-full bg-gradient-to-br from-gray-900 via-[#11151f] to-[#0d1017]"></div>`;
+          : `<div class="w-full h-full bg-gradient-to-br from-[#111a2e] via-[#090e1b] to-[#060913]"></div>`;
       }
 
       const titleEl = document.getElementById('allCastModalTitle');
@@ -6281,7 +6281,7 @@
       const tmdbRating = getTmdbRating(movieObj);
       if (tmdbRating) {
         const badge = document.createElement('div');
-        badge.className = 'poster-badge-glass absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5';
+        badge.className = 'poster-badge-glass absolute top-2.5 right-2.5 bg-[#060913]/80 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5';
         badge.innerHTML = `<svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${tmdbRating}`;
         a.appendChild(badge);
       }
@@ -6299,7 +6299,7 @@
       apply3DTilt(wrapper);
       return wrapper;
     }
-    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-white text-black font-extrabold text-sm shadow-[0_0_12px_rgba(255,255,255,0.3)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
+    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-extrabold text-sm shadow-[0_0_14px_rgba(59,130,246,0.5)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
     function updateStats() { if (scannedMovies.length === 0) { if (el.statsBar) el.statsBar.classList.add('hidden'); return; } document.getElementById('stat-total').textContent = scannedMovies.length; let genreCounts = {}; let decadeCounts = {}; let totalRating = 0; let ratedCount = 0; scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genreCounts[GENRE_MAP[id]] = (genreCounts[GENRE_MAP[id]] || 0) + 1; }); if (m.releaseDate) { const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10; if (!isNaN(dec)) decadeCounts[dec] = (decadeCounts[dec] || 0) + 1; } const rVal = getCachedRating(m); if (rVal) { const r = parseFloat(rVal); if (!isNaN(r) && r > 0) { totalRating += r; ratedCount++; } } }); const topG = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a])[0] || '-'; const topD = Object.keys(decadeCounts).sort((a, b) => decadeCounts[b] - decadeCounts[a])[0]; const avg = ratedCount ? (totalRating / ratedCount).toFixed(1) : '-'; document.getElementById('stat-genre').textContent = topG; document.getElementById('stat-decade').innerHTML = topD ? `${topD}S` : '-'; const avgEl = document.getElementById('stat-avg'); if (avgEl) avgEl.textContent = avg; }
     function populateFilterDropdowns() { const genresSet = new Set(); const decadesSet = new Set(); scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genresSet.add(GENRE_MAP[id]); }); if (m.releaseDate) decadesSet.add(Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10); }); if (el.filterGenre) { el.filterGenre.innerHTML = '<option value="all">All Genres</option>'; Array.from(genresSet).sort().forEach(g => { el.filterGenre.innerHTML += `<option value="${g}">${g}</option>`; }); syncFilterLabel(el.filterGenre); } if (el.filterDecade) { el.filterDecade.innerHTML = '<option value="all">All Decades</option>'; Array.from(decadesSet).sort().forEach(d => { if (!isNaN(d)) el.filterDecade.innerHTML += `<option value="${d}">${d}s</option>`; }); syncFilterLabel(el.filterDecade); } }
     function applyFiltersAndRender() {
@@ -6372,7 +6372,7 @@
     }
     function renderActiveGrid() {
       const container = el.activeGridContainer; if (!container) return; container.innerHTML = ''; const currentData = currentGroupedResults[activeTab] || [];
-      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-white/[0.07] to-white/[0.02] border border-white/10 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-gray-300 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${serviceTally[topService]} films</strong> from your watchlist.</p></div><div class="text-3xl opacity-80">💡</div>`; container.appendChild(banner); } }
+      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-900/30 via-blue-950/20 to-transparent border border-blue-500/25 rounded-2xl p-5 flex items-center justify-between shadow-lg shadow-blue-950/40'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white font-extrabold">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-blue-300 font-extrabold">${serviceTally[topService]} films</strong> from your watchlist.</p></div><div class="text-3xl opacity-80">💡</div>`; container.appendChild(banner); } }
       if (currentData.length === 0) {
         const hasActiveFilter = (el.filterSearch && el.filterSearch.value.trim() !== '') || (el.filterGenre && el.filterGenre.value !== 'all') || (el.filterDecade && el.filterDecade.value !== 'all');
         const emptyIcon = hasActiveFilter ? '🔍' : '🎬';
@@ -6404,7 +6404,7 @@
               let badgeColor = '';
               if (item.__mediaType === 'tv') {
                 badgeLabel = 'TV';
-                badgeColor = 'text-gray-300 border-white/20';
+                badgeColor = 'text-blue-300 border-blue-500/30 bg-blue-500/10';
               } else if (item.__mediaType === 'person') {
                 const dept = item.known_for_department;
                 if (dept === 'Directing') badgeLabel = 'DIRECTOR';
@@ -6412,10 +6412,10 @@
                 else if (dept === 'Production') badgeLabel = 'PRODUCER';
                 else if (dept === 'Sound') badgeLabel = 'COMPOSER';
                 else badgeLabel = 'ACTOR';
-                badgeColor = 'text-purple-400 border-purple-500/30';
+                badgeColor = 'text-blue-400 border-blue-500/40 bg-blue-500/15';
               } else {
                 badgeLabel = 'FILM';
-                badgeColor = 'text-gray-400 border-gray-500/30';
+                badgeColor = 'text-gray-300 border-white/20 bg-white/5';
               }
               const ratingOrDept = item.matchedRole
                 ? `${item.matchedRole}${item.vote_average && item.vote_average > 0 ? ` • TMDB ${item.vote_average.toFixed(1)}` : ''}`
@@ -7616,7 +7616,7 @@
           const subtext = `${mYear ? mYear : ''}${mediaBadge}${roleStr ? ' · ' + roleStr : ''}`;
           const filmRating = getTmdbRating(m);
           const actorRatingHtml = filmRating
-            ? `<div class="poster-badge-glass absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${filmRating}</div>`
+            ? `<div class="poster-badge-glass absolute top-2.5 right-2.5 bg-[#060913]/80 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${filmRating}</div>`
             : '';
 
           filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '', '${m.mediaType || 'movie'}')` : `handleActorFilmClick(${m.id}, '', ${!isModal}, '${m.mediaType || 'movie'}')`}">
@@ -7626,7 +7626,7 @@
                 <div class="glare"></div>
               </div>
               ${actorRatingHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-full text-white border border-white/20 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#060913]/80 w-7.5 h-7.5 rounded-full text-white border border-white/20 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         });
@@ -7706,7 +7706,7 @@
       const twitterBtn = extIds.twitter_id ? `<a href="https://x.com/${escapeHTML(extIds.twitter_id)}" target="_blank" class="${btnClass}"><svg class="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white fill-current shrink-0" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>X (Twitter)</span></a>` : '';
       const letterboxdBtn = lbSlug ? `<a href="https://letterboxd.com/actor/${escapeHTML(lbSlug)}/" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/letterboxd.png" alt="Letterboxd" class="w-full h-full block object-cover"></div><span>Letterboxd</span></a>` : '';
       const imdbBtn = imdbId ? `<a href="https://www.imdb.com/name/${escapeHTML(imdbId)}/" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full block object-cover"></div><span>IMDb</span></a>` : '';
-      const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?actor=${tmdbId}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-green-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg><span>Copy Link</span></button>`;
+      const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?actor=${tmdbId}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-blue-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg><span>Copy Link</span></button>`;
       const actorActionBtns = [letterboxdBtn, imdbBtn, instaBtn, twitterBtn, shareBtn].filter(Boolean);
       const actorActionBtnsGrid = actorActionBtns.length >= 4 ? 'grid-cols-2 min-[480px]:grid-cols-3' : (actorActionBtns.length === 3 ? 'grid-cols-3' : (actorActionBtns.length === 2 ? 'grid-cols-2' : 'grid-cols-1'));
       const actorActionBtnsHtml = `<div class="grid ${actorActionBtnsGrid} sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">${actorActionBtns.join('')}</div>`;
@@ -8292,7 +8292,7 @@
       if (!person) return;
 
       if (isInline) {
-        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 animate-fade flex flex-col bg-[#0d1017] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
+        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 animate-fade flex flex-col bg-[#060913] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
         const closeBtn = document.getElementById('closeActorModalBtn');
         if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; currentActorId = null; };
         const backBtnRefresh = document.getElementById('backToMovieBtn');
