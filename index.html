@@ -3808,22 +3808,46 @@
     }
 
     function getTextlessPosterUrl(details, fallbackPoster = null) {
-      if (details && details.images && Array.isArray(details.images.posters)) {
-        const noLangPosters = details.images.posters.filter(p => !p.iso_639_1 || p.iso_639_1 === 'null' || p.iso_639_1 === 'xx');
-        if (noLangPosters.length > 0) {
+      if (!details) return fallbackPoster || null;
+
+      // 1. High-confidence textless portrait poster (voted by TMDB community, distinct from default text poster)
+      if (details.images && Array.isArray(details.images.posters)) {
+        const noLangPosters = details.images.posters
+          .filter(p => (!p.iso_639_1 || p.iso_639_1 === 'null' || p.iso_639_1 === 'xx') && p.file_path !== details.poster_path)
+          .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.vote_average || 0) - (a.vote_average || 0));
+
+        if (noLangPosters.length > 0 && (noLangPosters[0].vote_count || 0) >= 4) {
           return "https://image.tmdb.org/t/p/w780" + noLangPosters[0].file_path;
         }
       }
-      if (details && details.images && Array.isArray(details.images.backdrops)) {
-        const noLangBackdrops = details.images.backdrops.filter(b => !b.iso_639_1 || b.iso_639_1 === 'null' || b.iso_639_1 === 'xx');
+
+      // 2. Textless backdrop (no language tag) sorted by vote count (guaranteed clean & textless by TMDB rules)
+      if (details.images && Array.isArray(details.images.backdrops)) {
+        const noLangBackdrops = details.images.backdrops
+          .filter(b => !b.iso_639_1 || b.iso_639_1 === 'null' || b.iso_639_1 === 'xx')
+          .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.vote_average || 0) - (a.vote_average || 0));
+
         if (noLangBackdrops.length > 0) {
           return "https://image.tmdb.org/t/p/w1280" + noLangBackdrops[0].file_path;
         }
       }
-      if (details && details.backdrop_path) {
+
+      // 3. Fallback to unvoted textless poster if no backdrops exist
+      if (details.images && Array.isArray(details.images.posters)) {
+        const noLangPosters = details.images.posters
+          .filter(p => (!p.iso_639_1 || p.iso_639_1 === 'null' || p.iso_639_1 === 'xx') && p.file_path !== details.poster_path);
+        if (noLangPosters.length > 0) {
+          return "https://image.tmdb.org/t/p/w780" + noLangPosters[0].file_path;
+        }
+      }
+
+      // 4. Default backdrop
+      if (details.backdrop_path) {
         return "https://image.tmdb.org/t/p/w1280" + details.backdrop_path;
       }
-      if (details && details.poster_path) {
+
+      // 5. Default poster
+      if (details.poster_path) {
         return "https://image.tmdb.org/t/p/w780" + details.poster_path;
       }
       return fallbackPoster || null;
