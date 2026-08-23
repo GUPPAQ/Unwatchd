@@ -241,7 +241,7 @@
     }
 
     .service-btn.selected .logo-wrapper {
-      box-shadow: 0 0 0 2px #3b82f6, 0 0 12px rgba(59, 130, 246, 0.45);
+      box-shadow: 0 0 0 2px #ffffff, 0 0 14px rgba(255, 255, 255, 0.35);
     }
 
     .service-btn.locked {
@@ -328,7 +328,7 @@
 
     .filter-select-wrapper:focus-within .filter-select-label {
       color: #ffffff;
-      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.5);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.4);
     }
 
     select.filter-select {
@@ -622,12 +622,12 @@
 
     .load-fill {
       position: relative;
-      background: linear-gradient(90deg, #1e3a8a, #3b82f6, #93c5fd, #3b82f6, #1e3a8a);
+      background: linear-gradient(90deg, #4b5563, #9ca3af, #ffffff, #9ca3af, #4b5563);
       background-size: 300% 100%;
       animation: sleekGradient 2.5s ease-in-out infinite;
       transition: width 0.3s ease-out;
       border-radius: 9999px;
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.4);
     }
 
     @keyframes sleekGradient {
@@ -920,8 +920,8 @@
     }
 
     .blue-focus:focus-within {
-      border-color: rgba(59, 130, 246, 0.5);
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+      border-color: rgba(255, 255, 255, 0.4) !important;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
     }
 
     input {
@@ -1441,7 +1441,7 @@
       class="glass-panel rounded-2xl p-4 sm:p-5 mb-4 animate-fade flex flex-col md:flex-row gap-4 items-center relative z-50"
       style="animation-delay: 0.1s;">
       <div class="flex items-center gap-3 w-full md:w-auto shrink-0 md:pr-5 md:border-r border-white/10">
-        <div class="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-400">
+        <div class="p-2 bg-white/10 border border-white/15 rounded-lg text-white">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -1466,10 +1466,10 @@
             </div>
           </div>
           <button id="quickSearchBtn"
-            class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest px-8 transition-colors border-l border-white/10">Search</button>
+            class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-widest px-8 transition-colors border-l border-white/10">Search</button>
         </div>
         <div id="searchDropdown"
-          class="absolute top-full left-0 w-full mt-2 bg-[#0f172a] rounded-xl hidden flex-col z-[100] max-h-96 overflow-y-auto custom-scrollbar shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-blue-500/30">
+          class="absolute top-full left-0 w-full mt-2 bg-[#11151f] rounded-xl hidden flex-col z-[100] max-h-96 overflow-y-auto custom-scrollbar shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-white/15">
         </div>
       </div>
     </section>
@@ -1488,8 +1488,8 @@
         <div id="serviceEmptyState" class="animate-fade hidden">
           <button id="serviceEmptyBtn" class="add-services-btn group w-full outline-none">
             <div
-              class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-500/10 group-hover:border-blue-500/20 transition-all">
-              <svg class="w-7 h-7 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none"
+              class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 group-hover:border-white/25 transition-all">
+              <svg class="w-7 h-7 text-gray-400 group-hover:text-white transition-colors" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
@@ -1569,13 +1569,13 @@
             </button>
           </div>
           <div id="friendInputWrapper"
-            class="hidden flex-1 bg-indigo-950/20 border border-indigo-500/30 transition-all rounded-xl flex items-center relative overflow-hidden blue-focus">
-            <span class="pl-5 pr-1 text-indigo-400/80 text-base font-semibold select-none z-10 whitespace-nowrap">+
+            class="hidden flex-1 bg-black/40 border border-white/10 transition-all rounded-xl flex items-center relative overflow-hidden blue-focus">
+            <span class="pl-5 pr-1 text-gray-400 text-base font-semibold select-none z-10 whitespace-nowrap">+
               Match with</span>
             <input id="friendInput" type="text" autocomplete="off" spellcheck="false" placeholder="friend's username"
-              class="w-full h-full bg-transparent pr-10 py-4 text-base text-indigo-100 font-bold focus:outline-none placeholder:text-indigo-400/50 relative z-20" />
+              class="w-full h-full bg-transparent pr-10 py-4 text-base text-white font-bold focus:outline-none placeholder:text-gray-500 relative z-20" />
             <button id="removeFriendBtn"
-              class="absolute right-4 text-indigo-500 hover:text-indigo-300 transition-colors z-20">
+              class="absolute right-4 text-gray-500 hover:text-white transition-colors z-20">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
@@ -1586,7 +1586,7 @@
         </div>
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1">
           <button id="toggleFriendBtn"
-            class="text-[10px] font-bold uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors flex items-center justify-center sm:justify-start gap-1.5 bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20 w-fit shrink-0">
+            class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-white transition-colors flex items-center justify-center sm:justify-start gap-1.5 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10 w-fit shrink-0">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
@@ -1599,11 +1599,11 @@
       </div>
     </section>
     <section id="progressSection"
-      class="glass-panel rounded-2xl p-8 mb-10 hidden border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.1)] relative z-10">
+      class="glass-panel rounded-2xl p-8 mb-10 hidden border border-white/15 shadow-[0_0_30px_rgba(0,0,0,0.5)] relative z-10">
       <div class="flex justify-between items-end mb-4">
         <div>
           <div class="flex items-center gap-3 mb-1">
-            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest animate-pulse">Processing Data</p>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest animate-pulse">Processing Data</p>
             <button id="stopButton"
               class="text-[9px] text-red-400 hover:bg-red-500/20 font-bold uppercase tracking-widest transition-colors flex items-center gap-1 border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded cursor-pointer">Abort
               ✕</button>
@@ -1933,8 +1933,8 @@
         <div id="rouletteInfoSection" class="w-full flex flex-col items-center transition-all duration-300">
           
           <!-- Spinning Status -->
-          <div id="rouletteSpinStatus" class="flex items-center gap-2.5 py-3 text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm">
-            <svg class="w-4 h-4 animate-spin text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div id="rouletteSpinStatus" class="flex items-center gap-2.5 py-3 text-gray-300 font-extrabold uppercase tracking-widest text-xs sm:text-sm">
+            <svg class="w-4 h-4 animate-spin text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
@@ -1949,7 +1949,7 @@
 
           <!-- Action Buttons -->
           <div id="rouletteActionButtons" class="flex items-center gap-3 sm:gap-4 w-full mt-3">
-            <button id="rouletteViewBtn" class="flex-1 py-3 px-5 rounded-2xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-black text-sm tracking-wide shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:pointer-events-none">
+            <button id="rouletteViewBtn" class="flex-1 py-3 px-5 rounded-2xl bg-white hover:bg-gray-200 active:scale-95 text-black font-black text-sm tracking-wide shadow-lg shadow-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:pointer-events-none">
               <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -2883,11 +2883,11 @@
         if (!btn) return;
         if (vpnModeEnabled) {
           btn.classList.add('vpn-active'); btn.classList.remove('text-gray-500', 'text-gray-400');
-          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-blue-400'); dot.classList.remove('shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-white'); dot.classList.remove('shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
         } else {
           btn.classList.remove('vpn-active');
           if (btn.id === 'vpnToggleBtn') btn.classList.add('text-gray-500'); else btn.classList.add('text-gray-400');
-          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-blue-400', 'shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-white', 'shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
         }
       });
     }
@@ -2940,7 +2940,7 @@
 
       if (body) body.classList.remove('roulette-spinning', 'roulette-revealed');
       if (reelTrack) { reelTrack.innerHTML = ''; reelTrack.style.transition = 'none'; reelTrack.style.transform = 'translateX(0px)'; }
-      if (spinStatus) { spinStatus.style.display = 'flex'; spinStatus.innerHTML = `<svg class="w-4 h-4 animate-spin text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Spinning the reel...</span>`; }
+      if (spinStatus) { spinStatus.style.display = 'flex'; spinStatus.innerHTML = `<svg class="w-4 h-4 animate-spin text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Spinning the reel...</span>`; }
       if (resultDetails) { resultDetails.style.display = 'none'; resultDetails.classList.remove('roulette-info-reveal'); }
       if (backdropImg) { backdropImg.style.opacity = '0'; backdropImg.src = ''; }
       if (titleEl) titleEl.textContent = '';
@@ -3021,7 +3021,7 @@
 
       if (spinStatus) {
         spinStatus.style.display = 'flex';
-        spinStatus.innerHTML = `<svg class="w-4 h-4 animate-spin text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Spinning the reel...</span>`;
+        spinStatus.innerHTML = `<svg class="w-4 h-4 animate-spin text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Spinning the reel...</span>`;
       }
       if (resultDetails) {
         resultDetails.style.display = 'none';
@@ -3139,7 +3139,7 @@
         if (winnerMovie.runtime) parts.push(`<span class="text-gray-400">${winnerMovie.runtime}m</span>`);
         const genres = winnerMovie.genreIds ? winnerMovie.genreIds.slice(0, 2).map(id => GENRE_MAP[id]).filter(Boolean).join(', ') : '';
         if (genres) parts.push(`<span class="text-gray-300">${escapeHTML(genres)}</span>`);
-        if (winnerMovie.subtext) parts.push(`<span class="text-blue-400 font-semibold">${escapeHTML(winnerMovie.subtext)}</span>`);
+        if (winnerMovie.subtext) parts.push(`<span class="text-gray-300 font-semibold">${escapeHTML(winnerMovie.subtext)}</span>`);
         metaLine.innerHTML = parts.join('<span class="text-gray-600 mx-0.5">·</span>');
       }
 
@@ -3460,9 +3460,9 @@
 
         // Append Add button at the end
         const addBtn = document.createElement('button');
-        addBtn.className = 'service-btn service-tile outline-none group border-2 border-dashed border-white/20 hover:border-blue-500/50 rounded-[22.5%] transition-all flex items-center justify-center bg-white/5 hover:bg-blue-500/10';
+        addBtn.className = 'service-btn service-tile outline-none group border-2 border-dashed border-white/20 hover:border-white/40 rounded-[22.5%] transition-all flex items-center justify-center bg-white/5 hover:bg-white/10';
         addBtn.title = 'Add more services';
-        addBtn.innerHTML = `<svg class="w-8 h-8 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>`;
+        addBtn.innerHTML = `<svg class="w-8 h-8 text-gray-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>`;
         addBtn.addEventListener('click', () => { if (!isScanning) openBrowser(); });
         selectedGrid.appendChild(addBtn);
 
@@ -4334,7 +4334,7 @@
           const pRole = escapeHTML(p._role);
           const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
           return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint); }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 shrink-0 group/person cursor-pointer select-none relative">
-            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-white/60 ring-2 ring-white/30 shadow-[inset_0_0_8px_rgba(255,255,255,0.3)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
               <div class="w-full h-full rounded-full overflow-hidden">
                 ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
               </div>
@@ -4477,52 +4477,52 @@
           const actionLabel = extraText || (modeExtra && modeExtra.type ? modeExtra.type : 'Stream');
           const isRentBuy = actionLabel === 'Rent' || actionLabel === 'Buy' || actionLabel === 'Rent/Buy';
 
-          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-white/10 active:scale-[0.98] w-full shadow-md">
+          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl transition-all border border-white/10 hover:border-white/40 hover:bg-white/10 active:scale-[0.98] w-full shadow-md">
             <div class="flex items-center gap-3 min-w-0">
               <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
                 ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
               </div>
               <div class="flex flex-col min-w-0">
-                <span class="truncate text-sm sm:text-base font-extrabold text-white group-hover/prov:text-blue-300 transition-colors leading-tight">${escapeHTML(safeName)}</span>
-                ${isVpnProvider ? `<span class="text-[11px] sm:text-xs text-blue-300 font-semibold leading-tight mt-0.5 flex items-center gap-1 flex-wrap"><span class="text-xs leading-none shrink-0 hidden sm:inline-block" aria-hidden="true">${vpnRegionFlag}</span><span>Available in <strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
+                <span class="truncate text-sm sm:text-base font-extrabold text-white group-hover/prov:text-gray-200 transition-colors leading-tight">${escapeHTML(safeName)}</span>
+                ${isVpnProvider ? `<span class="text-[11px] sm:text-xs text-gray-300 font-semibold leading-tight mt-0.5 flex items-center gap-1 flex-wrap"><span class="text-xs leading-none shrink-0 hidden sm:inline-block" aria-hidden="true">${vpnRegionFlag}</span><span>Available in <strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
               </div>
             </div>
             <div class="shrink-0 flex items-center gap-2">
               ${isRentBuy ? `<span class="px-2.5 py-1 rounded-lg bg-white/10 text-gray-300 text-[10.5px] font-extrabold uppercase tracking-wider">${actionLabel}</span>` : ''}
-              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/prov:text-white group-hover/prov:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
             </div>
           </a>`;
         }
 
         if (mode === 'single') {
-          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-4 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-blue-500/50 hover:bg-white/10 shadow-md">
+          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-4 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-white/40 hover:bg-white/10 shadow-md">
             <div class="flex items-center gap-3.5 sm:gap-4 min-w-0">
               <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
                 ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-sm font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
               </div>
               <div class="flex flex-col min-w-0 justify-center">
-                <span class="truncate min-w-0 text-lg sm:text-xl font-black text-white group-hover/prov:text-blue-300 transition-colors tracking-tight leading-tight">${escapeHTML(safeName)}${extraText}</span>
-                ${isVpnProvider ? `<span class="text-xs text-blue-300 font-semibold leading-tight mt-0.5 flex items-center gap-1.5 flex-wrap"><span class="text-xs leading-none shrink-0 hidden sm:inline-block" aria-hidden="true">${vpnRegionFlag}</span><span>Available in <strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
+                <span class="truncate min-w-0 text-lg sm:text-xl font-black text-white group-hover/prov:text-gray-200 transition-colors tracking-tight leading-tight">${escapeHTML(safeName)}${extraText}</span>
+                ${isVpnProvider ? `<span class="text-xs text-gray-300 font-semibold leading-tight mt-0.5 flex items-center gap-1.5 flex-wrap"><span class="text-xs leading-none shrink-0 hidden sm:inline-block" aria-hidden="true">${vpnRegionFlag}</span><span>Available in <strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
               </div>
             </div>
-            <svg class="w-6 h-6 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1.5 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            <svg class="w-6 h-6 text-gray-400 group-hover/prov:text-white group-hover/prov:translate-x-1.5 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
           </a>`;
         }
 
-        return `<a href="${escapeHTML(link)}" target="_blank" title="${escapeHTML(safeName)}${isVpnProvider ? ` (Available in ${escapeHTML(vpnRegionName)} via VPN)` : ''}" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov relative flex items-center justify-between gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-blue-500/50 hover:bg-white/10 active:scale-[0.98] shadow-md min-w-0">
+        return `<a href="${escapeHTML(link)}" target="_blank" title="${escapeHTML(safeName)}${isVpnProvider ? ` (Available in ${escapeHTML(vpnRegionName)} via VPN)` : ''}" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov relative flex items-center justify-between gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-white/40 hover:bg-white/10 active:scale-[0.98] shadow-md min-w-0">
           <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
             <div class="w-12 h-12 sm:w-14 sm:h-14 md:w-15 md:h-15 rounded-2xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
               ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-sm font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
             </div>
-            ${isVpnProvider ? `<span class="px-1.5 py-0.5 rounded-full bg-blue-500/30 border border-blue-400/40 text-[10px] font-bold text-blue-300 flex items-center gap-0.5 shadow-sm pointer-events-none"><span>${vpnRegionFlag}</span><span class="text-[9px] font-extrabold hidden lg:inline">VPN</span></span>` : ''}
+            ${isVpnProvider ? `<span class="px-1.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-[10px] font-bold text-gray-200 flex items-center gap-0.5 shadow-sm pointer-events-none"><span>${vpnRegionFlag}</span><span class="text-[9px] font-extrabold hidden lg:inline">VPN</span></span>` : ''}
           </div>
-          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/prov:text-white group-hover/prov:translate-x-1 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
         </a>`;
       };
 
       let streamingHtml = '';
       const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle w-full py-2 px-1.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white${vpnModeEnabled ? ' vpn-active' : ''} text-xs font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm min-w-0"><span class="flex items-center gap-1 sm:gap-1.5 truncate min-w-0"><svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="truncate">VPN</span></span><span class="watchnow-vpn-dot shrink-0 ml-0.5"></span></button>`;
-      const watchNowHeaderHtml = `<div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div>`;
+      const watchNowHeaderHtml = `<div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-300">Watch Now</h3></div>`;
 
       const rent = filterAndDeduplicateProviders(regionProviders?.rent || [], true);
       const buy = filterAndDeduplicateProviders(regionProviders?.buy || [], true);
@@ -4596,13 +4596,13 @@
       const movieBackBtn = hasMovieHistory ? `<button id="movieBackBtn" onclick="navGoBack()" aria-label="Go back" class="pointer-events-auto mt-4 ml-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
       const closeBtn = `<div class="sticky top-0 z-[60] w-full h-0 flex ${movieBackBtn ? 'justify-between' : 'justify-end'} pointer-events-none">${movieBackBtn}<button id="closeModalBtn" onclick="${isModal ? 'closeModal()' : 'closeQuickSearchInline()'}" aria-label="Close" class="pointer-events-auto mt-4 mr-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>`;
       const trailerActionBtn = bestTrailer
-        ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${btnClass} lg:hidden cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Trailer</span></button>`
-        : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${btnClass} lg:hidden"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Trailer</span></a>`;
+        ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${btnClass} lg:hidden cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Trailer</span></button>`
+        : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${btnClass} lg:hidden"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Trailer</span></a>`;
       const letterboxdBtn = `<a href="https://letterboxd.com/tmdb/${movieObj.id}" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/letterboxd.png" alt="Letterboxd" class="w-full h-full block object-cover"></div><span>Letterboxd</span></a>`;
       const imdbBtn = imdbId ? `<a href="https://www.imdb.com/title/${escapeHTML(imdbId)}/" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full block object-cover"></div><span>IMDb</span></a>` : '';
       const trailerHeaderBtn = bestTrailer
-        ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${trailerBtnClass} cursor-pointer"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></button>`
-        : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${trailerBtnClass}"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></a>`;
+        ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${trailerBtnClass} cursor-pointer"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></button>`
+        : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${trailerBtnClass}"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></a>`;
       const pageTrailerBtnHtml = trailerHeaderBtn;
       const shareParam = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
       const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-green-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg><span>Copy Link</span></button>`;
@@ -4662,15 +4662,15 @@
           const isInWatchlist = watchlistIds.has(m.id);
           const isCurrentMovie = m.id === movieObj.id;
           const recRating = getTmdbRating(m);
-          const activeBorderClass = isCurrentMovie ? 'border border-blue-500' : 'border border-white/5';
+          const activeBorderClass = isCurrentMovie ? 'border border-white/50' : 'border border-white/5';
           return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 ${isCurrentMovie ? '' : 'sm:hover:scale-[1.03]'}" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isCurrentMovie ? '' : (isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`)}">
             <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 ${activeBorderClass} h-full">
               <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                 ${mPoster ? `<img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
                 <div class="glare"></div>
               </div>
-              ${isCurrentMovie ? `<div class="absolute top-2.5 right-2.5 bg-blue-600/95 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold text-white border border-blue-400/30 shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-20 uppercase tracking-wider">Viewing</div>` : (recRating ? `<div class="poster-badge-glass absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${recRating}</div>` : '')}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-full text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${isCurrentMovie ? `<div class="absolute top-2.5 right-2.5 bg-white text-black px-2.5 py-0.5 rounded-full text-[10px] font-black border border-white/40 shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-20 uppercase tracking-wider">Viewing</div>` : (recRating ? `<div class="poster-badge-glass absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${recRating}</div>` : '')}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-full text-white border border-white/20 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         }).join('');
@@ -4684,7 +4684,7 @@
         const sectionTitle = isTvItem ? (collectionName.includes('Franchise') || collectionName.includes('Series') ? collectionName : `Related Movies, Series & Franchises`) : collectionName;
         const countLabel = isTvItem ? (collectionParts.length === 1 ? 'Series' : 'Series') : (collectionParts.length === 1 ? 'Film' : 'Films');
 
-        relatedHtml = `<div class="space-y-2.5"><div class="flex items-center gap-2.5 flex-wrap"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400 flex items-center gap-2"><svg class="w-5 h-5 fill-current text-blue-400 shrink-0" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg><span>${escapeHTML(sectionTitle)}</span></h3><span class="hidden sm:inline-flex bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>${collectionParts.length} ${countLabel}</span></div><div class="relative group/related">${relatedScrollBtns}<div id="relatedMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${relatedCards}</div></div></div>`;
+        relatedHtml = `<div class="space-y-2.5"><div class="flex items-center gap-2.5 flex-wrap"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-300 flex items-center gap-2"><svg class="w-5 h-5 fill-current text-gray-300 shrink-0" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg><span>${escapeHTML(sectionTitle)}</span></h3><span class="hidden sm:inline-flex bg-white/10 text-gray-300 border border-white/15 px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>${collectionParts.length} ${countLabel}</span></div><div class="relative group/related">${relatedScrollBtns}<div id="relatedMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${relatedCards}</div></div></div>`;
       }
 
       // Filter out any movies that are already present in the Collection track from Similar Movies
@@ -4970,8 +4970,8 @@
         html = `<div class="space-y-6">
           ${hasUser ? `
             <div>
-              <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+              <h4 class="text-xs font-black uppercase tracking-widest text-gray-300 mb-3 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></span>
                 Your Subscriptions
               </h4>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.userFlatrateLinksHtml}</div>
@@ -5066,7 +5066,7 @@
       if (!p || !data) return;
       const lineHeight = parseFloat(getComputedStyle(p).lineHeight) || 24;
       const maxHeight = lineHeight * 2 + 2;
-      const moreSpan = `<span class="text-blue-400 font-extrabold">more</span>`;
+      const moreSpan = `<span class="text-white font-extrabold underline decoration-white/40">more</span>`;
       p.innerHTML = data.text;
       if (p.scrollHeight <= maxHeight) return;
       let lo = 0, hi = data.text.length;
@@ -5079,7 +5079,7 @@
         if (p.scrollHeight <= maxHeight) lo = mid; else hi = mid - 1;
       }
       const truncated = data.text.slice(0, lo).trim();
-      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="text-blue-400 font-extrabold cursor-pointer hover:text-blue-300 transition-colors">more</span>`;
+      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="text-white font-extrabold cursor-pointer hover:text-gray-300 underline decoration-white/40 transition-colors">more</span>`;
     }
 
     function createExpandableTextHtml(text, id = '') {
@@ -5090,7 +5090,7 @@
         return `<p ${id ? `id="${id}"` : ''} class="text-gray-300 text-base leading-relaxed font-medium w-full pr-2 sm:pr-4">${safe}</p>`;
       }
       const shortText = escapeHTML(getShortText(text, 195));
-      return `<p ${id ? `id="${id}"` : ''} class="text-gray-300 text-base leading-relaxed font-medium w-full pr-2 sm:pr-4" data-full="${safe}" data-short="${shortText}">${shortText}... <button type="button" onclick="toggleExpandableText(this)" class="inline text-blue-400 text-xs font-extrabold uppercase tracking-wider hover:text-blue-300 transition-colors ml-0.5 cursor-pointer">more</button></p>`;
+      return `<p ${id ? `id="${id}"` : ''} class="text-gray-300 text-base leading-relaxed font-medium w-full pr-2 sm:pr-4" data-full="${safe}" data-short="${shortText}">${shortText}... <button type="button" onclick="toggleExpandableText(this)" class="inline text-white text-xs font-extrabold uppercase tracking-wider hover:text-gray-300 underline decoration-white/40 transition-colors ml-0.5 cursor-pointer">more</button></p>`;
     }
 
     function toggleExpandableText(btn) {
@@ -5101,10 +5101,10 @@
       const short = p.dataset.short;
       if (isExp) {
         p.classList.remove('expanded');
-        p.innerHTML = `${short}... <button type="button" onclick="toggleExpandableText(this)" class="inline text-blue-400 text-xs font-extrabold uppercase tracking-wider hover:text-blue-300 transition-colors ml-0.5 cursor-pointer">more</button>`;
+        p.innerHTML = `${short}... <button type="button" onclick="toggleExpandableText(this)" class="inline text-white text-xs font-extrabold uppercase tracking-wider hover:text-gray-300 underline decoration-white/40 transition-colors ml-0.5 cursor-pointer">more</button>`;
       } else {
         p.classList.add('expanded');
-        p.innerHTML = `${full} <button type="button" onclick="toggleExpandableText(this)" class="inline text-blue-400 text-xs font-extrabold uppercase tracking-wider hover:text-blue-300 transition-colors ml-1 cursor-pointer">less</button>`;
+        p.innerHTML = `${full} <button type="button" onclick="toggleExpandableText(this)" class="inline text-white text-xs font-extrabold uppercase tracking-wider hover:text-gray-300 underline decoration-white/40 transition-colors ml-1 cursor-pointer">less</button>`;
       }
     }
 
@@ -5491,7 +5491,7 @@
       try { hideActorPageView(); } catch (e) { }
       try { hideAllCastModalView(); } catch (e) { }
       container.scrollTop = 0;
-      container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
+      container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div></div>`;
 
       // Initial fast fallback slug push before async resolution
       let initialSlug = movieObj.slug || '';
@@ -5570,7 +5570,7 @@
         setTimeout(() => { const f = document.getElementById('heroVideoIframe'); if (f) fitHeroVideoCover(f); }, 500);
       } catch (e) {
         console.error('[Movie Page Render]', e);
-        container.innerHTML = `<div class="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6"><p class="text-red-400 font-bold">Couldn't load this title.</p><button onclick="closeMoviePage()" class="text-blue-400 text-sm font-bold underline">Go back</button></div>`;
+        container.innerHTML = `<div class="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6"><p class="text-red-400 font-bold">Couldn't load this title.</p><button onclick="closeMoviePage()" class="text-gray-300 hover:text-white text-sm font-bold underline">Go back</button></div>`;
       }
     }
 
@@ -5747,7 +5747,7 @@
         currentActorId = null;
         window.currentActiveMovieObj = movieObj;
 
-        el.quickSearchResult.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center flex flex-col items-center justify-center min-h-[250px]"><div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div><p class="text-blue-400 text-xs font-bold uppercase tracking-widest animate-pulse">Loading ${escapeHTML(movieObj.title)}...</p></div>`;
+        el.quickSearchResult.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center flex flex-col items-center justify-center min-h-[250px]"><div class="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mb-3"></div><p class="text-gray-300 text-xs font-bold uppercase tracking-widest animate-pulse">Loading ${escapeHTML(movieObj.title)}...</p></div>`;
         el.quickSearchResult.classList.remove('hidden');
 
         getFullMovieDetails(movieObj.id, movieObj.mediaType).then(async details => {
@@ -5791,12 +5791,10 @@
 
       content.dataset.movieId = movieObj.id;
       if (!isAlreadyCached) {
-        content.innerHTML = `<div class="p-20 flex flex-col items-center justify-center w-full min-h-[300px]"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-blue-400 font-bold uppercase tracking-widest text-xs animate-pulse">Decrypting Data...</p></div>`;
+        content.innerHTML = `<div class="p-20 flex flex-col items-center justify-center w-full min-h-[300px]"><div class="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-gray-300 font-bold uppercase tracking-widest text-xs animate-pulse">Decrypting Data...</p></div>`;
       }
 
       modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.classList.add('modal-open'); requestAnimationFrame(() => { backdrop.classList.remove('opacity-0'); content.classList.remove('translate-y-8', 'opacity-0'); });
-      let currentList = currentGroupedResults[activeTab] || [];
-      let currentIndex = currentList.findIndex(m => m.id === movieObj.id);
       if (currentIndex !== -1 && currentList.length > 1) {
         if (prevBtn) {
           if (currentIndex > 0) {
@@ -5950,7 +5948,7 @@
 
       const createBtn = (text, disabled, page, isActive = false) => {
         if (isActive) {
-          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-white text-black font-extrabold text-sm shadow-[0_0_12px_rgba(255,255,255,0.3)]">${text}</button>`;
         } else if (disabled && text !== '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
         } else if (text === '...') {
@@ -6144,7 +6142,7 @@
         const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
 
         return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'closeAllCastModal(); openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-full shrink-0 group/person cursor-pointer select-none relative">
-          <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+          <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-white/60 ring-2 ring-white/30 shadow-[inset_0_0_8px_rgba(255,255,255,0.3)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
             <div class="w-full h-full rounded-full overflow-hidden">
               ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
             </div>
@@ -6271,7 +6269,7 @@
 
       if (movieObj.vpnInfo) {
         const vpnBadge = document.createElement('div');
-        vpnBadge.className = 'poster-badge-glass absolute top-2.5 left-2.5 bg-[#091e42]/75 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold text-blue-300 border border-blue-400/30 shadow-md flex items-center gap-1.5 z-20 uppercase tracking-wider';
+        vpnBadge.className = 'poster-badge-glass absolute top-2.5 left-2.5 bg-white/10 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold text-gray-200 border border-white/20 shadow-md flex items-center gap-1.5 z-20 uppercase tracking-wider';
         vpnBadge.title = `Requires switching your VPN to ${REGION_META[movieObj.vpnInfo.region].name}`;
         vpnBadge.innerHTML = `${REGION_META[movieObj.vpnInfo.region].flag} VPN`;
         a.appendChild(vpnBadge);
@@ -6282,9 +6280,9 @@
       apply3DTilt(wrapper);
       return wrapper;
     }
-    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
+    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-white text-black font-extrabold text-sm shadow-[0_0_12px_rgba(255,255,255,0.3)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
     function updateStats() { if (scannedMovies.length === 0) { if (el.statsBar) el.statsBar.classList.add('hidden'); return; } document.getElementById('stat-total').textContent = scannedMovies.length; let genreCounts = {}; let decadeCounts = {}; let totalRating = 0; let ratedCount = 0; scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genreCounts[GENRE_MAP[id]] = (genreCounts[GENRE_MAP[id]] || 0) + 1; }); if (m.releaseDate) { const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10; if (!isNaN(dec)) decadeCounts[dec] = (decadeCounts[dec] || 0) + 1; } const rVal = getCachedRating(m); if (rVal) { const r = parseFloat(rVal); if (!isNaN(r) && r > 0) { totalRating += r; ratedCount++; } } }); const topG = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a])[0] || '-'; const topD = Object.keys(decadeCounts).sort((a, b) => decadeCounts[b] - decadeCounts[a])[0]; const avg = ratedCount ? (totalRating / ratedCount).toFixed(1) : '-'; document.getElementById('stat-genre').textContent = topG; document.getElementById('stat-decade').innerHTML = topD ? `${topD}S` : '-'; const avgEl = document.getElementById('stat-avg'); if (avgEl) avgEl.textContent = avg; }
-    function populateFilterDropdowns() { const genresSet = new Set(); const decadesSet = new Set(); scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genresSet.add(GENRE_MAP[id]); }); if (m.releaseDate) decadesSet.add(Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10); }); if (el.filterGenre) { el.filterGenre.innerHTML = '<option value="all">All Genres</option>'; Array.from(genresSet).sort().forEach(g => { el.filterGenre.innerHTML += `<option value="${g}">${g}</option>`; }); syncFilterLabel(el.filterGenre); } if (el.filterDecade) { el.filterDecade.innerHTML = '<option value="all">All Decades</option>'; Array.from(decadesSet).sort((a, b) => b - a).forEach(d => { if (!isNaN(d)) el.filterDecade.innerHTML += `<option value="${d}">${d}s</option>`; }); syncFilterLabel(el.filterDecade); } }
+    function populateFilterDropdowns() { const genresSet = new Set(); const decadesSet = new Set(); scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genresSet.add(GENRE_MAP[id]); }); if (m.releaseDate) decadesSet.add(Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10); }); if (el.filterGenre) { el.filterGenre.innerHTML = '<option value="all">All Genres</option>'; Array.from(genresSet).sort().forEach(g => { el.filterGenre.innerHTML += `<option value="${g}">${g}</option>`; }); syncFilterLabel(el.filterGenre); } if (el.filterDecade) { el.filterDecade.innerHTML = '<option value="all">All Decades</option>'; Array.from(decadesSet).sort().forEach(d => { if (!isNaN(d)) el.filterDecade.innerHTML += `<option value="${d}">${d}s</option>`; }); syncFilterLabel(el.filterDecade); } }
     function applyFiltersAndRender() {
       const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : ''; const sort = el.filterSort ? el.filterSort.value : 'year_desc'; const genre = el.filterGenre ? el.filterGenre.value : 'all'; const decade = el.filterDecade ? el.filterDecade.value : 'all';
       const qNormFilter = normalizeTitle(query);
@@ -6355,7 +6353,7 @@
     }
     function renderActiveGrid() {
       const container = el.activeGridContainer; if (!container) return; container.innerHTML = ''; const currentData = currentGroupedResults[activeTab] || [];
-      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${serviceTally[topService]} films</strong> from your watchlist.</p></div><div class="text-3xl opacity-80">💡</div>`; container.appendChild(banner); } }
+      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-white/[0.07] to-white/[0.02] border border-white/10 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-gray-300 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${serviceTally[topService]} films</strong> from your watchlist.</p></div><div class="text-3xl opacity-80">💡</div>`; container.appendChild(banner); } }
       if (currentData.length === 0) {
         const hasActiveFilter = (el.filterSearch && el.filterSearch.value.trim() !== '') || (el.filterGenre && el.filterGenre.value !== 'all') || (el.filterDecade && el.filterDecade.value !== 'all');
         const emptyIcon = hasActiveFilter ? '🔍' : '🎬';
@@ -6387,7 +6385,7 @@
               let badgeColor = '';
               if (item.__mediaType === 'tv') {
                 badgeLabel = 'TV';
-                badgeColor = 'text-blue-400 border-blue-500/30';
+                badgeColor = 'text-gray-300 border-white/20';
               } else if (item.__mediaType === 'person') {
                 const dept = item.known_for_department;
                 if (dept === 'Directing') badgeLabel = 'DIRECTOR';
@@ -6403,7 +6401,7 @@
               const ratingOrDept = item.matchedRole
                 ? `${item.matchedRole}${item.vote_average && item.vote_average > 0 ? ` • TMDB ${item.vote_average.toFixed(1)}` : ''}`
                 : (isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR'));
-              const subtitleColor = item.matchedRole ? 'text-amber-400 font-extrabold' : 'text-blue-400';
+              const subtitleColor = item.matchedRole ? 'text-amber-400 font-extrabold' : 'text-gray-400';
               row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="${subtitleColor} text-[10px]">${escapeHTML(ratingOrDept)}</span></div>`;
               row.addEventListener('click', () => {
                 el.quickSearchInput.value = displayTitle;
@@ -7609,7 +7607,7 @@
                 <div class="glare"></div>
               </div>
               ${actorRatingHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-full text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-full text-white border border-white/20 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         });
@@ -7776,7 +7774,7 @@
       }
 
       const knownForSubtitle = knownForTitle
-        ? `<p class="text-xs sm:text-sm font-medium text-gray-300 drop-shadow mt-1"><span class="text-blue-400 font-extrabold uppercase text-[10px] sm:text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>`
+        ? `<p class="text-xs sm:text-sm font-medium text-gray-300 drop-shadow mt-1"><span class="text-gray-400 font-extrabold uppercase text-[10px] sm:text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>`
         : '';
 
       const desktopBackdropImg = knownForBackdrop || profileImg;
@@ -7801,7 +7799,7 @@
                   ${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async" class="actor-hero-small-img hidden sm:block w-48 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 pointer-events-auto">` : `<div class="actor-hero-small-img hidden sm:flex w-48 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 pointer-events-auto">${safeName.charAt(0)}</div>`}
                   <div class="pointer-events-auto min-w-0 flex-1 flex flex-col gap-1 sm:gap-2">
                     <h1 class="actor-hero-name text-3xl min-[400px]:text-4xl sm:text-7xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[0.98]">${safeName}</h1>
-                    ${knownForTitle ? `<p class="actor-hero-known-for hidden sm:block text-sm sm:text-base font-medium text-gray-300 drop-shadow"><span class="text-blue-400 font-extrabold uppercase text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>` : ''}
+                    ${knownForTitle ? `<p class="actor-hero-known-for hidden sm:block text-sm sm:text-base font-medium text-gray-300 drop-shadow"><span class="text-gray-400 font-extrabold uppercase text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>` : ''}
                     <div class="mt-1 sm:mt-2 max-w-3xl">${bio ? createHeroOverviewHtml(bio, safeName) : ''}</div>
                   </div>
                 </div>
@@ -7809,7 +7807,7 @@
             </div>
           </div>
           <div class="max-w-[1480px] mx-auto px-6 sm:px-14 pt-0 pb-10 flex flex-col gap-10">
-            <div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div>
+            <div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div>
           <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             ${actorActionBtnsHtml}
             <div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5">
@@ -7819,7 +7817,7 @@
           </div>
         </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0d1017] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#11151f] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">${actorActionBtnsHtml}<div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div>`;
+      return `${closeBtn}<div class="relative w-full h-64 sm:h-72 shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden clip-mask">${bannerBackdropHtml}</div><div class="relative sm:absolute sm:inset-0 p-6 sm:p-8 flex items-center gap-5 sm:gap-6 z-20 min-h-[14rem]">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 translate-y-6 sm:translate-y-12 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-28 sm:w-36 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-3xl font-bold text-gray-500 translate-y-6 sm:translate-y-12 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start h-auto flex-1 min-w-0 z-20 translate-y-6 sm:translate-y-12"><h2 class="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-6 sm:p-8 pt-8 sm:pt-14 flex flex-col gap-5 sm:gap-6 bg-[#0d1017] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${allMovies.length} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="w-full lg:flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><div class="grid ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 perspective-1000 content-start">${filmographyHtml}</div></div></div><div class="bg-[#11151f] p-6 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">${actorActionBtnsHtml}<div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div>`;
     }
 
     let currentActorId = null;
@@ -7873,7 +7871,7 @@
       hideAllCastModalView();
       document.body.classList.add('modal-open');
       container.scrollTop = 0;
-      container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
+      container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div></div>`;
 
       try {
         const person = await getActorDetails(actorId);
@@ -7912,7 +7910,7 @@
         applyTiltToActorGrid();
       } catch (e) {
         console.error('[Actor Page]', e);
-        container.innerHTML = `<div class="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6"><p class="text-red-400 font-bold">Couldn't load this person.</p><button onclick="closeActorPage()" class="text-blue-400 text-sm font-bold underline">Go back</button></div>`;
+        container.innerHTML = `<div class="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6"><p class="text-red-400 font-bold">Couldn't load this person.</p><button onclick="closeActorPage()" class="text-gray-300 hover:text-white text-sm font-bold underline">Go back</button></div>`;
       }
     }
 
@@ -8316,7 +8314,7 @@
 
       const createBtn = (text, disabled, page, isActive = false) => {
         if (isActive) {
-          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-white text-black font-extrabold text-sm shadow-[0_0_12px_rgba(255,255,255,0.3)]">${text}</button>`;
         } else if (disabled && text !== '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
         } else if (text === '...') {
