@@ -2025,37 +2025,42 @@
     }
     function assignUniqueScannedSlugs(movies) {
       if (!Array.isArray(movies) || movies.length === 0) return;
-      // First pass: preserve existing valid slugs or create base-year default if missing
+
+      const titleGroups = new Map();
       movies.forEach(m => {
         const title = m.title || '';
         const base = slugify(title);
         if (!base) return;
-        let s = m.slug || '';
-        if (!s || !s.startsWith(base)) {
+        if (!titleGroups.has(base)) titleGroups.set(base, []);
+        titleGroups.get(base).push(m);
+      });
+
+      titleGroups.forEach((group, base) => {
+        if (group.length === 1) {
+          const m = group[0];
           const yr = (m.releaseDate || '').split('-')[0];
-          s = yr ? `${base}-${yr}` : base;
-        }
-        m.slug = s;
-      });
-
-      // Second pass: handle any exact duplicate slugs within scannedMovies
-      const slugCounts = new Map();
-      movies.forEach(m => {
-        if (!m.slug) return;
-        slugCounts.set(m.slug, (slugCounts.get(m.slug) || 0) + 1);
-      });
-
-      const seenIndices = new Map();
-      movies.forEach(m => {
-        if (!m.slug) return;
-        if ((slugCounts.get(m.slug) || 0) > 1) {
-          const idx = seenIndices.get(m.slug) || 0;
-          seenIndices.set(m.slug, idx + 1);
-          if (idx > 0) {
-            m.slug = `${m.slug}-${idx}`;
+          if (!m.slug || !m.slug.startsWith(base)) {
+            m.slug = yr ? `${base}-${yr}` : base;
           }
+          registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
+          return;
         }
-        registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
+
+        const sorted = sortExactMediaMatches(group);
+        sorted.forEach(m => {
+          const yr = (m.releaseDate || '').split('-')[0];
+          const sameYr = sorted.filter(x => (x.releaseDate || '').startsWith(yr));
+          if (sameYr.length > 1) {
+            const dupIdx = sameYr.findIndex(x => x.id === m.id);
+            m.slug = dupIdx > 0 ? `${base}-${yr}-${dupIdx}` : `${base}-${yr}`;
+          } else if (yr) {
+            m.slug = `${base}-${yr}`;
+          } else {
+            const dupIdx = sorted.findIndex(x => x.id === m.id);
+            m.slug = dupIdx > 0 ? `${base}-${dupIdx}` : base;
+          }
+          registerSlug(m.slug, m.id, m.mediaType === 'tv' ? 'series' : 'film');
+        });
       });
     }
     function parseRouteInfo() {
@@ -5433,16 +5438,16 @@
       const mediaType = (details && details.first_air_date) || (movieObj && movieObj.mediaType === 'tv') ? 'tv' : 'movie';
       const mId = (details && details.id) || (movieObj && movieObj.id);
 
-      // If movieObj already has an unambiguous slug containing its release year (e.g. rocky-1976 or presence-2025-1)
+      // If movieObj already has a disambiguated slug with a duplicate index (e.g. presence-2025-1 or presence-2025-2)
       if (movieObj && movieObj.slug && movieObj.slug.startsWith(baseSlug)) {
-        if (mYear && movieObj.slug.includes(`-${mYear}`)) {
+        if (mYear && new RegExp(`-${mYear}-\\d+$`).test(movieObj.slug)) {
           return movieObj.slug;
         }
       }
 
       if (!mYear) return baseSlug;
 
-      // Query TMDB search to see if this is an original or duplicate/newer release
+      // Query TMDB search to see if this is an original, newer, or duplicate-year release
       try {
         const searchEndpoint = mediaType === 'tv' ? 'search/tv' : 'search/movie';
         const res = await fetch(`https://api.themoviedb.org/3/${searchEndpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`);
@@ -5452,9 +5457,12 @@
           if (exacts.length > 1) {
             const sorted = sortExactMediaMatches(exacts);
             const sameYear = sorted.filter(m => (m.release_date || m.first_air_date || '').startsWith(mYear));
-            if (sorted[0].id !== mId || sameYear.length > 1) {
+            if (sameYear.length > 1) {
               const dupIdx = sameYear.findIndex(m => m.id === mId);
               if (dupIdx > 0) return `${baseSlug}-${mYear}-${dupIdx}`;
+              return `${baseSlug}-${mYear}`;
+            }
+            if (sorted[0].id !== mId) {
               return `${baseSlug}-${mYear}`;
             }
           }
