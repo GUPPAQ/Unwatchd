@@ -1785,8 +1785,17 @@
                 class="tab-badge">0</span></button>
           </div>
 
-          <!-- Desktop Tools: Insights & Roulette (visible on lg+) -->
+          <!-- Desktop Tools: VPN, Insights & Roulette (visible on lg+) -->
           <div class="hidden lg:flex items-center gap-2 shrink-0">
+            <button id="vpnToggleBtnDesktop" title="Also show VPN unlocks"
+              class="h-[42px] flex items-center justify-center gap-2 px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>VPN</span> <span id="vpnToggleDotDesktop"
+                class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
+            </button>
             <button id="statsBtn"
               class="h-[42px] flex items-center justify-center gap-2 px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
               title="Insights">
@@ -1833,9 +1842,9 @@
               </button>
             </div>
 
-            <!-- VPN Toggle Button (To the right of searchbar, to the left of options) -->
+            <!-- Mobile & iPad Portrait VPN Toggle Button (To the right of searchbar, to the left of options) -->
             <button id="vpnToggleBtnInline" title="Also show VPN unlocks"
-              class="h-[42px] shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
+              class="lg:hidden h-[42px] shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
               <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -1844,8 +1853,8 @@
                 class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
             </button>
 
-            <!-- Options / Filter Sheet Button (To the right of VPN) -->
-            <button id="homeFilterToggleBtn" type="button" onclick="openHomeFilterSheet()" aria-label="Filters and sorting" class="portrait-filter-btn shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+            <!-- Options / Filter Sheet Button (To the right of VPN on mobile & iPad portrait) -->
+            <button id="homeFilterToggleBtn" type="button" onclick="openHomeFilterSheet()" aria-label="Filters and sorting" class="lg:hidden portrait-filter-btn shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
               </svg>
@@ -3162,7 +3171,13 @@
       }
     }
     function updateVpnToggleVisual() {
-      const pairs = [[el.vpnToggleBtn, el.vpnToggleDot], [el.vpnToggleBtnInline, el.vpnToggleDotInline]];
+      const desktopBtn = document.getElementById('vpnToggleBtnDesktop');
+      const desktopDot = document.getElementById('vpnToggleDotDesktop');
+      const pairs = [
+        [el.vpnToggleBtn, el.vpnToggleDot],
+        [el.vpnToggleBtnInline, el.vpnToggleDotInline],
+        [desktopBtn, desktopDot]
+      ];
       pairs.forEach(([btn, dot]) => {
         if (!btn) return;
         if (vpnModeEnabled) {
@@ -3178,6 +3193,8 @@
     updateVpnToggleVisual();
     if (el.vpnToggleBtn) el.vpnToggleBtn.addEventListener('click', () => setVpnMode(!vpnModeEnabled));
     if (el.vpnToggleBtnInline) el.vpnToggleBtnInline.addEventListener('click', () => { setVpnMode(!vpnModeEnabled); el.vpnToggleBtnInline.blur(); });
+    const vpnDesktopBtn = document.getElementById('vpnToggleBtnDesktop');
+    if (vpnDesktopBtn) vpnDesktopBtn.addEventListener('click', () => { setVpnMode(!vpnModeEnabled); vpnDesktopBtn.blur(); });
     function toggleWatchNowVpn() {
       setVpnMode(!vpnModeEnabled);
       refreshMovieVpnView();
