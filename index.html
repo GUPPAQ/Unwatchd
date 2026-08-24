@@ -1163,28 +1163,26 @@
       scroll-snap-align: start;
     }
 
-    /* Sizing rules:
-       - Mobile: 2 full cards flush (0 cut off)
-       - Tablet (iPad portrait): 3 full cards flush (0 cut off)
-       - iPad landscape: 4 full cards flush (0 cut off)
-       - Desktop (>= 1280px): EXACTLY 6 items, flush and cleanly aligned (0 cut off) */
+    /* Sizing rules with uniform 35% touch peek effect:
+       - Movies: 2.35 on mobile, 3.35 on tablet (iPad portrait), 4.35 on iPad landscape, 6 on desktop
+       - Cast: 3.35 on mobile, 4.35 on tablet (iPad portrait), 5.35 on iPad landscape, 6 on desktop */
     #relatedMoviesTrack>.tilt-card,
     #similarMoviesTrack>.tilt-card {
-      width: calc((100% - 1 * 1rem) / 2) !important;
+      width: calc((100% - 2 * 1rem) / 2.35) !important;
       flex-shrink: 0 !important;
     }
 
     @media (min-width: 640px) {
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 2 * 1.25rem) / 3) !important;
+        width: calc((100% - 3 * 1.25rem) / 3.35) !important;
       }
     }
 
     @media (min-width: 1024px) {
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 3 * 1.25rem) / 4) !important;
+        width: calc((100% - 4 * 1.25rem) / 4.35) !important;
       }
     }
 
@@ -1195,25 +1193,25 @@
       }
     }
 
-    /* Cast Chip Sizing:
-       - Mobile: 3 full cards (3)
-       - Tablet (iPad portrait): 4 full cards (4)
-       - iPad landscape: 5 full cards (5)
-       - Desktop (>= 1280px): EXACTLY 6 actors, flush and cleanly aligned (6) */
+    /* Cast Chip Sizing (Uniform 35% peek):
+       - Mobile: 3 full cards + 35% peek (3.35)
+       - Tablet (iPad portrait): 4 full cards + 35% peek (4.35)
+       - iPad landscape: 5 full cards + 35% peek (5.35)
+       - Desktop (>= 1280px): EXACTLY 6 actors, flush and cleanly aligned */
     #castCrewTrack>.cast-chip-card {
-      width: calc((100% - 2 * 0.75rem) / 3) !important;
+      width: calc((100% - 3 * 0.75rem) / 3.35) !important;
       flex-shrink: 0 !important;
     }
 
     @media (min-width: 640px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 3 * 1rem) / 4) !important;
+        width: calc((100% - 4 * 1rem) / 4.35) !important;
       }
     }
 
     @media (min-width: 1024px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 4 * 1rem) / 5) !important;
+        width: calc((100% - 5 * 1rem) / 5.35) !important;
       }
     }
 
@@ -2913,20 +2911,20 @@
       try {
         const moviePageEl = document.getElementById('moviePageView');
         if (moviePageEl && !moviePageEl.classList.contains('hidden') && window.currentMoviePageObj) {
-          openMoviePage(window.currentMoviePageObj, false);
+          openMoviePage(window.currentMoviePageObj, false, true);
           return;
         }
       } catch (e) { }
       try {
         const modalEl = document.getElementById('movieModal');
         if (modalEl && !modalEl.classList.contains('hidden') && typeof modalActiveMovieObj !== 'undefined' && modalActiveMovieObj) {
-          openMovieModal(modalActiveMovieObj, false, false);
+          openMovieModal(modalActiveMovieObj, false, false, true);
           return;
         }
       } catch (e) { }
       try {
         if (el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden') && window.currentActiveMovieObj) {
-          openMovieModal(window.currentActiveMovieObj, true, false);
+          openMovieModal(window.currentActiveMovieObj, true, false, true);
         }
       } catch (e) { }
     }
@@ -5498,17 +5496,20 @@
       return baseSlug;
     }
 
-    async function openMoviePage(movieObj, pushHistory = true) {
+    async function openMoviePage(movieObj, pushHistory = true, preserveScroll = false) {
       const container = document.getElementById('moviePageView');
       if (!container || !movieObj) return;
 
+      const savedScrollTop = preserveScroll ? container.scrollTop : 0;
       window.currentMoviePageObj = movieObj;
       document.body.classList.add('modal-open');
       container.classList.remove('hidden');
       try { hideActorPageView(); } catch (e) { }
       try { hideAllCastModalView(); } catch (e) { }
-      container.scrollTop = 0;
-      container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
+      if (!preserveScroll) {
+        container.scrollTop = 0;
+        container.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>`;
+      }
 
       // Initial fast fallback slug push before async resolution
       let initialSlug = movieObj.slug || '';
@@ -5562,7 +5563,7 @@
         }
 
         const backdropUrl = details && details.backdrop_path ? `https://image.tmdb.org/t/p/w1280${details.backdrop_path}` : movieObj.backdrop;
-        if (backdropUrl) {
+        if (backdropUrl && !preserveScroll) {
           try {
             const img = new Image();
             img.src = backdropUrl;
@@ -5575,15 +5576,23 @@
 
         if (window.currentMoviePageObj !== movieObj) return;
         const html = generateFullMovieHTML(movieObj, details, true, 'lookup', true, collectionData);
-        container.innerHTML = `<div id="moviePageInnerContent" class="opacity-0 transition-opacity duration-200">${html}</div>`;
-        requestAnimationFrame(() => {
-          const inner = document.getElementById('moviePageInnerContent');
-          if (inner) inner.classList.remove('opacity-0');
-        });
+        if (preserveScroll) {
+          container.innerHTML = `<div id="moviePageInnerContent">${html}</div>`;
+          container.scrollTop = savedScrollTop;
+        } else {
+          container.innerHTML = `<div id="moviePageInnerContent" class="opacity-0 transition-opacity duration-200">${html}</div>`;
+          requestAnimationFrame(() => {
+            const inner = document.getElementById('moviePageInnerContent');
+            if (inner) inner.classList.remove('opacity-0');
+          });
+          container.scrollTop = 0;
+        }
         try { verifyTitleLogos(); } catch (e) { }
         try { applyTiltToSimilarGrid(); } catch (e) { }
         try { bindCastCrewDrag(); } catch (e) { }
-        container.scrollTop = 0;
+        if (preserveScroll) {
+          container.scrollTop = savedScrollTop;
+        }
         setTimeout(() => { const f = document.getElementById('heroVideoIframe'); if (f) fitHeroVideoCover(f); }, 500);
       } catch (e) {
         console.error('[Movie Page Render]', e);
@@ -5746,14 +5755,14 @@
       }
     });
 
-    async function openMovieModal(movieObj, forceInline = null, isWatchlistFlip = false) {
+    async function openMovieModal(movieObj, forceInline = null, isWatchlistFlip = false, preserveScroll = false) {
       stopHeroVideo();
       if (isWatchlistFlip) {
         watchlistModalHistoryStack.length = 0;
       }
       const isInlineCall = forceInline !== null ? forceInline : isQuickSearchContext();
       if (isInlineCall) {
-        if (!isNavigatingBack) {
+        if (!isNavigatingBack && !preserveScroll) {
           if (currentActorId) {
             const person = actorDetailsCache.get(currentActorId);
             pushToHistoryStack(quickSearchHistoryStack, { type: 'actor', data: { id: currentActorId, name: person ? person.name : '', roleHint: currentActorRoleHint } });
@@ -5764,7 +5773,9 @@
         currentActorId = null;
         window.currentActiveMovieObj = movieObj;
 
-        el.quickSearchResult.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center flex flex-col items-center justify-center min-h-[250px]"><div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div><p class="text-blue-400 text-xs font-bold uppercase tracking-widest animate-pulse">Loading ${escapeHTML(movieObj.title)}...</p></div>`;
+        if (!preserveScroll) {
+          el.quickSearchResult.innerHTML = `<div class="glass-panel p-10 rounded-2xl text-center flex flex-col items-center justify-center min-h-[250px]"><div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div><p class="text-blue-400 text-xs font-bold uppercase tracking-widest animate-pulse">Loading ${escapeHTML(movieObj.title)}...</p></div>`;
+        }
         el.quickSearchResult.classList.remove('hidden');
 
         getFullMovieDetails(movieObj.id, movieObj.mediaType).then(async details => {
@@ -5782,12 +5793,12 @@
 
           applyTiltToSimilarGrid();
           bindCastCrewDrag();
-          scrollToQuickSearchResult();
+          if (!preserveScroll) scrollToQuickSearchResult();
         });
         return;
       }
 
-      if (!isNavigatingBack && !isWatchlistFlip) {
+      if (!isNavigatingBack && !isWatchlistFlip && !preserveScroll) {
         if (modalActiveActorId) {
           const person = actorDetailsCache.get(modalActiveActorId);
           pushToHistoryStack(watchlistModalHistoryStack, { type: 'actor', data: { id: modalActiveActorId, name: person ? person.name : '', roleHint: modalActiveActorRoleHint } });
@@ -5800,6 +5811,7 @@
       const modal = document.getElementById('movieModal'); const backdrop = document.getElementById('modalBackdrop'); const content = document.getElementById('modalContent'); const prevBtn = document.getElementById('modalPrevBtn'); const nextBtn = document.getElementById('modalNextBtn');
       if (!modal || !content) return;
 
+      const savedScroll = preserveScroll ? content.scrollTop : 0;
       const actorModal = document.getElementById('actorModal');
       if (actorModal) { actorModal.classList.add('hidden'); actorModal.classList.remove('flex'); }
 
@@ -5807,7 +5819,7 @@
       const isAlreadyCached = movieDetailsCache.has(cacheKey);
 
       content.dataset.movieId = movieObj.id;
-      if (!isAlreadyCached) {
+      if (!isAlreadyCached && !preserveScroll) {
         content.innerHTML = `<div class="p-20 flex flex-col items-center justify-center w-full min-h-[300px]"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-blue-400 font-bold uppercase tracking-widest text-xs animate-pulse">Decrypting Data...</p></div>`;
       }
 
@@ -5847,7 +5859,20 @@
         }
         await resolveTitleLogo(details);
         await ensureFranchiseDetailsLoaded(movieObj, details);
-        content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync', false, collectionData); verifyTitleLogos(); document.getElementById('closeModalBtn').onclick = closeModal; const movieBack = document.getElementById('movieBackBtn'); if (movieBack) movieBack.onclick = navGoBack; applyTiltToSimilarGrid(); bindCastCrewDrag(); const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0; const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0; content.scrollTop = 0;
+        content.innerHTML = generateFullMovieHTML(movieObj, details, true, 'sync', false, collectionData);
+        verifyTitleLogos();
+        document.getElementById('closeModalBtn').onclick = closeModal;
+        const movieBack = document.getElementById('movieBackBtn');
+        if (movieBack) movieBack.onclick = navGoBack;
+        applyTiltToSimilarGrid();
+        bindCastCrewDrag();
+        if (preserveScroll) {
+          content.scrollTop = savedScroll;
+        } else {
+          const castTrack = document.getElementById('castCrewTrack'); if (castTrack) castTrack.scrollLeft = 0;
+          const similarTrack = document.getElementById('similarMoviesTrack'); if (similarTrack) similarTrack.scrollLeft = 0;
+          content.scrollTop = 0;
+        }
       } catch (e) { console.warn('[Modal Detail Load]', e); content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
     }
 
