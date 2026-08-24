@@ -112,16 +112,16 @@
     }
 
     .movie-page-nav {
-      padding-top: max(2.25rem, calc(env(safe-area-inset-top, 0px) + 1.25rem)) !important;
-      padding-bottom: 1rem !important;
+      padding-top: max(1rem, calc(env(safe-area-inset-top, 0px) + 0.5rem)) !important;
+      padding-bottom: 0.75rem !important;
       padding-left: max(1rem, calc(env(safe-area-inset-left, 0px) + 1rem)) !important;
       padding-right: max(1rem, calc(env(safe-area-inset-right, 0px) + 1rem)) !important;
     }
 
     @media (min-width: 640px) {
       .movie-page-nav {
-        padding-top: max(2rem, calc(env(safe-area-inset-top, 0px) + 1.25rem)) !important;
-        padding-bottom: 1.25rem !important;
+        padding-top: max(1.25rem, calc(env(safe-area-inset-top, 0px) + 0.625rem)) !important;
+        padding-bottom: 1rem !important;
         padding-left: max(1.5rem, calc(env(safe-area-inset-left, 0px) + 1.5rem)) !important;
         padding-right: max(1.5rem, calc(env(safe-area-inset-right, 0px) + 1.5rem)) !important;
       }
@@ -1939,8 +1939,8 @@
 
   <!-- ALL CAST & CREW FULL PAGE VIEW -->
   <div id="allCastModal" class="fixed inset-0 z-[280] hidden flex-col bg-[#0b1121] overflow-y-auto overscroll-none">
-    <nav class="fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 p-4 sm:p-6 pointer-events-none">
-      <button onclick="if(location.hash.includes('-cast')){ history.back(); } else { closeAllCastModal(); }"
+    <nav class="movie-page-nav fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 pointer-events-none">
+      <button onclick="if(location.hash.includes('-cast') || location.hash.includes('/cast')){ history.back(); } else { closeAllCastModal(); }"
         aria-label="Back"
         class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1955,55 +1955,59 @@
       </button>
     </nav>
     <div id="allCastBannerHero"
-      class="relative w-full h-[340px] sm:h-[420px] shrink-0 overflow-hidden bg-[#0b1121] flex flex-col justify-end clip-mask">
+      class="relative w-full h-[240px] sm:h-[300px] shrink-0 overflow-hidden bg-[#0b1121] flex flex-col justify-end clip-mask">
       <div id="allCastBannerArt" class="absolute inset-0"></div>
       <div
         class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/80 to-transparent pointer-events-none z-20">
       </div>
 
       <div
-        class="relative z-30 max-w-[1480px] mx-auto w-full px-5 sm:px-10 pb-6 sm:pb-8 flex flex-col gap-3 sm:gap-4 pointer-events-auto">
-        <div>
-          <span class="text-gray-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Cast &amp;
-            Crew</span>
-          <h1 id="allCastModalTitle"
-            class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mt-0.5 drop-shadow-md">Full
-            Cast &amp; Crew</h1>
-        </div>
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
-          <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-300 drop-shadow-sm min-w-0">
-          </p>
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full md:w-auto shrink-0">
-            <div class="relative w-full sm:w-64 md:w-72 flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px] shrink-0">
-              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-              <input id="allCastSearchInput" type="text" autocomplete="off" spellcheck="false" placeholder="Search cast or character..."
-                oninput="filterAllCastGrid()"
-                class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
-              <button id="allCastSearchClear" onclick="clearAllCastSearch()"
-                class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-            <div
-              class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full sm:w-auto h-[42px] shrink-0">
-              <button id="allCastTabAll" onclick="setAllCastTab('all')"
-                class="tab-btn active">All</button>
-              <button id="allCastTabCast" onclick="setAllCastTab('cast')"
-                class="tab-btn">Cast</button>
-              <button id="allCastTabCrew" onclick="setAllCastTab('crew')"
-                class="tab-btn">Crew</button>
-            </div>
-          </div>
-        </div>
+        class="relative z-30 max-w-[1480px] mx-auto w-full px-5 sm:px-10 pb-5 sm:pb-7 flex flex-col gap-1.5 sm:gap-2 pointer-events-auto">
+        <span class="text-gray-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Cast &amp; Crew</span>
+        <h1 id="allCastModalTitle"
+          class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">Full Cast &amp; Crew</h1>
+        <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-300 drop-shadow-sm min-w-0">
+        </p>
       </div>
     </div>
-    <div class="max-w-[1480px] mx-auto w-full px-5 sm:px-10 py-8 z-30 flex-1 flex flex-col gap-6 sm:gap-8">
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <div class="max-w-[1480px] mx-auto w-full px-5 sm:px-10 pt-4 pb-12 z-30 flex-1 flex flex-col">
+      
+      <!-- 1. Category Tabs Bar (ON TOP) -->
+      <div class="glass-panel p-2.5 sm:p-3 rounded-2xl mb-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 animate-fade">
+        <div class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full sm:w-auto h-[42px]">
+          <button id="allCastTabAll" onclick="setAllCastTab('all')"
+            class="tab-btn active flex-1 sm:flex-none">All <span id="allCastTabCountAll" class="tab-badge">0</span></button>
+          <button id="allCastTabCast" onclick="setAllCastTab('cast')"
+            class="tab-btn flex-1 sm:flex-none">Cast <span id="allCastTabCountCast" class="tab-badge">0</span></button>
+          <button id="allCastTabCrew" onclick="setAllCastTab('crew')"
+            class="tab-btn flex-1 sm:flex-none">Crew <span id="allCastTabCountCrew" class="tab-badge">0</span></button>
+        </div>
+        <div id="allCastCountInfo" class="hidden sm:block text-xs font-bold uppercase tracking-widest text-gray-400 pr-2"></div>
+      </div>
+
+      <!-- 2. Search & Filter Bar (UNDERNEATH) -->
+      <div class="glass-panel p-3 sm:p-4 rounded-2xl mb-6 animate-fade" style="animation-delay: 0.05s;">
+        <div class="relative w-full flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
+          <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input id="allCastSearchInput" type="text" autocomplete="off" spellcheck="false" placeholder="Search cast, crew, or character..."
+            oninput="filterAllCastGrid()"
+            class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
+          <button id="allCastSearchClear" onclick="clearAllCastSearch()"
+            class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Cast & Crew Grid -->
       <div id="allCastGrid"
         class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4 sm:gap-6 content-start">
       </div>
@@ -2018,7 +2022,7 @@
     <div id="trailerModalContainer"
       class="relative w-full h-full max-w-none max-h-none transition-all duration-300 transform translate-y-8 opacity-0 pointer-events-auto flex flex-col bg-black overflow-hidden border-none">
       <div
-        class="absolute top-0 inset-x-0 z-30 flex items-center justify-between p-4 px-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
+        class="absolute top-0 inset-x-0 z-30 flex items-center justify-between p-4 px-6 pt-[max(1rem,calc(env(safe-area-inset-top,0px)+0.5rem))] bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
         <h3 id="trailerModalTitle" class="text-base sm:text-lg font-bold text-white truncate pr-4 drop-shadow-md">
           Official Trailer</h3>
         <button id="closeTrailerModalBtn" aria-label="Close"
@@ -6529,6 +6533,27 @@
         if (!btn) return;
         btn.classList.toggle('active', t === currentAllCastActiveTab);
       });
+      if (window.currentMovieFullCredits) {
+        const { cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
+        const seenAll = new Set();
+        directors.forEach(d => seenAll.add(d.id));
+        cast.forEach(c => seenAll.add(c.id));
+        crew.forEach(cr => seenAll.add(cr.id));
+        const countAll = seenAll.size || (directors.length + cast.length + crew.length);
+        const countCast = cast.length;
+        const countCrew = directors.length + crew.length;
+        const countAllEl = document.getElementById('allCastTabCountAll');
+        const countCastEl = document.getElementById('allCastTabCountCast');
+        const countCrewEl = document.getElementById('allCastTabCountCrew');
+        const infoEl = document.getElementById('allCastCountInfo');
+        if (countAllEl) countAllEl.textContent = countAll;
+        if (countCastEl) countCastEl.textContent = countCast;
+        if (countCrewEl) countCrewEl.textContent = countCrew;
+        if (infoEl) {
+          const currentCount = currentAllCastActiveTab === 'cast' ? countCast : (currentAllCastActiveTab === 'crew' ? countCrew : countAll);
+          infoEl.textContent = `${currentCount} Total`;
+        }
+      }
     }
 
     function filterAllCastGrid() {
