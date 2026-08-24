@@ -1700,45 +1700,41 @@
 
         <!-- INLINE BROWSER -->
         <div id="serviceBrowser" class="hidden animate-fade">
-          <div class="glass-panel rounded-3xl border border-white/10 overflow-hidden">
-            <div
-              class="p-5 border-b border-white/10 flex flex-col sm:flex-row gap-4 sm:items-center justify-between bg-[#0b1121]/50">
-              <div>
-                <h3 class="text-white font-bold text-sm uppercase tracking-widest">Choose your services</h3>
-                <p class="text-gray-500 text-xs mt-1"><span id="browserSelectedCount">0</span> selected • Click to
-                  add/remove</p>
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-gray-400">Choose services</span>
+                <span class="text-xs font-semibold text-gray-500">• <span id="browserSelectedCount">0</span> selected</span>
               </div>
-              <div class="flex w-full sm:w-auto gap-2">
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div
-                  class="flex flex-1 sm:w-64 bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all relative">
+                  class="flex flex-1 sm:w-56 bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all relative">
                   <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                   <input id="serviceBrowserSearch" type="text" autocomplete="off" spellcheck="false"
                     placeholder="Search services..."
-                    class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500" />
+                    class="w-full bg-transparent pl-10 pr-10 py-2 text-xs text-white font-medium focus:outline-none placeholder:text-gray-500" />
                   <button id="serviceBrowserClear"
-                    class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors outline-none">
+                    class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors outline-none cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                       </path>
                     </svg>
                   </button>
                 </div>
+                <div class="flex items-center gap-2">
+                  <button id="serviceBrowserCancel"
+                    class="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white px-4 py-2 rounded-xl border border-white/10 hover:border-white/20 transition-colors outline-none cursor-pointer">Cancel</button>
+                  <button id="serviceBrowserSave"
+                    class="execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-xs rounded-xl px-5 py-2 shadow-[0_0_20px_rgba(255,255,255,0.1)] outline-none cursor-pointer">Save
+                    selection</button>
+                </div>
               </div>
             </div>
 
             <div id="serviceAllGrid"
-              class="p-6 grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-4 max-h-[380px] overflow-y-auto custom-scrollbar content-start">
-            </div>
-
-            <div
-              class="p-4 border-t border-white/10 bg-[#0b1121]/80 flex flex-col sm:flex-row gap-3 justify-between items-center">
-              <button id="serviceBrowserCancel"
-                class="w-full sm:w-auto text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white px-5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition-colors outline-none">Cancel</button>
-              <button id="serviceBrowserSave"
-                class="w-full sm:w-auto execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-xs rounded-xl px-8 py-3 shadow-[0_0_20px_rgba(255,255,255,0.1)] outline-none">Save
-                selection</button>
+              class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-10 gap-3 sm:gap-4">
             </div>
           </div>
         </div>
@@ -3908,9 +3904,6 @@
 
       if (browser) {
         browser.classList.remove('hidden');
-        setTimeout(() => {
-          try { browser.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { console.warn('[Browser Scroll Into View]', e); }
-        }, 100);
       }
 
       if (searchInput) searchInput.value = '';
