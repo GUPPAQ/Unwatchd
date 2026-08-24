@@ -8407,7 +8407,7 @@
       const tvCount = allMovies.filter(m => m.mediaType === 'tv').length;
       const movieOnlyCount = allMovies.filter(m => m.mediaType === 'movie').length;
 
-      const hasActiveActorFilters = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'popularity') || (actorFilterRating && actorFilterRating !== 'all') || (availableRoles.length > 1 && activeRole !== availableRoles[0]);
+      const hasActiveActorFilters = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'popularity') || (actorFilterRating && actorFilterRating !== 'all');
 
       const actorTabsWidthClass = availableRoles.length > 1 ? 'lg:w-[600px]' : 'lg:w-[460px]';
       const mediaFilterTabsHtml = `
@@ -8666,27 +8666,7 @@
 
       let sectionsHtml = '';
 
-      // Section 1: Role (if multiple)
-      if (window.currentActorAvailableRoles && window.currentActorAvailableRoles.length > 1) {
-        const roles = window.currentActorAvailableRoles;
-        const currentRole = window.currentActorActiveRole || roles[0];
-        sectionsHtml += `
-          <div>
-            <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-              <span>Department / Role</span>
-              <span class="text-blue-400 font-bold normal-case text-xs">${roleIcons[currentRole] || ''} ${escapeHTML(currentRole)}</span>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              ${roles.map(r => {
-                const isActive = r === currentRole;
-                return `<button type="button" onclick="selectActorSheetRole('${escapeHTML(r)}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${roleIcons[r] || ''} ${escapeHTML(r)}</button>`;
-              }).join('')}
-            </div>
-          </div>
-        `;
-      }
-
-      // Section 2: Sort By
+      // Section 1: Sort By
       const currentSortObj = ACTOR_SORT_OPTIONS.find(o => o.value === actorFilterSort) || ACTOR_SORT_OPTIONS[0];
       sectionsHtml += `
         <div>
@@ -8836,7 +8816,7 @@
 
     function syncActorFilterButtonState() {
       const btn = document.getElementById('actorFilterToggleBtn');
-      const hasActive = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'popularity') || (window.currentActorAvailableRoles && window.currentActorAvailableRoles.length > 1 && window.currentActorActiveRole !== window.currentActorAvailableRoles[0]);
+      const hasActive = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'popularity') || (actorFilterRating && actorFilterRating !== 'all');
       if (btn) {
         btn.classList.toggle('border-blue-500', hasActive);
         btn.classList.toggle('text-blue-400', hasActive);
