@@ -634,35 +634,6 @@
       }
     }
 
-    /* Device-specific Toolbar Viewports: Mobile & iPad Portrait vs Desktop & Landscape */
-    .desktop-tools-bar {
-      display: none !important;
-    }
-    .portrait-tools-inline {
-      display: flex !important;
-    }
-    .portrait-filter-btn {
-      display: flex !important;
-    }
-    .portrait-filter-panel {
-      display: none !important;
-    }
-
-    @media (min-width: 1025px), (min-width: 768px) and (orientation: landscape) {
-      .desktop-tools-bar {
-        display: flex !important;
-      }
-      .portrait-tools-inline {
-        display: none !important;
-      }
-      .portrait-filter-btn {
-        display: none !important;
-      }
-      .portrait-filter-panel {
-        display: flex !important;
-      }
-    }
-
     /* Letterboxd-Style Bottom Sheet Drawer */
     .bottom-sheet-backdrop {
       position: fixed !important;
@@ -694,6 +665,9 @@
       right: 0 !important;
       bottom: 0 !important;
       width: 100% !important;
+      max-width: 640px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
       z-index: 701 !important;
       height: 88vh !important;
       height: 88dvh !important;
@@ -702,7 +676,8 @@
       display: flex !important;
       flex-direction: column !important;
       background: #0b1121 !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-bottom: none !important;
       border-top-left-radius: 1.5rem !important;
       border-top-right-radius: 1.5rem !important;
       box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.9) !important;
@@ -1797,9 +1772,10 @@
       <!-- MAIN RESULTS CONTROLS -->
       <div id="resultsControlsCard" class="results-controls-card space-y-2.5 sm:space-y-3 animate-fade">
         
-        <!-- Row 1: Categories Bar + Desktop Tools (VPN, Insights, Roulette) -->
-        <div id="categoriesBar" class="flex flex-col lg:flex-row gap-2.5 sm:gap-3 lg:items-center justify-between">
-          <div class="grid grid-cols-2 min-[420px]:grid-cols-4 lg:flex lg:flex-1 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-auto min-[420px]:h-[42px] items-center">
+        <!-- Row 1: Categories Bar (Full width across all screen sizes) -->
+        <div id="categoriesBar" class="flex w-full">
+          <div
+            class="grid grid-cols-2 min-[420px]:grid-cols-4 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-auto min-[420px]:h-[42px] items-center">
             <button class="tab-btn active" data-tab="stream">Available <span id="tabCount-stream"
                 class="tab-badge">0</span></button>
             <button class="tab-btn" data-tab="rentbuy">Rent / Buy <span id="tabCount-rentbuy"
@@ -1809,113 +1785,86 @@
             <button class="tab-btn" data-tab="unavailable">Unavailable <span id="tabCount-unavailable"
                 class="tab-badge">0</span></button>
           </div>
-
-          <!-- Desktop Tools: VPN, Insights & Roulette (visible on desktop & landscape) -->
-          <div id="desktopToolsBar" class="desktop-tools-bar items-center gap-2 shrink-0">
-            <button id="vpnToggleBtnDesktop" title="Also show VPN unlocks"
-              class="h-[42px] flex items-center justify-center gap-2 px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>VPN</span> <span id="vpnToggleDotDesktop"
-                class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
-            </button>
-            <button id="statsBtn"
-              class="h-[42px] flex items-center justify-center gap-2 px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
-              title="Insights">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                </path>
-              </svg>
-              <span>Insights</span>
-            </button>
-            <button id="rouletteBtn"
-              class="h-[42px] flex items-center justify-center gap-2 px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
-              title="Roulette">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <circle cx="12" cy="12" r="9"></circle>
-                <circle cx="12" cy="12" r="3"></circle>
-                <path stroke-linecap="round"
-                  d="M12 3v6m0 6v6M3 12h6m6 0h6M5.636 5.636l4.243 4.243m4.242 4.242l4.243 4.243M5.636 18.364l4.243-4.243m4.242-4.242l4.243-4.243">
-                </path>
-              </svg>
-              <span>Roulette</span>
-            </button>
-          </div>
         </div>
 
-        <!-- Row 2: Searchbar (left) + VPN Button (center) + Options Button (right) on mobile/iPad portrait, plus desktop dropdowns -->
-        <div class="flex flex-col lg:flex-row gap-2.5 sm:gap-3 lg:items-center">
-          <div class="flex items-center gap-2 w-full lg:flex-1">
-            <!-- Search Input -->
-            <div
-              class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
-              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none"
-                stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-              <input id="resultsSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..."
-                class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
-              <button id="clearResultsBtn"
-                class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-
-            <!-- Options / Filter Sheet Button (To the right of Searchbar) -->
-            <button id="homeFilterToggleBtn" type="button" onclick="openHomeFilterSheet()" aria-label="Filters and sorting" class="portrait-filter-btn shrink-0 h-[42px] px-3.5 items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+        <!-- Row 2: Searchbar (left) + Options Button + VPN Button + Insights & Roulette (when wide) -->
+        <div class="flex items-center gap-2 w-full">
+          <!-- Search Input -->
+          <div
+            class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
+            <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none"
+              stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <input id="resultsSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..."
+              class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
+            <button id="clearResultsBtn"
+              class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
-              <span id="homeFilterDot" class="hidden w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-            </button>
-
-            <!-- Mobile & iPad Portrait VPN Toggle Button (To the right of options button) -->
-            <button id="vpnToggleBtnInline" title="Also show VPN unlocks"
-              class="portrait-tools-inline h-[42px] shrink-0 items-center justify-center gap-1.5 px-3 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>VPN</span> <span id="vpnToggleDotInline"
-                class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
             </button>
           </div>
 
-          <!-- Desktop Dropdowns -->
-          <div id="homeFiltersDropdown" class="portrait-filter-panel gap-2 w-full lg:w-auto lg:items-center">
-            <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="sortLabel">Newest
-                First</span><select id="resultsSort" class="filter-select w-full lg:w-auto">
-                <option value="year_desc" selected>Newest First</option>
-                <option value="popularity">Popular</option>
-                <option value="rating_desc">Highest Rated</option>
-                <option value="rating_asc">Lowest Rated</option>
-                <option value="runtime_desc">Longest First</option>
-                <option value="runtime_asc">Shortest First</option>
-                <option value="az">A-Z</option>
-                <option value="za">Z-A</option>
-                <option value="year_asc">Oldest First</option>
-              </select></div>
-            <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="genreLabel">All
-                Genres</span><select id="resultsGenre" class="filter-select w-full lg:w-auto">
-                <option value="all">All Genres</option>
-              </select></div>
-            <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="decadeLabel">All
-                Decades</span><select id="resultsDecade" class="filter-select w-full lg:w-auto">
-                <option value="all">All Decades</option>
-              </select></div>
-            <div class="filter-select-wrapper w-full lg:w-auto"><span class="filter-select-label" id="runtimeLabel">All Lengths</span><select id="resultsRuntime" class="filter-select w-full lg:w-auto">
-                <option value="all" selected>All Lengths</option>
-                <option value="short">&lt; 90 min</option>
-                <option value="medium">90–120 min</option>
-                <option value="long">&gt; 120 min</option>
-              </select></div>
-          </div>
+          <!-- Options / Filter Sheet Button (Visible on ALL devices) -->
+          <button id="homeFilterToggleBtn" type="button" onclick="openHomeFilterSheet()" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
+            </svg>
+            <span id="homeFilterDot" class="hidden w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+          </button>
+
+          <!-- VPN Toggle Button -->
+          <button id="vpnToggleBtnInline" title="Also show VPN unlocks"
+            class="h-[42px] shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>VPN</span> <span id="vpnToggleDotInline"
+              class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
+          </button>
+
+          <!-- Desktop / Wider screen tools: Insights & Roulette -->
+          <button id="statsBtn"
+            class="hidden sm:flex h-[42px] shrink-0 items-center justify-center gap-2 px-3.5 sm:px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
+            title="Insights">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+              </path>
+            </svg>
+            <span>Insights</span>
+          </button>
+          <button id="rouletteBtn"
+            class="hidden sm:flex h-[42px] shrink-0 items-center justify-center gap-2 px-3.5 sm:px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
+            title="Roulette">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <circle cx="12" cy="12" r="9"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+              <path stroke-linecap="round"
+                d="M12 3v6m0 6v6M3 12h6m6 0h6M5.636 5.636l4.243 4.243m4.242 4.242l4.243 4.243M5.636 18.364l4.243-4.243m4.242-4.242l4.243-4.243">
+              </path>
+            </svg>
+            <span>Roulette</span>
+          </button>
+        </div>
+
+        <!-- Hidden Select Elements for Filter Data Persistence -->
+        <div id="homeFiltersDropdown" class="hidden">
+          <select id="resultsSort">
+            <option value="year_desc" selected>Newest First</option>
+            <option value="popularity">Popular</option>
+            <option value="rating_desc">Highest Rated</option>
+            <option value="rating_asc">Lowest Rated</option>
+            <option value="az">A-Z</option>
+            <option value="za">Z-A</option>
+            <option value="year_asc">Oldest First</option>
+          </select>
+          <select id="resultsGenre"><option value="all">All Genres</option></select>
+          <select id="resultsDecade"><option value="all">All Decades</option></select>
+          <select id="resultsRuntime"><option value="all">All Lengths</option></select>
         </div>
       </div>
       <div id="statsBar"
@@ -8560,29 +8509,21 @@
           <div class="max-w-[1480px] mx-auto px-5 sm:px-14 pt-4 sm:pt-0 pb-10 flex flex-col gap-6 sm:gap-10">
             <div>
               <div class="flex flex-col gap-3 mb-4">
-                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
-                  <h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>
+                <h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>
+                <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">
                   ${mediaFilterTabsHtml}
-                </div>
-                <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2">
-                  <div class="flex items-center gap-2 w-full lg:flex-1">
-                    <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all">
+                  <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
                       <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                       <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
                       ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                     </div>
-                    <button id="actorFilterToggleBtn" type="button" onclick="openActorFilterSheet()" aria-label="Filters and sorting" class="portrait-filter-btn shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+                    <button id="actorFilterToggleBtn" type="button" onclick="openActorFilterSheet()" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
                       </svg>
                       ${hasActiveActorFilters ? `<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>` : ''}
                     </button>
-                  </div>
-                  <div id="actorFiltersDropdown" class="portrait-filter-panel ${actorMobileFiltersOpen ? 'is-open' : ''} ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">
-                    ${roleSelectWrapper}
-                    <div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div>
-                    <div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div>
-                    <div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div>
                   </div>
                 </div>
               </div>
@@ -8597,7 +8538,7 @@
             </div>
           </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${mediaFilterTabsHtml}</div><div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2"><div class="flex items-center gap-2 w-full lg:flex-1"><div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><button id="actorFilterToggleBtn" type="button" onclick="openActorFilterSheet()" aria-label="Filters and sorting" class="portrait-filter-btn shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path></svg>${hasActiveActorFilters ? `<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>` : ''}</button></div><div id="actorFiltersDropdown" class="portrait-filter-panel ${actorMobileFiltersOpen ? 'is-open' : ''} ${actorFilterGridColsClass} items-center gap-2 w-full lg:flex lg:shrink-0 ${actorTabsWidthClass}">${roleSelectWrapper}<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div><div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div>`;
+      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3><div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">${mediaFilterTabsHtml}<div class="flex items-center gap-2 flex-1 min-w-0"><div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><button id="actorFilterToggleBtn" type="button" onclick="openActorFilterSheet()" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path></svg>${hasActiveActorFilters ? `<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>` : ''}</button></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div>`;
     }
 
     let currentActorId = null;
