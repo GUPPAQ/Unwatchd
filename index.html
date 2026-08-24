@@ -1701,28 +1701,6 @@
         <!-- INLINE BROWSER -->
         <div id="serviceBrowser" class="hidden animate-fade">
           <div class="flex flex-col gap-4">
-            <!-- Top Bar: Title & Search -->
-            <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold uppercase tracking-widest text-gray-400">Choose services</span>
-                <span class="text-xs font-semibold text-gray-500">• <span id="browserSelectedCount">0</span> selected</span>
-              </div>
-              <div class="flex flex-1 sm:w-64 sm:flex-initial bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all relative">
-                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-                <input id="serviceBrowserSearch" type="text" autocomplete="off" spellcheck="false"
-                  placeholder="Search services..."
-                  class="w-full bg-transparent pl-10 pr-10 py-2.5 text-xs text-white font-medium focus:outline-none placeholder:text-gray-500" />
-                <button id="serviceBrowserClear"
-                  class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors outline-none cursor-pointer">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
             <!-- Services Grid -->
             <div id="serviceAllGrid"
               class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-10 gap-3 sm:gap-4">
@@ -3853,29 +3831,15 @@
 
     function renderBrowserGrid() {
       const grid = document.getElementById('serviceAllGrid');
-      const searchInput = document.getElementById('serviceBrowserSearch');
       if (!grid) return;
       grid.innerHTML = '';
 
-      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-      let filtered = currentProviders;
-
-      if (query) {
-        filtered = currentProviders.filter(p => p.name.toLowerCase().includes(query));
-      }
-
-      // Sort: Selected first, then by priority
-      filtered = [...filtered].sort((a, b) => {
+      let filtered = [...currentProviders].sort((a, b) => {
         const aSel = pendingSelectedIds.has(a.id) ? 0 : 1;
         const bSel = pendingSelectedIds.has(b.id) ? 0 : 1;
         if (aSel !== bSel) return aSel - bSel;
         return a.priority - b.priority;
       });
-
-      if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[220px] text-gray-500 gap-2 text-center py-8"><span class="text-3xl opacity-60">📡</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">No services found</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">Try searching with a different service name.</span></div>`;
-        return;
-      }
 
       filtered.forEach(provider => {
         grid.appendChild(createBrowserTile(provider));
@@ -3884,8 +3848,6 @@
 
     function updateBrowserSaveBtn() {
       const saveBtn = document.getElementById('serviceBrowserSave');
-      const countEl = document.getElementById('browserSelectedCount');
-      if (countEl) countEl.textContent = pendingSelectedIds.size;
       if (saveBtn) {
         saveBtn.textContent = 'Save';
       }
@@ -3896,7 +3858,6 @@
       const emptyState = document.getElementById('serviceEmptyState');
       const selectedContainer = document.getElementById('serviceSelectedContainer');
       const browser = document.getElementById('serviceBrowser');
-      const searchInput = document.getElementById('serviceBrowserSearch');
 
       if (emptyState) emptyState.classList.add('hidden');
       if (selectedContainer) selectedContainer.classList.add('hidden');
@@ -3904,10 +3865,6 @@
       if (browser) {
         browser.classList.remove('hidden');
       }
-
-      if (searchInput) searchInput.value = '';
-      const clearBtn = document.getElementById('serviceBrowserClear');
-      if (clearBtn) clearBtn.classList.add('hidden');
 
       renderBrowserGrid();
       updateBrowserSaveBtn();
