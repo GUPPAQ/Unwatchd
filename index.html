@@ -3834,7 +3834,12 @@
       if (!grid) return;
       grid.innerHTML = '';
 
-      let list = [...currentProviders].sort((a, b) => (a.priority || 100) - (b.priority || 100));
+      let list = [...currentProviders].sort((a, b) => {
+        const aSel = pendingSelectedIds.has(a.id) ? 0 : 1;
+        const bSel = pendingSelectedIds.has(b.id) ? 0 : 1;
+        if (aSel !== bSel) return aSel - bSel;
+        return (a.priority || 100) - (b.priority || 100);
+      });
 
       list.forEach(provider => {
         grid.appendChild(createBrowserTile(provider));
