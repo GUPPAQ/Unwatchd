@@ -2188,6 +2188,22 @@
         </div>
         <div id="homeSheetDecadeChips" class="flex flex-wrap gap-2"></div>
       </div>
+      <!-- Minimum Rating -->
+      <div>
+        <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
+          <span>Minimum Rating</span>
+          <span id="sheetCurrentRatingLabel" class="text-blue-400 font-bold normal-case text-xs">Any Rating</span>
+        </div>
+        <div id="homeSheetRatingChips" class="flex flex-wrap gap-2"></div>
+      </div>
+      <!-- Film Length -->
+      <div>
+        <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
+          <span>Film Length</span>
+          <span id="sheetCurrentRuntimeLabel" class="text-blue-400 font-bold normal-case text-xs">Any Length</span>
+        </div>
+        <div id="homeSheetRuntimeChips" class="flex flex-wrap gap-2"></div>
+      </div>
     </div>
     <div class="p-4 border-t border-white/10 bg-[#090f1d] flex items-center gap-3 shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
       <button type="button" onclick="resetHomeFilters()" class="flex-1 py-3 px-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 active:scale-95 text-xs font-bold text-gray-300 hover:text-white uppercase tracking-wider transition-all cursor-pointer">
@@ -3971,6 +3987,44 @@
           return `<button type="button" onclick="selectHomeSheetFilter('decade', '${escapeHTML(d)}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(display)}</button>`;
         }).join('');
       }
+
+      // Rating chips
+      const ratingContainer = document.getElementById('homeSheetRatingChips');
+      const ratingLabelEl = document.getElementById('sheetCurrentRatingLabel');
+      const ratingOptions = [
+        { value: 'all', label: 'Any Rating' },
+        { value: '6', label: '⭐ 6.0+' },
+        { value: '7', label: '⭐ 7.0+' },
+        { value: '8', label: '⭐ 8.0+' }
+      ];
+      if (ratingContainer) {
+        const curR = window.homeFilterRating || 'all';
+        const match = ratingOptions.find(o => o.value === curR);
+        if (ratingLabelEl) ratingLabelEl.textContent = match ? match.label : 'Any Rating';
+        ratingContainer.innerHTML = ratingOptions.map(opt => {
+          const isActive = opt.value === curR;
+          return `<button type="button" onclick="selectHomeSheetFilter('rating', '${opt.value}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(opt.label)}</button>`;
+        }).join('');
+      }
+
+      // Runtime chips
+      const runtimeContainer = document.getElementById('homeSheetRuntimeChips');
+      const runtimeLabelEl = document.getElementById('sheetCurrentRuntimeLabel');
+      const runtimeOptions = [
+        { value: 'all', label: 'Any Length' },
+        { value: 'short', label: '< 90 min' },
+        { value: 'medium', label: '90–120 min' },
+        { value: 'long', label: '> 120 min' }
+      ];
+      if (runtimeContainer) {
+        const curRun = window.homeFilterRuntime || 'all';
+        const match = runtimeOptions.find(o => o.value === curRun);
+        if (runtimeLabelEl) runtimeLabelEl.textContent = match ? match.label : 'Any Length';
+        runtimeContainer.innerHTML = runtimeOptions.map(opt => {
+          const isActive = opt.value === curRun;
+          return `<button type="button" onclick="selectHomeSheetFilter('runtime', '${opt.value}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(opt.label)}</button>`;
+        }).join('');
+      }
     }
 
     function selectHomeSheetFilter(type, value) {
@@ -3987,6 +4041,10 @@
       } else if (type === 'decade' && decadeSelect) {
         decadeSelect.value = value;
         syncFilterLabel(decadeSelect);
+      } else if (type === 'rating') {
+        window.homeFilterRating = value;
+      } else if (type === 'runtime') {
+        window.homeFilterRuntime = value;
       }
       currentPage = 1;
       if (typeof applyFiltersAndRender === 'function') {
@@ -4013,6 +4071,8 @@
         decadeSelect.value = 'all';
         syncFilterLabel(decadeSelect);
       }
+      window.homeFilterRating = 'all';
+      window.homeFilterRuntime = 'all';
       currentPage = 1;
       if (typeof applyFiltersAndRender === 'function') {
         applyFiltersAndRender();
@@ -4024,20 +4084,19 @@
     function syncHomeFilterButtonState() {
       const btn = document.getElementById('homeFilterToggleBtn');
       const dot = document.getElementById('homeFilterDot');
-      const sort = el.filterSort ? el.filterSort.value : 'year_desc';
-      const genre = el.filterGenre ? el.filterGenre.value : 'all';
-      const decade = el.filterDecade ? el.filterDecade.value : 'all';
-      const hasActiveFilters = (sort !== 'year_desc') || (genre !== 'all') || (decade !== 'all');
-
+      const sort = el?.filterSort ? el.filterSort.value : 'year_desc';
+      const genre = el?.filterGenre ? el.filterGenre.value : 'all';
+      const decade = el?.filterDecade ? el.filterDecade.value : 'all';
+      const hasCustom = (sort && sort !== 'year_desc') || (genre && genre !== 'all') || (decade && decade !== 'all') || (window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterRuntime && window.homeFilterRuntime !== 'all');
       if (btn) {
-        btn.classList.toggle('border-blue-500', hasActiveFilters);
-        btn.classList.toggle('text-blue-400', hasActiveFilters);
-        btn.classList.toggle('bg-blue-500/10', hasActiveFilters);
-        btn.classList.toggle('border-white/10', !hasActiveFilters);
-        btn.classList.toggle('text-gray-300', !hasActiveFilters);
+        btn.classList.toggle('border-blue-500', hasCustom);
+        btn.classList.toggle('text-blue-400', hasCustom);
+        btn.classList.toggle('bg-blue-500/10', hasCustom);
+        btn.classList.toggle('border-white/10', !hasCustom);
+        btn.classList.toggle('text-gray-300', !hasCustom);
       }
       if (dot) {
-        dot.classList.toggle('hidden', !hasActiveFilters);
+        dot.classList.toggle('hidden', !hasCustom);
       }
     }
 
@@ -4800,7 +4859,7 @@
       const bestTrailer = getBestTrailer(details);
       const isMobileDevice = isMobile || (typeof window !== 'undefined' && window.innerWidth < 640);
       const heroTrailer = (!isMobileDevice && bestTrailer && bestTrailer.official && /trailer/i.test(bestTrailer.name || '')) ? bestTrailer : null;
-      const btnClass = "flex items-center justify-center gap-1.5 sm:gap-2.5 bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 sm:px-4 py-2.5 sm:py-3 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-300 hover:text-white flex-1 w-full min-w-0 whitespace-nowrap text-center";
+      const btnClass = "w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 rounded-2xl transition-all text-white shadow-sm shrink-0 cursor-pointer";
       const trailerBtnClass = "flex items-center justify-center gap-2 sm:gap-2.5 liquid-glass px-4 py-2.5 sm:px-5 sm:py-3.5 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-white w-full sm:w-auto sm:min-w-[150px] whitespace-nowrap shadow-md cursor-pointer active:scale-95";
       const streamingBtnClass = "provider-glass flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl transition-all text-sm sm:text-base font-bold text-gray-300 hover:text-white flex-1 sm:flex-none min-w-[140px]";
       const streamingBtnClassBig = "provider-glass flex items-center gap-3.5 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl transition-all text-sm sm:text-base font-bold text-gray-300 hover:text-white w-full";
@@ -5031,19 +5090,18 @@
       const movieBackBtn = hasMovieHistory ? `<button id="movieBackBtn" onclick="navGoBack()" aria-label="Go back" class="pointer-events-auto mt-[max(1rem,calc(env(safe-area-inset-top,0px)+0.5rem))] ml-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
       const closeBtn = `<div class="sticky top-0 z-[60] w-full h-0 flex ${movieBackBtn ? 'justify-between' : 'justify-end'} pointer-events-none">${movieBackBtn}<button id="closeModalBtn" onclick="${isModal ? 'closeModal()' : 'closeQuickSearchInline()'}" aria-label="Close" class="pointer-events-auto mt-[max(1rem,calc(env(safe-area-inset-top,0px)+0.5rem))] mr-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>`;
       const trailerActionBtn = bestTrailer
-        ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${btnClass} lg:hidden cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Trailer</span></button>`
-        : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${btnClass} lg:hidden"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Trailer</span></a>`;
-      const letterboxdBtn = `<a href="https://letterboxd.com/tmdb/${movieObj.id}" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/letterboxd.png" alt="Letterboxd" class="w-full h-full block object-cover"></div><span>Letterboxd</span></a>`;
-      const imdbBtn = imdbId ? `<a href="https://www.imdb.com/title/${escapeHTML(imdbId)}/" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full block object-cover"></div><span>IMDb</span></a>` : '';
+        ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" title="Watch Trailer" aria-label="Watch Trailer" class="${btnClass} lg:hidden cursor-pointer"><svg class="w-5 h-5 text-blue-400 fill-current shrink-0" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>`
+        : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" title="Watch Trailer" aria-label="Watch Trailer" class="${btnClass} lg:hidden"><svg class="w-5 h-5 text-blue-400 fill-current shrink-0" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a>`;
+      const letterboxdBtn = `<a href="https://letterboxd.com/tmdb/${movieObj.id}" target="_blank" title="Letterboxd" aria-label="Letterboxd" class="${btnClass}"><div class="w-5 h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/letterboxd.png" alt="Letterboxd" class="w-full h-full block object-cover"></div></a>`;
+      const imdbBtn = imdbId ? `<a href="https://www.imdb.com/title/${escapeHTML(imdbId)}/" target="_blank" title="IMDb" aria-label="IMDb" class="${btnClass}"><div class="w-5 h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full block object-cover"></div></a>` : '';
       const trailerHeaderBtn = bestTrailer
         ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${trailerBtnClass} cursor-pointer"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></button>`
         : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${trailerBtnClass}"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></a>`;
       const pageTrailerBtnHtml = trailerHeaderBtn;
       const shareParam = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
-      const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-green-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg><span>Copy Link</span></button>`;
+      const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<svg class=\\'w-5 h-5 text-green-400\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M5 13l4 4L19 7\\'/></svg>'; setTimeout(()=>t.innerHTML=old, 2000);" title="Copy Link" aria-label="Copy Link" class="${btnClass} cursor-pointer"><svg class="w-5 h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></button>`;
       const movieActionBtns = [trailerActionBtn, letterboxdBtn, imdbBtn, shareBtn].filter(Boolean);
-      const movieActionBtnsGrid = movieActionBtns.length >= 4 ? 'grid-cols-2 min-[480px]:grid-cols-4' : (movieActionBtns.length === 3 ? 'grid-cols-3' : 'grid-cols-2');
-      const movieActionBtnsHtml = `<div class="grid ${movieActionBtnsGrid} lg:flex lg:flex-nowrap items-center gap-2 sm:gap-3 w-full lg:w-auto">${movieActionBtns.join('')}</div>`;
+      const movieActionBtnsHtml = `<div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">${movieActionBtns.join('')}</div>`;
 
       const overviewHtml = createExpandableTextHtml(overview, 'movieOverviewText');
 
@@ -6772,7 +6830,19 @@
     function applyFiltersAndRender() {
       const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : ''; const sort = el.filterSort ? el.filterSort.value : 'year_desc'; const genre = el.filterGenre ? el.filterGenre.value : 'all'; const decade = el.filterDecade ? el.filterDecade.value : 'all';
       const qNormFilter = normalizeTitle(query);
-      let filtered = scannedMovies.filter(m => { const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter); const matchG = genre === 'all' || (m.genreIds && m.genreIds.some(id => GENRE_MAP[id] === genre)); const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade)); return matchQ && matchG && matchD; });
+      let filtered = scannedMovies.filter(m => {
+        const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter);
+        const matchG = genre === 'all' || (m.genreIds && m.genreIds.some(id => GENRE_MAP[id] === genre));
+        const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade));
+        const rVal = parseFloat(getCachedRating(m) || 0);
+        const matchR = (!window.homeFilterRating || window.homeFilterRating === 'all') ? true : (rVal >= parseFloat(window.homeFilterRating));
+        const runVal = m.runtime || 0;
+        let matchRun = true;
+        if (window.homeFilterRuntime === 'short') matchRun = runVal > 0 && runVal < 90;
+        else if (window.homeFilterRuntime === 'medium') matchRun = runVal >= 90 && runVal <= 120;
+        else if (window.homeFilterRuntime === 'long') matchRun = runVal > 120;
+        return matchQ && matchG && matchD && matchR && matchRun;
+      });
       filtered.sort((a, b) => { if (sort === 'runtime_desc') return (b.runtime || 0) - (a.runtime || 0); if (sort === 'runtime_asc') return (a.runtime || 0) - (b.runtime || 0); if (sort === 'popularity') return getMoviePopularity(b) - getMoviePopularity(a); if (sort === 'az') return a.title.localeCompare(b.title); if (sort === 'za') return b.title.localeCompare(a.title); if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || 0)) - (parseFloat(getCachedRating(a) || 0)); if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || 0)) - (parseFloat(getCachedRating(b) || 0)); if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0'); if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999'); return 0; });
       currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
       const selectedNamesFilterSet = new Set(
@@ -7995,6 +8065,15 @@
         });
       }
 
+      // Apply rating filter
+      if (actorFilterRating && actorFilterRating !== 'all') {
+        const minR = parseFloat(actorFilterRating);
+        moviesToShow = moviesToShow.filter(m => {
+          const r = parseFloat(getCachedRating(m) || m.vote_average || 0);
+          return r >= minR;
+        });
+      }
+
       // Apply sort
       moviesToShow = [...moviesToShow];
       switch (actorFilterSort) {
@@ -8190,7 +8269,7 @@
       // Letterboxd slug
       const lbSlug = person.name ? person.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '';
 
-      const btnClass = 'flex items-center justify-center gap-1.5 sm:gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl transition-all text-xs sm:text-xs min-[840px]:text-sm font-bold text-gray-300 hover:text-white flex-1 w-full min-w-0 whitespace-nowrap text-center';
+      const btnClass = 'w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 rounded-2xl transition-all text-white shadow-sm shrink-0 cursor-pointer';
 
       const watchlistBtnActive = showWatchlistOnly ? 'active' : '';
       const allBtnActive = showWatchlistOnly ? '' : 'active';
@@ -8198,7 +8277,7 @@
       const tvCount = allMovies.filter(m => m.mediaType === 'tv').length;
       const movieOnlyCount = allMovies.filter(m => m.mediaType === 'movie').length;
 
-      const hasActiveActorFilters = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'popularity') || (availableRoles.length > 1 && activeRole !== availableRoles[0]);
+      const hasActiveActorFilters = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'popularity') || (actorFilterRating && actorFilterRating !== 'all') || (availableRoles.length > 1 && activeRole !== availableRoles[0]);
 
       const actorTabsWidthClass = availableRoles.length > 1 ? 'lg:w-[600px]' : 'lg:w-[460px]';
       const mediaFilterTabsHtml = `
@@ -8229,18 +8308,13 @@
       const backBtn = hasActorHistory ? `<button id="backToMovieBtn" onclick="navGoBack()" aria-label="Back" class="pointer-events-auto mt-[max(1rem,calc(env(safe-area-inset-top,0px)+0.5rem))] ml-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
       const closeBtn = `<div class="sticky top-0 z-[60] w-full h-0 flex ${backBtn ? 'justify-between' : 'justify-end'} pointer-events-none">${backBtn}<button id="closeActorModalBtn" onclick="${isModal ? 'closeModal()' : 'closeQuickSearchInline()'}" aria-label="Close" class="pointer-events-auto mt-[max(1rem,calc(env(safe-area-inset-top,0px)+0.5rem))] mr-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>`;
       const extIds = person.external_ids || {};
-      const instaBtn = extIds.instagram_id ? `<a href="https://instagram.com/${escapeHTML(extIds.instagram_id)}" target="_blank" class="${btnClass}"><svg class="w-4 h-4 sm:w-5 sm:h-5 text-pink-500 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg><span>Instagram</span></a>` : '';
-      const twitterBtn = extIds.twitter_id ? `<a href="https://x.com/${escapeHTML(extIds.twitter_id)}" target="_blank" class="${btnClass}"><svg class="w-4 h-4 sm:w-4.5 sm:h-4.5 text-sky-400 fill-current shrink-0" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>X (Twitter)</span></a>` : '';
-      const letterboxdBtn = lbSlug ? `<a href="https://letterboxd.com/actor/${escapeHTML(lbSlug)}/" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/letterboxd.png" alt="Letterboxd" class="w-full h-full block object-cover"></div><span>Letterboxd</span></a>` : '';
-      const imdbBtn = imdbId ? `<a href="https://www.imdb.com/name/${escapeHTML(imdbId)}/" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full block object-cover"></div><span>IMDb</span></a>` : '';
-      const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?actor=${tmdbId}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-green-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg><span>Copy Link</span></button>`;
+      const instaBtn = extIds.instagram_id ? `<a href="https://instagram.com/${escapeHTML(extIds.instagram_id)}" target="_blank" title="Instagram" aria-label="Instagram" class="${btnClass}"><svg class="w-5 h-5 text-pink-500 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>` : '';
+      const twitterBtn = extIds.twitter_id ? `<a href="https://x.com/${escapeHTML(extIds.twitter_id)}" target="_blank" title="X (Twitter)" aria-label="X (Twitter)" class="${btnClass}"><svg class="w-4.5 h-4.5 text-sky-400 fill-current shrink-0" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>` : '';
+      const letterboxdBtn = lbSlug ? `<a href="https://letterboxd.com/actor/${escapeHTML(lbSlug)}/" target="_blank" title="Letterboxd" aria-label="Letterboxd" class="${btnClass}"><div class="w-5 h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/letterboxd.png" alt="Letterboxd" class="w-full h-full block object-cover"></div></a>` : '';
+      const imdbBtn = imdbId ? `<a href="https://www.imdb.com/name/${escapeHTML(imdbId)}/" target="_blank" title="IMDb" aria-label="IMDb" class="${btnClass}"><div class="w-5 h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full block object-cover"></div></a>` : '';
+      const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?actor=${tmdbId}'); const t=this; const old=t.innerHTML; t.innerHTML='<svg class=\\'w-5 h-5 text-green-400\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M5 13l4 4L19 7\\'/></svg>'; setTimeout(()=>t.innerHTML=old, 2000);" title="Copy Link" aria-label="Copy Link" class="${btnClass} cursor-pointer"><svg class="w-5 h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></button>`;
       const actorActionBtns = [letterboxdBtn, imdbBtn, instaBtn, twitterBtn, shareBtn].filter(Boolean);
-      const actorActionBtnsGrid = actorActionBtns.length >= 5
-        ? 'grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-5'
-        : (actorActionBtns.length === 4
-          ? 'grid-cols-2 min-[480px]:grid-cols-4'
-          : (actorActionBtns.length === 3 ? 'grid-cols-3' : 'grid-cols-2'));
-      const actorActionBtnsHtml = `<div class="grid ${actorActionBtnsGrid} lg:flex lg:flex-nowrap items-center gap-2 sm:gap-2.5 w-full lg:w-auto flex-1">${actorActionBtns.join('')}</div>`;
+      const actorActionBtnsHtml = `<div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">${actorActionBtns.join('')}</div>`;
 
       const bioHtml = createExpandableTextHtml(bio, 'actorBioText');
 
@@ -8533,27 +8607,28 @@
         </div>
       `;
 
-      // Section: Media Type
-      const mediaTypes = [
-        { id: 'watchlist', label: 'Watchlist', icon: '🍿' },
-        { id: 'movie', label: 'Films', icon: '🎬' },
-        { id: 'tv', label: 'Series', icon: '📺' },
-        { id: 'all', label: 'All', icon: '🌟' }
+      // Section 5: Minimum Rating
+      const ratingLabel = (!window.actorFilterRating || window.actorFilterRating === 'all') ? 'Any Rating' : `⭐ ${window.actorFilterRating}.0+`;
+      const ratingOptions = [
+        { value: 'all', label: 'Any Rating' },
+        { value: '6', label: '⭐ 6.0+' },
+        { value: '7', label: '⭐ 7.0+' },
+        { value: '8', label: '⭐ 8.0+' }
       ];
-      sectionsHtml = `
+      sectionsHtml += `
         <div>
           <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-            <span>Media Type</span>
-            <span class="text-blue-400 font-bold normal-case text-xs">${mediaTypes.find(m => m.id === actorMediaTypeFilter)?.label || 'Watchlist'}</span>
+            <span>Minimum Rating</span>
+            <span class="text-blue-400 font-bold normal-case text-xs">${escapeHTML(ratingLabel)}</span>
           </div>
-          <div class="grid grid-cols-2 min-[400px]:grid-cols-4 gap-2">
-            ${mediaTypes.map(m => {
-              const isActive = m.id === actorMediaTypeFilter;
-              return `<button type="button" onclick="selectActorSheetMediaType('${m.id}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${m.icon} ${m.label}</button>`;
+          <div class="flex flex-wrap gap-2">
+            ${ratingOptions.map(r => {
+              const isActive = (window.actorFilterRating || 'all') === r.value;
+              return `<button type="button" onclick="selectActorSheetFilter('rating', '${r.value}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(r.label)}</button>`;
             }).join('')}
           </div>
         </div>
-      ` + sectionsHtml;
+      `;
 
       content.innerHTML = sectionsHtml;
     }
@@ -8592,6 +8667,8 @@
         if (decadeSel) decadeSel.value = value;
         const decadeLbl = document.getElementById('actorDecadeLabel');
         if (decadeLbl) decadeLbl.textContent = value === 'all' ? 'All Decades' : value;
+      } else if (type === 'rating') {
+        window.actorFilterRating = value;
       }
       actorCurrentPage = 1;
       refreshActorFilmographyGrid();
