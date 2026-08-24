@@ -1771,9 +1771,9 @@
     <section id="resultsSection" class="hidden pb-20 relative z-10 flex-1">
       <!-- 1. Categories & Tools Bar -->
       <div id="categoriesBar"
-        class="glass-panel rounded-2xl p-2.5 sm:p-3 mb-4 flex flex-col lg:flex-row gap-3 lg:gap-4 lg:items-center animate-fade relative"
+        class="glass-panel rounded-2xl p-2.5 sm:p-3 mb-4 flex flex-col lg:flex-row gap-2.5 sm:gap-3 lg:gap-4 lg:items-center animate-fade relative"
         style="animation-delay: 0.05s;">
-        <div class="grid grid-cols-2 sm:grid-cols-4 lg:flex lg:flex-1 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-auto sm:h-[42px] items-center">
+        <div class="grid grid-cols-2 min-[420px]:grid-cols-4 lg:flex lg:flex-1 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-auto min-[420px]:h-[42px] items-center">
           <button class="tab-btn active" data-tab="stream">Available <span id="tabCount-stream"
               class="tab-badge">0</span></button>
           <button class="tab-btn" data-tab="rentbuy">Rent / Buy <span id="tabCount-rentbuy"
@@ -1786,26 +1786,26 @@
         <div class="hidden lg:block w-px h-8 bg-white/10 mx-1 self-center"></div>
         <div class="grid grid-cols-3 gap-2 w-full lg:flex lg:w-auto shrink-0">
           <button id="vpnToggleBtnInline" title="Also show VPN unlocks"
-            class="h-[42px] flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-black/40 border border-white/10 text-gray-400 text-xs font-bold uppercase tracking-widest rounded-xl transition-all">
+            class="h-[40px] sm:h-[42px] flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            VPN <span id="vpnToggleDotInline"
+            <span>VPN</span> <span id="vpnToggleDotInline"
               class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
           </button>
           <button id="statsBtn"
-            class="h-[42px] flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-black/40 border border-white/10 text-gray-400 text-xs font-bold uppercase tracking-widest rounded-xl transition-all"
+            class="h-[40px] sm:h-[42px] flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
             title="Insights">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
               </path>
             </svg>
-            Insights
+            <span>Insights</span>
           </button>
           <button id="rouletteBtn"
-            class="h-[42px] flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-black/40 border border-white/10 text-gray-400 text-xs font-bold uppercase tracking-widest rounded-xl transition-all"
+            class="h-[40px] sm:h-[42px] flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
             title="Roulette">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <circle cx="12" cy="12" r="9"></circle>
@@ -1814,7 +1814,7 @@
                 d="M12 3v6m0 6v6M3 12h6m6 0h6M5.636 5.636l4.243 4.243m4.242 4.242l4.243 4.243M5.636 18.364l4.243-4.243m4.242-4.242l4.243-4.243">
               </path>
             </svg>
-            Roulette
+            <span>Roulette</span>
           </button>
         </div>
       </div>
@@ -1955,14 +1955,14 @@
       </button>
     </nav>
     <div id="allCastBannerHero"
-      class="relative w-full h-[240px] sm:h-[300px] shrink-0 overflow-hidden bg-[#0b1121] flex flex-col justify-end clip-mask">
+      class="relative w-full h-[320px] sm:h-[400px] lg:h-[440px] shrink-0 overflow-hidden bg-[#0b1121] flex flex-col justify-end clip-mask">
       <div id="allCastBannerArt" class="absolute inset-0"></div>
       <div
         class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/80 to-transparent pointer-events-none z-20">
       </div>
 
       <div
-        class="relative z-30 max-w-[1480px] mx-auto w-full px-5 sm:px-10 pb-5 sm:pb-7 flex flex-col gap-1.5 sm:gap-2 pointer-events-auto">
+        class="relative z-30 max-w-[1480px] mx-auto w-full px-5 sm:px-10 pt-24 sm:pt-28 pb-6 sm:pb-8 flex flex-col gap-1.5 sm:gap-2 pointer-events-auto">
         <span class="text-gray-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Cast &amp; Crew</span>
         <h1 id="allCastModalTitle"
           class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">Full Cast &amp; Crew</h1>
@@ -1974,22 +1974,10 @@
     <!-- MAIN CONTENT CONTAINER -->
     <div class="max-w-[1480px] mx-auto w-full px-5 sm:px-10 pt-4 pb-12 z-30 flex-1 flex flex-col">
       
-      <!-- 1. Category Tabs Bar (ON TOP) -->
-      <div class="glass-panel p-2.5 sm:p-3 rounded-2xl mb-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 animate-fade">
-        <div class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full sm:w-auto h-[42px]">
-          <button id="allCastTabAll" onclick="setAllCastTab('all')"
-            class="tab-btn active flex-1 sm:flex-none">All <span id="allCastTabCountAll" class="tab-badge">0</span></button>
-          <button id="allCastTabCast" onclick="setAllCastTab('cast')"
-            class="tab-btn flex-1 sm:flex-none">Cast <span id="allCastTabCountCast" class="tab-badge">0</span></button>
-          <button id="allCastTabCrew" onclick="setAllCastTab('crew')"
-            class="tab-btn flex-1 sm:flex-none">Crew <span id="allCastTabCountCrew" class="tab-badge">0</span></button>
-        </div>
-        <div id="allCastCountInfo" class="hidden sm:block text-xs font-bold uppercase tracking-widest text-gray-400 pr-2"></div>
-      </div>
-
-      <!-- 2. Search & Filter Bar (UNDERNEATH) -->
-      <div class="glass-panel p-3 sm:p-4 rounded-2xl mb-6 animate-fade" style="animation-delay: 0.05s;">
-        <div class="relative w-full flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
+      <!-- Controls Row: Tabs on top (Row 1) & Search underneath (Row 2) on mobile/iPad portrait, side-by-side on desktop/iPad landscape -->
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 mb-6 animate-fade">
+        <!-- Search Input -->
+        <div class="relative w-full lg:flex-1 flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px] order-2 lg:order-1">
           <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
             fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -2005,9 +1993,19 @@
             </svg>
           </button>
         </div>
+
+        <!-- Category Tabs -->
+        <div class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full lg:w-auto h-[42px] shrink-0 order-1 lg:order-2">
+          <button id="allCastTabAll" onclick="setAllCastTab('all')"
+            class="tab-btn active flex-1 lg:flex-none">All <span id="allCastTabCountAll" class="tab-badge">0</span></button>
+          <button id="allCastTabCast" onclick="setAllCastTab('cast')"
+            class="tab-btn flex-1 lg:flex-none">Cast <span id="allCastTabCountCast" class="tab-badge">0</span></button>
+          <button id="allCastTabCrew" onclick="setAllCastTab('crew')"
+            class="tab-btn flex-1 lg:flex-none">Crew <span id="allCastTabCountCrew" class="tab-badge">0</span></button>
+        </div>
       </div>
 
-      <!-- 3. Cast & Crew Grid -->
+      <!-- Cast & Crew Grid -->
       <div id="allCastGrid"
         class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4 sm:gap-6 content-start">
       </div>
