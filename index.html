@@ -1784,7 +1784,7 @@
             Match with a friend
           </button>
           <p id="formError"
-            class="text-red-400 text-xs font-bold uppercase tracking-widest hidden bg-red-950/30 border border-red-900/50 rounded-xl px-4 py-2 text-left w-fit">
+            class="text-red-400 text-[10px] font-bold uppercase tracking-widest hidden bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-1.5 flex items-center justify-center sm:justify-start gap-1.5 w-fit shrink-0">
           </p>
         </div>
       </div>
@@ -3878,7 +3878,7 @@
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center text-gray-500 text-xs font-bold uppercase tracking-widest py-8">No services found</div>`;
+        grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[220px] text-gray-500 gap-2 text-center py-8"><span class="text-3xl opacity-60">📡</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">No services found</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">Try searching with a different service name.</span></div>`;
         return;
       }
 
@@ -6781,7 +6781,10 @@
       }
 
       if (list.length === 0) {
-        grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 font-bold text-sm">No people match your filter.</div>`;
+        const emptyIcon = query ? '🔍' : '👥';
+        const emptyMsg = query ? 'No people match your search' : 'No cast or crew found';
+        const emptySub = query ? 'Try searching for a different name or department.' : 'Nothing listed for this selection.';
+        grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
         return;
       }
 
@@ -7037,7 +7040,7 @@
     if (el.quickSearchInput) {
       el.quickSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => {
-          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-4 text-gray-500 text-sm font-medium text-center">No results found.</div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
+          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60">🔍</span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
             el.searchDropdown.innerHTML = '';
             results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 15).forEach(item => {
               const isPerson = item.__mediaType === 'person';
@@ -8317,20 +8320,27 @@
 
       let filmographyHtml = '';
       if (moviesToShow.length === 0) {
-        const isFiltered = actorFilterQuery || (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all');
-        let emptyMsg = 'No credits found.';
+        const isFiltered = actorFilterQuery || (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterRating && actorFilterRating !== 'all');
+        let emptyIcon = isFiltered ? '🔍' : (actorMediaTypeFilter === 'watchlist' ? '📋' : (actorMediaTypeFilter === 'tv' ? '📺' : '🎬'));
+        let emptyMsg = 'No credits found';
+        let emptySub = 'Nothing landed here for your current selection.';
         if (isFiltered) {
-          emptyMsg = 'No titles match your filters.';
+          emptyMsg = 'No titles match your filters';
+          emptySub = 'Try a different search, genre, or decade.';
         } else if (actorMediaTypeFilter === 'watchlist') {
-          emptyMsg = `No watchlist titles found for this ${activeRole.toLowerCase()}.`;
+          emptyMsg = `No watchlist titles found`;
+          emptySub = `No titles from your scanned watchlist for this ${activeRole.toLowerCase()}.`;
         } else if (actorMediaTypeFilter === 'movie') {
-          emptyMsg = `No films found for this ${activeRole.toLowerCase()}.`;
+          emptyMsg = `No films found`;
+          emptySub = `No feature films listed for this ${activeRole.toLowerCase()}.`;
         } else if (actorMediaTypeFilter === 'tv') {
-          emptyMsg = `No series found for this ${activeRole.toLowerCase()}.`;
+          emptyMsg = `No series found`;
+          emptySub = `No television series listed for this ${activeRole.toLowerCase()}.`;
         } else {
-          emptyMsg = `No credits found for this ${activeRole.toLowerCase()}.`;
+          emptyMsg = `No credits found`;
+          emptySub = `No available credits for this ${activeRole.toLowerCase()}.`;
         }
-        filmographyHtml = `<div class="col-span-full flex items-center justify-center min-h-[150px] text-gray-500 font-bold uppercase tracking-widest text-xs">${emptyMsg}</div>`;
+        filmographyHtml = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
       } else {
         pageMovies.forEach((m, idx) => {
           const mTitle = escapeHTML(m.title);
