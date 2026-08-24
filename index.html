@@ -3136,6 +3136,7 @@
     let cachedSelectedProviders = [];
     try { cachedSelectedProviders = JSON.parse(localStorage.getItem('ps_selected_providers') || '[]'); } catch (e) { console.warn('[Selected Providers Cache Read]', e); cachedSelectedProviders = []; }
     let currentProviders = [];
+    let activeScanSessionId = 0;
     let isScanning = false; let cancelRequested = false;
     let activeTab = 'stream'; let currentPage = 1; let currentGroupedResults = { stream: [], other: [], rentbuy: [], unavailable: [] }; let isFriendMatchActive = false;
     let el = {};
@@ -7117,8 +7118,10 @@
     if (el.stopButton) {
       el.stopButton.addEventListener('click', () => {
         if (isScanning) {
+          activeScanSessionId++;
           cancelRequested = true;
           isScanning = false;
+          scannedMovies = [];
           if (el.progressSection) el.progressSection.classList.add('hidden');
           if (el.progressLabel) el.progressLabel.textContent = '';
           if (el.progressBar) el.progressBar.style.width = '0%';
@@ -7904,28 +7907,29 @@
         if (!username && friendName) { if (el.formError) { el.formError.textContent = 'ERROR: Enter your own username to match with a friend.'; el.formError.classList.remove('hidden'); } return; }
         if (!username) { if (el.formError) { el.formError.textContent = 'ERROR: Letterboxd username required.'; el.formError.classList.remove('hidden'); } return; }
         if (username === friendName) { if (el.formError) { el.formError.textContent = 'ERROR: You cannot match with yourself.'; el.formError.classList.remove('hidden'); } return; }
+        const myScanSessionId = ++activeScanSessionId;
         isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('pointer-events-none', 'opacity-50'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); document.querySelectorAll('.service-btn').forEach(b => b.classList.add('locked')); if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
         scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.statsBar) el.statsBar.classList.add('hidden');
         if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden');
-        if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all';
+        if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';
         try {
           if (el.progressSection) el.progressSection.classList.remove('hidden'); if (el.progressBar) el.progressBar.style.width = `0%`; if (el.progressPercent) el.progressPercent.textContent = '0%';
-          const myTitles = await fetchWatchlist(username, 'Pinging your servers'); if (cancelRequested) throw new Error('Scan aborted by user.'); if (myTitles.length === 0) throw new Error(`DATA EMPTY: Ensure ${username} is public.`);
+          const myTitles = await fetchWatchlist(username, 'Pinging your servers'); if (myScanSessionId !== activeScanSessionId || cancelRequested) throw new Error('Scan aborted by user.'); if (myTitles.length === 0) throw new Error(`DATA EMPTY: Ensure ${username} is public.`);
           let titlesToProcess = myTitles;
           if (friendName) {
             if (el.progressBar) el.progressBar.style.width = `10%`; if (el.progressPercent) el.progressPercent.textContent = '10%';
-            const friendTitles = await fetchWatchlist(friendName, 'Pinging friend servers'); if (cancelRequested) throw new Error('Scan aborted by user.'); if (friendTitles.length === 0) throw new Error(`DATA EMPTY: Ensure ${friendName} is public.`);
+            const friendTitles = await fetchWatchlist(friendName, 'Pinging friend servers'); if (myScanSessionId !== activeScanSessionId || cancelRequested) throw new Error('Scan aborted by user.'); if (friendTitles.length === 0) throw new Error(`DATA EMPTY: Ensure ${friendName} is public.`);
             const friendKeys = new Set(friendTitles.map(getFilmKey)); titlesToProcess = myTitles.filter(t => friendKeys.has(getFilmKey(t))); if (titlesToProcess.length === 0) { throw new Error('NO MATCHES: You and your friend have no movies in common!'); }
           }
           for (let i = 0; i < titlesToProcess.length; i += BATCH_SIZE) {
-            if (cancelRequested) break; const batch = titlesToProcess.slice(i, i + BATCH_SIZE); const pct = 15 + ((i / titlesToProcess.length) * 85);
+            if (myScanSessionId !== activeScanSessionId || cancelRequested) break; const batch = titlesToProcess.slice(i, i + BATCH_SIZE); const pct = 15 + ((i / titlesToProcess.length) * 85);
             if (el.progressLabel) el.progressLabel.textContent = `Cross-referencing global database (${i + 1} of ${titlesToProcess.length})...`; if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%';
-            if (cancelRequested) break;
+            if (myScanSessionId !== activeScanSessionId || cancelRequested) break;
             await Promise.all(batch.map(async (qObj) => {
-              if (cancelRequested) return;
+              if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
               try {
                 const best = await findBestMediaMatch(qObj);
-                if (cancelRequested || !best) return;
+                if (myScanSessionId !== activeScanSessionId || cancelRequested || !best) return;
                 if (!best) return;
                 const mediaType = best.__mediaType === 'tv' ? 'tv' : 'movie';
                 const pUrl = `https://api.themoviedb.org/3/${mediaType}/${best.id}/watch/providers?api_key=${TMDB_API_KEY}`; const pRes = await fetch(pUrl); const pData = await pRes.json().catch(() => ({}));
@@ -7955,6 +7959,7 @@
                 const bestDate = getResultDate(best);
                 const filmSlug = qObj.slug || null;
                 const runtimeMinutes = best.runtime || (best.episode_run_time ? best.episode_run_time[0] : 0) || 0;
+                if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
                 scannedMovies.push({
                   __scannedIndex: qObj.extractedIndex !== undefined ? qObj.extractedIndex : scannedMovies.length,
                   runtime: runtimeMinutes,
@@ -7978,9 +7983,21 @@
               } catch (e) { console.warn('[TMDB Watch Provider Scan Fetch]', e); }
             })); await new Promise(r => setTimeout(r, TMDB_REQUEST_DELAY_MS));
           }
-          if (cancelRequested) throw new Error('Scan aborted by user.');
+          if (myScanSessionId !== activeScanSessionId || cancelRequested) throw new Error('Scan aborted by user.');
           if (el.progressLabel) el.progressLabel.textContent = 'Rendering Visual Matrix...'; if (el.progressBar) el.progressBar.style.width = '100%'; if (el.progressPercent) el.progressPercent.textContent = '100%';
           isFriendMatchActive = friendName !== ''; localStorage.setItem('ps_is_friend_match_active', isFriendMatchActive);
+          
+          // Deduplicate scannedMovies before sorting and storing
+          const seenKeys = new Set();
+          const uniqueScanned = [];
+          for (const m of scannedMovies) {
+            const k = `${m.mediaType || 'movie'}-${m.id}`;
+            if (!seenKeys.has(k)) {
+              seenKeys.add(k);
+              uniqueScanned.push(m);
+            }
+          }
+          scannedMovies = uniqueScanned;
           scannedMovies.sort((a, b) => (a.__scannedIndex || 0) - (b.__scannedIndex || 0)); saveScanToStorage(scannedMovies, isFriendMatchActive);
           setTimeout(() => {
             if (el.progressSection) el.progressSection.classList.add('hidden');
@@ -8007,6 +8024,8 @@
     let actorFilterDecade = 'all';
     let actorFilterRating = 'all';
     window.actorFilterRating = 'all';
+    let actorFilterRuntime = 'all';
+    window.actorFilterRuntime = 'all';
     let actorCurrentPage = 1;
     const ACTOR_ITEMS_PER_PAGE = 60;
 
@@ -8184,6 +8203,18 @@
         moviesToShow = moviesToShow.filter(m => {
           const r = parseFloat(getCachedRating(m) || m.vote_average || 0);
           return r >= minR;
+        });
+      }
+
+      // Apply runtime filter
+      if (actorFilterRuntime && actorFilterRuntime !== 'all') {
+        moviesToShow = moviesToShow.filter(m => {
+          const runVal = m.runtime || (m.episode_run_time && m.episode_run_time[0]) || 0;
+          if (runVal <= 0) return true;
+          if (actorFilterRuntime === 'short') return runVal < 90;
+          if (actorFilterRuntime === 'medium') return runVal >= 90 && runVal <= 120;
+          if (actorFilterRuntime === 'long') return runVal > 120;
+          return true;
         });
       }
 
@@ -8374,6 +8405,9 @@
       };
       const currentDecadeLabel = decadeLabels[actorFilterDecade] || 'All Decades';
       const currentGenreLabel = actorFilterGenre === 'all' ? 'All Genres' : actorFilterGenre;
+
+      const runtimeLabels = { all: 'All Lengths', short: '< 90 min', medium: '90–120 min', long: '> 120 min' };
+      const currentRuntimeLabel = runtimeLabels[actorFilterRuntime] || 'All Lengths';
 
       // Sort label map
       const sortLabels = { year_desc: 'Newest First', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest Rated', rating_asc: 'Lowest Rated', year_asc: 'Oldest First' };
@@ -8567,6 +8601,7 @@
                     <div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorSortLabel">${currentSortLabel}</span><select id="actorFilmSort" class="filter-select"><option value="year_desc"${actorFilterSort === 'year_desc' ? ' selected' : ''}>Newest First</option><option value="popularity"${actorFilterSort === 'popularity' ? ' selected' : ''}>Popular</option><option value="az"${actorFilterSort === 'az' ? ' selected' : ''}>A-Z</option><option value="za"${actorFilterSort === 'za' ? ' selected' : ''}>Z-A</option><option value="rating_desc"${actorFilterSort === 'rating_desc' ? ' selected' : ''}>Highest Rated</option><option value="rating_asc"${actorFilterSort === 'rating_asc' ? ' selected' : ''}>Lowest Rated</option><option value="year_asc"${actorFilterSort === 'year_asc' ? ' selected' : ''}>Oldest First</option></select></div>
                     <div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorGenreLabel">${escapeHTML(currentGenreLabel)}</span><select id="actorFilmGenre" class="filter-select"><option value="all"${actorFilterGenre === 'all' ? ' selected' : ''}>All Genres</option>${availableActorGenres.map(g => `<option value="${escapeHTML(g)}"${actorFilterGenre === g ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('')}</select></div>
                     <div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorDecadeLabel">${currentDecadeLabel}</span><select id="actorFilmDecade" class="filter-select"><option value="all"${actorFilterDecade === 'all' ? ' selected' : ''}>All Decades</option><option value="2020s"${actorFilterDecade === '2020s' ? ' selected' : ''}>2020s</option><option value="2010s"${actorFilterDecade === '2010s' ? ' selected' : ''}>2010s</option><option value="2000s"${actorFilterDecade === '2000s' ? ' selected' : ''}>2000s</option><option value="1990s"${actorFilterDecade === '1990s' ? ' selected' : ''}>1990s</option><option value="1980s"${actorFilterDecade === '1980s' ? ' selected' : ''}>1980s</option><option value="1970s"${actorFilterDecade === '1970s' ? ' selected' : ''}>1970s</option><option value="1960s"${actorFilterDecade === '1960s' ? ' selected' : ''}>1960s</option><option value="1950s"${actorFilterDecade === '1950s' ? ' selected' : ''}>1950s</option><option value="older"${actorFilterDecade === 'older' ? ' selected' : ''}>Older</option></select></div>
+                    <div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorRuntimeLabel">${currentRuntimeLabel}</span><select id="actorFilmRuntime" class="filter-select"><option value="all"${actorFilterRuntime === 'all' ? ' selected' : ''}>All Lengths</option><option value="short"${actorFilterRuntime === 'short' ? ' selected' : ''}>&lt; 90 min</option><option value="medium"${actorFilterRuntime === 'medium' ? ' selected' : ''}>90–120 min</option><option value="long"${actorFilterRuntime === 'long' ? ' selected' : ''}>&gt; 120 min</option></select></div>
                   </div>
                 </div>
               </div>
@@ -8745,6 +8780,29 @@
         </div>
       `;
 
+      // Section 6: Film Length
+      const runtimeLabel = (!actorFilterRuntime || actorFilterRuntime === 'all') ? 'Any Length' : (actorFilterRuntime === 'short' ? '< 90 min' : (actorFilterRuntime === 'medium' ? '90–120 min' : '> 120 min'));
+      const runtimeOptions = [
+        { value: 'all', label: 'Any Length' },
+        { value: 'short', label: '< 90 min' },
+        { value: 'medium', label: '90–120 min' },
+        { value: 'long', label: '> 120 min' }
+      ];
+      sectionsHtml += `
+        <div>
+          <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
+            <span>Film Length</span>
+            <span class="text-blue-400 font-bold normal-case text-xs">${escapeHTML(runtimeLabel)}</span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            ${runtimeOptions.map(r => {
+              const isActive = (actorFilterRuntime || 'all') === r.value;
+              return `<button type="button" onclick="selectActorSheetFilter('runtime', '${r.value}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(r.label)}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
       content.innerHTML = sectionsHtml;
     }
 
@@ -8785,6 +8843,16 @@
       } else if (type === 'rating') {
         actorFilterRating = value;
         window.actorFilterRating = value;
+      } else if (type === 'runtime') {
+        actorFilterRuntime = value;
+        window.actorFilterRuntime = value;
+        const runtimeSel = document.getElementById('actorFilmRuntime');
+        if (runtimeSel) runtimeSel.value = value;
+        const runtimeLbl = document.getElementById('actorRuntimeLabel');
+        if (runtimeLbl) {
+          const runtimeLabels = { all: 'All Lengths', short: '< 90 min', medium: '90–120 min', long: '> 120 min' };
+          runtimeLbl.textContent = runtimeLabels[value] || value;
+        }
       }
       actorCurrentPage = 1;
       refreshActorFilmographyGrid();
@@ -8798,18 +8866,24 @@
       actorFilterDecade = 'all';
       actorFilterRating = 'all';
       window.actorFilterRating = 'all';
+      actorFilterRuntime = 'all';
+      window.actorFilterRuntime = 'all';
       const sortSel = document.getElementById('actorFilmSort');
       if (sortSel) sortSel.value = 'popularity';
       const genreSel = document.getElementById('actorFilmGenre');
       if (genreSel) genreSel.value = 'all';
       const decadeSel = document.getElementById('actorFilmDecade');
       if (decadeSel) decadeSel.value = 'all';
+      const runtimeSel = document.getElementById('actorFilmRuntime');
+      if (runtimeSel) runtimeSel.value = 'all';
       const sortLbl = document.getElementById('actorSortLabel');
       if (sortLbl) sortLbl.textContent = 'Popular';
       const genreLbl = document.getElementById('actorGenreLabel');
       if (genreLbl) genreLbl.textContent = 'All Genres';
       const decadeLbl = document.getElementById('actorDecadeLabel');
       if (decadeLbl) decadeLbl.textContent = 'All Decades';
+      const runtimeLbl = document.getElementById('actorRuntimeLabel');
+      if (runtimeLbl) runtimeLbl.textContent = 'All Lengths';
 
       actorCurrentPage = 1;
       refreshActorFilmographyGrid();
@@ -9066,6 +9140,19 @@
           if (decadeLabel) decadeLabel.textContent = e.target.options[e.target.selectedIndex]?.text || e.target.value;
           refreshActorFilmographyGrid();
           try { e.target.blur(); } catch (err) { console.warn('[Actor Filter Decade Blur]', err); }
+        });
+      }
+      const runtimeSelect = document.getElementById('actorFilmRuntime');
+      const runtimeLabel = document.getElementById('actorRuntimeLabel');
+      if (runtimeSelect) {
+        runtimeSelect.addEventListener('change', (e) => {
+          actorFilterRuntime = e.target.value;
+          window.actorFilterRuntime = e.target.value;
+          actorCurrentPage = 1;
+          if (runtimeLabel) runtimeLabel.textContent = e.target.options[e.target.selectedIndex]?.text || e.target.value;
+          refreshActorFilmographyGrid();
+          syncActorFilterButtonState();
+          try { e.target.blur(); } catch (err) { console.warn('[Actor Filter Runtime Blur]', err); }
         });
       }
     }
