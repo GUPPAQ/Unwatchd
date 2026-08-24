@@ -1867,7 +1867,15 @@
               </button>
             </div>
 
-            <!-- Mobile & iPad Portrait VPN Toggle Button (To the right of searchbar, to the left of options) -->
+            <!-- Options / Filter Sheet Button (To the right of Searchbar) -->
+            <button id="homeFilterToggleBtn" type="button" onclick="openHomeFilterSheet()" aria-label="Filters and sorting" class="portrait-filter-btn shrink-0 h-[42px] px-3.5 items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
+              </svg>
+              <span id="homeFilterDot" class="hidden w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+            </button>
+
+            <!-- Mobile & iPad Portrait VPN Toggle Button (To the right of options button) -->
             <button id="vpnToggleBtnInline" title="Also show VPN unlocks"
               class="portrait-tools-inline h-[42px] shrink-0 items-center justify-center gap-1.5 px-3 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
               <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1876,14 +1884,6 @@
               </svg>
               <span>VPN</span> <span id="vpnToggleDotInline"
                 class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
-            </button>
-
-            <!-- Options / Filter Sheet Button (To the right of VPN on mobile & iPad portrait) -->
-            <button id="homeFilterToggleBtn" type="button" onclick="openHomeFilterSheet()" aria-label="Filters and sorting" class="portrait-filter-btn shrink-0 h-[42px] px-3.5 items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-              </svg>
-              <span id="homeFilterDot" class="hidden w-1.5 h-1.5 rounded-full bg-blue-400"></span>
             </button>
           </div>
 
