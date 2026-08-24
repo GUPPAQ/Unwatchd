@@ -5106,7 +5106,7 @@
       const id = 'heroOverview_' + (++heroOverviewCounter);
       heroOverviewTextStore[id] = { text: escapedText, popupTitle };
       setTimeout(() => clampHeroOverview(id), 0);
-      return `<p id="${id}" class="w-full max-w-full lg:max-w-2xl text-gray-200 text-base sm:text-lg leading-snug font-medium">${escapedText}</p>`;
+      return `<p id="${id}" class="w-full max-w-full lg:max-w-2xl text-gray-200 text-base sm:text-lg leading-snug font-medium line-clamp-2">${escapedText}</p>`;
     }
     // Measures the actual rendered paragraph and binary-searches for the longest prefix that still
     // fits on 2 lines once "… More" is appended — guarantees "More" lands as the real last word on
@@ -5115,6 +5115,7 @@
       const p = document.getElementById(id);
       const data = heroOverviewTextStore[id];
       if (!p || !data) return;
+      p.classList.remove('line-clamp-2');
       const lineHeight = parseFloat(getComputedStyle(p).lineHeight) || 24;
       const maxHeight = lineHeight * 2 + 2;
       const moreSpan = `<span class="text-blue-400 font-extrabold">more</span>`;
@@ -7614,31 +7615,55 @@
 
 
 
-    function generateActorHTML(person, showWatchlistOnly, roleHint = '', isModal = true, isPage = false) {
-      if (!person) {
-        return `<div class="p-10 text-center text-red-400">Error loading actor details.</div>`;
+    function renderActorPaginationHtml(currentPage, maxPage) {
+      if (maxPage <= 1) return '';
+      let btnsHtml = '';
+
+      const createBtn = (text, disabled, page, isActive = false) => {
+        if (isActive) {
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+        } else if (disabled && text !== '...') {
+          return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
+        } else if (text === '...') {
+          return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none">...</button>`;
+        } else {
+          return `<button type="button" onclick="setActorPage(${page})" class="w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer">${text}</button>`;
+        }
+      };
+
+      const prevDisabled = currentPage === 1;
+      btnsHtml += createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', prevDisabled, currentPage - 1);
+
+      if (maxPage <= 5) {
+        for (let i = 1; i <= maxPage; i++) btnsHtml += createBtn(i, false, i, i === currentPage);
+      } else {
+        if (currentPage <= 3) {
+          for (let i = 1; i <= 4; i++) btnsHtml += createBtn(i, false, i, i === currentPage);
+          btnsHtml += createBtn('...', true, 0);
+          btnsHtml += createBtn(maxPage, false, maxPage, maxPage === currentPage);
+        } else if (currentPage >= maxPage - 2) {
+          btnsHtml += createBtn(1, false, 1, 1 === currentPage);
+          btnsHtml += createBtn('...', true, 0);
+          for (let i = maxPage - 3; i <= maxPage; i++) btnsHtml += createBtn(i, false, i, i === currentPage);
+        } else {
+          btnsHtml += createBtn(1, false, 1, 1 === currentPage);
+          btnsHtml += createBtn('...', true, 0);
+          btnsHtml += createBtn(currentPage - 1, false, currentPage - 1, false);
+          btnsHtml += createBtn(currentPage, false, currentPage, true);
+          btnsHtml += createBtn(currentPage + 1, false, currentPage + 1, false);
+          btnsHtml += createBtn('...', true, 0);
+          btnsHtml += createBtn(maxPage, false, maxPage, false);
+        }
       }
+
+      const nextDisabled = currentPage === maxPage;
+      btnsHtml += createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', nextDisabled, currentPage + 1);
+
+      return `<div class="col-span-full flex items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-6 pb-2 select-none">${btnsHtml}</div>`;
+    }
+
+    function buildActorFilmographyGridHtml(person, showWatchlistOnly, roleHint = '', isModal = true, isPage = false) {
       const isDirector = isPersonDirector(person, roleHint);
-      const safeName = escapeHTML(person.name || 'Unknown');
-      const profileImg = person.profile_path ? `https://image.tmdb.org/t/p/h632${person.profile_path}` : null;
-      const birthday = person.birthday ? person.birthday : null;
-      const deathday = person.deathday ? person.deathday : null;
-      const birthplace = person.place_of_birth ? escapeHTML(person.place_of_birth) : null;
-      const bio = person.biography ? escapeHTML(person.biography) : null;
-      const imdbId = person.external_ids && person.external_ids.imdb_id ? person.external_ids.imdb_id : null;
-      const tmdbId = person.id;
-
-      // Build age string
-      let ageStr = '';
-      if (birthday) {
-        const bDate = new Date(birthday);
-        const endDate = deathday ? new Date(deathday) : new Date();
-        let age = endDate.getFullYear() - bDate.getFullYear();
-        const m = endDate.getMonth() - bDate.getMonth();
-        if (m < 0 || (m === 0 && endDate.getDate() < bDate.getDate())) age--;
-        ageStr = deathday ? `${age} (deceased)` : `${age} years old`;
-      }
-
       const { allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles } = getActorMoviesList(person, showWatchlistOnly, roleHint);
       const watchlistKeySet = new Set(scannedMovies.map(m => `${m.mediaType || 'movie'}-${m.id}`));
 
@@ -7648,7 +7673,6 @@
       const startIdx = (actorCurrentPage - 1) * ACTOR_ITEMS_PER_PAGE;
       const pageMovies = moviesToShow.slice(startIdx, startIdx + ACTOR_ITEMS_PER_PAGE);
 
-      // Build filmography cards
       let filmographyHtml = '';
       if (moviesToShow.length === 0) {
         const isFiltered = actorFilterQuery || (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all');
@@ -7693,6 +7717,36 @@
         });
         filmographyHtml += renderActorPaginationHtml(actorCurrentPage, maxActorPage);
       }
+
+      return { filmographyHtml, allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles };
+    }
+
+    function generateActorHTML(person, showWatchlistOnly, roleHint = '', isModal = true, isPage = false) {
+      if (!person) {
+        return `<div class="p-10 text-center text-red-400">Error loading actor details.</div>`;
+      }
+      const isDirector = isPersonDirector(person, roleHint);
+      const safeName = escapeHTML(person.name || 'Unknown');
+      const profileImg = person.profile_path ? `https://image.tmdb.org/t/p/h632${person.profile_path}` : null;
+      const birthday = person.birthday ? person.birthday : null;
+      const deathday = person.deathday ? person.deathday : null;
+      const birthplace = person.place_of_birth ? escapeHTML(person.place_of_birth) : null;
+      const bio = person.biography ? escapeHTML(person.biography) : null;
+      const imdbId = person.external_ids && person.external_ids.imdb_id ? person.external_ids.imdb_id : null;
+      const tmdbId = person.id;
+
+      // Build age string
+      let ageStr = '';
+      if (birthday) {
+        const bDate = new Date(birthday);
+        const endDate = deathday ? new Date(deathday) : new Date();
+        let age = endDate.getFullYear() - bDate.getFullYear();
+        const m = endDate.getMonth() - bDate.getMonth();
+        if (m < 0 || (m === 0 && endDate.getDate() < bDate.getDate())) age--;
+        ageStr = deathday ? `${age} (deceased)` : `${age} years old`;
+      }
+
+      const { filmographyHtml, allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles } = buildActorFilmographyGridHtml(person, showWatchlistOnly, roleHint, isModal, isPage);
 
       // Compute actor's unique available genres across all movies
       const actorGenresSet = new Set();
@@ -8374,28 +8428,47 @@
     function refreshActorFilmographyGrid() {
       const actorPageContainer = document.getElementById('actorPageView');
       const isPageOpen = actorPageContainer && !actorPageContainer.classList.contains('hidden') && window.currentActorPageId;
+      const actorModal = document.getElementById('actorModal');
+      const isModalOpen = actorModal && !actorModal.classList.contains('hidden');
+      const isInline = !isModalOpen && el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden');
+      const activeActorId = isPageOpen ? window.currentActorPageId : (isInline ? currentActorId : modalActiveActorId);
+      const activeRoleHint = isPageOpen ? currentActorRoleHint : (isInline ? currentActorRoleHint : modalActiveActorRoleHint);
+
+      if (!activeActorId) return;
+      const person = actorDetailsCache.get(activeActorId);
+      if (!person) return;
+
+      const isPage = isPageOpen;
+      const isModal = !isInline && !isPage;
+
+      const grid = document.getElementById('actorFilmGrid');
+      if (grid) {
+        const { filmographyHtml } = buildActorFilmographyGridHtml(person, actorModalWatchlistMode, activeRoleHint, isModal, isPage);
+        grid.innerHTML = filmographyHtml;
+        applyTiltToActorGrid();
+
+        // Update tab buttons active state smoothly without destroying hero / bio
+        const container = isPage ? actorPageContainer : (isInline ? el.quickSearchResult : document.getElementById('actorModalContent'));
+        if (container) {
+          const tabBtns = container.querySelectorAll('.actor-tab-btn');
+          if (tabBtns.length >= 4) {
+            tabBtns[0].classList.toggle('active', actorMediaTypeFilter === 'watchlist');
+            tabBtns[1].classList.toggle('active', actorMediaTypeFilter === 'movie');
+            tabBtns[2].classList.toggle('active', actorMediaTypeFilter === 'tv');
+            tabBtns[3].classList.toggle('active', actorMediaTypeFilter === 'all');
+          }
+        }
+        return;
+      }
+
       if (isPageOpen) {
-        const person = actorDetailsCache.get(window.currentActorPageId);
-        if (!person) return;
         const scrollTop = actorPageContainer.scrollTop;
         actorPageContainer.innerHTML = generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, true, true);
         actorPageContainer.scrollTop = scrollTop;
         bindActorFilmControls();
         applyTiltToActorGrid();
-        const inp = document.getElementById('actorFilmSearch');
-        if (inp && actorFilterQuery) { try { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } catch (err) { console.warn('[Actor Filter Focus]', err); } }
         return;
       }
-
-      const actorModal = document.getElementById('actorModal');
-      const isModalOpen = actorModal && !actorModal.classList.contains('hidden');
-      const isInline = !isModalOpen && el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden');
-      const activeActorId = isInline ? currentActorId : modalActiveActorId;
-      const activeRoleHint = isInline ? currentActorRoleHint : modalActiveActorRoleHint;
-
-      if (!activeActorId) return;
-      const person = actorDetailsCache.get(activeActorId);
-      if (!person) return;
 
       if (isInline) {
         el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
@@ -8405,8 +8478,6 @@
         if (backBtnRefresh) backBtnRefresh.onclick = navGoBack;
         bindActorFilmControls();
         applyTiltToActorGrid();
-        const inp = document.getElementById('actorFilmSearch');
-        if (inp && actorFilterQuery) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
         return;
       }
 
@@ -8420,8 +8491,6 @@
       bindActorFilmControls();
       applyTiltToActorGrid();
       content.scrollTop = scrollTop;
-      const inp = document.getElementById('actorFilmSearch');
-      if (inp && actorFilterQuery) { try { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } catch (err) { console.warn('[Actor Filter Focus]', err); } }
     }
 
     async function refreshActorFilmography(isModal) {
@@ -8431,53 +8500,6 @@
       actorFilterDecade = 'all';
       actorFilterSort = 'popularity';
       refreshActorFilmographyGrid();
-    }
-
-    function renderActorPaginationHtml(currentPage, maxPage) {
-      if (maxPage <= 1) return '';
-      let btnsHtml = '';
-
-      const createBtn = (text, disabled, page, isActive = false) => {
-        if (isActive) {
-          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
-        } else if (disabled && text !== '...') {
-          return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
-        } else if (text === '...') {
-          return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none">...</button>`;
-        } else {
-          return `<button type="button" onclick="setActorPage(${page})" class="w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer">${text}</button>`;
-        }
-      };
-
-      const prevDisabled = currentPage === 1;
-      btnsHtml += createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', prevDisabled, currentPage - 1);
-
-      if (maxPage <= 5) {
-        for (let i = 1; i <= maxPage; i++) btnsHtml += createBtn(i, false, i, i === currentPage);
-      } else {
-        if (currentPage <= 3) {
-          for (let i = 1; i <= 4; i++) btnsHtml += createBtn(i, false, i, i === currentPage);
-          btnsHtml += createBtn('...', true, 0);
-          btnsHtml += createBtn(maxPage, false, maxPage, maxPage === currentPage);
-        } else if (currentPage >= maxPage - 2) {
-          btnsHtml += createBtn(1, false, 1, 1 === currentPage);
-          btnsHtml += createBtn('...', true, 0);
-          for (let i = maxPage - 3; i <= maxPage; i++) btnsHtml += createBtn(i, false, i, i === currentPage);
-        } else {
-          btnsHtml += createBtn(1, false, 1, 1 === currentPage);
-          btnsHtml += createBtn('...', true, 0);
-          btnsHtml += createBtn(currentPage - 1, false, currentPage - 1, false);
-          btnsHtml += createBtn(currentPage, false, currentPage, true);
-          btnsHtml += createBtn(currentPage + 1, false, currentPage + 1, false);
-          btnsHtml += createBtn('...', true, 0);
-          btnsHtml += createBtn(maxPage, false, maxPage, false);
-        }
-      }
-
-      const nextDisabled = currentPage === maxPage;
-      btnsHtml += createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', nextDisabled, currentPage + 1);
-
-      return `<div class="col-span-full flex items-center justify-center gap-2 pt-6 pb-2 mt-4">${btnsHtml}</div>`;
     }
 
     function setActorPage(p) {
