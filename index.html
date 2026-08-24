@@ -636,7 +636,7 @@
       background: rgba(0, 0, 0, 0.75) !important;
       backdrop-filter: blur(8px) !important;
       -webkit-backdrop-filter: blur(8px) !important;
-      z-index: 250 !important;
+      z-index: 700 !important;
       opacity: 0 !important;
       pointer-events: none !important;
       transition: opacity 0.25s ease-out !important;
@@ -655,7 +655,7 @@
       right: 0 !important;
       bottom: 0 !important;
       width: 100% !important;
-      z-index: 251 !important;
+      z-index: 701 !important;
       height: 88vh !important;
       height: 88dvh !important;
       max-height: 90vh !important;
@@ -8720,6 +8720,7 @@
     function hideActorPageView() {
       const container = document.getElementById('actorPageView');
       if (!container || container.classList.contains('hidden')) return;
+      closeActorFilterSheet();
       stopHeroVideo();
       window.currentActorPageId = null;
       container.classList.add('hidden');
