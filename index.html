@@ -4788,7 +4788,7 @@
       const bestTrailer = getBestTrailer(details);
       const isMobileDevice = isMobile || (typeof window !== 'undefined' && window.innerWidth < 640);
       const heroTrailer = (!isMobileDevice && bestTrailer && bestTrailer.official && /trailer/i.test(bestTrailer.name || '')) ? bestTrailer : null;
-      const btnClass = "flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2.5 bg-white/5 hover:bg-white/10 border border-white/10 px-2 sm:px-4 py-2.5 sm:py-3 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-300 hover:text-white flex-1 sm:flex-none sm:min-w-[130px] whitespace-nowrap min-w-0";
+      const btnClass = "flex items-center justify-center gap-1.5 sm:gap-2.5 bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 sm:px-4 py-2.5 sm:py-3 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-300 hover:text-white flex-1 w-full min-w-0 whitespace-nowrap text-center";
       const trailerBtnClass = "flex items-center justify-center gap-2 sm:gap-2.5 liquid-glass px-4 py-2.5 sm:px-5 sm:py-3.5 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-white w-full sm:w-auto sm:min-w-[150px] whitespace-nowrap shadow-md cursor-pointer active:scale-95";
       const streamingBtnClass = "provider-glass flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl transition-all text-sm sm:text-base font-bold text-gray-300 hover:text-white flex-1 sm:flex-none min-w-[140px]";
       const streamingBtnClassBig = "provider-glass flex items-center gap-3.5 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl transition-all text-sm sm:text-base font-bold text-gray-300 hover:text-white w-full";
@@ -5030,8 +5030,8 @@
       const shareParam = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
       const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-green-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg><span>Copy Link</span></button>`;
       const movieActionBtns = [trailerActionBtn, letterboxdBtn, imdbBtn, shareBtn].filter(Boolean);
-      const movieActionBtnsGrid = movieActionBtns.length >= 4 ? 'grid-cols-2 lg:grid-cols-3' : (movieActionBtns.length === 3 ? 'grid-cols-3' : 'grid-cols-2');
-      const movieActionBtnsHtml = `<div class="grid ${movieActionBtnsGrid} sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">${movieActionBtns.join('')}</div>`;
+      const movieActionBtnsGrid = movieActionBtns.length >= 4 ? 'grid-cols-2 min-[480px]:grid-cols-4' : (movieActionBtns.length === 3 ? 'grid-cols-3' : 'grid-cols-2');
+      const movieActionBtnsHtml = `<div class="grid ${movieActionBtnsGrid} lg:flex lg:flex-nowrap items-center gap-2 sm:gap-3 w-full lg:w-auto">${movieActionBtns.join('')}</div>`;
 
       const overviewHtml = createExpandableTextHtml(overview, 'movieOverviewText');
 
@@ -8157,7 +8157,7 @@
       // Letterboxd slug
       const lbSlug = person.name ? person.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '';
 
-      const btnClass = 'flex items-center justify-center gap-1.5 sm:gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl transition-all text-xs sm:text-xs min-[840px]:text-sm font-bold text-gray-300 hover:text-white flex-1 min-w-0 whitespace-nowrap text-center';
+      const btnClass = 'flex items-center justify-center gap-1.5 sm:gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl transition-all text-xs sm:text-xs min-[840px]:text-sm font-bold text-gray-300 hover:text-white flex-1 w-full min-w-0 whitespace-nowrap text-center';
 
       const watchlistBtnActive = showWatchlistOnly ? 'active' : '';
       const allBtnActive = showWatchlistOnly ? '' : 'active';
@@ -8202,8 +8202,12 @@
       const imdbBtn = imdbId ? `<a href="https://www.imdb.com/name/${escapeHTML(imdbId)}/" target="_blank" class="${btnClass}"><div class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 relative overflow-hidden rounded-[22.5%] grid place-items-center"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full block object-cover"></div><span>IMDb</span></a>` : '';
       const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?actor=${tmdbId}'); const t=this; const old=t.innerHTML; t.innerHTML='<span class=\\'text-green-400 font-bold\\'>Copied!</span>'; setTimeout(()=>t.innerHTML=old, 2000);" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg><span>Copy Link</span></button>`;
       const actorActionBtns = [letterboxdBtn, imdbBtn, instaBtn, twitterBtn, shareBtn].filter(Boolean);
-      const actorActionBtnsGrid = actorActionBtns.length >= 4 ? 'grid-cols-2 min-[480px]:grid-cols-3' : (actorActionBtns.length === 3 ? 'grid-cols-3' : (actorActionBtns.length === 2 ? 'grid-cols-2' : 'grid-cols-1'));
-      const actorActionBtnsHtml = `<div class="grid ${actorActionBtnsGrid} sm:flex sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full lg:w-auto flex-1">${actorActionBtns.join('')}</div>`;
+      const actorActionBtnsGrid = actorActionBtns.length >= 5
+        ? 'grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-5'
+        : (actorActionBtns.length === 4
+          ? 'grid-cols-2 min-[480px]:grid-cols-4'
+          : (actorActionBtns.length === 3 ? 'grid-cols-3' : 'grid-cols-2'));
+      const actorActionBtnsHtml = `<div class="grid ${actorActionBtnsGrid} lg:flex lg:flex-nowrap items-center gap-2 sm:gap-2.5 w-full lg:w-auto flex-1">${actorActionBtns.join('')}</div>`;
 
       const bioHtml = createExpandableTextHtml(bio, 'actorBioText');
 
@@ -8495,7 +8499,36 @@
         </div>
       `;
 
+      // Section: Media Type
+      const mediaTypes = [
+        { id: 'watchlist', label: 'Watchlist', icon: '🍿' },
+        { id: 'movie', label: 'Films', icon: '🎬' },
+        { id: 'tv', label: 'Series', icon: '📺' },
+        { id: 'all', label: 'All', icon: '🌟' }
+      ];
+      sectionsHtml = `
+        <div>
+          <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
+            <span>Media Type</span>
+            <span class="text-blue-400 font-bold normal-case text-xs">${mediaTypes.find(m => m.id === actorMediaTypeFilter)?.label || 'Watchlist'}</span>
+          </div>
+          <div class="grid grid-cols-2 min-[400px]:grid-cols-4 gap-2">
+            ${mediaTypes.map(m => {
+              const isActive = m.id === actorMediaTypeFilter;
+              return `<button type="button" onclick="selectActorSheetMediaType('${m.id}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${m.icon} ${m.label}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      ` + sectionsHtml;
+
       content.innerHTML = sectionsHtml;
+    }
+
+    function selectActorSheetMediaType(type) {
+      actorMediaTypeFilter = type;
+      actorCurrentPage = 1;
+      refreshActorFilmographyGrid();
+      renderActorFilterSheet();
     }
 
     function selectActorSheetRole(role) {
