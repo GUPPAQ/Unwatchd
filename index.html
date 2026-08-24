@@ -608,29 +608,20 @@
       }
     }
 
-    /* Results Controls Card: Glass panel on tablet & desktop, unboxed on mobile phone */
+    /* Results Controls Card: Glass panel on all devices matching the box above */
     .results-controls-card {
       margin-bottom: 1.5rem;
-    }
-    @media (max-width: 639px) {
-      .results-controls-card {
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-      }
+      background: rgba(15, 23, 42, 0.65) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 1.5rem !important;
+      padding: 1.25rem !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
     }
     @media (min-width: 640px) {
       .results-controls-card {
-        background: rgba(15, 23, 42, 0.65) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 1.5rem !important;
         padding: 1.75rem !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
       }
     }
 
