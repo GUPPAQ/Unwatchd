@@ -613,8 +613,15 @@
 
     .tilt-card {
       overflow: visible !important;
-      content-visibility: auto;
-      contain-intrinsic-size: auto 280px;
+    }
+
+    #castCrewTrack,
+    #relatedMoviesTrack,
+    #similarMoviesTrack {
+      padding-top: 10px !important;
+      padding-bottom: 16px !important;
+      margin-top: -10px !important;
+      margin-bottom: -16px !important;
     }
 
     .tilt-card-inner {
@@ -1157,25 +1164,27 @@
     }
 
     /* Sizing rules:
-       - Touch/Mobile/Tablet: 35% peek effect for swipe discoverability
-       - Desktop (>= 1280px): EXACTLY 6 items, flush and cleanly aligned (0 peek) */
+       - Mobile: 2 full cards flush (0 cut off)
+       - Tablet (iPad portrait): 3 full cards flush (0 cut off)
+       - iPad landscape: 4 full cards flush (0 cut off)
+       - Desktop (>= 1280px): EXACTLY 6 items, flush and cleanly aligned (0 cut off) */
     #relatedMoviesTrack>.tilt-card,
     #similarMoviesTrack>.tilt-card {
-      width: calc((100% - 2 * 1rem) / 2.35) !important;
+      width: calc((100% - 1 * 1rem) / 2) !important;
       flex-shrink: 0 !important;
     }
 
     @media (min-width: 640px) {
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 3 * 1.25rem) / 3.35) !important;
+        width: calc((100% - 2 * 1.25rem) / 3) !important;
       }
     }
 
     @media (min-width: 1024px) {
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 4 * 1.25rem) / 4.35) !important;
+        width: calc((100% - 3 * 1.25rem) / 4) !important;
       }
     }
 
@@ -1187,24 +1196,24 @@
     }
 
     /* Cast Chip Sizing:
-       - Mobile: 3 full cards + 35% peek (3.35)
-       - Tablet (iPad portrait): 3 full cards + 35% peek (3.35)
-       - iPad landscape: 4 full cards + 35% peek (4.35)
-       - Desktop (>= 1280px): EXACTLY 6 actors, flush and cleanly aligned */
+       - Mobile: 3 full cards (3)
+       - Tablet (iPad portrait): 4 full cards (4)
+       - iPad landscape: 5 full cards (5)
+       - Desktop (>= 1280px): EXACTLY 6 actors, flush and cleanly aligned (6) */
     #castCrewTrack>.cast-chip-card {
-      width: calc((100% - 3 * 0.75rem) / 3.35) !important;
+      width: calc((100% - 2 * 0.75rem) / 3) !important;
       flex-shrink: 0 !important;
     }
 
     @media (min-width: 640px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 3 * 1rem) / 3.35) !important;
+        width: calc((100% - 3 * 1rem) / 4) !important;
       }
     }
 
     @media (min-width: 1024px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 4 * 1rem) / 4.35) !important;
+        width: calc((100% - 4 * 1rem) / 5) !important;
       }
     }
 
