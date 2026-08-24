@@ -634,112 +634,14 @@
       }
     }
 
-    /* Letterboxd-Style Bottom Sheet Drawer */
-    .bottom-sheet-backdrop {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      bottom: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
-      background: rgba(0, 0, 0, 0.75) !important;
-      backdrop-filter: blur(8px) !important;
-      -webkit-backdrop-filter: blur(8px) !important;
-      z-index: 700 !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-      transition: opacity 0.25s ease-out !important;
-      visibility: hidden;
-      touch-action: none !important;
-      overscroll-behavior: contain !important;
-    }
-    .bottom-sheet-backdrop.is-open {
-      opacity: 1 !important;
-      pointer-events: auto !important;
-      visibility: visible !important;
-    }
-    /* Mobile Default: Bottom Drawer */
-    .bottom-sheet-drawer {
-      position: fixed !important;
-      left: 0 !important;
-      right: 0 !important;
-      bottom: 0 !important;
-      width: 100% !important;
-      z-index: 701 !important;
-      height: 88vh !important;
-      height: 88dvh !important;
-      max-height: 90vh !important;
-      max-height: 90dvh !important;
-      display: flex !important;
-      flex-direction: column !important;
-      background: #0b1121 !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
-      border-top-left-radius: 1.5rem !important;
-      border-top-right-radius: 1.5rem !important;
-      box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.9) !important;
-      transform: translateY(100%) !important;
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out !important;
-      pointer-events: none !important;
-      visibility: hidden;
-      overscroll-behavior: contain !important;
-      -webkit-overflow-scrolling: touch !important;
-      touch-action: pan-y !important;
-    }
-    .bottom-sheet-drawer.is-open {
-      transform: translateY(0) !important;
-      pointer-events: auto !important;
-      visibility: visible !important;
-    }
-
-    .sheet-drag-handle {
-      display: block;
-    }
-
-    /* Desktop / iPad: Floating Popover Dropdown Menu Underneath Options Button */
-    @media (min-width: 640px) {
-      .bottom-sheet-backdrop {
-        background: transparent !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-      }
-      .bottom-sheet-drawer {
-        position: fixed !important;
-        width: 440px !important;
-        max-width: calc(100vw - 32px) !important;
-        height: auto !important;
-        max-height: min(78vh, 620px) !important;
-        background: rgba(11, 17, 33, 0.96) !important;
-        backdrop-filter: blur(24px) !important;
-        -webkit-backdrop-filter: blur(24px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.16) !important;
-        border-radius: 1.5rem !important;
-        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9), 0 0 35px rgba(59, 130, 246, 0.12) !important;
-        transform: translateY(-8px) scale(0.97) !important;
-        opacity: 0 !important;
-        overflow: hidden !important;
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-      }
-      .bottom-sheet-drawer.is-open {
-        transform: translateY(0) scale(1) !important;
-        opacity: 1 !important;
-      }
-      .sheet-drag-handle {
-        display: none !important;
-      }
-      .sheet-bottom-bar {
-        border-bottom-left-radius: 1.5rem !important;
-        border-bottom-right-radius: 1.5rem !important;
-        padding-bottom: 0.875rem !important;
-      }
-    }
+    /* Filter & Sort Chips for Inline Tray */
     .sheet-chip {
-      padding: 0.5rem 0.875rem;
-      border-radius: 0.75rem;
-      font-size: 0.8125rem;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.625rem;
+      font-size: 0.75rem;
       font-weight: 700;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.04);
       color: #cbd5e1;
       transition: all 0.15s ease;
       cursor: pointer;
@@ -752,15 +654,16 @@
     .sheet-chip:hover {
       background: rgba(255, 255, 255, 0.1);
       color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.2);
     }
     .sheet-chip:active {
       transform: scale(0.96);
     }
     .sheet-chip.is-active {
-      background: #2563eb !important;
-      border-color: #3b82f6 !important;
+      background: #3b82f6 !important;
+      border-color: #60a5fa !important;
       color: #ffffff !important;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
     }
 
     .tab-btn.active .tab-badge {
@@ -1890,6 +1793,75 @@
           </button>
         </div>
 
+        <!-- Collapsible Inline Filter & Sort Tray (Unfolds under options button) -->
+        <div id="homeFilterTray" class="hidden transition-all duration-300 ease-out overflow-hidden pt-1">
+          <div class="p-4 sm:p-5 rounded-2xl bg-black/40 border border-white/10 space-y-4">
+            <!-- Header: Title + Reset button -->
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
+                </svg>
+                <span class="text-xs font-extrabold uppercase tracking-widest text-gray-300">Filter &amp; Sort Options</span>
+              </div>
+              <button type="button" onclick="resetHomeFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
+                Reset all
+              </button>
+            </div>
+
+            <!-- Grid of Filter Sections -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Sort By -->
+              <div>
+                <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2 flex items-center justify-between">
+                  <span>Sort By</span>
+                  <span id="sheetCurrentSortLabel" class="text-blue-400 font-bold normal-case text-xs">Newest First</span>
+                </div>
+                <div id="homeSheetSortChips" class="flex flex-wrap gap-1.5"></div>
+              </div>
+
+              <!-- Rating & Runtime (compact grouped) -->
+              <div class="space-y-3">
+                <!-- Minimum Rating -->
+                <div>
+                  <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2 flex items-center justify-between">
+                    <span>Minimum Rating</span>
+                    <span id="sheetCurrentRatingLabel" class="text-blue-400 font-bold normal-case text-xs">Any Rating</span>
+                  </div>
+                  <div id="homeSheetRatingChips" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <!-- Film Length -->
+                <div>
+                  <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2 flex items-center justify-between">
+                    <span>Film Length</span>
+                    <span id="sheetCurrentRuntimeLabel" class="text-blue-400 font-bold normal-case text-xs">Any Length</span>
+                  </div>
+                  <div id="homeSheetRuntimeChips" class="flex flex-wrap gap-1.5"></div>
+                </div>
+              </div>
+
+              <!-- Release Period / Decade -->
+              <div class="md:col-span-2">
+                <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2 flex items-center justify-between">
+                  <span>Release Period</span>
+                  <span id="sheetCurrentDecadeLabel" class="text-blue-400 font-bold normal-case text-xs">All Decades</span>
+                </div>
+                <div id="homeSheetDecadeChips" class="flex flex-wrap gap-1.5"></div>
+              </div>
+
+              <!-- Genres -->
+              <div class="md:col-span-2">
+                <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2 flex items-center justify-between">
+                  <span>Genre</span>
+                  <span id="sheetCurrentGenreLabel" class="text-blue-400 font-bold normal-case text-xs">All Genres</span>
+                </div>
+                <div id="homeSheetGenreChips" class="flex flex-wrap gap-1.5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Hidden Select Elements for Filter Data Persistence -->
         <div id="homeFiltersDropdown" class="hidden">
           <select id="resultsSort">
@@ -2183,116 +2155,6 @@
   <div id="actorModal" class="fixed inset-0 z-[210] hidden items-center justify-center p-4 sm:p-6" onclick="if(event.target===this) closeActorModal()">
     <div id="actorModalBackdrop" class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer"></div>
     <div id="actorModalContent" class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]"></div>
-  </div>
-
-  <!-- HOMEPAGE FILTER POPUP (BOTTOM SHEET ON MOBILE, MODAL ON DESKTOP) -->
-  <div id="homeFilterBackdrop" class="bottom-sheet-backdrop" onclick="closeHomeFilterSheet()"></div>
-  <div id="homeFilterDrawer" class="bottom-sheet-drawer">
-    <div class="sheet-drag-handle w-12 h-1.5 bg-white/25 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
-    <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/10 shrink-0">
-      <div class="flex items-center gap-2">
-        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-        </svg>
-        <h3 class="text-base font-extrabold text-white">Filters &amp; Sorting</h3>
-      </div>
-      <button type="button" onclick="closeHomeFilterSheet()" aria-label="Close" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-      </button>
-    </div>
-    <div class="flex-1 overflow-y-auto p-5 space-y-6">
-      <!-- Quick Tools: Insights & Roulette -->
-      <div>
-        <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5">
-          Tools &amp; Insights
-        </div>
-        <div class="grid grid-cols-2 gap-2.5">
-          <button type="button" onclick="closeHomeFilterSheet(); if (scannedMovies.length > 0) openInsightsPopup();" class="h-11 flex items-center justify-center gap-2 px-3 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer">
-            <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-            <span>Insights</span>
-          </button>
-          <button type="button" onclick="closeHomeFilterSheet(); openRouletteModal();" class="h-11 flex items-center justify-center gap-2 px-3 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer">
-            <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3"></circle><path stroke-linecap="round" d="M12 3v6m0 6v6M3 12h6m6 0h6M5.636 5.636l4.243 4.243m4.242 4.242l4.243 4.243M5.636 18.364l4.243-4.243m4.242-4.242l4.243-4.243"></path></svg>
-            <span>Roulette</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Sort By -->
-      <div>
-        <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-          <span>Sort By</span>
-          <span id="sheetCurrentSortLabel" class="text-blue-400 font-bold normal-case text-xs">Newest First</span>
-        </div>
-        <div id="homeSheetSortChips" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
-      </div>
-      <!-- Genre -->
-      <div>
-        <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-          <span>Genre</span>
-          <span id="sheetCurrentGenreLabel" class="text-blue-400 font-bold normal-case text-xs">All Genres</span>
-        </div>
-        <div id="homeSheetGenreChips" class="flex flex-wrap gap-2"></div>
-      </div>
-      <!-- Release Period / Decade -->
-      <div>
-        <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-          <span>Release Period</span>
-          <span id="sheetCurrentDecadeLabel" class="text-blue-400 font-bold normal-case text-xs">All Decades</span>
-        </div>
-        <div id="homeSheetDecadeChips" class="flex flex-wrap gap-2"></div>
-      </div>
-      <!-- Minimum Rating -->
-      <div>
-        <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-          <span>Minimum Rating</span>
-          <span id="sheetCurrentRatingLabel" class="text-blue-400 font-bold normal-case text-xs">Any Rating</span>
-        </div>
-        <div id="homeSheetRatingChips" class="flex flex-wrap gap-2"></div>
-      </div>
-      <!-- Film Length -->
-      <div>
-        <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-          <span>Film Length</span>
-          <span id="sheetCurrentRuntimeLabel" class="text-blue-400 font-bold normal-case text-xs">Any Length</span>
-        </div>
-        <div id="homeSheetRuntimeChips" class="flex flex-wrap gap-2"></div>
-      </div>
-    </div>
-    <div class="sheet-bottom-bar p-4 border-t border-white/10 bg-[#090f1d] flex items-center gap-3 shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
-      <button type="button" onclick="resetHomeFilters()" class="flex-1 py-3 px-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 active:scale-95 text-xs font-bold text-gray-300 hover:text-white uppercase tracking-wider transition-all cursor-pointer">
-        Reset
-      </button>
-      <button type="button" onclick="closeHomeFilterSheet()" class="flex-[2] py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-600/30 transition-all cursor-pointer">
-        Show Results
-      </button>
-    </div>
-  </div>
-
-  <!-- ACTOR FILTER POPUP (BOTTOM SHEET ON MOBILE, MODAL ON DESKTOP) -->
-  <div id="actorFilterBackdrop" class="bottom-sheet-backdrop" onclick="closeActorFilterSheet()"></div>
-  <div id="actorFilterDrawer" class="bottom-sheet-drawer">
-    <div class="sheet-drag-handle w-12 h-1.5 bg-white/25 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
-    <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/10 shrink-0">
-      <div class="flex items-center gap-2">
-        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-        </svg>
-        <h3 class="text-base font-extrabold text-white">Filters &amp; Sorting</h3>
-      </div>
-      <button type="button" onclick="closeActorFilterSheet()" aria-label="Close" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-      </button>
-    </div>
-    <div id="actorSheetContent" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
-    <div class="sheet-bottom-bar p-4 border-t border-white/10 bg-[#090f1d] flex items-center gap-3 shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
-      <button type="button" onclick="resetActorFilters()" class="flex-1 py-3 px-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 active:scale-95 text-xs font-bold text-gray-300 hover:text-white uppercase tracking-wider transition-all cursor-pointer">
-        Reset
-      </button>
-      <button type="button" onclick="closeActorFilterSheet()" class="flex-[2] py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-600/30 transition-all cursor-pointer">
-        Show Filmography
-      </button>
-    </div>
   </div>
 
   <script>
@@ -3963,32 +3825,12 @@
     window.homeFilterRating = 'all';
     window.homeFilterRuntime = 'all';
 
-    function positionDropdownMenu(btnEl, drawerEl) {
-      if (!drawerEl) return;
-      if (window.innerWidth >= 640 && btnEl) {
-        const rect = btnEl.getBoundingClientRect();
-        const drawerWidth = 440;
-        let right = window.innerWidth - rect.right;
-        if (right + drawerWidth > window.innerWidth - 16) {
-          right = 16;
-        }
-        if (right < 16) right = 16;
-        const top = Math.min(rect.bottom + 8, window.innerHeight - 100);
-        drawerEl.style.top = `${top}px`;
-        drawerEl.style.right = `${right}px`;
-        drawerEl.style.left = 'auto';
-        drawerEl.style.bottom = 'auto';
-      } else {
-        drawerEl.style.top = '';
-        drawerEl.style.right = '';
-        drawerEl.style.left = '';
-        drawerEl.style.bottom = '';
-      }
-    }
-
     function toggleHomeFilterSheet() {
-      const drawer = document.getElementById('homeFilterDrawer');
-      if (drawer && drawer.classList.contains('is-open')) {
+      const tray = document.getElementById('homeFilterTray');
+      const btn = document.getElementById('homeFilterToggleBtn');
+      if (!tray) return;
+      const isOpen = !tray.classList.contains('hidden');
+      if (isOpen) {
         closeHomeFilterSheet();
       } else {
         openHomeFilterSheet();
@@ -3996,26 +3838,20 @@
     }
 
     function openHomeFilterSheet() {
-      const backdrop = document.getElementById('homeFilterBackdrop');
-      const drawer = document.getElementById('homeFilterDrawer');
+      const tray = document.getElementById('homeFilterTray');
       const btn = document.getElementById('homeFilterToggleBtn');
-      if (backdrop) backdrop.classList.add('is-open');
-      if (drawer) {
-        positionDropdownMenu(btn, drawer);
-        drawer.classList.add('is-open');
-      }
-      if (window.innerWidth < 640) {
-        document.body.classList.add('modal-open');
+      if (tray) tray.classList.remove('hidden');
+      if (btn) {
+        btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
+        btn.classList.remove('border-white/10', 'text-gray-300');
       }
       try { renderHomeFilterSheet(); } catch (e) { console.error('[Render Home Filter Sheet]', e); }
     }
 
     function closeHomeFilterSheet() {
-      const backdrop = document.getElementById('homeFilterBackdrop');
-      const drawer = document.getElementById('homeFilterDrawer');
-      if (backdrop) backdrop.classList.remove('is-open');
-      if (drawer) drawer.classList.remove('is-open');
-      document.body.classList.remove('modal-open');
+      const tray = document.getElementById('homeFilterTray');
+      if (tray) tray.classList.add('hidden');
+      syncHomeFilterButtonState();
     }
 
     function renderHomeFilterSheet() {
@@ -8560,6 +8396,25 @@
 
       const desktopBackdropImg = knownForBackdrop || profileImg;
 
+      const actorFilterTrayHtml = `
+        <div id="actorFilterTray" class="${actorMobileFiltersOpen ? '' : 'hidden'} transition-all duration-300 ease-out overflow-hidden pt-1">
+          <div class="p-4 sm:p-5 rounded-2xl bg-black/40 border border-white/10 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
+                </svg>
+                <span class="text-xs font-extrabold uppercase tracking-widest text-gray-300">Filter &amp; Sort Filmography</span>
+              </div>
+              <button type="button" onclick="resetActorFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
+                Reset all
+              </button>
+            </div>
+            <div id="actorSheetContent" class="space-y-4"></div>
+          </div>
+        </div>
+      `;
+
       if (isPage) {
         return `<nav id="actorPageNav" class="movie-page-nav fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-6 pointer-events-none">
             <button onclick="closeActorPage()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
@@ -8603,6 +8458,7 @@
                     </button>
                   </div>
                 </div>
+                ${actorFilterTrayHtml}
               </div>
               <div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 content-start">${filmographyHtml}</div>
             </div>
@@ -8615,7 +8471,7 @@
             </div>
           </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3><div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">${mediaFilterTabsHtml}<div class="flex items-center gap-2 flex-1 min-w-0"><div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><button id="actorFilterToggleBtn" type="button" onclick="openActorFilterSheet()" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path></svg>${hasActiveActorFilters ? `<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>` : ''}</button></div></div></div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div>`;
+      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3><div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">${mediaFilterTabsHtml}<div class="flex items-center gap-2 flex-1 min-w-0"><div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]"><svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}</div><button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterSheet()" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path></svg>${hasActiveActorFilters ? `<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>` : ''}</button></div></div>${actorFilterTrayHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0f172a] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="w-full lg:w-auto p-3 lg:p-0 rounded-xl bg-white/5 lg:bg-transparent border border-white/10 lg:border-0 flex items-center justify-center lg:justify-end gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[11px] text-gray-400 font-medium text-center lg:text-right">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div>`;
     }
 
     let currentActorId = null;
@@ -8650,35 +8506,42 @@
     ];
 
     function toggleActorFilterSheet() {
-      const drawer = document.getElementById('actorFilterDrawer');
-      if (drawer && drawer.classList.contains('is-open')) {
-        closeActorFilterSheet();
+      const tray = document.getElementById('actorFilterTray');
+      const btn = document.getElementById('actorFilterToggleBtn');
+      if (!tray) return;
+      const isOpen = !tray.classList.contains('hidden');
+      actorMobileFiltersOpen = !isOpen;
+      if (isOpen) {
+        tray.classList.add('hidden');
+        const hasActive = (actorFilterSort !== 'year_desc' || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (window.actorFilterRating && window.actorFilterRating !== 'all'));
+        if (btn && !hasActive) {
+          btn.classList.remove('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
+        }
       } else {
-        openActorFilterSheet();
+        tray.classList.remove('hidden');
+        if (btn) btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
+        renderActorFilterSheet();
       }
     }
 
     function openActorFilterSheet() {
-      const backdrop = document.getElementById('actorFilterBackdrop');
-      const drawer = document.getElementById('actorFilterDrawer');
+      const tray = document.getElementById('actorFilterTray');
       const btn = document.getElementById('actorFilterToggleBtn');
-      if (backdrop) backdrop.classList.add('is-open');
-      if (drawer) {
-        positionDropdownMenu(btn, drawer);
-        drawer.classList.add('is-open');
-      }
-      if (window.innerWidth < 640) {
-        document.body.classList.add('modal-open');
-      }
+      actorMobileFiltersOpen = true;
+      if (tray) tray.classList.remove('hidden');
+      if (btn) btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
       try { renderActorFilterSheet(); } catch (e) { console.error('[Render Actor Filter Sheet]', e); }
     }
 
     function closeActorFilterSheet() {
-      const backdrop = document.getElementById('actorFilterBackdrop');
-      const drawer = document.getElementById('actorFilterDrawer');
-      if (backdrop) backdrop.classList.remove('is-open');
-      if (drawer) drawer.classList.remove('is-open');
-      document.body.classList.remove('modal-open');
+      const tray = document.getElementById('actorFilterTray');
+      const btn = document.getElementById('actorFilterToggleBtn');
+      if (tray) tray.classList.add('hidden');
+      actorMobileFiltersOpen = false;
+      const hasActive = (actorFilterSort !== 'year_desc' || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (window.actorFilterRating && window.actorFilterRating !== 'all'));
+      if (btn && !hasActive) {
+        btn.classList.remove('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
+      }
     }
 
     function renderActorFilterSheet() {
@@ -8688,88 +8551,68 @@
       const actorId = window.currentActorPageId || modalActiveActorId || currentActorId;
       const person = (actorId ? actorDetailsCache.get(actorId) : null) || window.currentActorPersonObj;
 
-      const roleIcons = {
-        'Actor': '🎭',
-        'Director': '🎬',
-        'Writer': '✍️',
-        'Producer': '💼',
-        'Composer': '🎵'
-      };
-
       let sectionsHtml = '';
 
       // Section 1: Sort By
       const currentSortObj = ACTOR_SORT_OPTIONS.find(o => o.value === actorFilterSort) || ACTOR_SORT_OPTIONS[0];
       sectionsHtml += `
-        <div>
-          <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-            <span>Sort By</span>
-            <span class="text-blue-400 font-bold normal-case text-xs">${escapeHTML(currentSortObj.label)}</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2 flex items-center justify-between">
+              <span>Sort By</span>
+              <span class="text-blue-400 font-bold normal-case text-xs">${escapeHTML(currentSortObj.label)}</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${ACTOR_SORT_OPTIONS.map(opt => {
+                const isActive = opt.value === actorFilterSort;
+                return `<button type="button" onclick="selectActorSheetFilter('sort', '${opt.value}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(opt.label)}</button>`;
+              }).join('')}
+            </div>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            ${ACTOR_SORT_OPTIONS.map(opt => {
-              const isActive = opt.value === actorFilterSort;
-              return `<button type="button" onclick="selectActorSheetFilter('sort', '${opt.value}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(opt.label)}</button>`;
-            }).join('')}
-          </div>
-        </div>
-      `;
 
-      // Section 3: Genre
-      const availableGenres = window.currentActorAvailableGenres || [];
-      const genreLabel = actorFilterGenre === 'all' ? 'All Genres' : actorFilterGenre;
-      sectionsHtml += `
-        <div>
-          <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-            <span>Genre</span>
-            <span class="text-blue-400 font-bold normal-case text-xs">${escapeHTML(genreLabel)}</span>
+          <div>
+            <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2 flex items-center justify-between">
+              <span>Minimum Rating</span>
+              <span class="text-blue-400 font-bold normal-case text-xs">${(!window.actorFilterRating || window.actorFilterRating === 'all') ? 'Any Rating' : `⭐ ${window.actorFilterRating}.0+`}</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${[
+                { value: 'all', label: 'Any Rating' },
+                { value: '6', label: '⭐ 6.0+' },
+                { value: '7', label: '⭐ 7.0+' },
+                { value: '8', label: '⭐ 8.0+' }
+              ].map(opt => {
+                const isActive = opt.value === (window.actorFilterRating || 'all');
+                return `<button type="button" onclick="selectActorSheetFilter('rating', '${opt.value}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(opt.label)}</button>`;
+              }).join('')}
+            </div>
           </div>
-          <div class="flex flex-wrap gap-2">
-            <button type="button" onclick="selectActorSheetFilter('genre', 'all')" class="sheet-chip ${actorFilterGenre === 'all' ? 'is-active' : ''}">All Genres</button>
-            ${availableGenres.map(g => {
-              const isActive = g === actorFilterGenre;
-              return `<button type="button" onclick="selectActorSheetFilter('genre', '${escapeHTML(g)}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(g)}</button>`;
-            }).join('')}
-          </div>
-        </div>
-      `;
 
-      // Section 4: Decade
-      const decadeLabel = actorFilterDecade === 'all' ? 'All Decades' : (actorFilterDecade === 'older' ? 'Older' : `${actorFilterDecade}`);
-      sectionsHtml += `
-        <div>
-          <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-            <span>Release Period</span>
-            <span class="text-blue-400 font-bold normal-case text-xs">${escapeHTML(decadeLabel)}</span>
+          <div class="md:col-span-2">
+            <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2 flex items-center justify-between">
+              <span>Release Period</span>
+              <span class="text-blue-400 font-bold normal-case text-xs">${actorFilterDecade === 'all' ? 'All Decades' : (actorFilterDecade === 'older' ? 'Older' : `${actorFilterDecade}`)}</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${ACTOR_DECADE_OPTIONS.map(d => {
+                const isActive = d.value === actorFilterDecade;
+                return `<button type="button" onclick="selectActorSheetFilter('decade', '${d.value}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(d.label)}</button>`;
+              }).join('')}
+            </div>
           </div>
-          <div class="flex flex-wrap gap-2">
-            ${ACTOR_DECADE_OPTIONS.map(d => {
-              const isActive = d.value === actorFilterDecade;
-              return `<button type="button" onclick="selectActorSheetFilter('decade', '${d.value}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(d.label)}</button>`;
-            }).join('')}
-          </div>
-        </div>
-      `;
 
-      // Section 5: Minimum Rating
-      const ratingLabel = (!window.actorFilterRating || window.actorFilterRating === 'all') ? 'Any Rating' : `⭐ ${window.actorFilterRating}.0+`;
-      const ratingOptions = [
-        { value: 'all', label: 'Any Rating' },
-        { value: '6', label: '⭐ 6.0+' },
-        { value: '7', label: '⭐ 7.0+' },
-        { value: '8', label: '⭐ 8.0+' }
-      ];
-      sectionsHtml += `
-        <div>
-          <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2.5 flex items-center justify-between">
-            <span>Minimum Rating</span>
-            <span class="text-blue-400 font-bold normal-case text-xs">${escapeHTML(ratingLabel)}</span>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            ${ratingOptions.map(r => {
-              const isActive = (window.actorFilterRating || 'all') === r.value;
-              return `<button type="button" onclick="selectActorSheetFilter('rating', '${r.value}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(r.label)}</button>`;
-            }).join('')}
+          <div class="md:col-span-2">
+            <div class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2 flex items-center justify-between">
+              <span>Genre</span>
+              <span class="text-blue-400 font-bold normal-case text-xs">${actorFilterGenre === 'all' ? 'All Genres' : actorFilterGenre}</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="selectActorSheetFilter('genre', 'all')" class="sheet-chip ${actorFilterGenre === 'all' ? 'is-active' : ''}">All Genres</button>
+              ${(window.currentActorAvailableGenres || []).map(g => {
+                const isActive = g === actorFilterGenre;
+                return `<button type="button" onclick="selectActorSheetFilter('genre', '${escapeHTML(g)}')" class="sheet-chip ${isActive ? 'is-active' : ''}">${escapeHTML(g)}</button>`;
+              }).join('')}
+            </div>
           </div>
         </div>
       `;
