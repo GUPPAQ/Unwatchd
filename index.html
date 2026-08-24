@@ -659,15 +659,13 @@
       pointer-events: auto !important;
       visibility: visible !important;
     }
+    /* Mobile Default: Bottom Drawer */
     .bottom-sheet-drawer {
       position: fixed !important;
       left: 0 !important;
       right: 0 !important;
       bottom: 0 !important;
       width: 100% !important;
-      max-width: 640px !important;
-      margin-left: auto !important;
-      margin-right: auto !important;
       z-index: 701 !important;
       height: 88vh !important;
       height: 88dvh !important;
@@ -676,13 +674,12 @@
       display: flex !important;
       flex-direction: column !important;
       background: #0b1121 !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
-      border-bottom: none !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
       border-top-left-radius: 1.5rem !important;
       border-top-right-radius: 1.5rem !important;
       box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.9) !important;
       transform: translateY(100%) !important;
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out !important;
       pointer-events: none !important;
       visibility: hidden;
       overscroll-behavior: contain !important;
@@ -693,6 +690,44 @@
       transform: translateY(0) !important;
       pointer-events: auto !important;
       visibility: visible !important;
+    }
+
+    .sheet-drag-handle {
+      display: block;
+    }
+
+    /* Desktop / iPad: Centered On-Screen Modal Card */
+    @media (min-width: 640px) {
+      .bottom-sheet-drawer {
+        top: 50% !important;
+        left: 50% !important;
+        bottom: auto !important;
+        right: auto !important;
+        width: 92% !important;
+        max-width: 580px !important;
+        height: auto !important;
+        max-height: 82vh !important;
+        max-height: 82dvh !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 1.75rem !important;
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.95), 0 0 50px rgba(59, 130, 246, 0.1) !important;
+        transform: translate(-50%, -46%) scale(0.96) !important;
+        opacity: 0 !important;
+        overflow: hidden !important;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+      .bottom-sheet-drawer.is-open {
+        transform: translate(-50%, -50%) scale(1) !important;
+        opacity: 1 !important;
+      }
+      .sheet-drag-handle {
+        display: none !important;
+      }
+      .sheet-bottom-bar {
+        border-bottom-left-radius: 1.75rem !important;
+        border-bottom-right-radius: 1.75rem !important;
+        padding-bottom: 1rem !important;
+      }
     }
     .sheet-chip {
       padding: 0.5rem 0.875rem;
@@ -2146,11 +2181,11 @@
     <div id="actorModalContent" class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]"></div>
   </div>
 
-  <!-- HOMEPAGE FILTER BOTTOM SHEET (MOBILE & IPAD PORTRAIT) -->
+  <!-- HOMEPAGE FILTER POPUP (BOTTOM SHEET ON MOBILE, MODAL ON DESKTOP) -->
   <div id="homeFilterBackdrop" class="bottom-sheet-backdrop" onclick="closeHomeFilterSheet()"></div>
   <div id="homeFilterDrawer" class="bottom-sheet-drawer">
-    <div class="w-12 h-1.5 bg-white/25 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
-    <div class="flex items-center justify-between px-5 py-3 border-b border-white/10 shrink-0">
+    <div class="sheet-drag-handle w-12 h-1.5 bg-white/25 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+    <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/10 shrink-0">
       <div class="flex items-center gap-2">
         <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
@@ -2220,7 +2255,7 @@
         <div id="homeSheetRuntimeChips" class="flex flex-wrap gap-2"></div>
       </div>
     </div>
-    <div class="p-4 border-t border-white/10 bg-[#090f1d] flex items-center gap-3 shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
+    <div class="sheet-bottom-bar p-4 border-t border-white/10 bg-[#090f1d] flex items-center gap-3 shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
       <button type="button" onclick="resetHomeFilters()" class="flex-1 py-3 px-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 active:scale-95 text-xs font-bold text-gray-300 hover:text-white uppercase tracking-wider transition-all cursor-pointer">
         Reset
       </button>
@@ -2230,11 +2265,11 @@
     </div>
   </div>
 
-  <!-- ACTOR FILTER BOTTOM SHEET (MOBILE & IPAD PORTRAIT) -->
+  <!-- ACTOR FILTER POPUP (BOTTOM SHEET ON MOBILE, MODAL ON DESKTOP) -->
   <div id="actorFilterBackdrop" class="bottom-sheet-backdrop" onclick="closeActorFilterSheet()"></div>
   <div id="actorFilterDrawer" class="bottom-sheet-drawer">
-    <div class="w-12 h-1.5 bg-white/25 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
-    <div class="flex items-center justify-between px-5 py-3 border-b border-white/10 shrink-0">
+    <div class="sheet-drag-handle w-12 h-1.5 bg-white/25 rounded-full mx-auto mt-3 mb-1 shrink-0"></div>
+    <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/10 shrink-0">
       <div class="flex items-center gap-2">
         <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
@@ -2246,7 +2281,7 @@
       </button>
     </div>
     <div id="actorSheetContent" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
-    <div class="p-4 border-t border-white/10 bg-[#090f1d] flex items-center gap-3 shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
+    <div class="sheet-bottom-bar p-4 border-t border-white/10 bg-[#090f1d] flex items-center gap-3 shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
       <button type="button" onclick="resetActorFilters()" class="flex-1 py-3 px-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 active:scale-95 text-xs font-bold text-gray-300 hover:text-white uppercase tracking-wider transition-all cursor-pointer">
         Reset
       </button>
