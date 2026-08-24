@@ -625,40 +625,52 @@
 
     /* Letterboxd-Style Bottom Sheet Drawer */
     .bottom-sheet-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 250;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease-out;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: rgba(0, 0, 0, 0.75) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      z-index: 250 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.25s ease-out !important;
+      visibility: hidden;
     }
     .bottom-sheet-backdrop.is-open {
-      opacity: 1;
-      pointer-events: auto;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      visibility: visible !important;
     }
     .bottom-sheet-drawer {
-      position: fixed;
-      inset-x: 0;
-      bottom: 0;
-      z-index: 251;
-      max-height: 85dvh;
-      display: flex;
-      flex-direction: column;
-      background: #0b1121;
-      border-top: 1px solid rgba(255, 255, 255, 0.15);
-      border-top-left-radius: 1.5rem;
-      border-top-right-radius: 1.5rem;
-      box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.9);
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      pointer-events: none;
+      position: fixed !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100% !important;
+      z-index: 251 !important;
+      max-height: 85vh !important;
+      max-height: 85dvh !important;
+      display: flex !important;
+      flex-direction: column !important;
+      background: #0b1121 !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-top-left-radius: 1.5rem !important;
+      border-top-right-radius: 1.5rem !important;
+      box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.9) !important;
+      transform: translateY(100%) !important;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      pointer-events: none !important;
+      visibility: hidden;
     }
     .bottom-sheet-drawer.is-open {
-      transform: translateY(0);
-      pointer-events: auto;
+      transform: translateY(0) !important;
+      pointer-events: auto !important;
+      visibility: visible !important;
     }
     .sheet-chip {
       padding: 0.5rem 0.875rem;
@@ -3846,11 +3858,11 @@
     ];
 
     function openHomeFilterSheet() {
-      renderHomeFilterSheet();
       const backdrop = document.getElementById('homeFilterBackdrop');
       const drawer = document.getElementById('homeFilterDrawer');
       if (backdrop) backdrop.classList.add('is-open');
       if (drawer) drawer.classList.add('is-open');
+      try { renderHomeFilterSheet(); } catch (e) { console.error('[Render Home Filter Sheet]', e); }
     }
 
     function closeHomeFilterSheet() {
@@ -3861,9 +3873,13 @@
     }
 
     function renderHomeFilterSheet() {
-      const sortVal = el.filterSort ? el.filterSort.value : 'year_desc';
-      const genreVal = el.filterGenre ? el.filterGenre.value : 'all';
-      const decadeVal = el.filterDecade ? el.filterDecade.value : 'all';
+      const sortSelect = el?.filterSort || document.getElementById('resultsSort');
+      const genreSelect = el?.filterGenre || document.getElementById('resultsGenre');
+      const decadeSelect = el?.filterDecade || document.getElementById('resultsDecade');
+
+      const sortVal = sortSelect ? sortSelect.value : 'year_desc';
+      const genreVal = genreSelect ? genreSelect.value : 'all';
+      const decadeVal = decadeSelect ? decadeSelect.value : 'all';
 
       // Sort chips
       const sortContainer = document.getElementById('homeSheetSortChips');
@@ -3881,7 +3897,10 @@
       const genreContainer = document.getElementById('homeSheetGenreChips');
       const genreLabel = document.getElementById('sheetCurrentGenreLabel');
       if (genreContainer) {
-        const genres = Array.from(el.filterGenre ? el.filterGenre.options : []).map(o => o.value);
+        let genres = Array.from(genreSelect ? genreSelect.options : []).map(o => o.value);
+        if (genres.length <= 1) {
+          genres = ['all', ...Object.values(GENRE_MAP).sort()];
+        }
         if (genreLabel) genreLabel.textContent = genreVal === 'all' ? 'All Genres' : genreVal;
         genreContainer.innerHTML = genres.map(g => {
           const isActive = g === genreVal;
@@ -3894,7 +3913,10 @@
       const decadeContainer = document.getElementById('homeSheetDecadeChips');
       const decadeLabel = document.getElementById('sheetCurrentDecadeLabel');
       if (decadeContainer) {
-        const decades = Array.from(el.filterDecade ? el.filterDecade.options : []).map(o => o.value);
+        let decades = Array.from(decadeSelect ? decadeSelect.options : []).map(o => o.value);
+        if (decades.length <= 1) {
+          decades = ['all', '2020', '2010', '2000', '1990', '1980', '1970', '1960', '1950', '1940', '1930'];
+        }
         if (decadeLabel) decadeLabel.textContent = decadeVal === 'all' ? 'All Decades' : `${decadeVal}s`;
         decadeContainer.innerHTML = decades.map(d => {
           const isActive = d === decadeVal;
@@ -3905,37 +3927,52 @@
     }
 
     function selectHomeSheetFilter(type, value) {
-      if (type === 'sort' && el.filterSort) {
-        el.filterSort.value = value;
-        syncFilterLabel(el.filterSort);
-      } else if (type === 'genre' && el.filterGenre) {
-        el.filterGenre.value = value;
-        syncFilterLabel(el.filterGenre);
-      } else if (type === 'decade' && el.filterDecade) {
-        el.filterDecade.value = value;
-        syncFilterLabel(el.filterDecade);
+      const sortSelect = el?.filterSort || document.getElementById('resultsSort');
+      const genreSelect = el?.filterGenre || document.getElementById('resultsGenre');
+      const decadeSelect = el?.filterDecade || document.getElementById('resultsDecade');
+
+      if (type === 'sort' && sortSelect) {
+        sortSelect.value = value;
+        syncFilterLabel(sortSelect);
+      } else if (type === 'genre' && genreSelect) {
+        genreSelect.value = value;
+        syncFilterLabel(genreSelect);
+      } else if (type === 'decade' && decadeSelect) {
+        decadeSelect.value = value;
+        syncFilterLabel(decadeSelect);
       }
       currentPage = 1;
-      applyFiltersAndRender();
+      if (typeof applyFiltersAndRender === 'function') {
+        applyFiltersAndRender();
+      }
       syncHomeFilterButtonState();
       renderHomeFilterSheet();
     }
 
     function resetHomeFilters() {
-      if (el.filterSort) {
-        el.filterSort.value = 'year_desc';
-        syncFilterLabel(el.filterSort);
+      const sortSelect = el?.filterSort || document.getElementById('resultsSort');
+      const genreSelect = el?.filterGenre || document.getElementById('resultsGenre');
+      const decadeSelect = el?.filterDecade || document.getElementById('resultsDecade');
+
+      if (sortSelect) {
+        sortSelect.value = 'year_desc';
+        syncFilterLabel(sortSelect);
       }
-      if (el.filterGenre) {
-        el.filterGenre.value = 'all';
-        syncFilterLabel(el.filterGenre);
+      if (genreSelect) {
+        genreSelect.value = 'all';
+        syncFilterLabel(genreSelect);
       }
-      if (el.filterDecade) {
-        el.filterDecade.value = 'all';
-        syncFilterLabel(el.filterDecade);
+      if (decadeSelect) {
+        decadeSelect.value = 'all';
+        syncFilterLabel(decadeSelect);
       }
       currentPage = 1;
-      applyFiltersAndRender();
+      if (typeof applyFiltersAndRender === 'function') {
+        applyFiltersAndRender();
+      }
+      syncHomeFilterButtonState();
+      renderHomeFilterSheet();
+    }
       syncHomeFilterButtonState();
       renderHomeFilterSheet();
     }
@@ -8322,11 +8359,11 @@
     ];
 
     function openActorFilterSheet() {
-      renderActorFilterSheet();
       const backdrop = document.getElementById('actorFilterBackdrop');
       const drawer = document.getElementById('actorFilterDrawer');
       if (backdrop) backdrop.classList.add('is-open');
       if (drawer) drawer.classList.add('is-open');
+      try { renderActorFilterSheet(); } catch (e) { console.error('[Render Actor Filter Sheet]', e); }
     }
 
     function closeActorFilterSheet() {
@@ -8342,7 +8379,6 @@
 
       const actorId = window.currentActorPageId || modalActiveActorId || currentActorId;
       const person = (actorId ? actorDetailsCache.get(actorId) : null) || window.currentActorPersonObj;
-      if (!person) return;
 
       const roleIcons = {
         'Actor': '🎭',
