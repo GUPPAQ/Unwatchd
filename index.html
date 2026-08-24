@@ -3918,6 +3918,11 @@
       { value: 'year_asc', label: 'Oldest First' }
     ];
 
+    let homeFilterRating = 'all';
+    let homeFilterRuntime = 'all';
+    window.homeFilterRating = 'all';
+    window.homeFilterRuntime = 'all';
+
     function openHomeFilterSheet() {
       const backdrop = document.getElementById('homeFilterBackdrop');
       const drawer = document.getElementById('homeFilterDrawer');
@@ -7894,6 +7899,8 @@
     let actorFilterSort = 'popularity';
     let actorFilterGenre = 'all';
     let actorFilterDecade = 'all';
+    let actorFilterRating = 'all';
+    window.actorFilterRating = 'all';
     let actorCurrentPage = 1;
     const ACTOR_ITEMS_PER_PAGE = 60;
 
@@ -8668,6 +8675,7 @@
         const decadeLbl = document.getElementById('actorDecadeLabel');
         if (decadeLbl) decadeLbl.textContent = value === 'all' ? 'All Decades' : value;
       } else if (type === 'rating') {
+        actorFilterRating = value;
         window.actorFilterRating = value;
       }
       actorCurrentPage = 1;
@@ -8680,6 +8688,8 @@
       actorFilterSort = 'popularity';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
+      actorFilterRating = 'all';
+      window.actorFilterRating = 'all';
       const sortSel = document.getElementById('actorFilmSort');
       if (sortSel) sortSel.value = 'popularity';
       const genreSel = document.getElementById('actorFilmGenre');
@@ -8756,6 +8766,8 @@
       actorFilterQuery = '';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
+      actorFilterRating = 'all';
+      window.actorFilterRating = 'all';
       actorFilterSort = 'popularity';
 
       document.body.classList.add('modal-open');
