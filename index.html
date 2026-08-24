@@ -696,37 +696,41 @@
       display: block;
     }
 
-    /* Desktop / iPad: Centered On-Screen Modal Card */
+    /* Desktop / iPad: Floating Popover Dropdown Menu Underneath Options Button */
     @media (min-width: 640px) {
+      .bottom-sheet-backdrop {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
       .bottom-sheet-drawer {
-        top: 50% !important;
-        left: 50% !important;
-        bottom: auto !important;
-        right: auto !important;
-        width: 92% !important;
-        max-width: 580px !important;
+        position: fixed !important;
+        width: 440px !important;
+        max-width: calc(100vw - 32px) !important;
         height: auto !important;
-        max-height: 82vh !important;
-        max-height: 82dvh !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 1.75rem !important;
-        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.95), 0 0 50px rgba(59, 130, 246, 0.1) !important;
-        transform: translate(-50%, -46%) scale(0.96) !important;
+        max-height: min(78vh, 620px) !important;
+        background: rgba(11, 17, 33, 0.96) !important;
+        backdrop-filter: blur(24px) !important;
+        -webkit-backdrop-filter: blur(24px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.16) !important;
+        border-radius: 1.5rem !important;
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9), 0 0 35px rgba(59, 130, 246, 0.12) !important;
+        transform: translateY(-8px) scale(0.97) !important;
         opacity: 0 !important;
         overflow: hidden !important;
-        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
       }
       .bottom-sheet-drawer.is-open {
-        transform: translate(-50%, -50%) scale(1) !important;
+        transform: translateY(0) scale(1) !important;
         opacity: 1 !important;
       }
       .sheet-drag-handle {
         display: none !important;
       }
       .sheet-bottom-bar {
-        border-bottom-left-radius: 1.75rem !important;
-        border-bottom-right-radius: 1.75rem !important;
-        padding-bottom: 1rem !important;
+        border-bottom-left-radius: 1.5rem !important;
+        border-bottom-right-radius: 1.5rem !important;
+        padding-bottom: 0.875rem !important;
       }
     }
     .sheet-chip {
@@ -1843,7 +1847,7 @@
           </div>
 
           <!-- Options / Filter Sheet Button (Visible on ALL devices) -->
-          <button id="homeFilterToggleBtn" type="button" onclick="openHomeFilterSheet()" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+          <button id="homeFilterToggleBtn" type="button" onclick="toggleHomeFilterSheet()" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
             </svg>
@@ -3959,12 +3963,50 @@
     window.homeFilterRating = 'all';
     window.homeFilterRuntime = 'all';
 
+    function positionDropdownMenu(btnEl, drawerEl) {
+      if (!drawerEl) return;
+      if (window.innerWidth >= 640 && btnEl) {
+        const rect = btnEl.getBoundingClientRect();
+        const drawerWidth = 440;
+        let right = window.innerWidth - rect.right;
+        if (right + drawerWidth > window.innerWidth - 16) {
+          right = 16;
+        }
+        if (right < 16) right = 16;
+        const top = Math.min(rect.bottom + 8, window.innerHeight - 100);
+        drawerEl.style.top = `${top}px`;
+        drawerEl.style.right = `${right}px`;
+        drawerEl.style.left = 'auto';
+        drawerEl.style.bottom = 'auto';
+      } else {
+        drawerEl.style.top = '';
+        drawerEl.style.right = '';
+        drawerEl.style.left = '';
+        drawerEl.style.bottom = '';
+      }
+    }
+
+    function toggleHomeFilterSheet() {
+      const drawer = document.getElementById('homeFilterDrawer');
+      if (drawer && drawer.classList.contains('is-open')) {
+        closeHomeFilterSheet();
+      } else {
+        openHomeFilterSheet();
+      }
+    }
+
     function openHomeFilterSheet() {
       const backdrop = document.getElementById('homeFilterBackdrop');
       const drawer = document.getElementById('homeFilterDrawer');
+      const btn = document.getElementById('homeFilterToggleBtn');
       if (backdrop) backdrop.classList.add('is-open');
-      if (drawer) drawer.classList.add('is-open');
-      document.body.classList.add('modal-open');
+      if (drawer) {
+        positionDropdownMenu(btn, drawer);
+        drawer.classList.add('is-open');
+      }
+      if (window.innerWidth < 640) {
+        document.body.classList.add('modal-open');
+      }
       try { renderHomeFilterSheet(); } catch (e) { console.error('[Render Home Filter Sheet]', e); }
     }
 
@@ -8553,7 +8595,7 @@
                       <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
                       ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                     </div>
-                    <button id="actorFilterToggleBtn" type="button" onclick="openActorFilterSheet()" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+                    <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterSheet()" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
                       </svg>
@@ -8607,12 +8649,27 @@
       { value: 'older', label: 'Older' }
     ];
 
+    function toggleActorFilterSheet() {
+      const drawer = document.getElementById('actorFilterDrawer');
+      if (drawer && drawer.classList.contains('is-open')) {
+        closeActorFilterSheet();
+      } else {
+        openActorFilterSheet();
+      }
+    }
+
     function openActorFilterSheet() {
       const backdrop = document.getElementById('actorFilterBackdrop');
       const drawer = document.getElementById('actorFilterDrawer');
+      const btn = document.getElementById('actorFilterToggleBtn');
       if (backdrop) backdrop.classList.add('is-open');
-      if (drawer) drawer.classList.add('is-open');
-      document.body.classList.add('modal-open');
+      if (drawer) {
+        positionDropdownMenu(btn, drawer);
+        drawer.classList.add('is-open');
+      }
+      if (window.innerWidth < 640) {
+        document.body.classList.add('modal-open');
+      }
       try { renderActorFilterSheet(); } catch (e) { console.error('[Render Actor Filter Sheet]', e); }
     }
 
