@@ -79,7 +79,8 @@
     }
 
     body.modal-open {
-      overflow: hidden;
+      overflow: hidden !important;
+      overscroll-behavior: none !important;
     }
 
     @media (display-mode: standalone) {
@@ -640,6 +641,8 @@
       pointer-events: none !important;
       transition: opacity 0.25s ease-out !important;
       visibility: hidden;
+      touch-action: none !important;
+      overscroll-behavior: contain !important;
     }
     .bottom-sheet-backdrop.is-open {
       opacity: 1 !important;
@@ -653,8 +656,10 @@
       bottom: 0 !important;
       width: 100% !important;
       z-index: 251 !important;
-      max-height: 85vh !important;
-      max-height: 85dvh !important;
+      height: 88vh !important;
+      height: 88dvh !important;
+      max-height: 90vh !important;
+      max-height: 90dvh !important;
       display: flex !important;
       flex-direction: column !important;
       background: #0b1121 !important;
@@ -666,6 +671,9 @@
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
       pointer-events: none !important;
       visibility: hidden;
+      overscroll-behavior: contain !important;
+      -webkit-overflow-scrolling: touch !important;
+      touch-action: pan-y !important;
     }
     .bottom-sheet-drawer.is-open {
       transform: translateY(0) !important;
@@ -3897,6 +3905,7 @@
       const drawer = document.getElementById('homeFilterDrawer');
       if (backdrop) backdrop.classList.add('is-open');
       if (drawer) drawer.classList.add('is-open');
+      document.body.classList.add('modal-open');
       try { renderHomeFilterSheet(); } catch (e) { console.error('[Render Home Filter Sheet]', e); }
     }
 
@@ -3905,6 +3914,7 @@
       const drawer = document.getElementById('homeFilterDrawer');
       if (backdrop) backdrop.classList.remove('is-open');
       if (drawer) drawer.classList.remove('is-open');
+      document.body.classList.remove('modal-open');
     }
 
     function renderHomeFilterSheet() {
@@ -8399,6 +8409,7 @@
       const drawer = document.getElementById('actorFilterDrawer');
       if (backdrop) backdrop.classList.add('is-open');
       if (drawer) drawer.classList.add('is-open');
+      document.body.classList.add('modal-open');
       try { renderActorFilterSheet(); } catch (e) { console.error('[Render Actor Filter Sheet]', e); }
     }
 
@@ -8407,6 +8418,7 @@
       const drawer = document.getElementById('actorFilterDrawer');
       if (backdrop) backdrop.classList.remove('is-open');
       if (drawer) drawer.classList.remove('is-open');
+      document.body.classList.remove('modal-open');
     }
 
     function renderActorFilterSheet() {
