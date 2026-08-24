@@ -608,14 +608,53 @@
       }
     }
 
-    /* Collapsible Filter Toggle for Mobile & iPad Portrait */
+    /* Results Controls Card: Glass panel on tablet & desktop, unboxed on mobile phone */
+    .results-controls-card {
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 639px) {
+      .results-controls-card {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+    }
+    @media (min-width: 640px) {
+      .results-controls-card {
+        background: rgba(15, 23, 42, 0.65) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 1rem !important;
+        padding: 0.875rem !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+      }
+    }
+
+    /* Device-specific Toolbar Viewports: Mobile & iPad Portrait vs Desktop & Landscape */
+    .desktop-tools-bar {
+      display: none !important;
+    }
+    .portrait-tools-inline {
+      display: flex !important;
+    }
     .portrait-filter-btn {
       display: flex !important;
     }
     .portrait-filter-panel {
       display: none !important;
     }
-    @media (min-width: 1024px), (min-width: 640px) and (orientation: landscape) {
+
+    @media (min-width: 1025px), (min-width: 768px) and (orientation: landscape) {
+      .desktop-tools-bar {
+        display: flex !important;
+      }
+      .portrait-tools-inline {
+        display: none !important;
+      }
       .portrait-filter-btn {
         display: none !important;
       }
@@ -1769,10 +1808,10 @@
       </div>
     </section>
     <section id="resultsSection" class="hidden pb-20 relative z-10 flex-1">
-      <!-- MAIN RESULTS CONTROLS (Single unified glass card on tablet/desktop, clean unboxed layout on mobile) -->
-      <div id="resultsControlsCard" class="sm:glass-panel sm:p-3.5 sm:rounded-2xl mb-6 space-y-2.5 sm:space-y-3 animate-fade">
+      <!-- MAIN RESULTS CONTROLS -->
+      <div id="resultsControlsCard" class="results-controls-card space-y-2.5 sm:space-y-3 animate-fade">
         
-        <!-- Row 1: Categories Bar + Desktop Tools (Insights & Roulette) -->
+        <!-- Row 1: Categories Bar + Desktop Tools (VPN, Insights, Roulette) -->
         <div id="categoriesBar" class="flex flex-col lg:flex-row gap-2.5 sm:gap-3 lg:items-center justify-between">
           <div class="grid grid-cols-2 min-[420px]:grid-cols-4 lg:flex lg:flex-1 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-auto min-[420px]:h-[42px] items-center">
             <button class="tab-btn active" data-tab="stream">Available <span id="tabCount-stream"
@@ -1785,8 +1824,8 @@
                 class="tab-badge">0</span></button>
           </div>
 
-          <!-- Desktop Tools: VPN, Insights & Roulette (visible on lg+) -->
-          <div class="hidden lg:flex items-center gap-2 shrink-0">
+          <!-- Desktop Tools: VPN, Insights & Roulette (visible on desktop & landscape) -->
+          <div id="desktopToolsBar" class="desktop-tools-bar items-center gap-2 shrink-0">
             <button id="vpnToggleBtnDesktop" title="Also show VPN unlocks"
               class="h-[42px] flex items-center justify-center gap-2 px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
               <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1844,7 +1883,7 @@
 
             <!-- Mobile & iPad Portrait VPN Toggle Button (To the right of searchbar, to the left of options) -->
             <button id="vpnToggleBtnInline" title="Also show VPN unlocks"
-              class="lg:hidden h-[42px] shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
+              class="portrait-tools-inline h-[42px] shrink-0 items-center justify-center gap-1.5 px-3 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
               <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -1854,7 +1893,7 @@
             </button>
 
             <!-- Options / Filter Sheet Button (To the right of VPN on mobile & iPad portrait) -->
-            <button id="homeFilterToggleBtn" type="button" onclick="openHomeFilterSheet()" aria-label="Filters and sorting" class="lg:hidden portrait-filter-btn shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+            <button id="homeFilterToggleBtn" type="button" onclick="openHomeFilterSheet()" aria-label="Filters and sorting" class="portrait-filter-btn shrink-0 h-[42px] px-3.5 items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
               </svg>
