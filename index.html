@@ -6639,9 +6639,13 @@
     }
 
     let heroRevealTimeout = null;
+    let heroVideoPlaying = false;
+    let heroVideoFailed = false;
 
     window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
+      heroVideoPlaying = false;
+      heroVideoFailed = false;
       fitHeroVideoCover(iframeEl);
       setTimeout(() => fitHeroVideoCover(iframeEl), 600);
       try {
@@ -6651,17 +6655,28 @@
         iframeEl.contentWindow.postMessage('{"event":"command","func":"setOption","args":["captions","track",{}]}', '*');
       } catch (err) { console.warn('[Hero Video Listen Handshake]', err); }
       if (heroRevealTimeout) clearTimeout(heroRevealTimeout);
-      heroRevealTimeout = setTimeout(() => { revealHeroVideo(iframeEl); }, 6600);
+      // Safety timeout: if after 6.5s the video never reached playing state (e.g. embed blocked or silent failure), keep poster visible
+      heroRevealTimeout = setTimeout(() => {
+        if (!heroVideoPlaying) {
+          heroVideoFailed = true;
+          if (iframeEl) {
+            iframeEl.style.opacity = '0';
+            iframeEl.style.display = 'none';
+          }
+          document.querySelectorAll('.heroSoundToggleBtn').forEach(b => b.classList.add('hidden'));
+        }
+      }, 6500);
     };
 
     function revealHeroVideo(iframeEl) {
-      if (!iframeEl || !document.getElementById('heroVideoIframe')) return;
+      if (!iframeEl || heroVideoFailed || !document.getElementById('heroVideoIframe')) return;
       fitHeroVideoCover(iframeEl);
       const overlay = document.getElementById('heroFadeOverlay');
       // Fade to black first...
       if (overlay) overlay.style.opacity = '1';
       setTimeout(() => {
-        if (!document.getElementById('heroVideoIframe')) return;
+        if (heroVideoFailed || !document.getElementById('heroVideoIframe')) return;
+        iframeEl.style.display = '';
         iframeEl.style.opacity = '1';
         try {
           // Ask YouTube for the best quality it's willing to give this connection and unload captions.
@@ -6689,11 +6704,31 @@
       try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch (err) { return; }
       if (!data) return;
 
+      // Detect YouTube error events (code 101, 150 = embed blocked/geoblocked, 100 = deleted/not found, 2, 5)
+      const isError = data.event === 'onError' || (data.event === 'infoDelivery' && data.info && (data.info.errorCode !== undefined || data.info.error !== undefined));
+      if (isError) {
+        heroVideoFailed = true;
+        if (heroRevealTimeout) { clearTimeout(heroRevealTimeout); heroRevealTimeout = null; }
+        const iframeEl = document.getElementById('heroVideoIframe');
+        if (iframeEl) {
+          iframeEl.style.opacity = '0';
+          iframeEl.style.display = 'none';
+        }
+        document.querySelectorAll('.heroSoundToggleBtn').forEach(b => b.classList.add('hidden'));
+        return;
+      }
+
       // Track trailer player state (1 = playing, 2 = paused, 0 = ended)
       if (data.event === 'onStateChange' || (data.event === 'infoDelivery' && data.info && data.info.playerState !== undefined)) {
         const state = data.event === 'onStateChange' ? data.info : data.info.playerState;
-        if (state === 1) {
+        if (state === 1) { // PLAYING!
           isTrailerPaused = false;
+          if (!heroVideoFailed && !heroVideoPlaying) {
+            heroVideoPlaying = true;
+            if (heroRevealTimeout) { clearTimeout(heroRevealTimeout); heroRevealTimeout = null; }
+            const iframeEl = document.getElementById('heroVideoIframe');
+            if (iframeEl) revealHeroVideo(iframeEl);
+          }
         } else if (state === 2 || state === 0) {
           isTrailerPaused = true;
         }
@@ -6744,6 +6779,9 @@
     }
 
     function stopHeroVideo() {
+      heroVideoPlaying = false;
+      heroVideoFailed = false;
+      if (heroRevealTimeout) { clearTimeout(heroRevealTimeout); heroRevealTimeout = null; }
       try {
         const iframe = document.getElementById('heroVideoIframe');
         if (iframe) {
@@ -7353,6 +7391,25 @@
                 if (iframe) {
                   iframe.focus();
                   try { iframe.contentWindow.focus(); } catch (e) { }
+                }
+              },
+              onError: () => {
+                const modalWrapper = document.getElementById('trailerIframeWrapper');
+                if (modalWrapper) {
+                  modalWrapper.innerHTML = `
+                    <div class="w-full h-full flex flex-col items-center justify-center bg-black/90 p-6 text-center rounded-2xl gap-3">
+                      <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl">
+                        🎬
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <span class="text-white font-extrabold text-sm sm:text-base">Trailer playback restricted in player</span>
+                        <span class="text-gray-400 text-xs sm:text-sm max-w-sm">This video is geoblocked or disallowed from third-party embedded players by the uploader.</span>
+                      </div>
+                      <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg active:scale-95">
+                        <span>Watch on YouTube</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                      </a>
+                    </div>`;
                 }
               }
             }
