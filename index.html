@@ -2310,9 +2310,11 @@
       <div
         class="relative z-30 max-w-[1480px] mx-auto w-full px-5 sm:px-10 pt-24 sm:pt-28 pb-6 sm:pb-8 flex flex-col gap-1.5 sm:gap-2 pointer-events-auto">
         <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Full Cast &amp; Crew</span>
-        <h1 id="allCastModalTitle"
-          class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">
-        </h1>
+        <div id="allCastModalTitleContainer" class="flex flex-col items-start min-w-0">
+          <h1 id="allCastModalTitle"
+            class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">
+          </h1>
+        </div>
         <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-400 drop-shadow-sm min-w-0">
         </p>
       </div>
@@ -5690,6 +5692,7 @@
         mediaType: movieObj.mediaType || (movieObj.first_air_date ? 'tv' : 'movie'),
         movieTitle: movieObj.title || (details && details.title) || (details && details.name) || 'Untitled',
         backdrop: (details && details.backdrop_path ? `https://image.tmdb.org/t/p/w1280${details.backdrop_path}` : movieObj.backdrop) || null,
+        titleLogo: titleLogo,
         cast: allCast,
         crew: allCrew,
         directors: directors
@@ -7472,7 +7475,7 @@
       const searchInput = document.getElementById('allCastSearchInput');
       if (searchInput) searchInput.value = '';
 
-      const { movieTitle, backdrop, cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
+      const { movieTitle, backdrop, titleLogo, cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
       const totalCount = directors.length + cast.length;
 
       const bannerArtEl = document.getElementById('allCastBannerArt');
@@ -7482,9 +7485,20 @@
           : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0b1121]"></div>`;
       }
 
+      const titleContainer = document.getElementById('allCastModalTitleContainer');
       const titleEl = document.getElementById('allCastModalTitle');
       const subEl = document.getElementById('allCastModalSubtitle');
-      if (titleEl) titleEl.textContent = movieTitle;
+
+      if (titleContainer) {
+        if (titleLogo) {
+          titleContainer.innerHTML = `<img src="${titleLogo}" alt="${escapeHTML(movieTitle)}" loading="eager" decoding="async" class="titleLogoImg pageTitleImg max-h-20 min-[400px]:max-h-24 sm:max-h-36 max-w-[280px] min-[400px]:max-w-[340px] sm:max-w-[560px] object-contain mb-2 shrink-0 drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)]" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`;
+        } else {
+          titleContainer.innerHTML = `<h1 id="allCastModalTitle" class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${escapeHTML(movieTitle)}</h1>`;
+        }
+      } else if (titleEl) {
+        titleEl.textContent = movieTitle;
+      }
+
       if (subEl) subEl.textContent = `${totalCount} actors, directors & crew members`;
 
       updateAllCastTabsUI();
