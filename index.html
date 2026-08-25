@@ -735,6 +735,149 @@
         animation: fadeInSimple 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
       }
 
+    /* Custom Glass Select & Multi-select */
+    .custom-filter-dropdown-container {
+      position: relative;
+      user-select: none;
+    }
+
+    .custom-filter-trigger {
+      width: 100%;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0 0.875rem;
+      border-radius: 0.75rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #d1d5db;
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .custom-filter-trigger:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .custom-filter-trigger.active-custom {
+      border-color: #3b82f6 !important;
+      color: #93c5fd !important;
+      background: rgba(59, 130, 246, 0.15) !important;
+    }
+
+    .custom-filter-trigger.is-open {
+      border-color: #3b82f6 !important;
+    }
+
+    .custom-filter-trigger.is-open .custom-filter-chevron {
+      transform: rotate(180deg);
+    }
+
+    .custom-filter-popover {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 100%;
+      min-width: 220px;
+      max-height: 280px;
+      overflow-y: auto;
+      background: rgba(11, 17, 33, 0.98);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 1rem;
+      padding: 0.5rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85);
+      z-index: 10000;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+
+    .custom-filter-popover::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-filter-popover::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .custom-filter-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.5rem 0.65rem;
+      border-radius: 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #d1d5db;
+      background: transparent;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .custom-filter-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+
+    .custom-filter-item.selected {
+      background: rgba(59, 130, 246, 0.2) !important;
+      border-color: rgba(59, 130, 246, 0.4) !important;
+      color: #ffffff !important;
+    }
+
+    .custom-filter-checkbox {
+      width: 1rem;
+      height: 1rem;
+      border-radius: 0.25rem;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .custom-filter-item.selected .custom-filter-checkbox {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .custom-filter-radio {
+      width: 1rem;
+      height: 1rem;
+      border-radius: 9999px;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .custom-filter-item.selected .custom-filter-radio {
+      border-color: #3b82f6;
+    }
+
+    .custom-filter-radio-dot {
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 9999px;
+      background: #3b82f6;
+    }
       .filter-backdrop-responsive {
         display: none !important;
       }
@@ -2038,128 +2181,13 @@
           </div>
 
           <!-- Full-width multi-column grid on desktop! -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-            <!-- Sort By -->
-            <div>
-              <label
-                class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort
-                By</label>
-              <div class="relative">
-                <select id="resultsSort" onchange="onHomeFilterSelectChange()"
-                  class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                  <option value="year_desc">Newest First</option>
-                  <option value="year_asc">Oldest First</option>
-                  <option value="popularity">Popular</option>
-                  <option value="rating_desc">Highest Rated</option>
-                  <option value="az">A-Z</option>
-                  <option value="za">Z-A</option>
-                </select>
-                <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </div>
-
-            <!-- Streaming Platform -->
-            <div id="resultsProviderWrapper">
-              <label
-                class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming
-                Platform</label>
-              <div class="relative">
-                <select id="resultsProvider" onchange="onHomeFilterSelectChange()"
-                  class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                  <option value="all">All My Services</option>
-                </select>
-                <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </div>
-
-            <!-- Genre -->
-            <div>
-              <label
-                class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Genre</label>
-              <div class="relative">
-                <select id="resultsGenre" onchange="onHomeFilterSelectChange()"
-                  class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                  <option value="all">All Genres</option>
-                </select>
-                <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </div>
-
-            <!-- Release Period / Decade -->
-            <div>
-              <label
-                class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release
-                Period</label>
-              <div class="relative">
-                <select id="resultsDecade" onchange="onHomeFilterSelectChange()"
-                  class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                  <option value="all">All Decades</option>
-                  <option value="2020">2020s</option>
-                  <option value="2010">2010s</option>
-                  <option value="2000">2000s</option>
-                  <option value="1990">1990s</option>
-                  <option value="1980">1980s</option>
-                  <option value="1970">1970s</option>
-                  <option value="1960">1960s</option>
-                  <option value="1950">1950s</option>
-                  <option value="older">Older</option>
-                </select>
-                <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </div>
-
-            <!-- Minimum Rating -->
-            <div>
-              <label
-                class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum
-                Rating</label>
-              <div class="relative">
-                <select id="resultsRating" onchange="setHomeRating(this.value)"
-                  class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                  <option value="all">Any Rating</option>
-                  <option value="6">⭐ 6.0+ Rated</option>
-                  <option value="7">⭐ 7.0+ Rated</option>
-                  <option value="8">⭐ 8.0+ Rated</option>
-                  <option value="8.5">⭐ 8.5+ Rated</option>
-                </select>
-                <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </div>
-
-            <!-- Film Length -->
-            <div>
-              <label
-                class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film
-                Length</label>
-              <div class="relative">
-                <select id="resultsRuntime" onchange="setHomeRuntime(this.value)"
-                  class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                  <option value="all">Any Length</option>
-                  <option value="short">Short (&lt; 90 min)</option>
-                  <option value="medium">Medium (90 - 120 min)</option>
-                  <option value="long">Long (&gt; 120 min)</option>
-                </select>
-                <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="homeFilterGridSlots">
+            <div id="homeFilterSlot-sort" class="custom-filter-dropdown-container"></div>
+            <div id="homeFilterSlot-provider" class="custom-filter-dropdown-container"></div>
+            <div id="homeFilterSlot-genre" class="custom-filter-dropdown-container"></div>
+            <div id="homeFilterSlot-decade" class="custom-filter-dropdown-container"></div>
+            <div id="homeFilterSlot-rating" class="custom-filter-dropdown-container"></div>
+            <div id="homeFilterSlot-runtime" class="custom-filter-dropdown-container"></div>
           </div>
 
           <!-- Extra Tools: Insights & Roulette -->
@@ -4215,19 +4243,577 @@
     }
     loadAndRenderProviders();
 
-    const HOME_SORT_OPTIONS = [
-      { value: 'year_desc', label: 'Newest First' },
-      { value: 'year_asc', label: 'Oldest First' },
-      { value: 'popularity', label: 'Popular' },
-      { value: 'rating_desc', label: 'Highest Rated' },
-      { value: 'az', label: 'A-Z' },
-      { value: 'za', label: 'Z-A' }
-    ];
+    // -------------------------------------------------------------
+    // Bespoke Glassmorphism Custom Filter Engine (Home & Actor)
+    // -------------------------------------------------------------
+    const GENRE_ICON_MAP = {
+      'Action': '💥', 'Adventure': '🗺️', 'Animation': '🎨', 'Comedy': '😂', 'Crime': '🕵️',
+      'Documentary': '📹', 'Drama': '🎭', 'Family': '👨‍👩‍👧‍👦', 'Fantasy': '🧙', 'History': '📜',
+      'Horror': '👻', 'Music': '🎵', 'Mystery': '🔍', 'Romance': '❤️', 'Science Fiction': '🚀',
+      'TV Movie': '📺', 'Thriller': '😱', 'War': '⚔️', 'Western': '🤠'
+    };
 
+    const DECADE_ICON_MAP = {
+      'all': '📅', '2020': '✨', '2010': '📼', '2000': '💿', '1990': '🕹️',
+      '1980': '📻', '1970': '🎞️', '1960': '📽️', '1950': '🎙️', 'older': '🕰️',
+      '2020s': '✨', '2010s': '📼', '2000s': '💿', '1990s': '🕹️', '1980s': '📻',
+      '1970s': '🎞️', '1960s': '📽️', '1950s': '🎙️'
+    };
+
+    const SORT_ICON_MAP = {
+      'year_desc': '⏳', 'year_asc': '🕰️', 'popularity': '🔥',
+      'rating_desc': '⭐', 'az': '🔤', 'za': '🔤'
+    };
+
+    // Home Filter State
+    let homeFilterSort = 'year_desc';
+    let homeFilterProviders = new Set(['all']);
+    let homeFilterGenres = new Set(['all']);
+    let homeFilterDecades = new Set(['all']);
     let homeFilterRating = 'all';
     let homeFilterRuntime = 'all';
     window.homeFilterRating = 'all';
     window.homeFilterRuntime = 'all';
+
+    function getProviderLogoUrl(name) {
+      if (!name) return null;
+      const safe = name.replace("with Ads", "").trim();
+      const meta = currentProviders.find(cp => cp.name.toLowerCase() === safe.toLowerCase());
+      if (meta && meta.logoPath) return meta.logoPath;
+      const local = (typeof localIconFor === 'function') ? localIconFor(safe) : null;
+      if (local) return local;
+      const domain = (typeof domainFor === 'function') ? domainFor(safe) : null;
+      return (typeof logoDevIcon === 'function') ? logoDevIcon(domain || `${cleanNormalize(safe)}.com`) : null;
+    }
+
+    function closeAllCustomFilterPopovers() {
+      document.querySelectorAll('.custom-filter-popover').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.custom-filter-trigger').forEach(t => {
+        t.classList.remove('is-open');
+        t.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    function toggleCustomFilterMenu(btn, popoverId) {
+      const popover = document.getElementById(popoverId);
+      if (!popover) return;
+      const isClosed = popover.classList.contains('hidden');
+      closeAllCustomFilterPopovers();
+      if (isClosed) {
+        popover.classList.remove('hidden');
+        btn.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    }
+
+    function onCustomFilterSelect(scope, type, val, e) {
+      if (e) e.stopPropagation();
+
+      if (scope === 'home') {
+        if (type === 'sort') {
+          homeFilterSort = val;
+          closeAllCustomFilterPopovers();
+        } else if (type === 'rating') {
+          homeFilterRating = val;
+          window.homeFilterRating = val;
+          closeAllCustomFilterPopovers();
+        } else if (type === 'runtime') {
+          homeFilterRuntime = val;
+          window.homeFilterRuntime = val;
+          closeAllCustomFilterPopovers();
+          if (val !== 'all') ensureRuntimesFetched();
+        } else if (type === 'provider') {
+          if (val === 'all') {
+            homeFilterProviders = new Set(['all']);
+          } else {
+            homeFilterProviders.delete('all');
+            if (homeFilterProviders.has(val)) {
+              homeFilterProviders.delete(val);
+            } else {
+              homeFilterProviders.add(val);
+            }
+            if (homeFilterProviders.size === 0) {
+              homeFilterProviders = new Set(['all']);
+            }
+          }
+        } else if (type === 'genre') {
+          if (val === 'all') {
+            homeFilterGenres = new Set(['all']);
+          } else {
+            homeFilterGenres.delete('all');
+            if (homeFilterGenres.has(val)) {
+              homeFilterGenres.delete(val);
+            } else {
+              homeFilterGenres.add(val);
+            }
+            if (homeFilterGenres.size === 0) {
+              homeFilterGenres = new Set(['all']);
+            }
+          }
+        } else if (type === 'decade') {
+          if (val === 'all') {
+            homeFilterDecades = new Set(['all']);
+          } else {
+            homeFilterDecades.delete('all');
+            if (homeFilterDecades.has(val)) {
+              homeFilterDecades.delete(val);
+            } else {
+              homeFilterDecades.add(val);
+            }
+            if (homeFilterDecades.size === 0) {
+              homeFilterDecades = new Set(['all']);
+            }
+          }
+        }
+        currentPage = 1;
+        renderAllCustomFilters('home');
+        applyFiltersAndRender();
+        syncHomeFilterButtonState();
+      } else if (scope === 'actor') {
+        if (type === 'sort') {
+          actorFilterSort = val;
+          closeAllCustomFilterPopovers();
+        } else if (type === 'rating') {
+          actorFilterRating = val;
+          window.actorFilterRating = val;
+          closeAllCustomFilterPopovers();
+        } else if (type === 'runtime') {
+          actorFilterRuntime = val;
+          window.actorFilterRuntime = val;
+          closeAllCustomFilterPopovers();
+          if (val !== 'all') {
+            const actorId = window.currentActorPageId || modalActiveActorId || currentActorId;
+            const person = (actorId ? actorDetailsCache.get(actorId) : null) || window.currentActorPersonObj;
+            if (person) ensureActorRuntimesFetched(person);
+          }
+        } else if (type === 'provider') {
+          if (val === 'all') {
+            actorFilterProviders = new Set(['all']);
+          } else {
+            actorFilterProviders.delete('all');
+            if (actorFilterProviders.has(val)) {
+              actorFilterProviders.delete(val);
+            } else {
+              actorFilterProviders.add(val);
+            }
+            if (actorFilterProviders.size === 0) {
+              actorFilterProviders = new Set(['all']);
+            }
+          }
+          if (val !== 'all') {
+            const actorId = window.currentActorPageId || modalActiveActorId || currentActorId;
+            const person = (actorId ? actorDetailsCache.get(actorId) : null) || window.currentActorPersonObj;
+            if (person) ensureActorProvidersFetched(person);
+          }
+        } else if (type === 'genre') {
+          if (val === 'all') {
+            actorFilterGenres = new Set(['all']);
+          } else {
+            actorFilterGenres.delete('all');
+            if (actorFilterGenres.has(val)) {
+              actorFilterGenres.delete(val);
+            } else {
+              actorFilterGenres.add(val);
+            }
+            if (actorFilterGenres.size === 0) {
+              actorFilterGenres = new Set(['all']);
+            }
+          }
+        } else if (type === 'decade') {
+          if (val === 'all') {
+            actorFilterDecades = new Set(['all']);
+          } else {
+            actorFilterDecades.delete('all');
+            if (actorFilterDecades.has(val)) {
+              actorFilterDecades.delete(val);
+            } else {
+              actorFilterDecades.add(val);
+            }
+            if (actorFilterDecades.size === 0) {
+              actorFilterDecades = new Set(['all']);
+            }
+          }
+        }
+        actorCurrentPage = 1;
+        renderAllCustomFilters('actor');
+        refreshActorFilmographyGrid();
+        syncActorFilterButtonState();
+      }
+    }
+
+    function onCustomFilterBulk(scope, type, action, e) {
+      if (e) e.stopPropagation();
+      if (action === 'clear') {
+        if (scope === 'home') {
+          if (type === 'provider') homeFilterProviders = new Set(['all']);
+          if (type === 'genre') homeFilterGenres = new Set(['all']);
+          if (type === 'decade') homeFilterDecades = new Set(['all']);
+          renderAllCustomFilters('home');
+          applyFiltersAndRender();
+          syncHomeFilterButtonState();
+        } else {
+          if (type === 'provider') actorFilterProviders = new Set(['all']);
+          if (type === 'genre') actorFilterGenres = new Set(['all']);
+          if (type === 'decade') actorFilterDecades = new Set(['all']);
+          renderAllCustomFilters('actor');
+          refreshActorFilmographyGrid();
+          syncActorFilterButtonState();
+        }
+      }
+    }
+
+    function renderCustomFilterSlotHtml(scope, type) {
+      const isHome = scope === 'home';
+      const popoverId = `${scope}FilterPopover-${type}`;
+
+      if (type === 'sort') {
+        const cur = isHome ? homeFilterSort : actorFilterSort;
+        const options = [
+          { value: 'year_desc', label: 'Newest First', icon: '⏳' },
+          { value: 'year_asc', label: 'Oldest First', icon: '🕰️' },
+          { value: 'popularity', label: 'Popular', icon: '🔥' },
+          { value: 'rating_desc', label: 'Highest Rated', icon: '⭐' },
+          { value: 'az', label: 'A-Z', icon: '🔤' },
+          { value: 'za', label: 'Z-A', icon: '🔤' }
+        ];
+        const selected = options.find(o => o.value === cur) || options[0];
+        const isCustom = cur !== 'year_desc';
+
+        return `
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort By</label>
+          <div class="relative">
+            <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
+              <div class="flex items-center gap-2 truncate min-w-0">
+                <span class="text-sm shrink-0">${selected.icon}</span>
+                <span class="truncate">${escapeHTML(selected.label)}</span>
+              </div>
+              <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="${popoverId}" class="custom-filter-popover hidden space-y-1">
+              ${options.map(opt => `
+                <button type="button" onclick="onCustomFilterSelect('${scope}', 'sort', '${opt.value}', event)" class="custom-filter-item ${cur === opt.value ? 'selected' : ''}">
+                  <div class="flex items-center gap-2.5 truncate min-w-0">
+                    <span class="text-sm shrink-0">${opt.icon}</span>
+                    <span class="truncate">${escapeHTML(opt.label)}</span>
+                  </div>
+                  <div class="custom-filter-radio">
+                    ${cur === opt.value ? '<div class="custom-filter-radio-dot"></div>' : ''}
+                  </div>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (type === 'provider') {
+        const curSet = isHome ? homeFilterProviders : actorFilterProviders;
+        const isAll = curSet.has('all') || curSet.size === 0;
+        const isCustom = !isAll;
+
+        const provList = [];
+        provList.push({ id: 'all', name: isHome ? 'All My Services' : 'All Services', icon: '🍿' });
+        if (vpnModeEnabled) {
+          provList.push({ id: 'vpn', name: 'VPN Available 🌐', icon: '🌐' });
+        }
+
+        const mySubscribed = currentProviders.filter(cp => selectedServiceIds.has(cp.id));
+        const otherAvail = currentProviders.filter(cp => !selectedServiceIds.has(cp.id));
+
+        if (isHome) {
+          if (mySubscribed.length > 0) {
+            mySubscribed.forEach(cp => provList.push({ id: cp.name, name: cp.name, logo: getProviderLogoUrl(cp.name) }));
+          } else {
+            currentProviders.forEach(cp => provList.push({ id: cp.name, name: cp.name, logo: getProviderLogoUrl(cp.name) }));
+          }
+        } else {
+          mySubscribed.forEach(cp => provList.push({ id: cp.name, name: cp.name, logo: getProviderLogoUrl(cp.name) }));
+          otherAvail.forEach(cp => provList.push({ id: cp.name, name: cp.name, logo: getProviderLogoUrl(cp.name) }));
+        }
+
+        let previewText = isHome ? 'All My Services' : 'All Services';
+        if (!isAll) {
+          const arr = Array.from(curSet).map(id => id === 'vpn' ? 'VPN Available' : id);
+          if (arr.length === 1) previewText = arr[0];
+          else if (arr.length === 2) previewText = arr.join(', ');
+          else previewText = `${arr.length} Services`;
+        }
+
+        return `
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming Platform</label>
+          <div class="relative">
+            <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
+              <div class="flex items-center gap-2 truncate min-w-0">
+                <span class="text-sm shrink-0">🍿</span>
+                <span class="truncate">${escapeHTML(previewText)}</span>
+              </div>
+              <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="${popoverId}" class="custom-filter-popover hidden space-y-1">
+              <div class="flex items-center justify-between px-2 py-1.5 border-b border-white/10 mb-1 text-[10px] font-extrabold uppercase tracking-wider text-gray-400">
+                <span>Streaming Services</span>
+                <button type="button" onclick="onCustomFilterBulk('${scope}', 'provider', 'clear', event)" class="text-blue-400 hover:text-blue-300 font-bold">Reset</button>
+              </div>
+              ${provList.map(p => {
+                const isSelected = p.id === 'all' ? isAll : curSet.has(p.id);
+                const logoHtml = p.logo 
+                  ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'>📺</span>'" />`
+                  : `<span class="text-sm shrink-0">${p.icon || '📺'}</span>`;
+                return `
+                  <button type="button" onclick="onCustomFilterSelect('${scope}', 'provider', '${escapeHTML(p.id)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
+                    <div class="flex items-center gap-2.5 truncate min-w-0">
+                      ${logoHtml}
+                      <span class="truncate">${escapeHTML(p.name)}</span>
+                    </div>
+                    <div class="custom-filter-checkbox">
+                      ${isSelected ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (type === 'genre') {
+        const curSet = isHome ? homeFilterGenres : actorFilterGenres;
+        const isAll = curSet.has('all') || curSet.size === 0;
+        const isCustom = !isAll;
+
+        let genreNames = [];
+        if (isHome) {
+          const s = new Set();
+          scannedMovies.forEach(m => {
+            if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) s.add(GENRE_MAP[id]); });
+          });
+          genreNames = Array.from(s).sort();
+          if (genreNames.length === 0) genreNames = Object.values(GENRE_MAP).filter((v, i, a) => a.indexOf(v) === i).sort();
+        } else {
+          genreNames = (window.currentActorAvailableGenres && window.currentActorAvailableGenres.length > 0) ? window.currentActorAvailableGenres : Object.values(GENRE_MAP).filter((v, i, a) => a.indexOf(v) === i).sort();
+        }
+
+        let previewText = 'All Genres';
+        if (!isAll) {
+          const arr = Array.from(curSet);
+          if (arr.length === 1) previewText = arr[0];
+          else if (arr.length === 2) previewText = arr.join(', ');
+          else previewText = `${arr.length} Genres`;
+        }
+
+        return `
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Genre</label>
+          <div class="relative">
+            <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
+              <div class="flex items-center gap-2 truncate min-w-0">
+                <span class="text-sm shrink-0">🎭</span>
+                <span class="truncate">${escapeHTML(previewText)}</span>
+              </div>
+              <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="${popoverId}" class="custom-filter-popover hidden space-y-1">
+              <div class="flex items-center justify-between px-2 py-1.5 border-b border-white/10 mb-1 text-[10px] font-extrabold uppercase tracking-wider text-gray-400">
+                <span>Multi-select Genres</span>
+                <button type="button" onclick="onCustomFilterBulk('${scope}', 'genre', 'clear', event)" class="text-blue-400 hover:text-blue-300 font-bold">Reset</button>
+              </div>
+              <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
+                <div class="flex items-center gap-2.5 truncate min-w-0">
+                  <span class="text-sm shrink-0">🎭</span>
+                  <span class="truncate">All Genres</span>
+                </div>
+                <div class="custom-filter-checkbox">
+                  ${isAll ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                </div>
+              </button>
+              ${genreNames.map(g => {
+                const isSelected = !isAll && curSet.has(g);
+                const icon = GENRE_ICON_MAP[g] || '🎬';
+                return `
+                  <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', '${escapeHTML(g)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
+                    <div class="flex items-center gap-2.5 truncate min-w-0">
+                      <span class="text-sm shrink-0">${icon}</span>
+                      <span class="truncate">${escapeHTML(g)}</span>
+                    </div>
+                    <div class="custom-filter-checkbox">
+                      ${isSelected ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (type === 'decade') {
+        const curSet = isHome ? homeFilterDecades : actorFilterDecades;
+        const isAll = curSet.has('all') || curSet.size === 0;
+        const isCustom = !isAll;
+
+        const decadeOptions = [
+          { value: '2020', label: '2020s', icon: '✨' },
+          { value: '2010', label: '2010s', icon: '📼' },
+          { value: '2000', label: '2000s', icon: '💿' },
+          { value: '1990', label: '1990s', icon: '🕹️' },
+          { value: '1980', label: '1980s', icon: '📻' },
+          { value: '1970', label: '1970s', icon: '🎞️' },
+          { value: '1960', label: '1960s', icon: '📽️' },
+          { value: '1950', label: '1950s', icon: '🎙️' },
+          { value: 'older', label: 'Older (< 1950)', icon: '🕰️' }
+        ];
+
+        let previewText = 'All Decades';
+        if (!isAll) {
+          const arr = Array.from(curSet).map(d => d === 'older' ? 'Older' : `${d}s`);
+          if (arr.length === 1) previewText = arr[0];
+          else if (arr.length === 2) previewText = arr.join(', ');
+          else previewText = `${arr.length} Decades`;
+        }
+
+        return `
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release Period</label>
+          <div class="relative">
+            <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
+              <div class="flex items-center gap-2 truncate min-w-0">
+                <span class="text-sm shrink-0">📅</span>
+                <span class="truncate">${escapeHTML(previewText)}</span>
+              </div>
+              <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="${popoverId}" class="custom-filter-popover hidden space-y-1">
+              <div class="flex items-center justify-between px-2 py-1.5 border-b border-white/10 mb-1 text-[10px] font-extrabold uppercase tracking-wider text-gray-400">
+                <span>Multi-select Decades</span>
+                <button type="button" onclick="onCustomFilterBulk('${scope}', 'decade', 'clear', event)" class="text-blue-400 hover:text-blue-300 font-bold">Reset</button>
+              </div>
+              <button type="button" onclick="onCustomFilterSelect('${scope}', 'decade', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
+                <div class="flex items-center gap-2.5 truncate min-w-0">
+                  <span class="text-sm shrink-0">📅</span>
+                  <span class="truncate">All Decades</span>
+                </div>
+                <div class="custom-filter-checkbox">
+                  ${isAll ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                </div>
+              </button>
+              ${decadeOptions.map(d => {
+                const isSelected = !isAll && (curSet.has(d.value) || curSet.has(`${d.value}s`));
+                return `
+                  <button type="button" onclick="onCustomFilterSelect('${scope}', 'decade', '${d.value}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
+                    <div class="flex items-center gap-2.5 truncate min-w-0">
+                      <span class="text-sm shrink-0">${d.icon}</span>
+                      <span class="truncate">${escapeHTML(d.label)}</span>
+                    </div>
+                    <div class="custom-filter-checkbox">
+                      ${isSelected ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (type === 'rating') {
+        const cur = isHome ? homeFilterRating : actorFilterRating;
+        const isCustom = cur && cur !== 'all';
+        const ratingOptions = [
+          { value: 'all', label: 'Any Rating', icon: '🌟' },
+          { value: '6', label: '6.0+ Rated', icon: '⭐' },
+          { value: '7', label: '7.0+ Rated', icon: '⭐' },
+          { value: '8', label: '8.0+ Rated', icon: '⭐' },
+          { value: '8.5', label: '8.5+ Rated', icon: '⭐' }
+        ];
+        const selected = ratingOptions.find(r => r.value === cur) || ratingOptions[0];
+
+        return `
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum Rating</label>
+          <div class="relative">
+            <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
+              <div class="flex items-center gap-2 truncate min-w-0">
+                <span class="text-sm shrink-0">${selected.icon}</span>
+                <span class="truncate">${escapeHTML(selected.label)}</span>
+              </div>
+              <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="${popoverId}" class="custom-filter-popover hidden space-y-1">
+              ${ratingOptions.map(opt => `
+                <button type="button" onclick="onCustomFilterSelect('${scope}', 'rating', '${opt.value}', event)" class="custom-filter-item ${cur === opt.value ? 'selected' : ''}">
+                  <div class="flex items-center gap-2.5 truncate min-w-0">
+                    <span class="text-sm shrink-0">${opt.icon}</span>
+                    <span class="truncate">${escapeHTML(opt.label)}</span>
+                  </div>
+                  <div class="custom-filter-radio">
+                    ${cur === opt.value ? '<div class="custom-filter-radio-dot"></div>' : ''}
+                  </div>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (type === 'runtime') {
+        const cur = isHome ? homeFilterRuntime : actorFilterRuntime;
+        const isCustom = cur && cur !== 'all';
+        const runtimeOptions = [
+          { value: 'all', label: 'Any Length', icon: '⏱️' },
+          { value: 'short', label: 'Short (< 90 min)', icon: '⚡' },
+          { value: 'medium', label: 'Medium (90 - 120 min)', icon: '⏳' },
+          { value: 'long', label: 'Long (> 120 min)', icon: '🎬' }
+        ];
+        const selected = runtimeOptions.find(r => r.value === cur) || runtimeOptions[0];
+
+        return `
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film Length</label>
+          <div class="relative">
+            <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
+              <div class="flex items-center gap-2 truncate min-w-0">
+                <span class="text-sm shrink-0">${selected.icon}</span>
+                <span class="truncate">${escapeHTML(selected.label)}</span>
+              </div>
+              <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="${popoverId}" class="custom-filter-popover hidden space-y-1">
+              ${runtimeOptions.map(opt => `
+                <button type="button" onclick="onCustomFilterSelect('${scope}', 'runtime', '${opt.value}', event)" class="custom-filter-item ${cur === opt.value ? 'selected' : ''}">
+                  <div class="flex items-center gap-2.5 truncate min-w-0">
+                    <span class="text-sm shrink-0">${opt.icon}</span>
+                    <span class="truncate">${escapeHTML(opt.label)}</span>
+                  </div>
+                  <div class="custom-filter-radio">
+                    ${cur === opt.value ? '<div class="custom-filter-radio-dot"></div>' : ''}
+                  </div>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      return '';
+    }
+
+    function renderAllCustomFilters(scope = 'home') {
+      const types = ['sort', 'provider', 'genre', 'decade', 'rating', 'runtime'];
+      types.forEach(t => {
+        const el = document.getElementById(`${scope}FilterSlot-${t}`);
+        if (el) {
+          el.innerHTML = renderCustomFilterSlotHtml(scope, t);
+        }
+      });
+    }
+
+    // Close custom dropdown popovers on outside click or Escape
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-filter-dropdown-container')) {
+        closeAllCustomFilterPopovers();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllCustomFilterPopovers();
+      }
+    });
 
     function toggleHomeFilterDropdown(e) {
       if (e) e.stopPropagation();
@@ -4247,6 +4833,8 @@
       const btn = document.getElementById('homeFilterToggleBtn');
       if (!menu) return;
       closeActorFilterDropdown();
+
+      renderAllCustomFilters('home');
 
       if (window.innerWidth < 640) {
         if (backdrop && backdrop.parentElement !== document.body) document.body.appendChild(backdrop);
@@ -4268,6 +4856,7 @@
     }
 
     function closeHomeFilterDropdown() {
+      closeAllCustomFilterPopovers();
       const menu = document.getElementById('homeFilterDropdownMenu');
       const backdrop = document.getElementById('homeFilterBackdrop');
       if (menu) menu.classList.add('hidden');
@@ -4285,14 +4874,6 @@
     function toggleHomeFilterSheet(e) { toggleHomeFilterDropdown(e); }
     function openHomeFilterSheet() { openHomeFilterDropdown(); }
     function closeHomeFilterSheet() { closeHomeFilterDropdown(); }
-
-    function onHomeFilterSelectChange() {
-      currentPage = 1;
-      if (typeof applyFiltersAndRender === 'function') {
-        applyFiltersAndRender();
-      }
-      syncHomeFilterButtonState();
-    }
 
     async function ensureRuntimesFetched() {
       const missing = scannedMovies.filter(m => !m.runtime || m.runtime === 0);
@@ -4316,24 +4897,20 @@
     }
 
     function setHomeRating(val) {
+      homeFilterRating = val;
       window.homeFilterRating = val;
-      const sel = document.getElementById('resultsRating');
-      if (sel && sel.value !== val) sel.value = val;
       currentPage = 1;
-      if (typeof applyFiltersAndRender === 'function') {
-        applyFiltersAndRender();
-      }
+      renderAllCustomFilters('home');
+      applyFiltersAndRender();
       syncHomeFilterButtonState();
     }
 
     function setHomeRuntime(val) {
+      homeFilterRuntime = val;
       window.homeFilterRuntime = val;
-      const sel = document.getElementById('resultsRuntime');
-      if (sel && sel.value !== val) sel.value = val;
       currentPage = 1;
-      if (typeof applyFiltersAndRender === 'function') {
-        applyFiltersAndRender();
-      }
+      renderAllCustomFilters('home');
+      applyFiltersAndRender();
       syncHomeFilterButtonState();
       if (val !== 'all') {
         ensureRuntimesFetched();
@@ -4341,23 +4918,16 @@
     }
 
     function resetHomeFilters() {
-      const sortSelect = el?.filterSort || document.getElementById('resultsSort');
-      const genreSelect = el?.filterGenre || document.getElementById('resultsGenre');
-      const decadeSelect = el?.filterDecade || document.getElementById('resultsDecade');
-      const provSelect = document.getElementById('resultsProvider');
-      const ratingSelect = document.getElementById('resultsRating');
-      const runtimeSelect = document.getElementById('resultsRuntime');
-
-      if (sortSelect) sortSelect.value = 'year_desc';
-      if (genreSelect) genreSelect.value = 'all';
-      if (decadeSelect) decadeSelect.value = 'all';
-      if (provSelect) provSelect.value = 'all';
-      if (ratingSelect) ratingSelect.value = 'all';
-      if (runtimeSelect) runtimeSelect.value = 'all';
-
+      homeFilterSort = 'year_desc';
+      homeFilterProviders = new Set(['all']);
+      homeFilterGenres = new Set(['all']);
+      homeFilterDecades = new Set(['all']);
+      homeFilterRating = 'all';
+      homeFilterRuntime = 'all';
       window.homeFilterRating = 'all';
       window.homeFilterRuntime = 'all';
       currentPage = 1;
+      renderAllCustomFilters('home');
       applyFiltersAndRender();
       syncHomeFilterButtonState();
     }
@@ -4366,11 +4936,7 @@
       const btn = document.getElementById('homeFilterToggleBtn');
       const menu = document.getElementById('homeFilterDropdownMenu');
       const isOpen = menu && !menu.classList.contains('hidden');
-      const sort = (el?.filterSort || document.getElementById('resultsSort'))?.value || 'year_desc';
-      const genre = (el?.filterGenre || document.getElementById('resultsGenre'))?.value || 'all';
-      const decade = (el?.filterDecade || document.getElementById('resultsDecade'))?.value || 'all';
-      const prov = document.getElementById('resultsProvider')?.value || 'all';
-      const hasCustom = (sort && sort !== 'year_desc') || (genre && genre !== 'all') || (decade && decade !== 'all') || (prov && prov !== 'all') || (window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterRuntime && window.homeFilterRuntime !== 'all');
+      const hasCustom = (homeFilterSort !== 'year_desc') || (!homeFilterProviders.has('all') && homeFilterProviders.size > 0) || (!homeFilterGenres.has('all') && homeFilterGenres.size > 0) || (!homeFilterDecades.has('all') && homeFilterDecades.size > 0) || (window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterRuntime && window.homeFilterRuntime !== 'all');
       if (btn) {
         btn.classList.toggle('border-blue-500', hasCustom || isOpen);
         btn.classList.toggle('text-blue-400', hasCustom || isOpen);
@@ -7174,76 +7740,12 @@
     function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
     function updateStats() { if (scannedMovies.length === 0) { if (el.statsBar) el.statsBar.classList.add('hidden'); return; } document.getElementById('stat-total').textContent = scannedMovies.length; let genreCounts = {}; let decadeCounts = {}; let totalRating = 0; let ratedCount = 0; scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genreCounts[GENRE_MAP[id]] = (genreCounts[GENRE_MAP[id]] || 0) + 1; }); if (m.releaseDate) { const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10; if (!isNaN(dec)) decadeCounts[dec] = (decadeCounts[dec] || 0) + 1; } const rVal = getCachedRating(m); if (rVal) { const r = parseFloat(rVal); if (!isNaN(r) && r > 0) { totalRating += r; ratedCount++; } } }); const topG = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a])[0] || '-'; const topD = Object.keys(decadeCounts).sort((a, b) => decadeCounts[b] - decadeCounts[a])[0]; const avg = ratedCount ? (totalRating / ratedCount).toFixed(1) : '-'; document.getElementById('stat-genre').textContent = topG; document.getElementById('stat-decade').innerHTML = topD ? `${topD}S` : '-'; const avgEl = document.getElementById('stat-avg'); if (avgEl) avgEl.textContent = avg; }
     function populateFilterDropdowns() {
-      const genresSet = new Set();
-      const decadesSet = new Set();
-      const providersSet = new Set();
-
-      scannedMovies.forEach(m => {
-        if (m.genreIds) {
-          m.genreIds.forEach(id => {
-            if (GENRE_MAP[id]) genresSet.add(GENRE_MAP[id]);
-          });
-        }
-        if (m.releaseDate) {
-          const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10;
-          if (!isNaN(dec)) decadesSet.add(dec);
-        }
-        const regionData = m.allProviders ? (m.allProviders[currentRegion] || null) : m.regionData;
-        if (regionData) {
-          (regionData.flatrate || []).forEach(p => {
-            if (p.provider_name) providersSet.add(p.provider_name);
-          });
-        }
-      });
-
-      const genreSel = el?.filterGenre || document.getElementById('resultsGenre');
-      if (genreSel) {
-        const cur = genreSel.value;
-        genreSel.innerHTML = '<option value="all">All Genres</option>';
-        Array.from(genresSet).sort().forEach(g => {
-          genreSel.innerHTML += `<option value="${g}">${g}</option>`;
-        });
-        genreSel.value = cur && (cur === 'all' || genresSet.has(cur)) ? cur : 'all';
-      }
-
-      const decadeSel = el?.filterDecade || document.getElementById('resultsDecade');
-      if (decadeSel) {
-        const cur = decadeSel.value;
-        decadeSel.innerHTML = '<option value="all">All Decades</option>';
-        Array.from(decadesSet).sort((a, b) => b - a).forEach(d => {
-          if (!isNaN(d)) decadeSel.innerHTML += `<option value="${d}">${d}s</option>`;
-        });
-        decadeSel.value = cur && (cur === 'all' || decadesSet.has(parseInt(cur))) ? cur : 'all';
-      }
-
-      const provSel = document.getElementById('resultsProvider');
-      if (provSel) {
-        const cur = provSel.value;
-        provSel.innerHTML = '<option value="all">All My Services</option>';
-        if (vpnModeEnabled) {
-          provSel.innerHTML += '<option value="vpn">VPN Available 🌐</option>';
-        }
-        const mySelectedServices = currentProviders.filter(cp => selectedServiceIds.has(cp.id));
-        if (mySelectedServices.length > 0) {
-          mySelectedServices.forEach(cp => {
-            provSel.innerHTML += `<option value="${escapeHTML(cp.name)}">${escapeHTML(cp.name)}</option>`;
-          });
-          provSel.value = cur && (cur === 'all' || cur === 'vpn' || mySelectedServices.some(cp => cp.name === cur)) ? cur : 'all';
-        } else {
-          Array.from(providersSet).sort().forEach(p => {
-            provSel.innerHTML += `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`;
-          });
-          provSel.value = cur && (cur === 'all' || cur === 'vpn' || providersSet.has(cur)) ? cur : 'all';
-        }
-      }
+      renderAllCustomFilters('home');
     }
 
     function applyFiltersAndRender() {
       const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : '';
-      const sort = (el?.filterSort || document.getElementById('resultsSort'))?.value || 'year_desc';
-      const genre = (el?.filterGenre || document.getElementById('resultsGenre'))?.value || 'all';
-      const decade = (el?.filterDecade || document.getElementById('resultsDecade'))?.value || 'all';
-      const provider = document.getElementById('resultsProvider')?.value || 'all';
+      const sort = homeFilterSort || 'year_desc';
 
       const selectedNamesFilterSet = new Set(
         currentProviders
@@ -7292,38 +7794,64 @@
       const qNormFilter = normalizeTitle(query);
       let filtered = scannedMovies.filter(m => {
         const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter);
-        const matchG = genre === 'all' || (m.genreIds && m.genreIds.some(id => GENRE_MAP[id] === genre));
-        const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade));
 
+        // Genre multi-select
+        let matchG = true;
+        if (homeFilterGenres && !homeFilterGenres.has('all') && homeFilterGenres.size > 0) {
+          matchG = m.genreIds && m.genreIds.some(id => homeFilterGenres.has(GENRE_MAP[id]));
+        }
+
+        // Decade multi-select
+        let matchD = true;
+        if (homeFilterDecades && !homeFilterDecades.has('all') && homeFilterDecades.size > 0) {
+          if (!m.releaseDate) matchD = false;
+          else {
+            const year = parseInt(m.releaseDate.split('-')[0]);
+            const decStr = String(Math.floor(year / 10) * 10);
+            matchD = homeFilterDecades.has(decStr) || homeFilterDecades.has(`${decStr}s`) || (year < 1950 && homeFilterDecades.has('older'));
+          }
+        }
+
+        // Provider multi-select
         let matchProv = true;
-        if (provider === 'vpn') {
-          matchProv = !!getMovieVpnMatch(m);
-        } else if (provider !== 'all') {
+        if (homeFilterProviders && !homeFilterProviders.has('all') && homeFilterProviders.size > 0) {
           const localData = m.allProviders ? (m.allProviders[currentRegion] || null) : m.regionData;
           const localFlatrate = localData?.flatrate || [];
-          const matchesLocal = localFlatrate.some(p => {
-            const pName = (p.provider_name || p.name || '').toLowerCase();
-            return pName === provider.toLowerCase() || pName.includes(provider.toLowerCase());
-          });
-          if (matchesLocal) {
-            matchProv = true;
-          } else if (vpnModeEnabled && m.allProviders) {
-            let matchesVpn = false;
-            for (const code of Object.keys(REGION_META)) {
-              if (code === currentRegion || !m.allProviders[code]) continue;
-              const altFlat = m.allProviders[code]?.flatrate || [];
-              if (altFlat.some(p => {
-                const pName = (p.provider_name || p.name || '').toLowerCase();
-                return pName === provider.toLowerCase() || pName.includes(provider.toLowerCase());
-              })) {
-                matchesVpn = true;
+
+          let isMatch = false;
+          if (homeFilterProviders.has('vpn')) {
+            if (getMovieVpnMatch(m)) isMatch = true;
+          }
+
+          if (!isMatch) {
+            for (const provName of homeFilterProviders) {
+              if (provName === 'vpn') continue;
+              const pNorm = provName.toLowerCase();
+              const hasLocal = localFlatrate.some(p => {
+                const pn = (p.provider_name || p.name || '').toLowerCase();
+                return pn === pNorm || pn.includes(pNorm);
+              });
+              if (hasLocal) {
+                isMatch = true;
                 break;
               }
+              if (vpnModeEnabled && m.allProviders) {
+                for (const code of Object.keys(REGION_META)) {
+                  if (code === currentRegion || !m.allProviders[code]) continue;
+                  const altFlat = m.allProviders[code]?.flatrate || [];
+                  if (altFlat.some(p => {
+                    const pn = (p.provider_name || p.name || '').toLowerCase();
+                    return pn === pNorm || pn.includes(pNorm);
+                  })) {
+                    isMatch = true;
+                    break;
+                  }
+                }
+                if (isMatch) break;
+              }
             }
-            matchProv = matchesVpn;
-          } else {
-            matchProv = false;
           }
+          matchProv = isMatch;
         }
 
         const rVal = parseFloat(getCachedRating(m) || m.rating || 0);
@@ -8421,11 +8949,11 @@
     let actorMediaTypeFilter = 'all';
     let actorFilterQuery = '';
     let actorFilterSort = 'year_desc';
-    let actorFilterProvider = 'all';
-    let actorFilterGenre = 'all';
-    let actorFilterDecade = 'all';
+    let actorFilterProviders = new Set(['all']);
+    let actorFilterGenres = new Set(['all']);
+    let actorFilterDecades = new Set(['all']);
     let actorFilterRating = 'all';
-    window.actorFilterProvider = 'all';
+    let actorFilterRuntime = 'all';
     window.actorFilterRating = 'all';
     window.actorFilterRuntime = 'all';
     let actorCurrentPage = 1;
@@ -8563,67 +9091,80 @@
           const titleStr = m.title || m.name || '';
           if (!normalizeTitle(titleStr).includes(q)) return false;
         }
-        if (actorFilterGenre && actorFilterGenre !== 'all') {
+
+        // Genre multi-select
+        if (actorFilterGenres && !actorFilterGenres.has('all') && actorFilterGenres.size > 0) {
           const gIds = m.genre_ids || (m.genres ? m.genres.map(g => g.id) : []);
-          if (!gIds.some(gid => GENRE_MAP[gid] === actorFilterGenre || String(gid) === actorFilterGenre)) return false;
+          const matchG = gIds.some(gid => actorFilterGenres.has(GENRE_MAP[gid]) || actorFilterGenres.has(String(gid)));
+          if (!matchG) return false;
         }
-        if (actorFilterDecade && actorFilterDecade !== 'all') {
+
+        // Decade multi-select
+        if (actorFilterDecades && !actorFilterDecades.has('all') && actorFilterDecades.size > 0) {
           const dateStr = m.release_date || m.first_air_date || '';
           if (!dateStr) return false;
           const year = parseInt(dateStr.split('-')[0], 10);
           if (isNaN(year)) return false;
-          if (actorFilterDecade === '2020s' && year < 2020) return false;
-          if (actorFilterDecade === '2010s' && (year < 2010 || year >= 2020)) return false;
-          if (actorFilterDecade === '2000s' && (year < 2000 || year >= 2010)) return false;
-          if (actorFilterDecade === '1990s' && (year < 1990 || year >= 2000)) return false;
-          if (actorFilterDecade === '1980s' && (year < 1980 || year >= 1990)) return false;
-          if (actorFilterDecade === '1970s' && (year < 1970 || year >= 1980)) return false;
-          if (actorFilterDecade === '1960s' && (year < 1960 || year >= 1970)) return false;
-          if (actorFilterDecade === '1950s' && (year < 1950 || year >= 1960)) return false;
-          if (actorFilterDecade === 'older' && year >= 1950) return false;
+          const decStr = String(Math.floor(year / 10) * 10);
+          const matchD = actorFilterDecades.has(decStr) || actorFilterDecades.has(`${decStr}s`) || (year < 1950 && actorFilterDecades.has('older'));
+          if (!matchD) return false;
         }
+
+        // Rating
         if (actorFilterRating && actorFilterRating !== 'all') {
           const minR = parseFloat(actorFilterRating);
           const r = parseFloat(getCachedRating(m) || m.vote_average || 0);
           if (r < minR) return false;
         }
-        if (actorFilterProvider && actorFilterProvider !== 'all') {
+
+        // Provider multi-select
+        if (actorFilterProviders && !actorFilterProviders.has('all') && actorFilterProviders.size > 0) {
           const cachedDetails = movieDetailsCache.get(`${m.mediaType || 'movie'}_${m.id}`);
           const allProv = m.allProviders || cachedDetails?.['watch/providers']?.results || null;
           if (!allProv && !m.regionData) return false;
 
-          if (actorFilterProvider === 'vpn') {
+          let isMatch = false;
+          if (actorFilterProviders.has('vpn')) {
             const tempObj = { ...m, allProviders: allProv, regionData: m.regionData || (allProv ? allProv[currentRegion] : null) };
             const vpn = getMovieVpnMatch(tempObj);
-            if (!vpn) return false;
-          } else {
+            if (vpn) isMatch = true;
+          }
+
+          if (!isMatch) {
             const localData = allProv ? (allProv[currentRegion] || null) : (m.regionData || null);
             const flatrate = localData?.flatrate || [];
-            const matchLocal = flatrate.some(p => {
-              const pName = (p.provider_name || p.name || '').toLowerCase();
-              return pName === actorFilterProvider.toLowerCase() || pName.includes(actorFilterProvider.toLowerCase());
-            });
-            if (matchLocal) {
-              // matched local provider
-            } else if (vpnModeEnabled && allProv) {
-              let matchVpn = false;
-              for (const code of Object.keys(REGION_META)) {
-                if (code === currentRegion || !allProv[code]) continue;
-                const altFlat = allProv[code]?.flatrate || [];
-                if (altFlat.some(p => {
-                  const pName = (p.provider_name || p.name || '').toLowerCase();
-                  return pName === actorFilterProvider.toLowerCase() || pName.includes(actorFilterProvider.toLowerCase());
-                })) {
-                  matchVpn = true;
-                  break;
-                }
+
+            for (const provName of actorFilterProviders) {
+              if (provName === 'vpn') continue;
+              const pNorm = provName.toLowerCase();
+              const hasLocal = flatrate.some(p => {
+                const pn = (p.provider_name || p.name || '').toLowerCase();
+                return pn === pNorm || pn.includes(pNorm);
+              });
+              if (hasLocal) {
+                isMatch = true;
+                break;
               }
-              if (!matchVpn) return false;
-            } else {
-              return false;
+              if (vpnModeEnabled && allProv) {
+                for (const code of Object.keys(REGION_META)) {
+                  if (code === currentRegion || !allProv[code]) continue;
+                  const altFlat = allProv[code]?.flatrate || [];
+                  if (altFlat.some(p => {
+                    const pn = (p.provider_name || p.name || '').toLowerCase();
+                    return pn === pNorm || pn.includes(pNorm);
+                  })) {
+                    isMatch = true;
+                    break;
+                  }
+                }
+                if (isMatch) break;
+              }
             }
           }
+          if (!isMatch) return false;
         }
+
+        // Runtime
         if (window.actorFilterRuntime && window.actorFilterRuntime !== 'all') {
           const cachedDetails = movieDetailsCache.get(`${m.mediaType || 'movie'}_${m.id}`);
           const runVal = m.runtime || (cachedDetails?.runtime) || (m.episode_run_time ? m.episode_run_time[0] : 0) || (cachedDetails?.episode_run_time?.[0]) || (cachedDetails?.last_episode_to_air?.runtime) || 0;
@@ -9038,85 +9579,13 @@
               </div>
 
               <!-- Full-width multi-column grid on desktop! -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                <!-- Sort By -->
-                <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort By</label>
-                  <div class="relative">
-                    <select id="actorSortSelect" onchange="onActorFilterSelectChange('sort', this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                      <option value="year_desc" ${actorFilterSort === 'year_desc' ? 'selected' : ''}>Newest First</option>
-                      <option value="year_asc" ${actorFilterSort === 'year_asc' ? 'selected' : ''}>Oldest First</option>
-                      <option value="popularity" ${actorFilterSort === 'popularity' ? 'selected' : ''}>Popular</option>
-                      <option value="rating_desc" ${actorFilterSort === 'rating_desc' ? 'selected' : ''}>Highest Rated</option>
-                      <option value="az" ${actorFilterSort === 'az' ? 'selected' : ''}>A-Z</option>
-                      <option value="za" ${actorFilterSort === 'za' ? 'selected' : ''}>Z-A</option>
-                    </select>
-                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
-
-                <!-- Streaming Platform -->
-                <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming Platform</label>
-                  <div class="relative">
-                    <select id="actorProviderSelect" onchange="onActorFilterSelectChange('provider', this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                      ${actorProviderOptionsHtml}
-                    </select>
-                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
-
-                <!-- Genre -->
-                <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Genre</label>
-                  <div class="relative">
-                    <select id="actorGenreSelect" onchange="onActorFilterSelectChange('genre', this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                      <option value="all" ${actorFilterGenre === 'all' ? 'selected' : ''}>All Genres</option>
-                      ${(window.currentActorAvailableGenres || []).map(g => `<option value="${escapeHTML(g)}" ${actorFilterGenre === g ? 'selected' : ''}>${escapeHTML(g)}</option>`).join('')}
-                    </select>
-                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
-
-                <!-- Release Period -->
-                <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release Period</label>
-                  <div class="relative">
-                    <select id="actorDecadeSelect" onchange="onActorFilterSelectChange('decade', this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                      ${ACTOR_DECADE_OPTIONS.map(d => `<option value="${d.value}" ${actorFilterDecade === d.value ? 'selected' : ''}>${escapeHTML(d.label)}</option>`).join('')}
-                    </select>
-                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
-
-                <!-- Minimum Rating -->
-                <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum Rating</label>
-                  <div class="relative">
-                    <select id="actorRatingSelect" onchange="setActorRating(this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                      <option value="all" ${(!window.actorFilterRating || window.actorFilterRating === 'all') ? 'selected' : ''}>Any Rating</option>
-                      <option value="6" ${window.actorFilterRating === '6' ? 'selected' : ''}>⭐ 6.0+ Rated</option>
-                      <option value="7" ${window.actorFilterRating === '7' ? 'selected' : ''}>⭐ 7.0+ Rated</option>
-                      <option value="8" ${window.actorFilterRating === '8' ? 'selected' : ''}>⭐ 8.0+ Rated</option>
-                      <option value="8.5" ${window.actorFilterRating === '8.5' ? 'selected' : ''}>⭐ 8.5+ Rated</option>
-                    </select>
-                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
-
-                <!-- Film Length -->
-                <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film Length</label>
-                  <div class="relative">
-                    <select id="actorRuntimeSelect" onchange="setActorRuntime(this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                      <option value="all" ${(!window.actorFilterRuntime || window.actorFilterRuntime === 'all') ? 'selected' : ''}>Any Length</option>
-                      <option value="short" ${window.actorFilterRuntime === 'short' ? 'selected' : ''}>Short (&lt; 90 min)</option>
-                      <option value="medium" ${window.actorFilterRuntime === 'medium' ? 'selected' : ''}>Medium (90 - 120 min)</option>
-                      <option value="long" ${window.actorFilterRuntime === 'long' ? 'selected' : ''}>Long (&gt; 120 min)</option>
-                    </select>
-                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="actorFilterGridSlots">
+                <div id="actorFilterSlot-sort" class="custom-filter-dropdown-container"></div>
+                <div id="actorFilterSlot-provider" class="custom-filter-dropdown-container"></div>
+                <div id="actorFilterSlot-genre" class="custom-filter-dropdown-container"></div>
+                <div id="actorFilterSlot-decade" class="custom-filter-dropdown-container"></div>
+                <div id="actorFilterSlot-rating" class="custom-filter-dropdown-container"></div>
+                <div id="actorFilterSlot-runtime" class="custom-filter-dropdown-container"></div>
               </div>
 
               <!-- Mobile Close / Apply Button -->
@@ -9315,38 +9784,20 @@
       }
     }
 
-    function onActorFilterSelectChange(type, val) {
-      if (type === 'sort') actorFilterSort = val;
-      if (type === 'provider') {
-        actorFilterProvider = val;
-        window.actorFilterProvider = val;
-        if (val !== 'all') {
-          const actorId = window.currentActorPageId || modalActiveActorId || currentActorId;
-          const person = (actorId ? actorDetailsCache.get(actorId) : null) || window.currentActorPersonObj;
-          if (person) ensureActorProvidersFetched(person);
-        }
-      }
-      if (type === 'genre') actorFilterGenre = val;
-      if (type === 'decade') actorFilterDecade = val;
-      actorCurrentPage = 1;
-      refreshActorFilmographyGrid();
-      syncActorFilterButtonState();
-    }
-
     function setActorRating(val) {
+      actorFilterRating = val;
       window.actorFilterRating = val;
-      const sel = document.getElementById('actorRatingSelect');
-      if (sel && sel.value !== val) sel.value = val;
       actorCurrentPage = 1;
+      renderAllCustomFilters('actor');
       refreshActorFilmographyGrid();
       syncActorFilterButtonState();
     }
 
     function setActorRuntime(val) {
+      actorFilterRuntime = val;
       window.actorFilterRuntime = val;
-      const sel = document.getElementById('actorRuntimeSelect');
-      if (sel && sel.value !== val) sel.value = val;
       actorCurrentPage = 1;
+      renderAllCustomFilters('actor');
       refreshActorFilmographyGrid();
       syncActorFilterButtonState();
       if (val !== 'all') {
@@ -9358,34 +9809,23 @@
 
     function resetActorFilters() {
       actorFilterSort = 'year_desc';
-      actorFilterProvider = 'all';
-      actorFilterGenre = 'all';
-      actorFilterDecade = 'all';
-      window.actorFilterProvider = 'all';
+      actorFilterProviders = new Set(['all']);
+      actorFilterGenres = new Set(['all']);
+      actorFilterDecades = new Set(['all']);
+      actorFilterRating = 'all';
+      actorFilterRuntime = 'all';
       window.actorFilterRating = 'all';
       window.actorFilterRuntime = 'all';
 
-      const sortSel = document.getElementById('actorSortSelect');
-      const provSel = document.getElementById('actorProviderSelect');
-      const genreSel = document.getElementById('actorGenreSelect');
-      const decadeSel = document.getElementById('actorDecadeSelect');
-      const ratingSel = document.getElementById('actorRatingSelect');
-      const runtimeSel = document.getElementById('actorRuntimeSelect');
-      if (sortSel) sortSel.value = 'year_desc';
-      if (provSel) provSel.value = 'all';
-      if (genreSel) genreSel.value = 'all';
-      if (decadeSel) decadeSel.value = 'all';
-      if (ratingSel) ratingSel.value = 'all';
-      if (runtimeSel) runtimeSel.value = 'all';
-
       actorCurrentPage = 1;
+      renderAllCustomFilters('actor');
       refreshActorFilmographyGrid();
       syncActorFilterButtonState();
     }
 
     function syncActorFilterButtonState() {
       const btn = document.getElementById('actorFilterToggleBtn');
-      const hasActive = (actorFilterSort !== 'year_desc' || (actorFilterProvider && actorFilterProvider !== 'all') || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
+      const hasActive = (actorFilterSort !== 'year_desc' || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
       const menu = document.getElementById('actorFilterDropdownMenu');
       const isOpen = menu && !menu.classList.contains('hidden');
       if (btn) {
@@ -9610,6 +10050,8 @@
       const decadeSelect = document.getElementById('actorFilmDecade');
       const decadeLabel = document.getElementById('actorDecadeLabel');
 
+      renderAllCustomFilters('actor');
+
       if (roleSelect) {
         roleSelect.addEventListener('change', (e) => {
           const newRole = e.target.value;
@@ -9634,33 +10076,6 @@
           refreshActorFilmographyGrid();
           const inp = document.getElementById('actorFilmSearch');
           if (inp) { inp.value = ''; inp.focus(); }
-        });
-      }
-      if (sortSelect) {
-        sortSelect.addEventListener('change', (e) => {
-          actorFilterSort = e.target.value;
-          actorCurrentPage = 1;
-          if (sortLabel) sortLabel.textContent = e.target.options[e.target.selectedIndex]?.text || e.target.value;
-          refreshActorFilmographyGrid();
-          try { e.target.blur(); } catch (err) { console.warn('[Actor Filter Sort Blur]', err); }
-        });
-      }
-      if (genreSelect) {
-        genreSelect.addEventListener('change', (e) => {
-          actorFilterGenre = e.target.value;
-          actorCurrentPage = 1;
-          if (genreLabel) genreLabel.textContent = e.target.options[e.target.selectedIndex]?.text || e.target.value;
-          refreshActorFilmographyGrid();
-          try { e.target.blur(); } catch (err) { console.warn('[Actor Filter Genre Blur]', err); }
-        });
-      }
-      if (decadeSelect) {
-        decadeSelect.addEventListener('change', (e) => {
-          actorFilterDecade = e.target.value;
-          actorCurrentPage = 1;
-          if (decadeLabel) decadeLabel.textContent = e.target.options[e.target.selectedIndex]?.text || e.target.value;
-          refreshActorFilmographyGrid();
-          try { e.target.blur(); } catch (err) { console.warn('[Actor Filter Decade Blur]', err); }
         });
       }
     }
