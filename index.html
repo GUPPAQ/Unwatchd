@@ -3139,7 +3139,10 @@
       vpnModeEnabled = enabled;
       localStorage.setItem('ps_vpn_mode', vpnModeEnabled);
       updateVpnToggleVisual();
-      if (scannedMovies.length > 0) applyFiltersAndRender();
+      if (scannedMovies.length > 0) {
+        populateFilterDropdowns();
+        applyFiltersAndRender();
+      }
       if (el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden') && el.quickSearchInput && el.quickSearchInput.value.trim()) {
         el.quickSearchBtn.click();
       }
@@ -6829,17 +6832,20 @@
       if (provSel) {
         const cur = provSel.value;
         provSel.innerHTML = '<option value="all">All My Services</option>';
+        if (vpnModeEnabled) {
+          provSel.innerHTML += '<option value="vpn">VPN Available 🌐</option>';
+        }
         const mySelectedServices = currentProviders.filter(cp => selectedServiceIds.has(cp.id));
         if (mySelectedServices.length > 0) {
           mySelectedServices.forEach(cp => {
             provSel.innerHTML += `<option value="${escapeHTML(cp.name)}">${escapeHTML(cp.name)}</option>`;
           });
-          provSel.value = cur && (cur === 'all' || mySelectedServices.some(cp => cp.name === cur)) ? cur : 'all';
+          provSel.value = cur && (cur === 'all' || cur === 'vpn' || mySelectedServices.some(cp => cp.name === cur)) ? cur : 'all';
         } else {
           Array.from(providersSet).sort().forEach(p => {
             provSel.innerHTML += `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`;
           });
-          provSel.value = cur && (cur === 'all' || providersSet.has(cur)) ? cur : 'all';
+          provSel.value = cur && (cur === 'all' || cur === 'vpn' || providersSet.has(cur)) ? cur : 'all';
         }
       }
     }
@@ -6851,6 +6857,37 @@
       const decade = (el?.filterDecade || document.getElementById('resultsDecade'))?.value || 'all';
       const provider = document.getElementById('resultsProvider')?.value || 'all';
 
+      const selectedNamesFilterSet = new Set(
+        currentProviders
+          .filter(cp => selectedServiceIds.has(cp.id))
+          .map(cp => cleanNormalize(cp.name))
+      );
+      const isSubscribedScan = (p) => {
+        if (!p) return false;
+        if (p.provider_id && selectedServiceIds.has(p.provider_id)) return true;
+        if (p.id && selectedServiceIds.has(p.id)) return true;
+        const norm = cleanNormalize(p.provider_name || p.name || '');
+        return norm ? selectedNamesFilterSet.has(norm) : false;
+      };
+
+      const getMovieVpnMatch = (m) => {
+        if (!vpnModeEnabled || !m.allProviders) return null;
+        const localData = m.allProviders[currentRegion] || m.regionData;
+        const localFlatrate = localData?.flatrate || [];
+        const hasLocal = localFlatrate.some(isSubscribedScan);
+        if (hasLocal) return null;
+        for (const code of Object.keys(REGION_META)) {
+          if (code === currentRegion || !m.allProviders[code]) continue;
+          const altData = m.allProviders[code];
+          const altFlat = altData?.flatrate || [];
+          const matchedIds = altFlat.filter(isSubscribedScan);
+          if (matchedIds.length > 0) {
+            return { region: code, services: matchedIds.map(p => ({ label: p.provider_name || p.name })) };
+          }
+        }
+        return null;
+      };
+
       const qNormFilter = normalizeTitle(query);
       let filtered = scannedMovies.filter(m => {
         const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter);
@@ -6858,19 +6895,41 @@
         const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade));
 
         let matchProv = true;
-        if (provider !== 'all') {
-          const rData = m.allProviders ? (m.allProviders[currentRegion] || null) : m.regionData;
-          const flatrate = rData?.flatrate || [];
-          matchProv = flatrate.some(p => {
+        if (provider === 'vpn') {
+          matchProv = !!getMovieVpnMatch(m);
+        } else if (provider !== 'all') {
+          const localData = m.allProviders ? (m.allProviders[currentRegion] || null) : m.regionData;
+          const localFlatrate = localData?.flatrate || [];
+          const matchesLocal = localFlatrate.some(p => {
             const pName = (p.provider_name || p.name || '').toLowerCase();
             return pName === provider.toLowerCase() || pName.includes(provider.toLowerCase());
           });
+          if (matchesLocal) {
+            matchProv = true;
+          } else if (vpnModeEnabled && m.allProviders) {
+            let matchesVpn = false;
+            for (const code of Object.keys(REGION_META)) {
+              if (code === currentRegion || !m.allProviders[code]) continue;
+              const altFlat = m.allProviders[code]?.flatrate || [];
+              if (altFlat.some(p => {
+                const pName = (p.provider_name || p.name || '').toLowerCase();
+                return pName === provider.toLowerCase() || pName.includes(provider.toLowerCase());
+              })) {
+                matchesVpn = true;
+                break;
+              }
+            }
+            matchProv = matchesVpn;
+          } else {
+            matchProv = false;
+          }
         }
 
         const rVal = parseFloat(getCachedRating(m) || m.rating || 0);
         const matchR = (!window.homeFilterRating || window.homeFilterRating === 'all') ? true : (rVal >= parseFloat(window.homeFilterRating));
         
-        const runVal = m.runtime || 0;
+        const cachedDetails = movieDetailsCache.get(`${m.mediaType || 'movie'}_${m.id}`);
+        const runVal = m.runtime || (cachedDetails?.runtime) || (cachedDetails?.episode_run_time?.[0]) || (cachedDetails?.last_episode_to_air?.runtime) || 0;
         let matchRun = true;
         if (window.homeFilterRuntime === 'short') matchRun = runVal > 0 && runVal < 90;
         else if (window.homeFilterRuntime === 'medium') matchRun = runVal >= 90 && runVal <= 120;
@@ -6889,38 +6948,12 @@
         return 0;
       });
       currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
-      const selectedNamesFilterSet = new Set(
-        currentProviders
-          .filter(cp => selectedServiceIds.has(cp.id))
-          .map(cp => cleanNormalize(cp.name))
-      );
-      const isSubscribedScan = (p) => {
-        if (!p) return false;
-        if (p.provider_id && selectedServiceIds.has(p.provider_id)) return true;
-        if (p.id && selectedServiceIds.has(p.id)) return true;
-        const norm = cleanNormalize(p.provider_name || p.name || '');
-        return norm ? selectedNamesFilterSet.has(norm) : false;
-      };
 
       filtered.forEach(movie => {
         let regionData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData;
-        let vpnInfo = null;
-        if (vpnModeEnabled && movie.allProviders) {
-          const flatrateHere = regionData?.flatrate || [];
-          const alreadySubscribedHere = flatrateHere.some(isSubscribedScan);
-          if (!alreadySubscribedHere) {
-            for (const code of Object.keys(REGION_META)) {
-              if (code === currentRegion || !movie.allProviders[code]) continue;
-              const altData = movie.allProviders[code];
-              const altFlat = altData?.flatrate || [];
-              const matchedIds = altFlat.filter(isSubscribedScan);
-              if (matchedIds.length > 0) {
-                vpnInfo = { region: code, services: matchedIds.map(p => ({ label: p.provider_name || p.name })) };
-                regionData = altData;
-                break;
-              }
-            }
-          }
+        let vpnInfo = getMovieVpnMatch(movie);
+        if (vpnInfo && movie.allProviders && movie.allProviders[vpnInfo.region]) {
+          regionData = movie.allProviders[vpnInfo.region];
         }
         const baseObj = { ...movie, regionData, vpnInfo };
         if (!regionData) { baseObj.subtext = 'Not streaming in region'; currentGroupedResults.unavailable.push(baseObj); return; }
@@ -7876,7 +7909,13 @@
                 if (myScanSessionId !== activeScanSessionId || cancelRequested || !best) return;
                 if (!best) return;
                 const mediaType = best.__mediaType === 'tv' ? 'tv' : 'movie';
-                const pUrl = `https://api.themoviedb.org/3/${mediaType}/${best.id}/watch/providers?api_key=${TMDB_API_KEY}`; const pRes = await fetch(pUrl); const pData = await pRes.json().catch(() => ({}));
+                const pUrl = `https://api.themoviedb.org/3/${mediaType}/${best.id}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`;
+                const pRes = await fetch(pUrl);
+                const pData = await pRes.json().catch(() => ({}));
+                if (pData && pData.id) {
+                  movieDetailsCache.set(`${mediaType}_${best.id}`, pData);
+                }
+                const provResults = pData['watch/providers']?.results || pData.results || {};
                 const filterAndDeduplicateProvidersScan = (list, isRentBuy = false) => {
                   if (!list || !Array.isArray(list)) return [];
                   const map = new Map();
@@ -7890,19 +7929,19 @@
                 };
 
                 const optimizedProviders = {};
-                if (pData.results) {
-                  for (const region in pData.results) {
+                if (provResults) {
+                  for (const region in provResults) {
                     optimizedProviders[region] = {};
-                    if (pData.results[region].link) optimizedProviders[region].link = pData.results[region].link;
-                    if (pData.results[region].flatrate) optimizedProviders[region].flatrate = filterAndDeduplicateProvidersScan(pData.results[region].flatrate, false);
-                    if (pData.results[region].rent) optimizedProviders[region].rent = filterAndDeduplicateProvidersScan(pData.results[region].rent, true);
-                    if (pData.results[region].buy) optimizedProviders[region].buy = filterAndDeduplicateProvidersScan(pData.results[region].buy, true);
+                    if (provResults[region].link) optimizedProviders[region].link = provResults[region].link;
+                    if (provResults[region].flatrate) optimizedProviders[region].flatrate = filterAndDeduplicateProvidersScan(provResults[region].flatrate, false);
+                    if (provResults[region].rent) optimizedProviders[region].rent = filterAndDeduplicateProvidersScan(provResults[region].rent, true);
+                    if (provResults[region].buy) optimizedProviders[region].buy = filterAndDeduplicateProvidersScan(provResults[region].buy, true);
                   }
                 }
                 const bestTitle = getResultTitle(best);
                 const bestDate = getResultDate(best);
                 const filmSlug = qObj.slug || null;
-                const runtimeMinutes = best.runtime || (best.episode_run_time ? best.episode_run_time[0] : 0) || 0;
+                const runtimeMinutes = pData.runtime || (pData.episode_run_time ? pData.episode_run_time[0] : 0) || (pData.last_episode_to_air ? pData.last_episode_to_air.runtime : 0) || best.runtime || 0;
                 if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
                 scannedMovies.push({
                   __scannedIndex: qObj.extractedIndex !== undefined ? qObj.extractedIndex : scannedMovies.length,
@@ -7912,12 +7951,12 @@
                   title: bestTitle,
                   poster: best.poster_path ? `https://image.tmdb.org/t/p/w500${best.poster_path}` : null,
                   backdrop: best.backdrop_path ? `https://image.tmdb.org/t/p/w1280${best.backdrop_path}` : null,
-                  rating: best.vote_average ? best.vote_average.toFixed(1) : null,
+                  rating: (typeof pData.vote_average === 'number' && pData.vote_average > 0) ? pData.vote_average.toFixed(1) : (best.vote_average ? best.vote_average.toFixed(1) : null),
                   releaseDate: bestDate,
-                  originalLanguage: best.original_language || 'en',
-                  popularity: typeof best.popularity === 'number' ? best.popularity : 0,
-                  vote_count: typeof best.vote_count === 'number' ? best.vote_count : 0,
-                  genreIds: best.genre_ids || [],
+                  originalLanguage: pData.original_language || best.original_language || 'en',
+                  popularity: typeof pData.popularity === 'number' ? pData.popularity : (typeof best.popularity === 'number' ? best.popularity : 0),
+                  vote_count: typeof pData.vote_count === 'number' ? pData.vote_count : (typeof best.vote_count === 'number' ? best.vote_count : 0),
+                  genreIds: (pData.genres && pData.genres.length > 0) ? pData.genres.map(g => g.id) : (best.genre_ids || []),
                   url: (optimizedProviders[currentRegion] && optimizedProviders[currentRegion].link) ? optimizedProviders[currentRegion].link : `https://www.themoviedb.org/${mediaType}/${best.id}`,
                   allProviders: optimizedProviders,
                   slug: filmSlug
@@ -8144,7 +8183,8 @@
           if (r < minR) return false;
         }
         if (window.actorFilterRuntime && window.actorFilterRuntime !== 'all') {
-          const runVal = m.runtime || (m.episode_run_time ? m.episode_run_time[0] : 0) || 0;
+          const cachedDetails = movieDetailsCache.get(`${m.mediaType || 'movie'}_${m.id}`);
+          const runVal = m.runtime || (cachedDetails?.runtime) || (m.episode_run_time ? m.episode_run_time[0] : 0) || (cachedDetails?.episode_run_time?.[0]) || (cachedDetails?.last_episode_to_air?.runtime) || 0;
           if (window.actorFilterRuntime === 'short' && (runVal <= 0 || runVal >= 90)) return false;
           if (window.actorFilterRuntime === 'medium' && (runVal < 90 || runVal > 120)) return false;
           if (window.actorFilterRuntime === 'long' && runVal <= 120) return false;
