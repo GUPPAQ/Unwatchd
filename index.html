@@ -8558,15 +8558,17 @@
       function filterActorMovieItem(m) {
         if (actorFilterQuery) {
           const q = normalizeTitle(actorFilterQuery);
-          if (!normalizeTitle(m.title).includes(q)) return false;
+          const titleStr = m.title || m.name || '';
+          if (!normalizeTitle(titleStr).includes(q)) return false;
         }
         if (actorFilterGenre && actorFilterGenre !== 'all') {
           const gIds = m.genre_ids || (m.genres ? m.genres.map(g => g.id) : []);
           if (!gIds.some(gid => GENRE_MAP[gid] === actorFilterGenre || String(gid) === actorFilterGenre)) return false;
         }
         if (actorFilterDecade && actorFilterDecade !== 'all') {
-          if (!m.release_date) return false;
-          const year = parseInt(m.release_date.split('-')[0], 10);
+          const dateStr = m.release_date || m.first_air_date || '';
+          if (!dateStr) return false;
+          const year = parseInt(dateStr.split('-')[0], 10);
           if (isNaN(year)) return false;
           if (actorFilterDecade === '2020s' && year < 2020) return false;
           if (actorFilterDecade === '2010s' && (year < 2010 || year >= 2020)) return false;
@@ -8586,7 +8588,8 @@
         if (window.actorFilterRuntime && window.actorFilterRuntime !== 'all') {
           const cachedDetails = movieDetailsCache.get(`${m.mediaType || 'movie'}_${m.id}`);
           const runVal = m.runtime || (cachedDetails?.runtime) || (m.episode_run_time ? m.episode_run_time[0] : 0) || (cachedDetails?.episode_run_time?.[0]) || (cachedDetails?.last_episode_to_air?.runtime) || 0;
-          if (window.actorFilterRuntime === 'short' && (runVal <= 0 || runVal >= 90)) return false;
+          if (runVal <= 0) return false;
+          if (window.actorFilterRuntime === 'short' && runVal >= 90) return false;
           if (window.actorFilterRuntime === 'medium' && (runVal < 90 || runVal > 120)) return false;
           if (window.actorFilterRuntime === 'long' && runVal <= 120) return false;
         }
@@ -8617,17 +8620,17 @@
       // Apply sort
       moviesToShow = [...moviesToShow];
       switch (actorFilterSort) {
-        case 'az': moviesToShow.sort((a, b) => a.title.localeCompare(b.title)); break;
-        case 'za': moviesToShow.sort((a, b) => b.title.localeCompare(a.title)); break;
+        case 'az': moviesToShow.sort((a, b) => (a.title || a.name || '').localeCompare(b.title || b.name || '')); break;
+        case 'za': moviesToShow.sort((a, b) => (b.title || b.name || '').localeCompare(a.title || a.name || '')); break;
         case 'rating_desc': moviesToShow.sort((a, b) => {
           const rA = parseFloat(getCachedRating(a) || a.vote_average || 0);
           const rB = parseFloat(getCachedRating(b) || b.vote_average || 0);
           return rB - rA;
         }); break;
-        case 'year_asc': moviesToShow.sort((a, b) => (a.release_date || '9999').localeCompare(b.release_date || '9999')); break;
+        case 'year_asc': moviesToShow.sort((a, b) => (a.release_date || a.first_air_date || '9999').localeCompare(b.release_date || b.first_air_date || '9999')); break;
         case 'popularity': moviesToShow.sort((a, b) => (b.popularity || 0) - (a.popularity || 0)); break;
         case 'year_desc':
-        default: moviesToShow.sort((a, b) => (b.release_date || '0').localeCompare(a.release_date || '0')); break;
+        default: moviesToShow.sort((a, b) => (b.release_date || b.first_air_date || '0').localeCompare(a.release_date || a.first_air_date || '0')); break;
       }
 
       return { allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles, counts };
@@ -9185,6 +9188,33 @@
     function openActorFilterSheet() { openActorFilterDropdown(); }
     function closeActorFilterSheet() { closeActorFilterDropdown(); }
 
+    async function ensureActorRuntimesFetched(person) {
+      if (!person || !person.id) return;
+      const { allMovies } = getActorMoviesList(person, false, currentActorRoleHint || modalActiveActorRoleHint);
+      const missing = allMovies.filter(m => !m.runtime || m.runtime === 0);
+      if (missing.length === 0) return;
+
+      for (let i = 0; i < missing.length; i += 12) {
+        const chunk = missing.slice(i, i + 12);
+        await Promise.all(chunk.map(async (m) => {
+          try {
+            const cached = movieDetailsCache.get(`${m.mediaType || 'movie'}_${m.id}`);
+            if (cached && (cached.runtime || cached.episode_run_time)) {
+              m.runtime = cached.runtime || (cached.episode_run_time ? cached.episode_run_time[0] : 0) || (cached.last_episode_to_air ? cached.last_episode_to_air.runtime : 0) || 0;
+            } else {
+              const d = await getFullMovieDetails(m.id, m.mediaType || 'movie');
+              if (d) {
+                m.runtime = d.runtime || (d.episode_run_time ? d.episode_run_time[0] : 0) || (d.last_episode_to_air ? d.last_episode_to_air.runtime : 0) || 0;
+              }
+            }
+          } catch (e) { }
+        }));
+        if (window.actorFilterRuntime && window.actorFilterRuntime !== 'all') {
+          refreshActorFilmographyGrid();
+        }
+      }
+    }
+
     function onActorFilterSelectChange(type, val) {
       if (type === 'sort') actorFilterSort = val;
       if (type === 'genre') actorFilterGenre = val;
@@ -9210,10 +9240,15 @@
       actorCurrentPage = 1;
       refreshActorFilmographyGrid();
       syncActorFilterButtonState();
+      if (val !== 'all') {
+        const actorId = window.currentActorPageId || modalActiveActorId || currentActorId;
+        const person = (actorId ? actorDetailsCache.get(actorId) : null) || window.currentActorPersonObj;
+        if (person) ensureActorRuntimesFetched(person);
+      }
     }
 
     function resetActorFilters() {
-      actorFilterSort = 'popularity';
+      actorFilterSort = 'year_desc';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
       window.actorFilterRating = 'all';
@@ -9224,7 +9259,7 @@
       const decadeSel = document.getElementById('actorDecadeSelect');
       const ratingSel = document.getElementById('actorRatingSelect');
       const runtimeSel = document.getElementById('actorRuntimeSelect');
-      if (sortSel) sortSel.value = 'popularity';
+      if (sortSel) sortSel.value = 'year_desc';
       if (genreSel) genreSel.value = 'all';
       if (decadeSel) decadeSel.value = 'all';
       if (ratingSel) ratingSel.value = 'all';
@@ -9237,7 +9272,7 @@
 
     function syncActorFilterButtonState() {
       const btn = document.getElementById('actorFilterToggleBtn');
-      const hasActive = (actorFilterSort !== 'popularity' || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
+      const hasActive = (actorFilterSort !== 'year_desc' || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
       const menu = document.getElementById('actorFilterDropdownMenu');
       const isOpen = menu && !menu.classList.contains('hidden');
       if (btn) {
