@@ -6639,12 +6639,10 @@
     }
 
     let heroRevealTimeout = null;
-    let heroVideoPlaying = false;
     let heroVideoFailed = false;
 
     window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
-      heroVideoPlaying = false;
       heroVideoFailed = false;
       fitHeroVideoCover(iframeEl);
       setTimeout(() => fitHeroVideoCover(iframeEl), 600);
@@ -6655,17 +6653,12 @@
         iframeEl.contentWindow.postMessage('{"event":"command","func":"setOption","args":["captions","track",{}]}', '*');
       } catch (err) { console.warn('[Hero Video Listen Handshake]', err); }
       if (heroRevealTimeout) clearTimeout(heroRevealTimeout);
-      // Safety timeout: if after 6.5s the video never reached playing state (e.g. embed blocked or silent failure), keep poster visible
+      // Wait the full 6.6s delay before revealing the video (as long as no error occurred)
       heroRevealTimeout = setTimeout(() => {
-        if (!heroVideoPlaying) {
-          heroVideoFailed = true;
-          if (iframeEl) {
-            iframeEl.style.opacity = '0';
-            iframeEl.style.display = 'none';
-          }
-          document.querySelectorAll('.heroSoundToggleBtn').forEach(b => b.classList.add('hidden'));
+        if (!heroVideoFailed) {
+          revealHeroVideo(iframeEl);
         }
-      }, 6500);
+      }, 6600);
     };
 
     function revealHeroVideo(iframeEl) {
@@ -6721,14 +6714,8 @@
       // Track trailer player state (1 = playing, 2 = paused, 0 = ended)
       if (data.event === 'onStateChange' || (data.event === 'infoDelivery' && data.info && data.info.playerState !== undefined)) {
         const state = data.event === 'onStateChange' ? data.info : data.info.playerState;
-        if (state === 1) { // PLAYING!
+        if (state === 1) {
           isTrailerPaused = false;
-          if (!heroVideoFailed && !heroVideoPlaying) {
-            heroVideoPlaying = true;
-            if (heroRevealTimeout) { clearTimeout(heroRevealTimeout); heroRevealTimeout = null; }
-            const iframeEl = document.getElementById('heroVideoIframe');
-            if (iframeEl) revealHeroVideo(iframeEl);
-          }
         } else if (state === 2 || state === 0) {
           isTrailerPaused = true;
         }
