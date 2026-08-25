@@ -1942,7 +1942,7 @@
         <div id="progressBar" class="load-fill h-full" style="width:0%"></div>
       </div>
     </section>
-    <section id="resultsSection" class="hidden pb-20 relative z-10 flex-1">
+    <section id="resultsSection" class="hidden pb-0 relative z-10 flex-1">
       <!-- MAIN RESULTS CONTROLS -->
       <div id="resultsControlsCard" class="results-controls-card relative z-50 animate-fade">
         <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
@@ -4426,9 +4426,12 @@
           openActorPage(initialRoute.id, '', initialRoute.role || '', false);
         } else if (initialRoute.type === 'cast') {
           const existing = scannedMovies.find(m => m.id === initialRoute.id && (m.mediaType || 'movie') === (initialRoute.mediaType || 'movie'));
-          if (existing) openMoviePage(existing.slug ? existing : { ...existing, slug: initialRoute.slug }, false);
-          else openMoviePageById(initialRoute.id, '', initialRoute.mediaType || 'movie', false, initialRoute.slug);
-          openFullCastModal(true);
+          const p = existing
+            ? openMoviePage(existing.slug ? existing : { ...existing, slug: initialRoute.slug }, false)
+            : openMoviePageById(initialRoute.id, '', initialRoute.mediaType || 'movie', false, initialRoute.slug);
+          Promise.resolve(p).then(() => {
+            openFullCastModal(true, false);
+          });
         }
       });
     }
@@ -6351,7 +6354,7 @@
 
     async function openMoviePageById(movieId, movieTitle = '', mediaType = 'movie', pushHistory = true, slug = '') {
       const existing = scannedMovies.find(m => m.id === movieId && (m.mediaType || 'movie') === mediaType);
-      if (existing) { openMoviePage(existing.slug ? existing : { ...existing, slug }, pushHistory); return; }
+      if (existing) { return openMoviePage(existing.slug ? existing : { ...existing, slug }, pushHistory); }
       try {
         let endpoint = mediaType === 'tv' ? 'tv' : 'movie';
         let res = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
@@ -6401,7 +6404,7 @@
             movieObj.allProviders = pData.results;
           }
         } catch (pe) { console.warn('[Movie/TV Page Providers Fetch]', pe); }
-        openMoviePage(movieObj, pushHistory);
+        return openMoviePage(movieObj, pushHistory);
       } catch (e) { console.error('[Movie Page By Id]', e); }
     }
 
@@ -6470,12 +6473,18 @@
             hideActorPageView();
             const container = document.getElementById('moviePageView');
             const isMoviePageOpen = container && !container.classList.contains('hidden');
-            const isCurrentMatch = isMoviePageOpen && window.currentMoviePageObj && window.currentMoviePageObj.id === routeInfo.id && (window.currentMoviePageObj.mediaType || 'movie') === (routeInfo.mediaType || 'movie');
+            const isCurrentMatch = isMoviePageOpen && window.currentMoviePageObj && window.currentMoviePageObj.id === routeInfo.id && (window.currentMoviePageObj.mediaType || 'movie') === (routeInfo.mediaType || 'movie') && window.currentMovieFullCredits;
             if (!isCurrentMatch) {
               const existing = scannedMovies.find(m => m.id === routeInfo.id && (m.mediaType || 'movie') === (routeInfo.mediaType || 'movie'));
-              if (existing) openMoviePage(existing.slug ? existing : { ...existing, slug: routeInfo.slug }, false); else openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false, routeInfo.slug);
+              const p = existing
+                ? openMoviePage(existing.slug ? existing : { ...existing, slug: routeInfo.slug }, false)
+                : openMoviePageById(routeInfo.id, '', routeInfo.mediaType || 'movie', false, routeInfo.slug);
+              Promise.resolve(p).then(() => {
+                openFullCastModal(true, false);
+              });
+            } else {
+              openFullCastModal(true, false);
             }
-            openFullCastModal(true);
           } else if (routeInfo.type === 'film') {
             hideAllCastModalView();
             const container = document.getElementById('moviePageView');
@@ -6782,7 +6791,7 @@
       return `<div class="col-span-full flex justify-center items-center gap-2 mt-6 sm:mt-7 mb-0">${btnsHtml}</div>`;
     }
 
-    function openFullCastModal(isPage = false) {
+    function openFullCastModal(isPage = false, pushHistory = true) {
       if (!window.currentMovieFullCredits) return;
       const modal = document.getElementById('allCastModal');
       if (!modal) return;
@@ -6793,7 +6802,7 @@
       currentAllCastMovieContext = isPage;
       allCastCurrentPage = 1;
 
-      if (isPage && !location.hash.includes('/cast') && !location.hash.includes('-cast')) {
+      if (isPage && pushHistory && !location.hash.includes('/cast') && !location.hash.includes('-cast')) {
         const mId = window.currentMovieFullCredits?.movieId || window.currentMoviePageObj?.id || '0';
         const castMovieObj = scannedMovies.find(m => m.id === Number(mId)) || window.currentActiveMovieObj || window.currentMoviePageObj;
         const isTv = castMovieObj?.mediaType === 'tv' || window.currentMoviePageObj?.mediaType === 'tv';
