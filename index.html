@@ -619,34 +619,17 @@
       }
     }
 
-    /* Results Controls Card: Glass panel on tablet & desktop, unboxed on mobile phone */
+    /* Results Controls Card: Unboxed & Clean on all screen sizes */
     .results-controls-card {
       margin-bottom: 1.5rem;
       position: relative;
       z-index: 50;
-    }
-
-    @media (max-width: 639px) {
-      .results-controls-card {
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-      }
-    }
-
-    @media (min-width: 640px) {
-      .results-controls-card {
-        background: rgba(15, 23, 42, 0.65) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 1.5rem !important;
-        padding: 1.75rem !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
-      }
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
     }
 
     .opt-seg-btn {
@@ -721,24 +704,30 @@
         left: 0 !important;
         right: 0 !important;
         width: 100% !important;
-        top: calc(100% + 8px) !important;
-        max-height: 80vh !important;
-        overflow-y: auto !important;
-        border-radius: 1rem !important;
-        background: rgba(15, 23, 42, 0.95) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+        top: calc(100% + 10px) !important;
+        overflow: visible !important;
+        border-radius: 1.25rem !important;
+        background: rgba(11, 17, 33, 0.98) !important;
+        backdrop-filter: blur(28px) !important;
+        -webkit-backdrop-filter: blur(28px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.95) !important;
         z-index: 9999 !important;
-        padding: 1.25rem 1.5rem !important;
+        padding: 1.5rem !important;
         animation: fadeInSimple 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
       }
+    }
 
     /* Custom Glass Select & Multi-select */
     .custom-filter-dropdown-container {
       position: relative;
       user-select: none;
+      z-index: 10;
+    }
+
+    .custom-filter-dropdown-container.is-active-container,
+    .custom-filter-dropdown-container:has(.custom-filter-trigger.is-open) {
+      z-index: 100 !important;
     }
 
     .custom-filter-trigger {
@@ -788,14 +777,14 @@
       min-width: 220px;
       max-height: 280px;
       overflow-y: auto;
-      background: rgba(11, 17, 33, 0.98);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(11, 17, 33, 0.99) !important;
+      backdrop-filter: blur(28px) !important;
+      -webkit-backdrop-filter: blur(28px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
       border-radius: 1rem;
       padding: 0.5rem;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85);
-      z-index: 10000;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.98), 0 0 30px rgba(0, 0, 0, 0.9) !important;
+      z-index: 10000 !important;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
     }
@@ -4292,6 +4281,9 @@
         t.classList.remove('is-open');
         t.setAttribute('aria-expanded', 'false');
       });
+      document.querySelectorAll('.custom-filter-dropdown-container').forEach(c => {
+        c.classList.remove('is-active-container');
+      });
     }
 
     function toggleCustomFilterMenu(btn, popoverId) {
@@ -4303,6 +4295,8 @@
         popover.classList.remove('hidden');
         btn.classList.add('is-open');
         btn.setAttribute('aria-expanded', 'true');
+        const container = btn.closest('.custom-filter-dropdown-container');
+        if (container) container.classList.add('is-active-container');
       }
     }
 
@@ -4842,10 +4836,10 @@
         if (backdrop) backdrop.classList.remove('hidden');
         document.body.classList.add('modal-open');
       } else {
-        const barRow = document.getElementById('homeControlsBarRow');
-        if (barRow) {
-          if (backdrop && backdrop.parentElement !== barRow) barRow.appendChild(backdrop);
-          if (menu.parentElement !== barRow) barRow.appendChild(menu);
+        const card = document.getElementById('resultsControlsCard') || document.getElementById('homeControlsBarRow');
+        if (card) {
+          if (backdrop && backdrop.parentElement !== card) card.appendChild(backdrop);
+          if (menu.parentElement !== card) card.appendChild(menu);
         }
       }
       menu.classList.remove('hidden');
@@ -4862,10 +4856,10 @@
       if (menu) menu.classList.add('hidden');
       if (backdrop) backdrop.classList.add('hidden');
       document.body.classList.remove('modal-open');
-      const barRow = document.getElementById('homeControlsBarRow');
-      if (barRow) {
-        if (backdrop && backdrop.parentElement !== barRow) barRow.appendChild(backdrop);
-        if (menu && menu.parentElement !== barRow) barRow.appendChild(menu);
+      const card = document.getElementById('resultsControlsCard') || document.getElementById('homeControlsBarRow');
+      if (card) {
+        if (backdrop && backdrop.parentElement !== card) card.appendChild(backdrop);
+        if (menu && menu.parentElement !== card) card.appendChild(menu);
       }
       syncHomeFilterButtonState();
     }
@@ -9535,64 +9529,66 @@
       })();
 
       const actorControlsHtml = `
-        <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
-          ${mediaFilterTabsHtml}
-          <div class="hidden lg:block w-px h-6 bg-white/15 shrink-0 my-auto"></div>
-          <div class="relative flex-1 min-w-0 z-50" id="actorControlsBarRow">
-            <div class="flex items-center gap-2 w-full">
-              <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
-                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
-                ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
-              </div>
+        <div class="relative w-full z-50" id="actorControlsCard">
+          <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
+            ${mediaFilterTabsHtml}
+            <div class="hidden lg:block w-px h-6 bg-white/15 shrink-0 my-auto"></div>
+            <div class="relative flex-1 min-w-0" id="actorControlsBarRow">
+              <div class="flex items-center gap-2 w-full">
+                <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
+                  <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                  <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
+                  ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+                </div>
 
-              <!-- Options / Filter Toggle Button for Actor -->
-              <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-                </svg>
-              </button>
-            </div>
-
-            <!-- Actor Filter Backdrop (Mobile bottom sheet backdrop) -->
-            <div id="actorFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeActorFilterDropdown()"></div>
-
-            <!-- Responsive Filter Panel for Actor (Spans full bar width on desktop, bottom sheet on mobile) -->
-            <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive space-y-4">
-              <!-- Mobile Drag Handle -->
-              <div class="w-10 h-1 rounded-full bg-white/20 mx-auto mb-2 sm:hidden pointer-events-none"></div>
-
-              <!-- Header -->
-              <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Options / Filter Toggle Button for Actor -->
+                <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
                   </svg>
-                  <span class="text-xs font-bold uppercase tracking-widest text-white">Filters &amp; Sorting</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <button type="button" onclick="resetActorFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
-                    Reset all
-                  </button>
-                  <button type="button" onclick="closeActorFilterDropdown()" class="sm:hidden w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 text-gray-300 hover:text-white text-xs font-bold">✕</button>
-                </div>
+                </button>
               </div>
-
-              <!-- Full-width multi-column grid on desktop! -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="actorFilterGridSlots">
-                <div id="actorFilterSlot-sort" class="custom-filter-dropdown-container"></div>
-                <div id="actorFilterSlot-provider" class="custom-filter-dropdown-container"></div>
-                <div id="actorFilterSlot-genre" class="custom-filter-dropdown-container"></div>
-                <div id="actorFilterSlot-decade" class="custom-filter-dropdown-container"></div>
-                <div id="actorFilterSlot-rating" class="custom-filter-dropdown-container"></div>
-                <div id="actorFilterSlot-runtime" class="custom-filter-dropdown-container"></div>
-              </div>
-
-              <!-- Mobile Close / Apply Button -->
-              <button type="button" onclick="closeActorFilterDropdown()" class="w-full sm:hidden py-3 mt-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
-                Show Results
-              </button>
             </div>
+          </div>
+
+          <!-- Actor Filter Backdrop (Mobile bottom sheet backdrop) -->
+          <div id="actorFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeActorFilterDropdown()"></div>
+
+          <!-- Responsive Filter Panel for Actor (Spans full bar width on desktop, bottom sheet on mobile) -->
+          <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive space-y-4">
+            <!-- Mobile Drag Handle -->
+            <div class="w-10 h-1 rounded-full bg-white/20 mx-auto mb-2 sm:hidden pointer-events-none"></div>
+
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
+                </svg>
+                <span class="text-xs font-bold uppercase tracking-widest text-white">Filters &amp; Sorting</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="resetActorFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
+                  Reset all
+                </button>
+                <button type="button" onclick="closeActorFilterDropdown()" class="sm:hidden w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 text-gray-300 hover:text-white text-xs font-bold">✕</button>
+              </div>
+            </div>
+
+            <!-- Full-width multi-column grid on desktop! -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="actorFilterGridSlots">
+              <div id="actorFilterSlot-sort" class="custom-filter-dropdown-container"></div>
+              <div id="actorFilterSlot-provider" class="custom-filter-dropdown-container"></div>
+              <div id="actorFilterSlot-genre" class="custom-filter-dropdown-container"></div>
+              <div id="actorFilterSlot-decade" class="custom-filter-dropdown-container"></div>
+              <div id="actorFilterSlot-rating" class="custom-filter-dropdown-container"></div>
+              <div id="actorFilterSlot-runtime" class="custom-filter-dropdown-container"></div>
+            </div>
+
+            <!-- Mobile Close / Apply Button -->
+            <button type="button" onclick="closeActorFilterDropdown()" class="w-full sm:hidden py-3 mt-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
+              Show Results
+            </button>
           </div>
         </div>
       `;
@@ -9692,16 +9688,18 @@
       if (!menu) return;
       closeHomeFilterDropdown();
 
+      renderAllCustomFilters('actor');
+
       if (window.innerWidth < 640) {
         if (backdrop && backdrop.parentElement !== document.body) document.body.appendChild(backdrop);
         if (menu.parentElement !== document.body) document.body.appendChild(menu);
         if (backdrop) backdrop.classList.remove('hidden');
         document.body.classList.add('modal-open');
       } else {
-        const barRow = document.getElementById('actorControlsBarRow');
-        if (barRow) {
-          if (backdrop && backdrop.parentElement !== barRow) barRow.appendChild(backdrop);
-          if (menu.parentElement !== barRow) barRow.appendChild(menu);
+        const card = document.getElementById('actorControlsCard') || document.getElementById('actorControlsBarRow');
+        if (card) {
+          if (backdrop && backdrop.parentElement !== card) card.appendChild(backdrop);
+          if (menu.parentElement !== card) card.appendChild(menu);
         }
       }
       menu.classList.remove('hidden');
@@ -9709,15 +9707,16 @@
     }
 
     function closeActorFilterDropdown() {
+      closeAllCustomFilterPopovers();
       const menu = document.getElementById('actorFilterDropdownMenu');
       const backdrop = document.getElementById('actorFilterBackdrop');
       if (menu) menu.classList.add('hidden');
       if (backdrop) backdrop.classList.add('hidden');
       document.body.classList.remove('modal-open');
-      const barRow = document.getElementById('actorControlsBarRow');
-      if (barRow) {
-        if (backdrop && backdrop.parentElement !== barRow) barRow.appendChild(backdrop);
-        if (menu && menu.parentElement !== barRow) barRow.appendChild(menu);
+      const card = document.getElementById('actorControlsCard') || document.getElementById('actorControlsBarRow');
+      if (card) {
+        if (backdrop && backdrop.parentElement !== card) card.appendChild(backdrop);
+        if (menu && menu.parentElement !== card) card.appendChild(menu);
       }
       syncActorFilterButtonState();
     }
