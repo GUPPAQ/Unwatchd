@@ -8824,9 +8824,9 @@
       const mediaFilterTabsHtml = `
         <div class="flex flex-row items-center gap-1 sm:gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl shrink-0 w-full lg:w-auto ${actorTabsWidthClass} h-[42px]">
           <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
           <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
           <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Series</span> <span class="tab-badge actor-tab-badge">${safeCounts.tv}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
         </div>`;
 
       const roleIcons = {
@@ -9735,16 +9735,16 @@
           const tabBtns = container.querySelectorAll('.actor-tab-btn');
           if (tabBtns.length >= 4) {
             tabBtns[0].classList.toggle('active', actorMediaTypeFilter === 'watchlist');
-            tabBtns[1].classList.toggle('active', actorMediaTypeFilter === 'movie');
-            tabBtns[2].classList.toggle('active', actorMediaTypeFilter === 'tv');
-            tabBtns[3].classList.toggle('active', actorMediaTypeFilter === 'all');
+            tabBtns[1].classList.toggle('active', actorMediaTypeFilter === 'all');
+            tabBtns[2].classList.toggle('active', actorMediaTypeFilter === 'movie');
+            tabBtns[3].classList.toggle('active', actorMediaTypeFilter === 'tv');
           }
           const tabBadges = container.querySelectorAll('.actor-tab-badge');
           if (tabBadges.length >= 4 && counts) {
             tabBadges[0].textContent = counts.watchlist;
-            tabBadges[1].textContent = counts.movie;
-            tabBadges[2].textContent = counts.tv;
-            tabBadges[3].textContent = counts.all;
+            tabBadges[1].textContent = counts.all;
+            tabBadges[2].textContent = counts.movie;
+            tabBadges[3].textContent = counts.tv;
           }
           const totalCountEls = container.querySelectorAll('.actor-total-count');
           if (totalCountEls.length > 0 && counts) {
