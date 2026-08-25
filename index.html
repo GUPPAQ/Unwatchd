@@ -1879,7 +1879,7 @@
             </div>
 
             <!-- Full-width multi-column grid on desktop! -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
               <!-- Sort By -->
               <div>
                 <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Sort By</label>
@@ -1908,12 +1908,12 @@
                 </div>
               </div>
 
-              <!-- Language -->
+              <!-- Genre -->
               <div>
-                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Language</label>
+                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Genre</label>
                 <div class="relative">
-                  <select id="resultsLanguage" onchange="onHomeFilterSelectChange()" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                    <option value="all">All Languages</option>
+                  <select id="resultsGenre" onchange="onHomeFilterSelectChange()" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
+                    <option value="all">All Genres</option>
                   </select>
                   <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
@@ -1934,17 +1934,6 @@
                     <option value="1960">1960s</option>
                     <option value="1950">1950s</option>
                     <option value="older">Older</option>
-                  </select>
-                  <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </div>
-              </div>
-
-              <!-- Genre -->
-              <div>
-                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Genre</label>
-                <div class="relative">
-                  <select id="resultsGenre" onchange="onHomeFilterSelectChange()" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                    <option value="all">All Genres</option>
                   </select>
                   <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
@@ -3923,27 +3912,6 @@
       { value: 'year_asc', label: 'Oldest First' }
     ];
 
-    const TMDB_LANGUAGES = [
-      { code: 'en', label: 'English 🇬🇧' },
-      { code: 'sv', label: 'Swedish 🇸🇪' },
-      { code: 'ko', label: 'Korean 🇰🇷' },
-      { code: 'ja', label: 'Japanese 🇯🇵' },
-      { code: 'fr', label: 'French 🇫🇷' },
-      { code: 'es', label: 'Spanish 🇪🇸' },
-      { code: 'de', label: 'German 🇩🇪' },
-      { code: 'it', label: 'Italian 🇮🇹' },
-      { code: 'da', label: 'Danish 🇩🇰' },
-      { code: 'no', label: 'Norwegian 🇳🇴' },
-      { code: 'fi', label: 'Finnish 🇫🇮' },
-      { code: 'zh', label: 'Chinese 🇨🇳' },
-      { code: 'hi', label: 'Hindi 🇮🇳' },
-      { code: 'pt', label: 'Portuguese 🇵🇹' },
-      { code: 'ru', label: 'Russian 🇷🇺' },
-      { code: 'pl', label: 'Polish 🇵🇱' },
-      { code: 'nl', label: 'Dutch 🇳🇱' },
-      { code: 'tr', label: 'Turkish 🇹🇷' }
-    ];
-
     let homeFilterRating = 'all';
     let homeFilterRuntime = 'all';
     window.homeFilterRating = 'all';
@@ -4049,13 +4017,11 @@
       const sortSelect = el?.filterSort || document.getElementById('resultsSort');
       const genreSelect = el?.filterGenre || document.getElementById('resultsGenre');
       const decadeSelect = el?.filterDecade || document.getElementById('resultsDecade');
-      const langSelect = document.getElementById('resultsLanguage');
       const provSelect = document.getElementById('resultsProvider');
 
       if (sortSelect) sortSelect.value = 'year_desc';
       if (genreSelect) genreSelect.value = 'all';
       if (decadeSelect) decadeSelect.value = 'all';
-      if (langSelect) langSelect.value = 'all';
       if (provSelect) provSelect.value = 'all';
 
       setHomeRating('all');
@@ -4070,9 +4036,8 @@
       const sort = (el?.filterSort || document.getElementById('resultsSort'))?.value || 'year_desc';
       const genre = (el?.filterGenre || document.getElementById('resultsGenre'))?.value || 'all';
       const decade = (el?.filterDecade || document.getElementById('resultsDecade'))?.value || 'all';
-      const lang = document.getElementById('resultsLanguage')?.value || 'all';
       const prov = document.getElementById('resultsProvider')?.value || 'all';
-      const hasCustom = (sort && sort !== 'year_desc') || (genre && genre !== 'all') || (decade && decade !== 'all') || (lang && lang !== 'all') || (prov && prov !== 'all') || (window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterRuntime && window.homeFilterRuntime !== 'all');
+      const hasCustom = (sort && sort !== 'year_desc') || (genre && genre !== 'all') || (decade && decade !== 'all') || (prov && prov !== 'all') || (window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterRuntime && window.homeFilterRuntime !== 'all');
       if (btn) {
         btn.classList.toggle('border-blue-500', hasCustom || isOpen);
         btn.classList.toggle('text-blue-400', hasCustom || isOpen);
@@ -6824,7 +6789,6 @@
     function populateFilterDropdowns() {
       const genresSet = new Set();
       const decadesSet = new Set();
-      const languagesSet = new Set();
       const providersSet = new Set();
 
       scannedMovies.forEach(m => {
@@ -6836,9 +6800,6 @@
         if (m.releaseDate) {
           const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10;
           if (!isNaN(dec)) decadesSet.add(dec);
-        }
-        if (m.originalLanguage) {
-          languagesSet.add(m.originalLanguage);
         }
         const regionData = m.allProviders ? (m.allProviders[currentRegion] || null) : m.regionData;
         if (regionData) {
@@ -6868,23 +6829,6 @@
         decadeSel.value = cur && (cur === 'all' || decadesSet.has(parseInt(cur))) ? cur : 'all';
       }
 
-      const langSel = document.getElementById('resultsLanguage');
-      if (langSel) {
-        const cur = langSel.value;
-        langSel.innerHTML = '<option value="all">All Languages</option>';
-        TMDB_LANGUAGES.forEach(l => {
-          if (languagesSet.has(l.code)) {
-            langSel.innerHTML += `<option value="${l.code}">${l.label}</option>`;
-          }
-        });
-        const knownCodes = new Set(TMDB_LANGUAGES.map(l => l.code));
-        const hasOthers = Array.from(languagesSet).some(c => !knownCodes.has(c));
-        if (hasOthers) {
-          langSel.innerHTML += '<option value="other">Other Languages 🌐</option>';
-        }
-        langSel.value = cur || 'all';
-      }
-
       const provSel = document.getElementById('resultsProvider');
       if (provSel) {
         const cur = provSel.value;
@@ -6909,7 +6853,6 @@
       const sort = (el?.filterSort || document.getElementById('resultsSort'))?.value || 'year_desc';
       const genre = (el?.filterGenre || document.getElementById('resultsGenre'))?.value || 'all';
       const decade = (el?.filterDecade || document.getElementById('resultsDecade'))?.value || 'all';
-      const language = document.getElementById('resultsLanguage')?.value || 'all';
       const provider = document.getElementById('resultsProvider')?.value || 'all';
 
       const qNormFilter = normalizeTitle(query);
@@ -6917,16 +6860,6 @@
         const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter);
         const matchG = genre === 'all' || (m.genreIds && m.genreIds.some(id => GENRE_MAP[id] === genre));
         const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade));
-        
-        let matchLang = true;
-        if (language !== 'all') {
-          if (language === 'other') {
-            const knownCodes = new Set(TMDB_LANGUAGES.map(l => l.code));
-            matchLang = !knownCodes.has(m.originalLanguage);
-          } else {
-            matchLang = (m.originalLanguage === language);
-          }
-        }
 
         let matchProv = true;
         if (provider !== 'all') {
@@ -8065,11 +7998,9 @@
     let actorFilterSort = 'year_desc';
     let actorFilterGenre = 'all';
     let actorFilterDecade = 'all';
-    let actorFilterLanguage = 'all';
     let actorFilterRating = 'all';
     window.actorFilterRating = 'all';
     window.actorFilterRuntime = 'all';
-    window.actorFilterLanguage = 'all';
     let actorCurrentPage = 1;
     const ACTOR_ITEMS_PER_PAGE = 60;
 
@@ -8207,15 +8138,6 @@
         if (actorFilterGenre && actorFilterGenre !== 'all') {
           const gIds = m.genre_ids || (m.genres ? m.genres.map(g => g.id) : []);
           if (!gIds.some(gid => GENRE_MAP[gid] === actorFilterGenre || String(gid) === actorFilterGenre)) return false;
-        }
-        if (actorFilterLanguage && actorFilterLanguage !== 'all') {
-          const lang = m.original_language || '';
-          if (actorFilterLanguage === 'other') {
-            const knownCodes = new Set(TMDB_LANGUAGES.map(l => l.code));
-            if (knownCodes.has(lang)) return false;
-          } else {
-            if (lang !== actorFilterLanguage) return false;
-          }
         }
         if (actorFilterDecade && actorFilterDecade !== 'all') {
           if (!m.release_date) return false;
@@ -8484,7 +8406,7 @@
       const watchlistBtnActive = showWatchlistOnly ? 'active' : '';
       const allBtnActive = showWatchlistOnly ? '' : 'active';
 
-      const hasActiveActorFilters = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterLanguage && actorFilterLanguage !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'year_desc') || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
+      const hasActiveActorFilters = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'year_desc') || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
       const actorTabsWidthClass = availableRoles.length > 1 ? 'lg:w-[600px]' : 'lg:w-[460px]';
       const mediaFilterTabsHtml = `
@@ -8597,14 +8519,6 @@
 
       const desktopBackdropImg = knownForBackdrop || profileImg;
 
-      // Extract unique languages for this actor
-      const actorLangsSet = new Set();
-      allMovies.forEach(m => {
-        if (m.original_language) actorLangsSet.add(m.original_language);
-      });
-      const actorLangsList = TMDB_LANGUAGES.filter(l => actorLangsSet.has(l.code));
-      const hasOtherLangs = Array.from(actorLangsSet).some(c => !TMDB_LANGUAGES.some(tl => tl.code === c));
-
       const actorControlsHtml = `
         <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">
           ${mediaFilterTabsHtml}
@@ -8663,19 +8577,6 @@
                       <option value="vote_count_desc" ${actorFilterSort === 'vote_count_desc' ? 'selected' : ''}>Most Reviewed 💬</option>
                       <option value="az" ${actorFilterSort === 'az' ? 'selected' : ''}>A-Z</option>
                       <option value="za" ${actorFilterSort === 'za' ? 'selected' : ''}>Z-A</option>
-                    </select>
-                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
-
-                <!-- Language -->
-                <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Language</label>
-                  <div class="relative">
-                    <select id="actorLanguageSelect" onchange="onActorFilterSelectChange('language', this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
-                      <option value="all" ${(!window.actorFilterLanguage || window.actorFilterLanguage === 'all') ? 'selected' : ''}>All Languages</option>
-                      ${actorLangsList.map(l => `<option value="${l.code}" ${window.actorFilterLanguage === l.code ? 'selected' : ''}>${l.label}</option>`).join('')}
-                      ${hasOtherLangs ? `<option value="other" ${window.actorFilterLanguage === 'other' ? 'selected' : ''}>Other Languages 🌐</option>` : ''}
                     </select>
                     <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                   </div>
@@ -8872,10 +8773,6 @@
       if (type === 'sort') actorFilterSort = val;
       if (type === 'genre') actorFilterGenre = val;
       if (type === 'decade') actorFilterDecade = val;
-      if (type === 'language') {
-        actorFilterLanguage = val;
-        window.actorFilterLanguage = val;
-      }
       actorCurrentPage = 1;
       refreshActorFilmographyGrid();
       syncActorFilterButtonState();
@@ -8912,19 +8809,15 @@
       actorFilterSort = 'year_desc';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
-      actorFilterLanguage = 'all';
-      window.actorFilterLanguage = 'all';
       window.actorFilterRating = 'all';
       window.actorFilterRuntime = 'all';
 
       const sortSel = document.getElementById('actorSortSelect');
       const genreSel = document.getElementById('actorGenreSelect');
       const decadeSel = document.getElementById('actorDecadeSelect');
-      const langSel = document.getElementById('actorLanguageSelect');
       if (sortSel) sortSel.value = 'year_desc';
       if (genreSel) genreSel.value = 'all';
       if (decadeSel) decadeSel.value = 'all';
-      if (langSel) langSel.value = 'all';
 
       setActorRating('all');
       setActorRuntime('all');
@@ -8932,7 +8825,7 @@
 
     function syncActorFilterButtonState() {
       const btn = document.getElementById('actorFilterToggleBtn');
-      const hasActive = (actorFilterSort !== 'year_desc' || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (actorFilterLanguage && actorFilterLanguage !== 'all') || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
+      const hasActive = (actorFilterSort !== 'year_desc' || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
       const menu = document.getElementById('actorFilterDropdownMenu');
       const isOpen = menu && !menu.classList.contains('hidden');
       if (btn) {
