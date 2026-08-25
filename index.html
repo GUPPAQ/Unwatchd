@@ -1774,10 +1774,10 @@
     <section id="resultsSection" class="hidden pb-20 relative z-10 flex-1">
       <!-- MAIN RESULTS CONTROLS -->
       <div id="resultsControlsCard" class="results-controls-card relative z-50 animate-fade">
-        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
           
           <!-- Categories Bar (Left on desktop, full width on mobile) -->
-          <div id="categoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[500px]">
+          <div id="categoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
             <div
               class="grid grid-cols-2 min-[420px]:grid-cols-4 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-auto min-[420px]:h-[42px] items-center">
               <button class="tab-btn active" data-tab="stream">Available <span id="tabCount-stream"
@@ -1791,10 +1791,13 @@
             </div>
           </div>
 
+          <!-- Vertical Divider (Desktop) -->
+          <div class="hidden lg:block w-px h-6 bg-white/15 shrink-0 my-auto"></div>
+
           <!-- Controls: Searchbar + Filter Button + VPN Button (Right on desktop) -->
-          <div class="relative flex items-center gap-2 w-full lg:w-auto flex-1 lg:justify-end" id="homeControlsBarRow">
+          <div class="relative flex items-center gap-2 w-full flex-1 min-w-0" id="homeControlsBarRow">
             <!-- Search Input -->
-            <div class="flex-1 lg:w-56 xl:w-64 lg:flex-initial relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
+            <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
               <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -8553,8 +8556,9 @@
       const desktopBackdropImg = knownForBackdrop || profileImg;
 
       const actorControlsHtml = `
-        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
           ${mediaFilterTabsHtml}
+          <div class="hidden lg:block w-px h-6 bg-white/15 shrink-0 my-auto"></div>
           <div class="relative flex-1 min-w-0 z-50" id="actorControlsBarRow">
             <div class="flex items-center gap-2 w-full">
               <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
