@@ -707,13 +707,13 @@
         top: calc(100% + 10px) !important;
         overflow: visible !important;
         border-radius: 1.25rem !important;
-        background: rgba(11, 17, 33, 0.98) !important;
-        backdrop-filter: blur(28px) !important;
-        -webkit-backdrop-filter: blur(28px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.95) !important;
+        background: rgba(11, 17, 33, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8) !important;
         z-index: 9999 !important;
-        padding: 1.5rem !important;
+        padding: 1.25rem 1.5rem !important;
         animation: fadeInSimple 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
       }
     }
@@ -777,13 +777,13 @@
       min-width: 220px;
       max-height: 280px;
       overflow-y: auto;
-      background: rgba(11, 17, 33, 0.99) !important;
-      backdrop-filter: blur(28px) !important;
-      -webkit-backdrop-filter: blur(28px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-      border-radius: 1rem;
+      background: rgba(11, 17, 33, 0.96) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 0.875rem;
       padding: 0.5rem;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.98), 0 0 30px rgba(0, 0, 0, 0.9) !important;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
       z-index: 10000 !important;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
@@ -792,6 +792,7 @@
     .custom-filter-popover::-webkit-scrollbar {
       width: 5px;
     }
+
     .custom-filter-popover::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.2);
       border-radius: 4px;
@@ -803,7 +804,7 @@
       justify-content: space-between;
       width: 100%;
       padding: 0.5rem 0.65rem;
-      border-radius: 0.6rem;
+      border-radius: 0.5rem;
       font-size: 0.75rem;
       font-weight: 700;
       color: #d1d5db;
@@ -866,10 +867,6 @@
       height: 0.45rem;
       border-radius: 9999px;
       background: #3b82f6;
-    }
-      .filter-backdrop-responsive {
-        display: none !important;
-      }
     }
 
     @keyframes filterSlideUpMobile {
@@ -4549,11 +4546,11 @@
                 <button type="button" onclick="onCustomFilterBulk('${scope}', 'provider', 'clear', event)" class="text-blue-400 hover:text-blue-300 font-bold">Reset</button>
               </div>
               ${provList.map(p => {
-                const isSelected = p.id === 'all' ? isAll : curSet.has(p.id);
-                const logoHtml = p.logo 
-                  ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'>📺</span>'" />`
-                  : `<span class="text-sm shrink-0">${p.icon || '📺'}</span>`;
-                return `
+          const isSelected = p.id === 'all' ? isAll : curSet.has(p.id);
+          const logoHtml = p.logo
+            ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'>📺</span>'" />`
+            : `<span class="text-sm shrink-0">${p.icon || '📺'}</span>`;
+          return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'provider', '${escapeHTML(p.id)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
                       ${logoHtml}
@@ -4564,7 +4561,7 @@
                     </div>
                   </button>
                 `;
-              }).join('')}
+        }).join('')}
             </div>
           </div>
         `;
@@ -4620,9 +4617,9 @@
                 </div>
               </button>
               ${genreNames.map(g => {
-                const isSelected = !isAll && curSet.has(g);
-                const icon = GENRE_ICON_MAP[g] || '🎬';
-                return `
+          const isSelected = !isAll && curSet.has(g);
+          const icon = GENRE_ICON_MAP[g] || '🎬';
+          return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', '${escapeHTML(g)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
                       <span class="text-sm shrink-0">${icon}</span>
@@ -4633,7 +4630,7 @@
                     </div>
                   </button>
                 `;
-              }).join('')}
+        }).join('')}
             </div>
           </div>
         `;
@@ -4689,8 +4686,8 @@
                 </div>
               </button>
               ${decadeOptions.map(d => {
-                const isSelected = !isAll && (curSet.has(d.value) || curSet.has(`${d.value}s`));
-                return `
+          const isSelected = !isAll && (curSet.has(d.value) || curSet.has(`${d.value}s`));
+          return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'decade', '${d.value}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
                       <span class="text-sm shrink-0">${d.icon}</span>
@@ -4701,7 +4698,7 @@
                     </div>
                   </button>
                 `;
-              }).join('')}
+        }).join('')}
             </div>
           </div>
         `;
@@ -8946,6 +8943,9 @@
     let actorFilterProviders = new Set(['all']);
     let actorFilterGenres = new Set(['all']);
     let actorFilterDecades = new Set(['all']);
+    let actorFilterProvider = 'all';
+    let actorFilterGenre = 'all';
+    let actorFilterDecade = 'all';
     let actorFilterRating = 'all';
     let actorFilterRuntime = 'all';
     window.actorFilterRating = 'all';
@@ -9272,7 +9272,7 @@
 
       let filmographyHtml = '';
       if (moviesToShow.length === 0) {
-        const isFiltered = actorFilterQuery || (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterRating && actorFilterRating !== 'all');
+        const isFiltered = actorFilterQuery || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (actorFilterRating && actorFilterRating !== 'all') || (actorFilterRuntime && actorFilterRuntime !== 'all');
         let emptyIcon = isFiltered ? '🔍' : (actorMediaTypeFilter === 'watchlist' ? '📋' : (actorMediaTypeFilter === 'tv' ? '📺' : '🎬'));
         let emptyMsg = 'No credits found';
         let emptySub = 'Nothing landed here for your current selection.';
@@ -9368,21 +9368,6 @@
       window.currentActorActiveRole = activeRole;
       window.currentActorAvailableGenres = availableActorGenres;
 
-      const decadeLabels = {
-        'all': 'All Decades',
-        '2020s': '2020s',
-        '2010s': '2010s',
-        '2000s': '2000s',
-        '1990s': '1990s',
-        '1980s': '1980s',
-        '1970s': '1970s',
-        '1960s': '1960s',
-        '1950s': '1950s',
-        'older': 'Older'
-      };
-      const currentDecadeLabel = decadeLabels[actorFilterDecade] || 'All Decades';
-      const currentGenreLabel = actorFilterGenre === 'all' ? 'All Genres' : actorFilterGenre;
-
       // Sort label map
       const sortLabels = { year_desc: 'Newest First', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest Rated', rating_asc: 'Lowest Rated', year_asc: 'Oldest First' };
       const currentSortLabel = sortLabels[actorFilterSort] || 'Newest First';
@@ -9395,7 +9380,7 @@
       const watchlistBtnActive = showWatchlistOnly ? 'active' : '';
       const allBtnActive = showWatchlistOnly ? '' : 'active';
 
-      const hasActiveActorFilters = (actorFilterSort !== 'year_desc') || (actorFilterProvider && actorFilterProvider !== 'all') || (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
+      const hasActiveActorFilters = (actorFilterSort !== 'year_desc') || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
       const actorTabsWidthClass = availableRoles.length > 1 ? 'lg:w-[600px]' : 'lg:w-[460px]';
       const mediaFilterTabsHtml = `
@@ -9507,26 +9492,6 @@
         : '';
 
       const desktopBackdropImg = knownForBackdrop || profileImg;
-
-      const actorProviderOptionsHtml = (() => {
-        let opts = `<option value="all" ${(!actorFilterProvider || actorFilterProvider === 'all') ? 'selected' : ''}>All Services</option>`;
-        if (vpnModeEnabled) {
-          opts += `<option value="vpn" ${actorFilterProvider === 'vpn' ? 'selected' : ''}>VPN Available 🌐</option>`;
-        }
-        const mySelectedServices = currentProviders.filter(cp => selectedServiceIds.has(cp.id));
-        if (mySelectedServices.length > 0) {
-          mySelectedServices.forEach(cp => {
-            opts += `<option value="${escapeHTML(cp.name)}" ${actorFilterProvider === cp.name ? 'selected' : ''}>${escapeHTML(cp.name)}</option>`;
-          });
-        }
-        const otherKnown = currentProviders.filter(cp => !selectedServiceIds.has(cp.id));
-        if (otherKnown.length > 0) {
-          otherKnown.forEach(cp => {
-            opts += `<option value="${escapeHTML(cp.name)}" ${actorFilterProvider === cp.name ? 'selected' : ''}>${escapeHTML(cp.name)}</option>`;
-          });
-        }
-        return opts;
-      })();
 
       const actorControlsHtml = `
         <div class="relative w-full z-50" id="actorControlsCard">
@@ -9871,8 +9836,16 @@
       actorCurrentPage = 1;
       actorMobileFiltersOpen = false;
       actorFilterQuery = '';
+      actorFilterProviders = new Set(['all']);
+      actorFilterGenres = new Set(['all']);
+      actorFilterDecades = new Set(['all']);
+      actorFilterProvider = 'all';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
+      actorFilterRating = 'all';
+      window.actorFilterRating = 'all';
+      actorFilterRuntime = 'all';
+      window.actorFilterRuntime = 'all';
 
       const actorId = window.currentActorPageId || modalActiveActorId || currentActorId;
       const person = (actorId ? actorDetailsCache.get(actorId) : null) || window.currentActorPersonObj;
@@ -9902,10 +9875,16 @@
       actorMediaTypeFilter = 'watchlist';
       actorMobileFiltersOpen = false;
       actorFilterQuery = '';
+      actorFilterProviders = new Set(['all']);
+      actorFilterGenres = new Set(['all']);
+      actorFilterDecades = new Set(['all']);
+      actorFilterProvider = 'all';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
       actorFilterRating = 'all';
       window.actorFilterRating = 'all';
+      actorFilterRuntime = 'all';
+      window.actorFilterRuntime = 'all';
       actorFilterSort = 'popularity';
 
       document.body.classList.add('modal-open');
