@@ -2072,6 +2072,9 @@
       </div>
     </section>
     <section id="resultsSection" class="hidden pb-0 relative z-10 flex-1">
+      <!-- Divider between Letterboxd sync section and controls -->
+      <div class="w-full h-px bg-white/10 mb-6 sm:mb-8"></div>
+
       <!-- MAIN RESULTS CONTROLS -->
       <div id="resultsControlsCard" class="results-controls-card relative z-50 animate-fade">
         <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
@@ -4459,6 +4462,7 @@
 
       if (type === 'sort') {
         const cur = isHome ? homeFilterSort : actorFilterSort;
+        const defaultSort = isHome ? 'year_desc' : 'popularity';
         const options = [
           { value: 'year_desc', label: 'Newest First', icon: '⏳' },
           { value: 'year_asc', label: 'Oldest First', icon: '🕰️' },
@@ -4467,8 +4471,8 @@
           { value: 'az', label: 'A-Z', icon: '🔤' },
           { value: 'za', label: 'Z-A', icon: '🔤' }
         ];
-        const selected = options.find(o => o.value === cur) || options[0];
-        const isCustom = cur !== 'year_desc';
+        const selected = options.find(o => o.value === cur) || options.find(o => o.value === defaultSort) || options[0];
+        const isCustom = cur !== defaultSort;
 
         return `
           <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort By</label>
@@ -8939,7 +8943,7 @@
     let actorModalWatchlistMode = true;
     let actorMediaTypeFilter = 'all';
     let actorFilterQuery = '';
-    let actorFilterSort = 'year_desc';
+    let actorFilterSort = 'popularity';
     let actorFilterProviders = new Set(['all']);
     let actorFilterGenres = new Set(['all']);
     let actorFilterDecades = new Set(['all']);
@@ -9380,7 +9384,7 @@
       const watchlistBtnActive = showWatchlistOnly ? 'active' : '';
       const allBtnActive = showWatchlistOnly ? '' : 'active';
 
-      const hasActiveActorFilters = (actorFilterSort !== 'year_desc') || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
+      const hasActiveActorFilters = (actorFilterSort !== 'popularity') || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
       const actorTabsWidthClass = availableRoles.length > 1 ? 'lg:w-[600px]' : 'lg:w-[460px]';
       const mediaFilterTabsHtml = `
@@ -9772,7 +9776,7 @@
     }
 
     function resetActorFilters() {
-      actorFilterSort = 'year_desc';
+      actorFilterSort = 'popularity';
       actorFilterProviders = new Set(['all']);
       actorFilterGenres = new Set(['all']);
       actorFilterDecades = new Set(['all']);
@@ -9789,7 +9793,7 @@
 
     function syncActorFilterButtonState() {
       const btn = document.getElementById('actorFilterToggleBtn');
-      const hasActive = (actorFilterSort !== 'year_desc' || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
+      const hasActive = (actorFilterSort !== 'popularity' || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
       const menu = document.getElementById('actorFilterDropdownMenu');
       const isOpen = menu && !menu.classList.contains('hidden');
       if (btn) {
@@ -10330,8 +10334,16 @@
     async function refreshActorFilmography(isModal) {
       actorCurrentPage = 1;
       actorFilterQuery = '';
+      actorFilterProviders = new Set(['all']);
+      actorFilterGenres = new Set(['all']);
+      actorFilterDecades = new Set(['all']);
+      actorFilterProvider = 'all';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
+      actorFilterRating = 'all';
+      window.actorFilterRating = 'all';
+      actorFilterRuntime = 'all';
+      window.actorFilterRuntime = 'all';
       actorFilterSort = 'popularity';
       refreshActorFilmographyGrid();
     }
