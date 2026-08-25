@@ -1918,23 +1918,29 @@
               <!-- Minimum Rating -->
               <div>
                 <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Minimum Rating</label>
-                <div class="grid grid-cols-5 gap-1 p-1 bg-black/40 border border-white/10 rounded-xl h-[42px] items-center">
-                  <button type="button" onclick="setHomeRating('all')" id="homeRatingBtn_all" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn active">Any</button>
-                  <button type="button" onclick="setHomeRating('6')" id="homeRatingBtn_6" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐6+</button>
-                  <button type="button" onclick="setHomeRating('7')" id="homeRatingBtn_7" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐7+</button>
-                  <button type="button" onclick="setHomeRating('8')" id="homeRatingBtn_8" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐8+</button>
-                  <button type="button" onclick="setHomeRating('8.5')" id="homeRatingBtn_8.5" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐8.5+</button>
+                <div class="relative">
+                  <select id="resultsRating" onchange="setHomeRating(this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
+                    <option value="all">Any Rating</option>
+                    <option value="6">⭐ 6.0+ Rated</option>
+                    <option value="7">⭐ 7.0+ Rated</option>
+                    <option value="8">⭐ 8.0+ Rated</option>
+                    <option value="8.5">⭐ 8.5+ Rated</option>
+                  </select>
+                  <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
               </div>
 
               <!-- Film Length -->
               <div>
                 <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Film Length</label>
-                <div class="grid grid-cols-4 gap-1 p-1 bg-black/40 border border-white/10 rounded-xl h-[42px] items-center">
-                  <button type="button" onclick="setHomeRuntime('all')" id="homeRuntimeBtn_all" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn active">Any</button>
-                  <button type="button" onclick="setHomeRuntime('short')" id="homeRuntimeBtn_short" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn">&lt;90m</button>
-                  <button type="button" onclick="setHomeRuntime('medium')" id="homeRuntimeBtn_medium" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn">90-120m</button>
-                  <button type="button" onclick="setHomeRuntime('long')" id="homeRuntimeBtn_long" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn">&gt;120m</button>
+                <div class="relative">
+                  <select id="resultsRuntime" onchange="setHomeRuntime(this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
+                    <option value="all">Any Length</option>
+                    <option value="short">Short (&lt; 90 min)</option>
+                    <option value="medium">Medium (90 - 120 min)</option>
+                    <option value="long">Long (&gt; 120 min)</option>
+                  </select>
+                  <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
               </div>
             </div>
@@ -3975,14 +3981,30 @@
       syncHomeFilterButtonState();
     }
 
+    async function ensureRuntimesFetched() {
+      const missing = scannedMovies.filter(m => !m.runtime || m.runtime === 0);
+      if (missing.length === 0) return;
+      const batchSize = 10;
+      for (let i = 0; i < missing.length; i += batchSize) {
+        const chunk = missing.slice(i, i + batchSize);
+        await Promise.all(chunk.map(async (m) => {
+          try {
+            const d = await getFullMovieDetails(m.id, m.mediaType || 'movie');
+            if (d) {
+              m.runtime = d.runtime || (d.episode_run_time ? d.episode_run_time[0] : 0) || (d.last_episode_to_air ? d.last_episode_to_air.runtime : 0) || 0;
+            }
+          } catch (e) {}
+        }));
+        if (window.homeFilterRuntime && window.homeFilterRuntime !== 'all') {
+          applyFiltersAndRender();
+        }
+      }
+    }
+
     function setHomeRating(val) {
       window.homeFilterRating = val;
-      const display = document.getElementById('homeRatingDisplay');
-      if (display) display.textContent = val === 'all' ? 'Any' : `⭐ ${val}+`;
-      ['all', '6', '7', '8', '8.5'].forEach(r => {
-        const btn = document.getElementById(`homeRatingBtn_${r.replace('.', '_')}`) || document.getElementById(`homeRatingBtn_${r}`);
-        if (btn) btn.classList.toggle('active', r === val);
-      });
+      const sel = document.getElementById('resultsRating');
+      if (sel && sel.value !== val) sel.value = val;
       currentPage = 1;
       if (typeof applyFiltersAndRender === 'function') {
         applyFiltersAndRender();
@@ -3992,13 +4014,11 @@
 
     function setHomeRuntime(val) {
       window.homeFilterRuntime = val;
-      const display = document.getElementById('homeRuntimeDisplay');
-      const labels = { all: 'Any', short: '< 90m', medium: '90-120m', long: '> 120m' };
-      if (display) display.textContent = labels[val] || 'Any';
-      ['all', 'short', 'medium', 'long'].forEach(r => {
-        const btn = document.getElementById(`homeRuntimeBtn_${r}`);
-        if (btn) btn.classList.toggle('active', r === val);
-      });
+      const sel = document.getElementById('resultsRuntime');
+      if (sel && sel.value !== val) sel.value = val;
+      if (val !== 'all') {
+        ensureRuntimesFetched();
+      }
       currentPage = 1;
       if (typeof applyFiltersAndRender === 'function') {
         applyFiltersAndRender();
@@ -4011,14 +4031,21 @@
       const genreSelect = el?.filterGenre || document.getElementById('resultsGenre');
       const decadeSelect = el?.filterDecade || document.getElementById('resultsDecade');
       const provSelect = document.getElementById('resultsProvider');
+      const ratingSelect = document.getElementById('resultsRating');
+      const runtimeSelect = document.getElementById('resultsRuntime');
 
       if (sortSelect) sortSelect.value = 'year_desc';
       if (genreSelect) genreSelect.value = 'all';
       if (decadeSelect) decadeSelect.value = 'all';
       if (provSelect) provSelect.value = 'all';
+      if (ratingSelect) ratingSelect.value = 'all';
+      if (runtimeSelect) runtimeSelect.value = 'all';
 
-      setHomeRating('all');
-      setHomeRuntime('all');
+      window.homeFilterRating = 'all';
+      window.homeFilterRuntime = 'all';
+      currentPage = 1;
+      applyFiltersAndRender();
+      syncHomeFilterButtonState();
     }
 
     function syncHomeFilterButtonState() {
@@ -8612,23 +8639,29 @@
                 <!-- Minimum Rating -->
                 <div>
                   <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Minimum Rating</label>
-                  <div class="grid grid-cols-5 gap-1 p-1 bg-black/40 border border-white/10 rounded-xl h-[42px] items-center">
-                    <button type="button" onclick="setActorRating('all')" id="actorRatingBtn_all" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn ${(!window.actorFilterRating || window.actorFilterRating === 'all') ? 'active' : ''}">Any</button>
-                    <button type="button" onclick="setActorRating('6')" id="actorRatingBtn_6" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '6' ? 'active' : ''}">⭐6+</button>
-                    <button type="button" onclick="setActorRating('7')" id="actorRatingBtn_7" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '7' ? 'active' : ''}">⭐7+</button>
-                    <button type="button" onclick="setActorRating('8')" id="actorRatingBtn_8" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '8' ? 'active' : ''}">⭐8+</button>
-                    <button type="button" onclick="setActorRating('8.5')" id="actorRatingBtn_8_5" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '8.5' ? 'active' : ''}">⭐8.5+</button>
+                  <div class="relative">
+                    <select id="actorRatingSelect" onchange="setActorRating(this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
+                      <option value="all" ${(!window.actorFilterRating || window.actorFilterRating === 'all') ? 'selected' : ''}>Any Rating</option>
+                      <option value="6" ${window.actorFilterRating === '6' ? 'selected' : ''}>⭐ 6.0+ Rated</option>
+                      <option value="7" ${window.actorFilterRating === '7' ? 'selected' : ''}>⭐ 7.0+ Rated</option>
+                      <option value="8" ${window.actorFilterRating === '8' ? 'selected' : ''}>⭐ 8.0+ Rated</option>
+                      <option value="8.5" ${window.actorFilterRating === '8.5' ? 'selected' : ''}>⭐ 8.5+ Rated</option>
+                    </select>
+                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                   </div>
                 </div>
 
                 <!-- Film Length -->
                 <div>
                   <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Film Length</label>
-                  <div class="grid grid-cols-4 gap-1 p-1 bg-black/40 border border-white/10 rounded-xl h-[42px] items-center">
-                    <button type="button" onclick="setActorRuntime('all')" id="actorRuntimeBtn_all" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn ${(!window.actorFilterRuntime || window.actorFilterRuntime === 'all') ? 'active' : ''}">Any</button>
-                    <button type="button" onclick="setActorRuntime('short')" id="actorRuntimeBtn_short" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRuntime === 'short' ? 'active' : ''}">&lt;90m</button>
-                    <button type="button" onclick="setActorRuntime('medium')" id="actorRuntimeBtn_medium" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRuntime === 'medium' ? 'active' : ''}">90-120m</button>
-                    <button type="button" onclick="setActorRuntime('long')" id="actorRuntimeBtn_long" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRuntime === 'long' ? 'active' : ''}">&gt;120m</button>
+                  <div class="relative">
+                    <select id="actorRuntimeSelect" onchange="setActorRuntime(this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
+                      <option value="all" ${(!window.actorFilterRuntime || window.actorFilterRuntime === 'all') ? 'selected' : ''}>Any Length</option>
+                      <option value="short" ${window.actorFilterRuntime === 'short' ? 'selected' : ''}>Short (&lt; 90 min)</option>
+                      <option value="medium" ${window.actorFilterRuntime === 'medium' ? 'selected' : ''}>Medium (90 - 120 min)</option>
+                      <option value="long" ${window.actorFilterRuntime === 'long' ? 'selected' : ''}>Long (&gt; 120 min)</option>
+                    </select>
+                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                   </div>
                 </div>
               </div>
@@ -8779,12 +8812,8 @@
 
     function setActorRating(val) {
       window.actorFilterRating = val;
-      const display = document.getElementById('actorRatingDisplay');
-      if (display) display.textContent = val === 'all' ? 'Any' : `⭐ ${val}+`;
-      ['all', '6', '7', '8', '8.5'].forEach(r => {
-        const btn = document.getElementById(`actorRatingBtn_${r.replace('.', '_')}`) || document.getElementById(`actorRatingBtn_${r}`);
-        if (btn) btn.classList.toggle('active', r === val);
-      });
+      const sel = document.getElementById('actorRatingSelect');
+      if (sel && sel.value !== val) sel.value = val;
       actorCurrentPage = 1;
       refreshActorFilmographyGrid();
       syncActorFilterButtonState();
@@ -8792,13 +8821,8 @@
 
     function setActorRuntime(val) {
       window.actorFilterRuntime = val;
-      const display = document.getElementById('actorRuntimeDisplay');
-      const labels = { all: 'Any', short: '< 90m', medium: '90-120m', long: '> 120m' };
-      if (display) display.textContent = labels[val] || 'Any';
-      ['all', 'short', 'medium', 'long'].forEach(r => {
-        const btn = document.getElementById(`actorRuntimeBtn_${r}`);
-        if (btn) btn.classList.toggle('active', r === val);
-      });
+      const sel = document.getElementById('actorRuntimeSelect');
+      if (sel && sel.value !== val) sel.value = val;
       actorCurrentPage = 1;
       refreshActorFilmographyGrid();
       syncActorFilterButtonState();
@@ -8814,12 +8838,17 @@
       const sortSel = document.getElementById('actorSortSelect');
       const genreSel = document.getElementById('actorGenreSelect');
       const decadeSel = document.getElementById('actorDecadeSelect');
+      const ratingSel = document.getElementById('actorRatingSelect');
+      const runtimeSel = document.getElementById('actorRuntimeSelect');
       if (sortSel) sortSel.value = 'year_desc';
       if (genreSel) genreSel.value = 'all';
       if (decadeSel) decadeSel.value = 'all';
+      if (ratingSel) ratingSel.value = 'all';
+      if (runtimeSel) runtimeSel.value = 'all';
 
-      setActorRating('all');
-      setActorRuntime('all');
+      actorCurrentPage = 1;
+      refreshActorFilmographyGrid();
+      syncActorFilterButtonState();
     }
 
     function syncActorFilterButtonState() {
