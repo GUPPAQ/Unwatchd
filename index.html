@@ -8421,9 +8421,11 @@
     let actorMediaTypeFilter = 'all';
     let actorFilterQuery = '';
     let actorFilterSort = 'year_desc';
+    let actorFilterProvider = 'all';
     let actorFilterGenre = 'all';
     let actorFilterDecade = 'all';
     let actorFilterRating = 'all';
+    window.actorFilterProvider = 'all';
     window.actorFilterRating = 'all';
     window.actorFilterRuntime = 'all';
     let actorCurrentPage = 1;
@@ -8584,6 +8586,43 @@
           const minR = parseFloat(actorFilterRating);
           const r = parseFloat(getCachedRating(m) || m.vote_average || 0);
           if (r < minR) return false;
+        }
+        if (actorFilterProvider && actorFilterProvider !== 'all') {
+          const cachedDetails = movieDetailsCache.get(`${m.mediaType || 'movie'}_${m.id}`);
+          const allProv = m.allProviders || cachedDetails?.['watch/providers']?.results || null;
+          if (!allProv && !m.regionData) return false;
+
+          if (actorFilterProvider === 'vpn') {
+            const tempObj = { ...m, allProviders: allProv, regionData: m.regionData || (allProv ? allProv[currentRegion] : null) };
+            const vpn = getMovieVpnMatch(tempObj);
+            if (!vpn) return false;
+          } else {
+            const localData = allProv ? (allProv[currentRegion] || null) : (m.regionData || null);
+            const flatrate = localData?.flatrate || [];
+            const matchLocal = flatrate.some(p => {
+              const pName = (p.provider_name || p.name || '').toLowerCase();
+              return pName === actorFilterProvider.toLowerCase() || pName.includes(actorFilterProvider.toLowerCase());
+            });
+            if (matchLocal) {
+              // matched local provider
+            } else if (vpnModeEnabled && allProv) {
+              let matchVpn = false;
+              for (const code of Object.keys(REGION_META)) {
+                if (code === currentRegion || !allProv[code]) continue;
+                const altFlat = allProv[code]?.flatrate || [];
+                if (altFlat.some(p => {
+                  const pName = (p.provider_name || p.name || '').toLowerCase();
+                  return pName === actorFilterProvider.toLowerCase() || pName.includes(actorFilterProvider.toLowerCase());
+                })) {
+                  matchVpn = true;
+                  break;
+                }
+              }
+              if (!matchVpn) return false;
+            } else {
+              return false;
+            }
+          }
         }
         if (window.actorFilterRuntime && window.actorFilterRuntime !== 'all') {
           const cachedDetails = movieDetailsCache.get(`${m.mediaType || 'movie'}_${m.id}`);
@@ -8811,7 +8850,7 @@
 
       // Sort label map
       const sortLabels = { year_desc: 'Newest First', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest Rated', rating_asc: 'Lowest Rated', year_asc: 'Oldest First' };
-      const currentSortLabel = sortLabels[actorFilterSort] || 'Popular';
+      const currentSortLabel = sortLabels[actorFilterSort] || 'Newest First';
 
       // Letterboxd slug
       const lbSlug = person.name ? person.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '';
@@ -8821,7 +8860,7 @@
       const watchlistBtnActive = showWatchlistOnly ? 'active' : '';
       const allBtnActive = showWatchlistOnly ? '' : 'active';
 
-      const hasActiveActorFilters = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'popularity') || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
+      const hasActiveActorFilters = (actorFilterSort !== 'year_desc') || (actorFilterProvider && actorFilterProvider !== 'all') || (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
       const actorTabsWidthClass = availableRoles.length > 1 ? 'lg:w-[600px]' : 'lg:w-[460px]';
       const mediaFilterTabsHtml = `
@@ -8934,6 +8973,26 @@
 
       const desktopBackdropImg = knownForBackdrop || profileImg;
 
+      const actorProviderOptionsHtml = (() => {
+        let opts = `<option value="all" ${(!actorFilterProvider || actorFilterProvider === 'all') ? 'selected' : ''}>All Services</option>`;
+        if (vpnModeEnabled) {
+          opts += `<option value="vpn" ${actorFilterProvider === 'vpn' ? 'selected' : ''}>VPN Available 🌐</option>`;
+        }
+        const mySelectedServices = currentProviders.filter(cp => selectedServiceIds.has(cp.id));
+        if (mySelectedServices.length > 0) {
+          mySelectedServices.forEach(cp => {
+            opts += `<option value="${escapeHTML(cp.name)}" ${actorFilterProvider === cp.name ? 'selected' : ''}>${escapeHTML(cp.name)}</option>`;
+          });
+        }
+        const otherKnown = currentProviders.filter(cp => !selectedServiceIds.has(cp.id));
+        if (otherKnown.length > 0) {
+          otherKnown.forEach(cp => {
+            opts += `<option value="${escapeHTML(cp.name)}" ${actorFilterProvider === cp.name ? 'selected' : ''}>${escapeHTML(cp.name)}</option>`;
+          });
+        }
+        return opts;
+      })();
+
       const actorControlsHtml = `
         <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
           ${mediaFilterTabsHtml}
@@ -8991,6 +9050,17 @@
                       <option value="rating_desc" ${actorFilterSort === 'rating_desc' ? 'selected' : ''}>Highest Rated</option>
                       <option value="az" ${actorFilterSort === 'az' ? 'selected' : ''}>A-Z</option>
                       <option value="za" ${actorFilterSort === 'za' ? 'selected' : ''}>Z-A</option>
+                    </select>
+                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
+                </div>
+
+                <!-- Streaming Platform -->
+                <div>
+                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming Platform</label>
+                  <div class="relative">
+                    <select id="actorProviderSelect" onchange="onActorFilterSelectChange('provider', this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
+                      ${actorProviderOptionsHtml}
                     </select>
                     <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                   </div>
@@ -9215,8 +9285,47 @@
       }
     }
 
+    async function ensureActorProvidersFetched(person) {
+      if (!person || !person.id) return;
+      const { allMovies } = getActorMoviesList(person, false, currentActorRoleHint || modalActiveActorRoleHint);
+      const missing = allMovies.filter(m => !m.allProviders);
+      if (missing.length === 0) return;
+
+      for (let i = 0; i < missing.length; i += 10) {
+        const chunk = missing.slice(i, i + 10);
+        await Promise.all(chunk.map(async (m) => {
+          try {
+            const mediaType = m.mediaType === 'tv' ? 'tv' : 'movie';
+            const pUrl = `https://api.themoviedb.org/3/${mediaType}/${m.id}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`;
+            const pRes = await fetch(pUrl);
+            const pData = await pRes.json().catch(() => ({}));
+            if (pData && pData.id) {
+              movieDetailsCache.set(`${mediaType}_${m.id}`, pData);
+              const provResults = pData['watch/providers']?.results || pData.results || {};
+              m.allProviders = provResults;
+              if (pData.runtime || pData.episode_run_time) {
+                m.runtime = pData.runtime || (pData.episode_run_time ? pData.episode_run_time[0] : 0) || (pData.last_episode_to_air ? pData.last_episode_to_air.runtime : 0) || 0;
+              }
+            }
+          } catch (e) { }
+        }));
+        if (actorFilterProvider && actorFilterProvider !== 'all') {
+          refreshActorFilmographyGrid();
+        }
+      }
+    }
+
     function onActorFilterSelectChange(type, val) {
       if (type === 'sort') actorFilterSort = val;
+      if (type === 'provider') {
+        actorFilterProvider = val;
+        window.actorFilterProvider = val;
+        if (val !== 'all') {
+          const actorId = window.currentActorPageId || modalActiveActorId || currentActorId;
+          const person = (actorId ? actorDetailsCache.get(actorId) : null) || window.currentActorPersonObj;
+          if (person) ensureActorProvidersFetched(person);
+        }
+      }
       if (type === 'genre') actorFilterGenre = val;
       if (type === 'decade') actorFilterDecade = val;
       actorCurrentPage = 1;
@@ -9249,17 +9358,21 @@
 
     function resetActorFilters() {
       actorFilterSort = 'year_desc';
+      actorFilterProvider = 'all';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
+      window.actorFilterProvider = 'all';
       window.actorFilterRating = 'all';
       window.actorFilterRuntime = 'all';
 
       const sortSel = document.getElementById('actorSortSelect');
+      const provSel = document.getElementById('actorProviderSelect');
       const genreSel = document.getElementById('actorGenreSelect');
       const decadeSel = document.getElementById('actorDecadeSelect');
       const ratingSel = document.getElementById('actorRatingSelect');
       const runtimeSel = document.getElementById('actorRuntimeSelect');
       if (sortSel) sortSel.value = 'year_desc';
+      if (provSel) provSel.value = 'all';
       if (genreSel) genreSel.value = 'all';
       if (decadeSel) decadeSel.value = 'all';
       if (ratingSel) ratingSel.value = 'all';
@@ -9272,7 +9385,7 @@
 
     function syncActorFilterButtonState() {
       const btn = document.getElementById('actorFilterToggleBtn');
-      const hasActive = (actorFilterSort !== 'year_desc' || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
+      const hasActive = (actorFilterSort !== 'year_desc' || (actorFilterProvider && actorFilterProvider !== 'all') || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
       const menu = document.getElementById('actorFilterDropdownMenu');
       const isOpen = menu && !menu.classList.contains('hidden');
       if (btn) {
