@@ -1888,8 +1888,7 @@
                     <option value="year_desc">Newest First</option>
                     <option value="year_asc">Oldest First</option>
                     <option value="popularity">Popular</option>
-                    <option value="hidden_gems">⭐ Hidden Gems</option>
-                    <option value="vote_count_desc">Most Reviewed 💬</option>
+                    <option value="rating_desc">Highest Rated</option>
                     <option value="az">A-Z</option>
                     <option value="za">Z-A</option>
                   </select>
@@ -3902,14 +3901,11 @@
 
     const HOME_SORT_OPTIONS = [
       { value: 'year_desc', label: 'Newest First' },
+      { value: 'year_asc', label: 'Oldest First' },
       { value: 'popularity', label: 'Popular' },
       { value: 'rating_desc', label: 'Highest Rated' },
-      { value: 'rating_asc', label: 'Lowest Rated' },
-      { value: 'runtime_desc', label: 'Longest First' },
-      { value: 'runtime_asc', label: 'Shortest First' },
       { value: 'az', label: 'A-Z' },
-      { value: 'za', label: 'Z-A' },
-      { value: 'year_asc', label: 'Oldest First' }
+      { value: 'za', label: 'Z-A' }
     ];
 
     let homeFilterRating = 'all';
@@ -6884,21 +6880,10 @@
       });
 
       filtered.sort((a, b) => {
-        if (sort === 'runtime_desc') return (b.runtime || 0) - (a.runtime || 0);
-        if (sort === 'runtime_asc') return (a.runtime || 0) - (b.runtime || 0);
         if (sort === 'popularity') return getMoviePopularity(b) - getMoviePopularity(a);
         if (sort === 'az') return a.title.localeCompare(b.title);
         if (sort === 'za') return b.title.localeCompare(a.title);
         if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || b.rating || 0)) - (parseFloat(getCachedRating(a) || a.rating || 0));
-        if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || a.rating || 0)) - (parseFloat(getCachedRating(b) || b.rating || 0));
-        if (sort === 'vote_count_desc') return (b.vote_count || 0) - (a.vote_count || 0);
-        if (sort === 'hidden_gems') {
-          const rA = parseFloat(getCachedRating(a) || a.rating || 0);
-          const rB = parseFloat(getCachedRating(b) || b.rating || 0);
-          const scoreA = (rA >= 7.0 ? rA * 10 : 0) - Math.min(getMoviePopularity(a), 100) * 0.1;
-          const scoreB = (rB >= 7.0 ? rB * 10 : 0) - Math.min(getMoviePopularity(b), 100) * 0.1;
-          return scoreB - scoreA;
-        }
         if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0');
         if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999');
         return 0;
@@ -8198,24 +8183,10 @@
           const rB = parseFloat(getCachedRating(b) || b.vote_average || 0);
           return rB - rA;
         }); break;
-        case 'rating_asc': moviesToShow.sort((a, b) => {
-          const rA = parseFloat(getCachedRating(a) || a.vote_average || 0);
-          const rB = parseFloat(getCachedRating(b) || b.vote_average || 0);
-          return rA - rB;
-        }); break;
-        case 'vote_count_desc': moviesToShow.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0)); break;
-        case 'hidden_gems': moviesToShow.sort((a, b) => {
-          const rA = parseFloat(getCachedRating(a) || a.vote_average || 0);
-          const rB = parseFloat(getCachedRating(b) || b.vote_average || 0);
-          const scoreA = (rA >= 7.0 ? rA * 10 : 0) - Math.min(getMoviePopularity(a), 100) * 0.1;
-          const scoreB = (rB >= 7.0 ? rB * 10 : 0) - Math.min(getMoviePopularity(b), 100) * 0.1;
-          return scoreB - scoreA;
-        }); break;
-        case 'runtime_desc': moviesToShow.sort((a, b) => (b.runtime || 0) - (a.runtime || 0)); break;
-        case 'runtime_asc': moviesToShow.sort((a, b) => (a.runtime || 0) - (b.runtime || 0)); break;
-        case 'year_desc': moviesToShow.sort((a, b) => (b.release_date || '0').localeCompare(a.release_date || '0')); break;
         case 'year_asc': moviesToShow.sort((a, b) => (a.release_date || '9999').localeCompare(b.release_date || '9999')); break;
-        default: moviesToShow.sort((a, b) => getMoviePopularity(b) - getMoviePopularity(a)); break;
+        case 'popularity': moviesToShow.sort((a, b) => (b.popularity || 0) - (a.popularity || 0)); break;
+        case 'year_desc':
+        default: moviesToShow.sort((a, b) => (b.release_date || '0').localeCompare(a.release_date || '0')); break;
       }
 
       return { allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles, counts };
@@ -8573,8 +8544,7 @@
                       <option value="year_desc" ${actorFilterSort === 'year_desc' ? 'selected' : ''}>Newest First</option>
                       <option value="year_asc" ${actorFilterSort === 'year_asc' ? 'selected' : ''}>Oldest First</option>
                       <option value="popularity" ${actorFilterSort === 'popularity' ? 'selected' : ''}>Popular</option>
-                      <option value="hidden_gems" ${actorFilterSort === 'hidden_gems' ? 'selected' : ''}>⭐ Hidden Gems</option>
-                      <option value="vote_count_desc" ${actorFilterSort === 'vote_count_desc' ? 'selected' : ''}>Most Reviewed 💬</option>
+                      <option value="rating_desc" ${actorFilterSort === 'rating_desc' ? 'selected' : ''}>Highest Rated</option>
                       <option value="az" ${actorFilterSort === 'az' ? 'selected' : ''}>A-Z</option>
                       <option value="za" ${actorFilterSort === 'za' ? 'selected' : ''}>Z-A</option>
                     </select>
@@ -8690,16 +8660,11 @@
 
     const ACTOR_SORT_OPTIONS = [
       { value: 'year_desc', label: 'Newest First' },
+      { value: 'year_asc', label: 'Oldest First' },
       { value: 'popularity', label: 'Popular' },
       { value: 'rating_desc', label: 'Highest Rated' },
-      { value: 'hidden_gems', label: '⭐ Hidden Gems' },
-      { value: 'vote_count_desc', label: 'Most Reviewed 💬' },
-      { value: 'rating_asc', label: 'Lowest Rated' },
-      { value: 'runtime_desc', label: 'Longest First ⏳' },
-      { value: 'runtime_asc', label: 'Shortest First ⏱️' },
       { value: 'az', label: 'A-Z' },
-      { value: 'za', label: 'Z-A' },
-      { value: 'year_asc', label: 'Oldest First' }
+      { value: 'za', label: 'Z-A' }
     ];
 
     const ACTOR_DECADE_OPTIONS = [
