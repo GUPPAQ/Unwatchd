@@ -2226,10 +2226,10 @@
       <div id="activeGridContainer"
         class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-5 sm:gap-6 perspective-1000 min-h-[300px] content-start">
       </div>
-      <div id="paginationControls" class="flex justify-center items-center gap-2 mt-8 mb-0 hidden"></div>
+      <div id="paginationControls" class="flex justify-center items-center gap-2 mt-6 sm:mt-7 mb-0 hidden"></div>
     </section>
     <footer
-      class="mt-12 sm:mt-14 lg:mt-16 pb-10 sm:pb-12 flex items-center justify-center animate-fade relative z-10 w-full px-5 sm:px-10 lg:px-14 max-w-[1480px] mx-auto">
+      class="mt-6 sm:mt-7 pb-8 sm:pb-10 flex items-center justify-center animate-fade relative z-10 w-full px-5 sm:px-10 lg:px-14 max-w-[1480px] mx-auto">
       <div class="w-full pt-6 border-t border-white/10 flex items-center justify-center">
         <div class="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 max-w-lg mx-auto">
           <a href="https://www.themoviedb.org/" target="_blank"
@@ -2346,7 +2346,7 @@
       </div>
 
       <!-- Footer with Top Separator & TMDB Disclaimer -->
-      <footer class="mt-12 sm:mt-14 lg:mt-16 pb-10 sm:pb-12 flex items-center justify-center animate-fade w-full">
+      <footer class="mt-6 sm:mt-7 pb-8 sm:pb-10 flex items-center justify-center animate-fade w-full">
         <div class="w-full pt-6 border-t border-white/10 flex items-center justify-center">
           <div class="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 max-w-lg mx-auto">
             <a href="https://www.themoviedb.org/" target="_blank"
@@ -5561,7 +5561,7 @@
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
             ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
           </div>
-          <div class="max-w-[1480px] mx-auto px-5 sm:px-10 lg:px-14 mt-12 sm:mt-14 lg:mt-16 pb-10 sm:pb-12">
+          <div class="max-w-[1480px] mx-auto px-5 sm:px-10 lg:px-14 mt-6 sm:mt-7 pb-8 sm:pb-10">
             <div class="pt-6 border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               ${movieActionBtnsHtml}
               <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
@@ -6779,7 +6779,7 @@
       const nextDisabled = currentPage === maxPage;
       btnsHtml += createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', nextDisabled, currentPage + 1);
 
-      return `<div class="col-span-full flex justify-center items-center gap-2 mt-8 mb-0">${btnsHtml}</div>`;
+      return `<div class="col-span-full flex justify-center items-center gap-2 mt-6 sm:mt-7 mb-0">${btnsHtml}</div>`;
     }
 
     function openFullCastModal(isPage = false) {
@@ -9000,7 +9000,7 @@
               <div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4.5 content-start">${filmographyHtml}</div>
             </div>
           </div>
-          <div class="max-w-[1480px] mx-auto px-5 sm:px-10 lg:px-14 mt-12 sm:mt-14 lg:mt-16 pb-10 sm:pb-12">
+          <div class="max-w-[1480px] mx-auto px-5 sm:px-10 lg:px-14 mt-6 sm:mt-7 pb-8 sm:pb-10">
             <div class="pt-6 border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               ${actorActionBtnsHtml}
               <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
