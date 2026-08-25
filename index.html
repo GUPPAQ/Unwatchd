@@ -2779,13 +2779,30 @@
 
       try {
         if (category === 'actor' || category === 'director' || category === 'writer' || category === 'producer' || category === 'composer') {
-          const query = slug.replace(/-/g, ' ');
+          const dupMatch = slug.match(/^(.+?)-(\d+)$/);
+          const baseSlug = dupMatch ? dupMatch[1] : slug;
+          const dupIdx = dupMatch ? parseInt(dupMatch[2], 10) : 0;
+          const query = baseSlug.replace(/-/g, ' ');
           const res = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
           const data = await res.json();
           if (data && data.results && data.results.length > 0) {
-            const match = data.results.find(p => slugify(p.name) === slug) || data.results[0];
-            routeInfo.id = match.id;
-            registerSlug(slug, match.id, 'actor', routeInfo.role);
+            const literalMatch = data.results.find(p => slugify(p.name || '') === slug);
+            if (literalMatch && !dupMatch) {
+              routeInfo.id = literalMatch.id;
+              registerSlug(slug, literalMatch.id, 'actor', routeInfo.role);
+            } else {
+              const exacts = data.results.filter(p => slugify(p.name || '') === baseSlug);
+              if (exacts.length > 0) {
+                exacts.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+                const match = exacts[dupIdx] || exacts[0];
+                routeInfo.id = match.id;
+                registerSlug(slug, match.id, 'actor', routeInfo.role);
+              } else {
+                const match = data.results[0];
+                routeInfo.id = match.id;
+                registerSlug(slug, match.id, 'actor', routeInfo.role);
+              }
+            }
           }
         } else {
           const mediaType = category === 'series' ? 'tv' : 'movie';
@@ -6248,6 +6265,33 @@
       return baseSlug;
     }
 
+    async function getCanonicalPersonSlug(person) {
+      if (!person || !person.name) return '';
+      const baseSlug = slugify(person.name);
+      if (!baseSlug) return '';
+      const personId = person.id;
+
+      try {
+        const query = baseSlug.replace(/-/g, ' ');
+        const res = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (data && Array.isArray(data.results) && data.results.length > 0) {
+          const exacts = data.results.filter(p => slugify(p.name || '') === baseSlug);
+          if (exacts.length > 1) {
+            exacts.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+            const dupIdx = exacts.findIndex(p => p.id === personId);
+            if (dupIdx > 0) {
+              return `${baseSlug}-${dupIdx}`;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[Canonical Person Slug Fetch]', e);
+      }
+
+      return baseSlug;
+    }
+
     async function openMoviePage(movieObj, pushHistory = true, preserveScroll = false) {
       const container = document.getElementById('moviePageView');
       if (!container || !movieObj) return;
@@ -9213,7 +9257,11 @@
       const person = (actorId ? actorDetailsCache.get(actorId) : null) || window.currentActorPersonObj;
 
       if (actorId && person) {
-        const slug = slugify(person.name || '');
+        let slug = slugify(person.name || '');
+        try {
+          const refinedSlug = await getCanonicalPersonSlug(person);
+          if (refinedSlug) slug = refinedSlug;
+        } catch (e) { }
         const prefix = `#${newRole.toLowerCase()}/`;
         if (slug) registerSlug(slug, actorId, 'actor', newRole);
         try { history.replaceState({ actorPage: actorId }, '', `${prefix}${slug || actorId}`); } catch (e) { }
@@ -9254,10 +9302,14 @@
         const activeRole = determineActivePersonRole(person, roleHint);
         currentActorRoleHint = activeRole;
         modalActiveActorRoleHint = activeRole;
+        let actorSlug = slugify(person.name || '');
+        try {
+          const refinedActorSlug = await getCanonicalPersonSlug(person);
+          if (refinedActorSlug) actorSlug = refinedActorSlug;
+        } catch (e) { }
+        if (actorSlug) registerSlug(actorSlug, actorId, 'actor', activeRole);
         if (pushHistory) {
           const prefix = `#${activeRole.toLowerCase()}/`;
-          const actorSlug = slugify(person.name || '');
-          if (actorSlug) registerSlug(actorSlug, actorId, 'actor', activeRole);
           try { history.pushState({ actorPage: actorId }, '', `${prefix}${actorSlug || actorId}`); } catch (e) { }
         }
         const { watchlistMovies } = getActorMoviesList(person, false, activeRole);
