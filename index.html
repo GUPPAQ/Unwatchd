@@ -5261,7 +5261,7 @@
 
         const isVpnProvider = !!(p.__isVpn || (isVpnUnlocked && (p.__vpnRegion || (effectiveVpnInfo && effectiveVpnInfo.region !== currentRegion))));
         const vpnRegionCode = p.__vpnRegion || (effectiveVpnInfo ? effectiveVpnInfo.region : currentRegion);
-        const vpnRegionName = isVpnProvider ? (vpnRegionCode === 'GB' ? 'UK' : (vpnRegionCode === 'US' ? 'US' : (REGION_META[vpnRegionCode]?.name || vpnRegionCode || ''))) : '';
+        const vpnRegionName = isVpnProvider ? (vpnRegionCode === 'GB' ? 'the UK' : (vpnRegionCode === 'US' ? 'the US' : (vpnRegionCode === 'NL' ? 'the Netherlands' : (REGION_META[vpnRegionCode]?.name || vpnRegionCode || '')))) : '';
         const vpnRegionFlag = isVpnProvider ? (REGION_META[vpnRegionCode]?.flag || '🌐') : '🌐';
 
         const effectiveRegion = isVpnProvider ? vpnRegionCode : currentRegion;
