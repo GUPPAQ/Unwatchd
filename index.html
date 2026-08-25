@@ -5181,51 +5181,71 @@
         return norm ? selectedNamesSet.has(norm) : false;
       };
 
-      let regionProviders = homeRegionData;
+      // Helper to prioritize VPN providers: Netflix > HBO / Max > Prime Video > Disney > Apple > others
+      const sortVpnProvidersByPriority = (provList) => {
+        return [...provList].sort((a, b) => {
+          const nameA = cleanNormalize(a.provider_name || a.name || '');
+          const nameB = cleanNormalize(b.provider_name || b.name || '');
+          const getScore = (n) => {
+            if (n.includes('netflix')) return 100;
+            if (n.includes('hbo') || n.includes('max')) return 90;
+            if (n.includes('amazon') || n.includes('prime')) return 80;
+            if (n.includes('disney')) return 70;
+            if (n.includes('apple')) return 60;
+            return 10;
+          };
+          return getScore(nameB) - getScore(nameA);
+        });
+      };
+
       let effectiveVpnInfo = null;
+      let isVpnUnlocked = false;
+      let vpnMatchedProviders = [];
 
-      if (vpnModeEnabled && allProvidersMap) {
-        const homeFlatrate = filterAndDeduplicateProviders(homeRegionData?.flatrate || []);
-        const isHomeSubscribed = homeFlatrate.some(isSubscribedProvider);
+      const homeFlatrate = filterAndDeduplicateProviders(homeRegionData?.flatrate || []);
+      const userHomeFlatrate = homeFlatrate.filter(isSubscribedProvider);
 
-        if (!isHomeSubscribed) {
-          // If movieObj already has valid vpnInfo computed and present in allProvidersMap
-          if (movieObj.vpnInfo && movieObj.vpnInfo.region && allProvidersMap[movieObj.vpnInfo.region]) {
-            const altData = allProvidersMap[movieObj.vpnInfo.region];
+      if (userHomeFlatrate.length > 0) {
+        effectiveVpnInfo = null;
+      } else if (vpnModeEnabled && allProvidersMap) {
+        if (movieObj.vpnInfo && movieObj.vpnInfo.region && allProvidersMap[movieObj.vpnInfo.region]) {
+          const altData = allProvidersMap[movieObj.vpnInfo.region];
+          const altFlat = filterAndDeduplicateProviders(altData?.flatrate || []);
+          const matched = altFlat.filter(isSubscribedProvider);
+          if (matched.length > 0) {
+            const sortedMatched = sortVpnProvidersByPriority(matched);
+            sortedMatched.forEach(p => { p.__isVpn = true; p.__vpnRegion = movieObj.vpnInfo.region; });
+            effectiveVpnInfo = {
+              region: movieObj.vpnInfo.region,
+              services: sortedMatched.map(p => ({ label: p.provider_name || p.name }))
+            };
+            isVpnUnlocked = true;
+            vpnMatchedProviders = sortedMatched;
+          }
+        }
+
+        if (!effectiveVpnInfo) {
+          for (const code of Object.keys(REGION_META)) {
+            if (code === currentRegion || !allProvidersMap[code]) continue;
+            const altData = allProvidersMap[code];
             const altFlat = filterAndDeduplicateProviders(altData?.flatrate || []);
             const matched = altFlat.filter(isSubscribedProvider);
             if (matched.length > 0) {
+              const sortedMatched = sortVpnProvidersByPriority(matched);
+              sortedMatched.forEach(p => { p.__isVpn = true; p.__vpnRegion = code; });
               effectiveVpnInfo = {
-                region: movieObj.vpnInfo.region,
-                services: matched.map(p => ({ label: p.provider_name || p.name }))
+                region: code,
+                services: sortedMatched.map(p => ({ label: p.provider_name || p.name }))
               };
-              regionProviders = altData;
-            }
-          }
-
-          // If not resolved from movieObj.vpnInfo, iterate through all REGION_META regions
-          if (!effectiveVpnInfo) {
-            for (const code of Object.keys(REGION_META)) {
-              if (code === currentRegion || !allProvidersMap[code]) continue;
-              const altData = allProvidersMap[code];
-              const altFlat = filterAndDeduplicateProviders(altData?.flatrate || []);
-              const matched = altFlat.filter(isSubscribedProvider);
-              if (matched.length > 0) {
-                effectiveVpnInfo = {
-                  region: code,
-                  services: matched.map(p => ({ label: p.provider_name || p.name }))
-                };
-                regionProviders = altData;
-                break;
-              }
+              isVpnUnlocked = true;
+              vpnMatchedProviders = sortedMatched;
+              break;
             }
           }
         }
-      } else if (!regionProviders) {
-        regionProviders = movieObj.regionData || null;
       }
 
-      const makeProviderLink = (p, extraText = '', mode = 'pill') => {
+      const makeProviderLink = (p, extraText = '', mode = 'pill', modeExtra = null) => {
         let safeName = (p.provider_name || p.name || '').replace("with Ads", "").trim();
 
         const providerMeta = currentProviders.find(cp => cp.id === (p.provider_id || p.id)) || null;
@@ -5239,7 +5259,12 @@
           logoSrc = local || tmdbLogo || logoDev;
         }
 
-        const effectiveRegion = (effectiveVpnInfo && effectiveVpnInfo.region) ? effectiveVpnInfo.region : currentRegion;
+        const isVpnProvider = !!(p.__isVpn || (isVpnUnlocked && (p.__vpnRegion || (effectiveVpnInfo && effectiveVpnInfo.region !== currentRegion))));
+        const vpnRegionCode = p.__vpnRegion || (effectiveVpnInfo ? effectiveVpnInfo.region : currentRegion);
+        const vpnRegionName = isVpnProvider ? (REGION_META[vpnRegionCode]?.name || vpnRegionCode || '') : '';
+        const vpnRegionFlag = isVpnProvider ? (REGION_META[vpnRegionCode]?.flag || '🌐') : '🌐';
+
+        const effectiveRegion = isVpnProvider ? vpnRegionCode : currentRegion;
         let link = getRegionServiceUrl(safeName, effectiveRegion, movieObj.title);
 
         const deeplink = getDeeplinkFor(safeName);
@@ -5248,10 +5273,6 @@
         if (deeplink && deeplink.searchUrl) {
           link = deeplink.searchUrl(movieObj.title);
         }
-
-        const isVpnProvider = !!(effectiveVpnInfo && effectiveVpnInfo.region && effectiveVpnInfo.region !== currentRegion);
-        const vpnRegionName = isVpnProvider ? (REGION_META[effectiveVpnInfo.region]?.name || effectiveVpnInfo.region || '') : '';
-        const vpnRegionFlag = isVpnProvider ? (REGION_META[effectiveVpnInfo.region]?.flag || '🌐') : '🌐';
 
         if (mode === 'popup') {
           const actionLabel = extraText || (modeExtra && modeExtra.type ? modeExtra.type : 'Stream');
@@ -5304,8 +5325,9 @@
       const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle w-full py-2 px-1.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white${vpnModeEnabled ? ' vpn-active' : ''} text-xs font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm min-w-0"><span class="flex items-center gap-1 sm:gap-1.5 truncate min-w-0"><svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="truncate">VPN</span></span><span class="watchnow-vpn-dot shrink-0 ml-0.5"></span></button>`;
       const watchNowHeaderHtml = `<div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div>`;
 
-      const rent = filterAndDeduplicateProviders(regionProviders?.rent || [], true);
-      const buy = filterAndDeduplicateProviders(regionProviders?.buy || [], true);
+      // Rent / Buy always from local home region (e.g. Sweden)
+      const rent = filterAndDeduplicateProviders(homeRegionData?.rent || [], true);
+      const buy = filterAndDeduplicateProviders(homeRegionData?.buy || [], true);
       const rbMap = new Map();
 
       rent.forEach(p => {
@@ -5316,16 +5338,14 @@
         else { rbMap.set(p.provider_id, { p, type: 'Buy' }); }
       });
 
-      const allStreamingRaw = [
-        ...(regionProviders?.flatrate || []),
-        ...(regionProviders?.free || []),
-        ...(regionProviders?.ads || [])
-      ];
-      const cleanFlatrate = filterAndDeduplicateProviders(allStreamingRaw);
-      const userFlatrate = cleanFlatrate.filter(isSubscribedProvider);
-      const otherFlatrate = cleanFlatrate.filter(p => !isSubscribedProvider(p));
+      // Unsubscribed streaming always from local home region (e.g. Sweden)
+      const otherFlatrate = homeFlatrate.filter(p => !isSubscribedProvider(p));
 
-      const visibleFlatrate = userFlatrate.slice(0, 3);
+      // Subscribed streaming: if unlocked via VPN, show ONLY ONE as main (Netflix or HBO first), rest in More popup
+      const userFlatrate = isVpnUnlocked ? vpnMatchedProviders : userHomeFlatrate;
+      const visibleFlatrate = isVpnUnlocked ? vpnMatchedProviders.slice(0, 1) : userHomeFlatrate.slice(0, 3);
+      const cleanFlatrate = isVpnUnlocked ? vpnMatchedProviders : homeFlatrate;
+
       const streamingGridClass = visibleFlatrate.length === 3 ? 'grid grid-cols-3 gap-1.5 sm:gap-2' : (visibleFlatrate.length === 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col');
       const streamingGridClassHFull = visibleFlatrate.length === 3 ? 'grid grid-cols-3 gap-1.5 sm:gap-2 h-full' : (visibleFlatrate.length === 2 ? 'grid grid-cols-2 gap-2 h-full' : 'flex flex-col h-full');
 
@@ -5347,13 +5367,13 @@
       let streamingHtmlDesktop = streamingHtml;
 
       let userFlatrateLinksHtml = '';
-      userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, 'Subscription', 'popup'); });
+      userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, isVpnUnlocked ? 'Subscription (VPN)' : 'Subscription', 'popup'); });
       let otherFlatrateLinksHtml = '';
       otherFlatrate.forEach(p => { otherFlatrateLinksHtml += makeProviderLink(p, 'Unsubscribed', 'popup'); });
       let rbLinksHtml = '';
       rbMap.forEach(val => { rbLinksHtml += makeProviderLink(val.p, val.type, 'popup', { type: val.type }); });
 
-      const extraStreamingCount = Math.max(0, cleanFlatrate.length - visibleFlatrate.length);
+      const extraStreamingCount = Math.max(0, userFlatrate.length - visibleFlatrate.length);
 
       if (!window.moviePopupDataCache) window.moviePopupDataCache = new Map();
       window.moviePopupDataCache.set(movieObj.id, {
@@ -7249,7 +7269,20 @@
           const altFlat = altData?.flatrate || [];
           const matchedIds = altFlat.filter(isSubscribedScan);
           if (matchedIds.length > 0) {
-            return { region: code, services: matchedIds.map(p => ({ label: p.provider_name || p.name })) };
+            const sorted = [...matchedIds].sort((a, b) => {
+              const nameA = cleanNormalize(a.provider_name || a.name || '');
+              const nameB = cleanNormalize(b.provider_name || b.name || '');
+              const getScore = (n) => {
+                if (n.includes('netflix')) return 100;
+                if (n.includes('hbo') || n.includes('max')) return 90;
+                if (n.includes('amazon') || n.includes('prime')) return 80;
+                if (n.includes('disney')) return 70;
+                if (n.includes('apple')) return 60;
+                return 10;
+              };
+              return getScore(nameB) - getScore(nameA);
+            });
+            return { region: code, services: sorted.map(p => ({ label: p.provider_name || p.name })) };
           }
         }
         return null;
@@ -7333,7 +7366,7 @@
         const matchedUnsubscribed = flatrate.filter(p => !isSubscribedScan(p));
 
         if (matchedSubscribed.length > 0) {
-          baseObj.subtext = vpnInfo ? `${matchedSubscribed.map(s => s.provider_name).join(', ')} · ${REGION_META[vpnInfo.region]?.flag || ''} VPN` : matchedSubscribed.map(s => s.provider_name).join(', ');
+          baseObj.subtext = vpnInfo ? `${vpnInfo.services[0]?.label || matchedSubscribed[0]?.provider_name} · ${REGION_META[vpnInfo.region]?.flag || ''} VPN` : matchedSubscribed.map(s => s.provider_name).join(', ');
           currentGroupedResults.stream.push(baseObj);
         } else if (matchedUnsubscribed.length > 0) {
           baseObj.subtext = matchedUnsubscribed.map(s => s.provider_name).join(', ');
@@ -9244,7 +9277,7 @@
     // ---------------- Full-page actor view ----------------
     window.currentActorPageId = null;
 
-    function changeActorRole(newRole) {
+    async function changeActorRole(newRole) {
       currentActorRoleHint = newRole;
       modalActiveActorRoleHint = newRole;
       actorCurrentPage = 1;
