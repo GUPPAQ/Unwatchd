@@ -1902,34 +1902,15 @@
           <span id="vpnToggleDot"
             class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
         </button>
-        <div class="relative inline-block">
-          <div id="regionContainer"
-            class="bg-black/40 border border-white/10 rounded-full flex items-center shadow-lg relative overflow-hidden">
-            <span
-              class="pl-3.5 pr-1 text-gray-500 text-[10px] font-bold uppercase tracking-widest pointer-events-none">Region</span>
-            <select id="regionSelect" class="region-select">
-              <option value="SE">🇸🇪 Sweden</option>
-              <option value="US">🇺🇸 United States</option>
-              <option value="GB">🇬🇧 United Kingdom</option>
-              <option value="CA">🇨🇦 Canada</option>
-              <option value="AU">🇦🇺 Australia</option>
-              <option value="IE">🇮🇪 Ireland</option>
-              <option value="NZ">🇳🇿 New Zealand</option>
-              <option value="DE">🇩🇪 Germany</option>
-              <option value="FR">🇫🇷 France</option>
-              <option value="IT">🇮🇹 Italy</option>
-              <option value="ES">🇪🇸 Spain</option>
-              <option value="NL">🇳🇱 Netherlands</option>
-              <option value="PL">🇵🇱 Poland</option>
-              <option value="BR">🇧🇷 Brazil</option>
-              <option value="MX">🇲🇽 Mexico</option>
-              <option value="IN">🇮🇳 India</option>
-              <option value="JP">🇯🇵 Japan</option>
-              <option value="KR">🇰🇷 South Korea</option>
-              <option value="NO">🇳🇴 Norway</option>
-              <option value="DK">🇩🇰 Denmark</option>
-              <option value="FI">🇫🇮 Finland</option>
-            </select>
+        <div class="relative inline-block custom-filter-dropdown-container">
+          <div id="regionContainer" class="relative">
+            <button id="regionTriggerBtn" type="button" onclick="toggleCustomFilterMenu(this, 'regionPopover')" class="h-8 sm:h-9 px-3 bg-black/40 hover:bg-white/10 border border-white/10 rounded-full flex items-center gap-2 shadow-lg transition-all text-xs font-bold text-gray-200 cursor-pointer">
+              <span class="text-[10px] text-gray-500 font-extrabold uppercase tracking-widest pointer-events-none">Region</span>
+              <span id="regionActiveLabel" class="flex items-center gap-1.5">🇸🇪 <span class="hidden min-[400px]:inline">Sweden</span></span>
+              <svg class="custom-filter-chevron w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="regionPopover" class="custom-filter-popover hidden space-y-1 right-0 left-auto min-w-[200px] max-h-[300px]">
+            </div>
           </div>
         </div>
       </div>
@@ -3457,30 +3438,61 @@
     };
 
     const savedRegion = localStorage.getItem('ps_region');
-    if (savedRegion && el.regionSelect) { currentRegion = savedRegion; el.regionSelect.value = currentRegion; }
-    if (el.regionSelect) {
-      el.regionSelect.addEventListener('change', async (e) => {
-        currentRegion = e.target.value;
-        localStorage.setItem('ps_region', currentRegion);
-        currentProviders = [];
-        await loadAndRenderProviders();
+    if (savedRegion && REGION_META[savedRegion]) { currentRegion = savedRegion; }
 
-        // Fix: Refresh the service browser if it's currently open
-        const browser = document.getElementById('serviceBrowser');
-        if (browser && !browser.classList.contains('hidden')) {
-          // Filter pending selections to only include providers available in new region
-          const availableIds = new Set(currentProviders.map(p => p.id));
-          pendingSelectedIds = new Set([...pendingSelectedIds].filter(id => availableIds.has(id)));
-          renderBrowserGrid();
-          updateBrowserSaveBtn();
-        }
-
-        if (scannedMovies.length > 0) applyFiltersAndRender();
-        if (el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden') && el.quickSearchInput && el.quickSearchInput.value.trim()) {
-          el.quickSearchBtn.click();
-        }
-      });
+    function renderRegionDropdown() {
+      const activeLabel = document.getElementById('regionActiveLabel');
+      if (activeLabel && REGION_META[currentRegion]) {
+        activeLabel.innerHTML = `${REGION_META[currentRegion].flag} <span class="hidden min-[400px]:inline">${escapeHTML(REGION_META[currentRegion].name)}</span>`;
+      }
+      const popover = document.getElementById('regionPopover');
+      if (popover) {
+        popover.innerHTML = Object.keys(REGION_META).map(code => `
+          <button type="button" onclick="selectRegion('${code}', event)" class="custom-filter-item ${code === currentRegion ? 'selected' : ''}">
+            <div class="flex items-center gap-2.5 truncate min-w-0">
+              <span class="text-sm shrink-0">${REGION_META[code].flag}</span>
+              <span class="truncate font-bold text-xs">${escapeHTML(REGION_META[code].name)}</span>
+            </div>
+            <div class="custom-filter-radio">
+              ${code === currentRegion ? '<div class="custom-filter-radio-dot"></div>' : ''}
+            </div>
+          </button>
+        `).join('');
+      }
     }
+
+    async function selectRegion(code, e) {
+      if (e) e.stopPropagation();
+      closeAllCustomFilterPopovers();
+      if (currentRegion === code) return;
+      currentRegion = code;
+      localStorage.setItem('ps_region', currentRegion);
+      renderRegionDropdown();
+      currentProviders = [];
+      await loadAndRenderProviders();
+
+      // Fix: Refresh the service browser if it's currently open
+      const browser = document.getElementById('serviceBrowser');
+      if (browser && !browser.classList.contains('hidden')) {
+        const availableIds = new Set(currentProviders.map(p => p.id));
+        pendingSelectedIds = new Set([...pendingSelectedIds].filter(id => availableIds.has(id)));
+        renderBrowserGrid();
+        updateBrowserSaveBtn();
+      }
+
+      if (scannedMovies.length > 0) applyFiltersAndRender();
+      if (el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden') && el.quickSearchInput && el.quickSearchInput.value.trim()) {
+        el.quickSearchBtn.click();
+      }
+    }
+
+    function selectActorRole(newRole, e) {
+      if (e) e.stopPropagation();
+      closeAllCustomFilterPopovers();
+      changeActorRole(newRole);
+    }
+
+    renderRegionDropdown();
 
     function setVpnMode(enabled) {
       vpnModeEnabled = enabled;
@@ -9423,11 +9435,27 @@
       const activeRoleIcon = roleIcons[activeRole] || '🎭';
 
       const roleSelectWrapper = availableRoles.length > 1 ? `
-        <div class="filter-select-wrapper shrink-0 min-w-[130px] sm:min-w-[145px] max-w-[180px]">
-          <span class="filter-select-label truncate" id="actorRoleLabel">${activeRoleIcon} ${activeRole}</span>
-          <select id="actorRoleSelect" class="filter-select" aria-label="Select role">
-            ${availableRoles.map(r => `<option value="${r}"${r === activeRole ? ' selected' : ''}>${roleIcons[r] || ''} ${r}</option>`).join('')}
-          </select>
+        <div class="custom-filter-dropdown-container shrink-0 min-w-[130px] sm:min-w-[145px] max-w-[185px]">
+          <button type="button" onclick="toggleCustomFilterMenu(this, 'actorRolePopover')" class="custom-filter-trigger h-[42px] px-3">
+            <div class="flex items-center gap-2 truncate min-w-0">
+              <span class="text-sm shrink-0">${activeRoleIcon}</span>
+              <span class="truncate font-bold text-xs uppercase tracking-wider text-white" id="actorRoleLabel">${activeRole}</span>
+            </div>
+            <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          <div id="actorRolePopover" class="custom-filter-popover hidden space-y-1 w-full min-w-[160px]">
+            ${availableRoles.map(r => `
+              <button type="button" onclick="selectActorRole('${r}', event)" class="custom-filter-item ${r === activeRole ? 'selected' : ''}">
+                <div class="flex items-center gap-2.5 truncate min-w-0">
+                  <span class="text-sm shrink-0">${roleIcons[r] || '🎬'}</span>
+                  <span class="truncate font-bold text-xs uppercase tracking-wider">${r}</span>
+                </div>
+                <div class="custom-filter-radio">
+                  ${r === activeRole ? '<div class="custom-filter-radio-dot"></div>' : ''}
+                </div>
+              </button>
+            `).join('')}
+          </div>
         </div>` : '';
       const actorFilterGridColsClass = availableRoles.length > 1 ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-3';
 
