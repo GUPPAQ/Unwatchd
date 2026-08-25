@@ -1859,7 +1859,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
               <!-- Sort By -->
               <div>
-                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Sort By</label>
+                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort By</label>
                 <div class="relative">
                   <select id="resultsSort" onchange="onHomeFilterSelectChange()" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                     <option value="year_desc">Newest First</option>
@@ -1875,7 +1875,7 @@
 
               <!-- Streaming Platform -->
               <div id="resultsProviderWrapper">
-                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Streaming Platform</label>
+                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming Platform</label>
                 <div class="relative">
                   <select id="resultsProvider" onchange="onHomeFilterSelectChange()" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                     <option value="all">All My Services</option>
@@ -1886,7 +1886,7 @@
 
               <!-- Genre -->
               <div>
-                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Genre</label>
+                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Genre</label>
                 <div class="relative">
                   <select id="resultsGenre" onchange="onHomeFilterSelectChange()" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                     <option value="all">All Genres</option>
@@ -1897,7 +1897,7 @@
 
               <!-- Release Period / Decade -->
               <div>
-                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Release Period</label>
+                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release Period</label>
                 <div class="relative">
                   <select id="resultsDecade" onchange="onHomeFilterSelectChange()" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                     <option value="all">All Decades</option>
@@ -1917,7 +1917,7 @@
 
               <!-- Minimum Rating -->
               <div>
-                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Minimum Rating</label>
+                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum Rating</label>
                 <div class="relative">
                   <select id="resultsRating" onchange="setHomeRating(this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                     <option value="all">Any Rating</option>
@@ -1932,7 +1932,7 @@
 
               <!-- Film Length -->
               <div>
-                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Film Length</label>
+                <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film Length</label>
                 <div class="relative">
                   <select id="resultsRuntime" onchange="setHomeRuntime(this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                     <option value="all">Any Length</option>
@@ -3984,20 +3984,21 @@
     async function ensureRuntimesFetched() {
       const missing = scannedMovies.filter(m => !m.runtime || m.runtime === 0);
       if (missing.length === 0) return;
-      const batchSize = 10;
-      for (let i = 0; i < missing.length; i += batchSize) {
-        const chunk = missing.slice(i, i + batchSize);
-        await Promise.all(chunk.map(async (m) => {
-          try {
+      await Promise.all(missing.map(async (m) => {
+        try {
+          const cached = movieDetailsCache.get(`${m.mediaType || 'movie'}_${m.id}`);
+          if (cached && (cached.runtime || cached.episode_run_time)) {
+            m.runtime = cached.runtime || (cached.episode_run_time ? cached.episode_run_time[0] : 0) || (cached.last_episode_to_air ? cached.last_episode_to_air.runtime : 0) || 0;
+          } else {
             const d = await getFullMovieDetails(m.id, m.mediaType || 'movie');
             if (d) {
               m.runtime = d.runtime || (d.episode_run_time ? d.episode_run_time[0] : 0) || (d.last_episode_to_air ? d.last_episode_to_air.runtime : 0) || 0;
             }
-          } catch (e) {}
-        }));
-        if (window.homeFilterRuntime && window.homeFilterRuntime !== 'all') {
-          applyFiltersAndRender();
-        }
+          }
+        } catch (e) {}
+      }));
+      if (window.homeFilterRuntime && window.homeFilterRuntime !== 'all') {
+        applyFiltersAndRender();
       }
     }
 
@@ -4016,14 +4017,14 @@
       window.homeFilterRuntime = val;
       const sel = document.getElementById('resultsRuntime');
       if (sel && sel.value !== val) sel.value = val;
-      if (val !== 'all') {
-        ensureRuntimesFetched();
-      }
       currentPage = 1;
       if (typeof applyFiltersAndRender === 'function') {
         applyFiltersAndRender();
       }
       syncHomeFilterButtonState();
+      if (val !== 'all') {
+        ensureRuntimesFetched();
+      }
     }
 
     function resetHomeFilters() {
@@ -8599,7 +8600,7 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
                 <!-- Sort By -->
                 <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Sort By</label>
+                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort By</label>
                   <div class="relative">
                     <select id="actorSortSelect" onchange="onActorFilterSelectChange('sort', this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                       <option value="year_desc" ${actorFilterSort === 'year_desc' ? 'selected' : ''}>Newest First</option>
@@ -8615,7 +8616,7 @@
 
                 <!-- Genre -->
                 <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Genre</label>
+                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Genre</label>
                   <div class="relative">
                     <select id="actorGenreSelect" onchange="onActorFilterSelectChange('genre', this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                       <option value="all" ${actorFilterGenre === 'all' ? 'selected' : ''}>All Genres</option>
@@ -8627,7 +8628,7 @@
 
                 <!-- Release Period -->
                 <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Release Period</label>
+                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release Period</label>
                   <div class="relative">
                     <select id="actorDecadeSelect" onchange="onActorFilterSelectChange('decade', this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                       ${ACTOR_DECADE_OPTIONS.map(d => `<option value="${d.value}" ${actorFilterDecade === d.value ? 'selected' : ''}>${escapeHTML(d.label)}</option>`).join('')}
@@ -8638,7 +8639,7 @@
 
                 <!-- Minimum Rating -->
                 <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Minimum Rating</label>
+                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum Rating</label>
                   <div class="relative">
                     <select id="actorRatingSelect" onchange="setActorRating(this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                       <option value="all" ${(!window.actorFilterRating || window.actorFilterRating === 'all') ? 'selected' : ''}>Any Rating</option>
@@ -8653,7 +8654,7 @@
 
                 <!-- Film Length -->
                 <div>
-                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Film Length</label>
+                  <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film Length</label>
                   <div class="relative">
                     <select id="actorRuntimeSelect" onchange="setActorRuntime(this.value)" class="w-full h-[42px] appearance-none bg-black/40 border border-white/10 hover:border-white/20 focus:border-blue-500 rounded-xl px-3.5 pr-8 text-xs font-bold text-gray-300 focus:text-white focus:outline-none transition-all cursor-pointer">
                       <option value="all" ${(!window.actorFilterRuntime || window.actorFilterRuntime === 'all') ? 'selected' : ''}>Any Length</option>
