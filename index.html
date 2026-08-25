@@ -9405,9 +9405,8 @@
 
       const hasActiveActorFilters = (actorFilterSort !== 'popularity') || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
-      const actorTabsWidthClass = availableRoles.length > 1 ? 'lg:w-[600px]' : 'lg:w-[460px]';
       const mediaFilterTabsHtml = `
-        <div class="flex flex-row items-center gap-1 sm:gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl shrink-0 w-full lg:w-auto ${actorTabsWidthClass} h-[42px]">
+        <div class="grid grid-cols-2 min-[420px]:grid-cols-4 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-auto min-[420px]:h-[42px] items-center">
           <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
           <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
           <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
@@ -9423,7 +9422,13 @@
       };
       const activeRoleIcon = roleIcons[activeRole] || '🎭';
 
-      const roleSelectWrapper = availableRoles.length > 1 ? `<div class="filter-select-wrapper flex-1 min-w-0"><span class="filter-select-label truncate" id="actorRoleLabel">${activeRoleIcon} ${activeRole}</span><select id="actorRoleSelect" class="filter-select">${availableRoles.map(r => `<option value="${r}"${r === activeRole ? ' selected' : ''}>${roleIcons[r] || ''} ${r}</option>`).join('')}</select></div>` : '';
+      const roleSelectWrapper = availableRoles.length > 1 ? `
+        <div class="filter-select-wrapper shrink-0 min-w-[130px] sm:min-w-[145px] max-w-[180px]">
+          <span class="filter-select-label truncate" id="actorRoleLabel">${activeRoleIcon} ${activeRole}</span>
+          <select id="actorRoleSelect" class="filter-select" aria-label="Select role">
+            ${availableRoles.map(r => `<option value="${r}"${r === activeRole ? ' selected' : ''}>${roleIcons[r] || ''} ${r}</option>`).join('')}
+          </select>
+        </div>` : '';
       const actorFilterGridColsClass = availableRoles.length > 1 ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-3';
 
       const movieCountIcon = isDirector
@@ -9519,10 +9524,13 @@
       const actorControlsHtml = `
         <div class="relative w-full z-50" id="actorControlsCard">
           <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
-            ${mediaFilterTabsHtml}
+            <div id="actorCategoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
+              ${mediaFilterTabsHtml}
+            </div>
             <div class="hidden lg:block w-px h-6 bg-white/15 shrink-0 my-auto"></div>
             <div class="relative flex-1 min-w-0" id="actorControlsBarRow">
               <div class="flex items-center gap-2 w-full">
+                ${roleSelectWrapper}
                 <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
                   <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                   <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
