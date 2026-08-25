@@ -657,7 +657,7 @@
       box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
     }
 
-    /* Responsive Filter Panel: Bottom Sheet on Mobile, Floating Popover on Desktop */
+    /* Responsive Filter Panel: Bottom Sheet on Mobile, Full-Width Popover on Desktop */
     @media (max-width: 639px) {
       .filter-panel-responsive {
         position: fixed !important;
@@ -667,7 +667,7 @@
         right: 0 !important;
         left: 0 !important;
         width: 100% !important;
-        max-width: 100% !important;
+        max-width: 100vw !important;
         max-height: 85dvh !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
@@ -675,44 +675,44 @@
         border-top-right-radius: 1.75rem !important;
         border-bottom-left-radius: 0 !important;
         border-bottom-right-radius: 0 !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.22) !important;
         border-left: none !important;
         border-right: none !important;
         border-bottom: none !important;
-        background: rgba(10, 16, 30, 0.98) !important;
-        backdrop-filter: blur(24px) !important;
-        -webkit-backdrop-filter: blur(24px) !important;
-        box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(59, 130, 246, 0.2) !important;
-        z-index: 105 !important;
-        padding: 1.25rem 1.25rem 2.25rem 1.25rem !important;
+        background: #090e1a !important;
+        box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.98), 0 0 40px rgba(59, 130, 246, 0.25) !important;
+        z-index: 9999 !important;
+        padding: 1.25rem 1.25rem 2.5rem 1.25rem !important;
         animation: filterSlideUpMobile 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
       }
       .filter-backdrop-responsive {
         position: fixed !important;
         inset: 0 !important;
-        background: rgba(0, 0, 0, 0.75) !important;
-        backdrop-filter: blur(6px) !important;
-        -webkit-backdrop-filter: blur(6px) !important;
-        z-index: 100 !important;
+        background: rgba(0, 0, 0, 0.78) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        z-index: 9998 !important;
         animation: fadeIn 0.2s ease-out !important;
       }
     }
     @media (min-width: 640px) {
       .filter-panel-responsive {
         position: absolute !important;
+        left: 0 !important;
         right: 0 !important;
-        top: calc(100% + 8px) !important;
-        width: 360px !important;
+        width: 100% !important;
+        top: calc(100% + 10px) !important;
         max-height: 82vh !important;
         overflow-y: auto !important;
-        border-radius: 1.25rem !important;
-        background: rgba(10, 16, 30, 0.95) !important;
-        backdrop-filter: blur(24px) !important;
-        -webkit-backdrop-filter: blur(24px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(59, 130, 246, 0.15) !important;
-        z-index: 100 !important;
-        padding: 1.25rem !important;
+        border-radius: 1.5rem !important;
+        background: rgba(10, 16, 30, 0.98) !important;
+        backdrop-filter: blur(28px) !important;
+        -webkit-backdrop-filter: blur(28px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.95), 0 0 40px rgba(59, 130, 246, 0.2) !important;
+        z-index: 9999 !important;
+        padding: 1.5rem 1.75rem !important;
+        animation: fadeInSimple 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
       }
       .filter-backdrop-responsive {
         display: none !important;
@@ -1788,30 +1788,26 @@
         </div>
 
         <!-- Row 2: Searchbar (left) + Options Button + VPN Button + Insights & Roulette (when wide) -->
-        <div class="flex items-center gap-2 w-full">
-          <!-- Search Input -->
-          <div
-            class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
-            <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none"
-              stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-            <input id="resultsSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..."
-              class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
-            <button id="clearResultsBtn"
-              class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        <div class="relative w-full z-50" id="homeControlsBarRow">
+          <div class="flex items-center gap-2 w-full">
+            <!-- Search Input -->
+            <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
+              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
-            </button>
-          </div>
+              <input id="resultsSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..."
+                class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
+              <button id="clearResultsBtn"
+                class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
 
-          <!-- Home Filter Backdrop (Mobile bottom sheet backdrop) -->
-          <div id="homeFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeHomeFilterDropdown()"></div>
-
-          <!-- Options / Filter Dropdown Wrapper -->
-          <div class="relative shrink-0 z-50" id="homeFilterDropdownWrapper">
+            <!-- Options / Filter Toggle Button -->
             <button id="homeFilterToggleBtn" type="button" onclick="toggleHomeFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
@@ -1819,27 +1815,64 @@
               <span id="homeFilterDot" class="hidden w-1.5 h-1.5 rounded-full bg-blue-400"></span>
             </button>
 
-            <!-- Responsive Filter Panel (Bottom sheet on mobile, floating popover on desktop) -->
-            <div id="homeFilterDropdownMenu" class="hidden filter-panel-responsive space-y-3.5">
-              <!-- Mobile Drag Handle -->
-              <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-2 sm:hidden pointer-events-none"></div>
+            <!-- VPN Toggle Button -->
+            <button id="vpnToggleBtnInline" title="Also show VPN unlocks"
+              class="h-[42px] shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>VPN</span> <span id="vpnToggleDotInline"
+                class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
+            </button>
 
-              <!-- Header -->
-              <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-                  </svg>
-                  <span class="text-xs font-extrabold uppercase tracking-widest text-gray-200">Filters &amp; Sorting</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <button type="button" onclick="resetHomeFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2 py-0.5 rounded hover:bg-white/5 transition-all cursor-pointer">
-                    Reset all
-                  </button>
-                  <button type="button" onclick="closeHomeFilterDropdown()" class="sm:hidden w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 text-gray-300 hover:text-white text-xs font-bold">✕</button>
-                </div>
+            <!-- Desktop / Wider screen tools: Insights & Roulette -->
+            <button id="statsBtn"
+              class="hidden sm:flex h-[42px] items-center justify-center gap-1.5 px-3.5 py-2 bg-black/40 hover:bg-white/10 border border-white/10 rounded-xl text-gray-300 hover:text-white font-bold text-xs transition-all active:scale-95 cursor-pointer">
+              <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                </path>
+              </svg>
+              <span>Insights</span>
+            </button>
+            <button id="quickRouletteBtn"
+              class="hidden sm:flex h-[42px] items-center justify-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/30 text-amber-300 hover:text-amber-200 font-bold text-xs rounded-xl transition-all active:scale-95 shadow-sm cursor-pointer">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                </path>
+              </svg>
+              <span>Roulette</span>
+            </button>
+          </div>
+
+          <!-- Home Filter Backdrop (Mobile bottom sheet backdrop) -->
+          <div id="homeFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeHomeFilterDropdown()"></div>
+
+          <!-- Responsive Filter Panel (Spans full width of the sort & filter bar on desktop, bottom sheet on mobile!) -->
+          <div id="homeFilterDropdownMenu" class="hidden filter-panel-responsive space-y-4">
+            <!-- Mobile Drag Handle -->
+            <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-2 sm:hidden pointer-events-none"></div>
+
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
+                </svg>
+                <span class="text-xs font-extrabold uppercase tracking-widest text-gray-200">Filters &amp; Sorting</span>
               </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="resetHomeFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
+                  Reset all
+                </button>
+                <button type="button" onclick="closeHomeFilterDropdown()" class="sm:hidden w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 text-gray-300 hover:text-white text-xs font-bold">✕</button>
+              </div>
+            </div>
 
+            <!-- Full-width multi-column grid on desktop! -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4">
               <!-- Sort By -->
               <div>
                 <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Sort By</label>
@@ -1861,23 +1894,12 @@
                 </div>
               </div>
 
-              <!-- Genre -->
-              <div>
-                <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Genre</label>
-                <div class="relative">
-                  <select id="resultsGenre" onchange="onHomeFilterSelectChange()" class="w-full h-10 appearance-none bg-black/50 border border-white/10 hover:border-white/25 rounded-xl px-3.5 pr-8 text-xs font-bold text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
-                    <option value="all">All Genres</option>
-                  </select>
-                  <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </div>
-              </div>
-
               <!-- Streaming Platform -->
               <div id="resultsProviderWrapper">
                 <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Streaming Platform</label>
                 <div class="relative">
                   <select id="resultsProvider" onchange="onHomeFilterSelectChange()" class="w-full h-10 appearance-none bg-black/50 border border-white/10 hover:border-white/25 rounded-xl px-3.5 pr-8 text-xs font-bold text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
-                    <option value="all">All Platforms</option>
+                    <option value="all">All My Services</option>
                   </select>
                   <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
@@ -1914,6 +1936,17 @@
                 </div>
               </div>
 
+              <!-- Genre -->
+              <div>
+                <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Genre</label>
+                <div class="relative">
+                  <select id="resultsGenre" onchange="onHomeFilterSelectChange()" class="w-full h-10 appearance-none bg-black/50 border border-white/10 hover:border-white/25 rounded-xl px-3.5 pr-8 text-xs font-bold text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                    <option value="all">All Genres</option>
+                  </select>
+                  <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+
               <!-- Rating (Segmented Control) -->
               <div>
                 <div class="flex items-center justify-between mb-1.5">
@@ -1942,48 +1975,13 @@
                   <button type="button" onclick="setHomeRuntime('long')" id="homeRuntimeBtn_long" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn">&gt;120m</button>
                 </div>
               </div>
-
-              <!-- Mobile Close / Apply Button -->
-              <button type="button" onclick="closeHomeFilterDropdown()" class="w-full sm:hidden py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
-                Show Results
-              </button>
             </div>
+
+            <!-- Mobile Close / Apply Button -->
+            <button type="button" onclick="closeHomeFilterDropdown()" class="w-full sm:hidden py-3 mt-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
+              Show Results
+            </button>
           </div>
-
-          <!-- VPN Toggle Button -->
-          <button id="vpnToggleBtnInline" title="Also show VPN unlocks"
-            class="h-[42px] shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>VPN</span> <span id="vpnToggleDotInline"
-              class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
-          </button>
-
-          <!-- Desktop / Wider screen tools: Insights & Roulette -->
-          <button id="statsBtn"
-            class="hidden sm:flex h-[42px] shrink-0 items-center justify-center gap-2 px-3.5 sm:px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
-            title="Insights">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-              </path>
-            </svg>
-            <span>Insights</span>
-          </button>
-          <button id="rouletteBtn"
-            class="hidden sm:flex h-[42px] shrink-0 items-center justify-center gap-2 px-3.5 sm:px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
-            title="Roulette">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <circle cx="12" cy="12" r="9"></circle>
-              <circle cx="12" cy="12" r="3"></circle>
-              <path stroke-linecap="round"
-                d="M12 3v6m0 6v6M3 12h6m6 0h6M5.636 5.636l4.243 4.243m4.242 4.242l4.243 4.243M5.636 18.364l4.243-4.243m4.242-4.242l4.243-4.243">
-              </path>
-            </svg>
-            <span>Roulette</span>
-          </button>
         </div>
       </div>
       <div id="statsBar"
@@ -3957,21 +3955,12 @@
     function toggleHomeFilterDropdown(e) {
       if (e) e.stopPropagation();
       const menu = document.getElementById('homeFilterDropdownMenu');
-      const backdrop = document.getElementById('homeFilterBackdrop');
-      const btn = document.getElementById('homeFilterToggleBtn');
       if (!menu) return;
       const isOpen = !menu.classList.contains('hidden');
       if (isOpen) {
         closeHomeFilterDropdown();
       } else {
-        closeActorFilterDropdown();
-        menu.classList.remove('hidden');
-        if (backdrop && window.innerWidth < 640) backdrop.classList.remove('hidden');
-        if (window.innerWidth < 640) document.body.classList.add('modal-open');
-        if (btn) {
-          btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
-          btn.classList.remove('border-white/10', 'text-gray-300');
-        }
+        openHomeFilterDropdown();
       }
     }
 
@@ -3979,9 +3968,22 @@
       const menu = document.getElementById('homeFilterDropdownMenu');
       const backdrop = document.getElementById('homeFilterBackdrop');
       const btn = document.getElementById('homeFilterToggleBtn');
-      if (menu) menu.classList.remove('hidden');
-      if (backdrop && window.innerWidth < 640) backdrop.classList.remove('hidden');
-      if (window.innerWidth < 640) document.body.classList.add('modal-open');
+      if (!menu) return;
+      closeActorFilterDropdown();
+
+      if (window.innerWidth < 640) {
+        if (backdrop && backdrop.parentElement !== document.body) document.body.appendChild(backdrop);
+        if (menu.parentElement !== document.body) document.body.appendChild(menu);
+        if (backdrop) backdrop.classList.remove('hidden');
+        document.body.classList.add('modal-open');
+      } else {
+        const barRow = document.getElementById('homeControlsBarRow');
+        if (barRow) {
+          if (backdrop && backdrop.parentElement !== barRow) barRow.appendChild(backdrop);
+          if (menu.parentElement !== barRow) barRow.appendChild(menu);
+        }
+      }
+      menu.classList.remove('hidden');
       if (btn) {
         btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
         btn.classList.remove('border-white/10', 'text-gray-300');
@@ -3994,6 +3996,11 @@
       if (menu) menu.classList.add('hidden');
       if (backdrop) backdrop.classList.add('hidden');
       document.body.classList.remove('modal-open');
+      const barRow = document.getElementById('homeControlsBarRow');
+      if (barRow) {
+        if (backdrop && backdrop.parentElement !== barRow) barRow.appendChild(backdrop);
+        if (menu && menu.parentElement !== barRow) barRow.appendChild(menu);
+      }
       syncHomeFilterButtonState();
     }
 
@@ -6884,11 +6891,19 @@
       const provSel = document.getElementById('resultsProvider');
       if (provSel) {
         const cur = provSel.value;
-        provSel.innerHTML = '<option value="all">All Platforms</option>';
-        Array.from(providersSet).sort().forEach(p => {
-          provSel.innerHTML += `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`;
-        });
-        provSel.value = cur && (cur === 'all' || providersSet.has(cur)) ? cur : 'all';
+        provSel.innerHTML = '<option value="all">All My Services</option>';
+        const mySelectedServices = currentProviders.filter(cp => selectedServiceIds.has(cp.id));
+        if (mySelectedServices.length > 0) {
+          mySelectedServices.forEach(cp => {
+            provSel.innerHTML += `<option value="${escapeHTML(cp.name)}">${escapeHTML(cp.name)}</option>`;
+          });
+          provSel.value = cur && (cur === 'all' || mySelectedServices.some(cp => cp.name === cur)) ? cur : 'all';
+        } else {
+          Array.from(providersSet).sort().forEach(p => {
+            provSel.innerHTML += `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`;
+          });
+          provSel.value = cur && (cur === 'all' || providersSet.has(cur)) ? cur : 'all';
+        }
       }
     }
 
@@ -6920,7 +6935,10 @@
         if (provider !== 'all') {
           const rData = m.allProviders ? (m.allProviders[currentRegion] || null) : m.regionData;
           const flatrate = rData?.flatrate || [];
-          matchProv = flatrate.some(p => (p.provider_name || p.name) === provider);
+          matchProv = flatrate.some(p => {
+            const pName = (p.provider_name || p.name || '').toLowerCase();
+            return pName === provider.toLowerCase() || pName.includes(provider.toLowerCase());
+          });
         }
 
         const rVal = parseFloat(getCachedRating(m) || m.rating || 0);
@@ -8593,45 +8611,49 @@
       const actorControlsHtml = `
         <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">
           ${mediaFilterTabsHtml}
-          <div class="flex items-center gap-2 flex-1 min-w-0">
-            <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
-              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
-              ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
-            </div>
+          <div class="relative flex-1 min-w-0 z-50" id="actorControlsBarRow">
+            <div class="flex items-center gap-2 w-full">
+              <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
+                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
+                ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+              </div>
 
-            <!-- Actor Filter Backdrop (Mobile bottom sheet backdrop) -->
-            <div id="actorFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeActorFilterDropdown()"></div>
-            
-            <div class="relative shrink-0 z-50" id="actorFilterDropdownWrapper">
+              <!-- Options / Filter Toggle Button for Actor -->
               <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
                 </svg>
                 ${hasActiveActorFilters ? `<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>` : ''}
               </button>
+            </div>
 
-              <!-- Responsive Filter Panel for Actor (Bottom sheet on mobile, popover on desktop) -->
-              <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive space-y-3.5">
-                <!-- Mobile Drag Handle -->
-                <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-2 sm:hidden pointer-events-none"></div>
+            <!-- Actor Filter Backdrop (Mobile bottom sheet backdrop) -->
+            <div id="actorFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeActorFilterDropdown()"></div>
 
-                <!-- Header -->
-                <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-                  <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-                    </svg>
-                    <span class="text-xs font-extrabold uppercase tracking-widest text-gray-200">Filters &amp; Sorting</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <button type="button" onclick="resetActorFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2 py-0.5 rounded hover:bg-white/5 transition-all cursor-pointer">
-                      Reset all
-                    </button>
-                    <button type="button" onclick="closeActorFilterDropdown()" class="sm:hidden w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 text-gray-300 hover:text-white text-xs font-bold">✕</button>
-                  </div>
+            <!-- Responsive Filter Panel for Actor (Spans full bar width on desktop, bottom sheet on mobile) -->
+            <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive space-y-4">
+              <!-- Mobile Drag Handle -->
+              <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-2 sm:hidden pointer-events-none"></div>
+
+              <!-- Header -->
+              <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
+                  </svg>
+                  <span class="text-xs font-extrabold uppercase tracking-widest text-gray-200">Filters &amp; Sorting</span>
                 </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="resetActorFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
+                    Reset all
+                  </button>
+                  <button type="button" onclick="closeActorFilterDropdown()" class="sm:hidden w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 text-gray-300 hover:text-white text-xs font-bold">✕</button>
+                </div>
+              </div>
 
+              <!-- Full-width multi-column grid on desktop! -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
                 <!-- Sort By -->
                 <div>
                   <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Sort By</label>
@@ -8653,18 +8675,6 @@
                   </div>
                 </div>
 
-                <!-- Genre -->
-                <div>
-                  <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Genre</label>
-                  <div class="relative">
-                    <select id="actorGenreSelect" onchange="onActorFilterSelectChange('genre', this.value)" class="w-full h-10 appearance-none bg-black/50 border border-white/10 hover:border-white/25 rounded-xl px-3.5 pr-8 text-xs font-bold text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
-                      <option value="all" ${actorFilterGenre === 'all' ? 'selected' : ''}>All Genres</option>
-                      ${(window.currentActorAvailableGenres || []).map(g => `<option value="${escapeHTML(g)}" ${actorFilterGenre === g ? 'selected' : ''}>${escapeHTML(g)}</option>`).join('')}
-                    </select>
-                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
-
                 <!-- Language -->
                 <div>
                   <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Language</label>
@@ -8673,6 +8683,18 @@
                       <option value="all" ${(!window.actorFilterLanguage || window.actorFilterLanguage === 'all') ? 'selected' : ''}>All Languages</option>
                       ${actorLangsList.map(l => `<option value="${l.code}" ${window.actorFilterLanguage === l.code ? 'selected' : ''}>${l.label}</option>`).join('')}
                       ${hasOtherLangs ? `<option value="other" ${window.actorFilterLanguage === 'other' ? 'selected' : ''}>Other Languages 🌐</option>` : ''}
+                    </select>
+                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
+                </div>
+
+                <!-- Genre -->
+                <div>
+                  <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Genre</label>
+                  <div class="relative">
+                    <select id="actorGenreSelect" onchange="onActorFilterSelectChange('genre', this.value)" class="w-full h-10 appearance-none bg-black/50 border border-white/10 hover:border-white/25 rounded-xl px-3.5 pr-8 text-xs font-bold text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                      <option value="all" ${actorFilterGenre === 'all' ? 'selected' : ''}>All Genres</option>
+                      ${(window.currentActorAvailableGenres || []).map(g => `<option value="${escapeHTML(g)}" ${actorFilterGenre === g ? 'selected' : ''}>${escapeHTML(g)}</option>`).join('')}
                     </select>
                     <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                   </div>
@@ -8717,12 +8739,12 @@
                     <button type="button" onclick="setActorRuntime('long')" id="actorRuntimeBtn_long" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRuntime === 'long' ? 'active' : ''}">&gt;120m</button>
                   </div>
                 </div>
-
-                <!-- Mobile Close / Apply Button -->
-                <button type="button" onclick="closeActorFilterDropdown()" class="w-full sm:hidden py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
-                  Show Results
-                </button>
               </div>
+
+              <!-- Mobile Close / Apply Button -->
+              <button type="button" onclick="closeActorFilterDropdown()" class="w-full sm:hidden py-3 mt-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
+                Show Results
+              </button>
             </div>
           </div>
         </div>
@@ -8808,18 +8830,12 @@
     function toggleActorFilterDropdown(e) {
       if (e) e.stopPropagation();
       const menu = document.getElementById('actorFilterDropdownMenu');
-      const backdrop = document.getElementById('actorFilterBackdrop');
-      const btn = document.getElementById('actorFilterToggleBtn');
       if (!menu) return;
       const isOpen = !menu.classList.contains('hidden');
       if (isOpen) {
         closeActorFilterDropdown();
       } else {
-        closeHomeFilterDropdown();
-        menu.classList.remove('hidden');
-        if (backdrop && window.innerWidth < 640) backdrop.classList.remove('hidden');
-        if (window.innerWidth < 640) document.body.classList.add('modal-open');
-        if (btn) btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
+        openActorFilterDropdown();
       }
     }
 
@@ -8827,9 +8843,22 @@
       const menu = document.getElementById('actorFilterDropdownMenu');
       const backdrop = document.getElementById('actorFilterBackdrop');
       const btn = document.getElementById('actorFilterToggleBtn');
-      if (menu) menu.classList.remove('hidden');
-      if (backdrop && window.innerWidth < 640) backdrop.classList.remove('hidden');
-      if (window.innerWidth < 640) document.body.classList.add('modal-open');
+      if (!menu) return;
+      closeHomeFilterDropdown();
+
+      if (window.innerWidth < 640) {
+        if (backdrop && backdrop.parentElement !== document.body) document.body.appendChild(backdrop);
+        if (menu.parentElement !== document.body) document.body.appendChild(menu);
+        if (backdrop) backdrop.classList.remove('hidden');
+        document.body.classList.add('modal-open');
+      } else {
+        const barRow = document.getElementById('actorControlsBarRow');
+        if (barRow) {
+          if (backdrop && backdrop.parentElement !== barRow) barRow.appendChild(backdrop);
+          if (menu.parentElement !== barRow) barRow.appendChild(menu);
+        }
+      }
+      menu.classList.remove('hidden');
       if (btn) btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
     }
 
@@ -8839,6 +8868,11 @@
       if (menu) menu.classList.add('hidden');
       if (backdrop) backdrop.classList.add('hidden');
       document.body.classList.remove('modal-open');
+      const barRow = document.getElementById('actorControlsBarRow');
+      if (barRow) {
+        if (backdrop && backdrop.parentElement !== barRow) barRow.appendChild(backdrop);
+        if (menu && menu.parentElement !== barRow) barRow.appendChild(menu);
+      }
       syncActorFilterButtonState();
     }
 
@@ -8925,16 +8959,20 @@
 
     // Dismiss floating dropdowns on outside click or Escape key
     document.addEventListener('click', (e) => {
-      const homeWrapper = document.getElementById('homeFilterDropdownWrapper');
       const homeMenu = document.getElementById('homeFilterDropdownMenu');
-      if (homeMenu && !homeMenu.classList.contains('hidden') && homeWrapper && !homeWrapper.contains(e.target)) {
-        closeHomeFilterDropdown();
+      const homeBtn = document.getElementById('homeFilterToggleBtn');
+      if (homeMenu && !homeMenu.classList.contains('hidden')) {
+        if (!homeMenu.contains(e.target) && (!homeBtn || !homeBtn.contains(e.target))) {
+          closeHomeFilterDropdown();
+        }
       }
 
-      const actorWrapper = document.getElementById('actorFilterDropdownWrapper');
       const actorMenu = document.getElementById('actorFilterDropdownMenu');
-      if (actorMenu && !actorMenu.classList.contains('hidden') && actorWrapper && !actorWrapper.contains(e.target)) {
-        closeActorFilterDropdown();
+      const actorBtn = document.getElementById('actorFilterToggleBtn');
+      if (actorMenu && !actorMenu.classList.contains('hidden')) {
+        if (!actorMenu.contains(e.target) && (!actorBtn || !actorBtn.contains(e.target))) {
+          closeActorFilterDropdown();
+        }
       }
     });
 
