@@ -2309,12 +2309,11 @@
 
       <div
         class="relative z-30 max-w-[1480px] mx-auto w-full px-5 sm:px-10 pt-24 sm:pt-28 pb-6 sm:pb-8 flex flex-col gap-1.5 sm:gap-2 pointer-events-auto">
-        <span class="text-gray-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Cast &amp;
-          Crew</span>
+        <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Full Cast &amp; Crew</span>
         <h1 id="allCastModalTitle"
-          class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">Full Cast &amp;
-          Crew</h1>
-        <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-300 drop-shadow-sm min-w-0">
+          class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">
+        </h1>
+        <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-400 drop-shadow-sm min-w-0">
         </p>
       </div>
     </div>
@@ -7485,7 +7484,7 @@
 
       const titleEl = document.getElementById('allCastModalTitle');
       const subEl = document.getElementById('allCastModalSubtitle');
-      if (titleEl) titleEl.textContent = `${movieTitle} — Full Cast & Crew`;
+      if (titleEl) titleEl.textContent = movieTitle;
       if (subEl) subEl.textContent = `${totalCount} actors, directors & crew members`;
 
       updateAllCastTabsUI();
@@ -9908,6 +9907,11 @@
       actorFilterRuntime = 'all';
       window.actorFilterRuntime = 'all';
 
+      const searchInput = document.getElementById('actorFilmSearch');
+      if (searchInput) searchInput.value = '';
+      const clearBtn = document.getElementById('actorFilmSearchClear');
+      if (clearBtn) clearBtn.classList.add('hidden');
+
       const actorId = window.currentActorPageId || modalActiveActorId || currentActorId;
       const person = (actorId ? actorDetailsCache.get(actorId) : null) || window.currentActorPersonObj;
 
@@ -10351,6 +10355,38 @@
           const totalCountEls = container.querySelectorAll('.actor-total-count');
           if (totalCountEls.length > 0 && counts) {
             totalCountEls.forEach(el => { el.textContent = `(${counts.all} total)`; });
+          }
+
+          // Update Role dropdown button label, icon, and popover state
+          const roleLabelEl = document.getElementById('actorRoleLabel');
+          const roleIcons = {
+            'Actor': '🎭',
+            'Director': '🎬',
+            'Writer': '✍️',
+            'Producer': '💼',
+            'Composer': '🎵'
+          };
+          const activeRole = activeRoleHint || 'Actor';
+          const activeIcon = roleIcons[activeRole] || '🎬';
+          if (roleLabelEl) {
+            roleLabelEl.textContent = activeRole;
+            const trigger = roleLabelEl.closest('.custom-filter-trigger');
+            if (trigger) {
+              const iconSpan = trigger.querySelector('.text-sm');
+              if (iconSpan) iconSpan.textContent = activeIcon;
+            }
+          }
+          const rolePopover = document.getElementById('actorRolePopover');
+          if (rolePopover) {
+            rolePopover.querySelectorAll('.custom-filter-item').forEach(item => {
+              const itemText = item.textContent || '';
+              const isSel = itemText.includes(activeRole);
+              item.classList.toggle('selected', isSel);
+              const radio = item.querySelector('.custom-filter-radio');
+              if (radio) {
+                radio.innerHTML = isSel ? '<div class="custom-filter-radio-dot"></div>' : '';
+              }
+            });
           }
         }
         return;
