@@ -657,6 +657,73 @@
       box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
     }
 
+    /* Responsive Filter Panel: Bottom Sheet on Mobile, Floating Popover on Desktop */
+    @media (max-width: 639px) {
+      .filter-panel-responsive {
+        position: fixed !important;
+        inset-inline: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        right: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 85dvh !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        border-top-left-radius: 1.75rem !important;
+        border-top-right-radius: 1.75rem !important;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-bottom: none !important;
+        background: rgba(10, 16, 30, 0.98) !important;
+        backdrop-filter: blur(24px) !important;
+        -webkit-backdrop-filter: blur(24px) !important;
+        box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(59, 130, 246, 0.2) !important;
+        z-index: 105 !important;
+        padding: 1.25rem 1.25rem 2.25rem 1.25rem !important;
+        animation: filterSlideUpMobile 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+      .filter-backdrop-responsive {
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(0, 0, 0, 0.75) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+        z-index: 100 !important;
+        animation: fadeIn 0.2s ease-out !important;
+      }
+    }
+    @media (min-width: 640px) {
+      .filter-panel-responsive {
+        position: absolute !important;
+        right: 0 !important;
+        top: calc(100% + 8px) !important;
+        width: 360px !important;
+        max-height: 82vh !important;
+        overflow-y: auto !important;
+        border-radius: 1.25rem !important;
+        background: rgba(10, 16, 30, 0.95) !important;
+        backdrop-filter: blur(24px) !important;
+        -webkit-backdrop-filter: blur(24px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(59, 130, 246, 0.15) !important;
+        z-index: 100 !important;
+        padding: 1.25rem !important;
+      }
+      .filter-backdrop-responsive {
+        display: none !important;
+      }
+    }
+
+    @keyframes filterSlideUpMobile {
+      from { transform: translateY(100%); opacity: 0.5; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
     .tab-btn.active .tab-badge {
       background: rgba(59, 130, 246, 0.35);
       color: #ffffff;
@@ -1740,6 +1807,9 @@
             </button>
           </div>
 
+          <!-- Home Filter Backdrop (Mobile bottom sheet backdrop) -->
+          <div id="homeFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeHomeFilterDropdown()"></div>
+
           <!-- Options / Filter Dropdown Wrapper -->
           <div class="relative shrink-0 z-50" id="homeFilterDropdownWrapper">
             <button id="homeFilterToggleBtn" type="button" onclick="toggleHomeFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
@@ -1749,14 +1819,25 @@
               <span id="homeFilterDot" class="hidden w-1.5 h-1.5 rounded-full bg-blue-400"></span>
             </button>
 
-            <!-- Floating Dropdown Popover Menu (Floats ABOVE grid, doesn't disturb page layout) -->
-            <div id="homeFilterDropdownMenu" class="hidden absolute right-0 top-[calc(100%+8px)] z-[100] w-[310px] sm:w-[340px] max-w-[calc(100vw-2rem)] bg-[#0c1322]/95 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_35px_rgba(59,130,246,0.2)] p-4 sm:p-5 space-y-3.5 animate-fade">
+            <!-- Responsive Filter Panel (Bottom sheet on mobile, floating popover on desktop) -->
+            <div id="homeFilterDropdownMenu" class="hidden filter-panel-responsive space-y-3.5">
+              <!-- Mobile Drag Handle -->
+              <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-2 sm:hidden pointer-events-none"></div>
+
               <!-- Header -->
               <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-                <span class="text-xs font-extrabold uppercase tracking-widest text-gray-300">Filters &amp; Sorting</span>
-                <button type="button" onclick="resetHomeFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2 py-0.5 rounded hover:bg-white/5 transition-all cursor-pointer">
-                  Reset
-                </button>
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
+                  </svg>
+                  <span class="text-xs font-extrabold uppercase tracking-widest text-gray-200">Filters &amp; Sorting</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="resetHomeFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2 py-0.5 rounded hover:bg-white/5 transition-all cursor-pointer">
+                    Reset all
+                  </button>
+                  <button type="button" onclick="closeHomeFilterDropdown()" class="sm:hidden w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 text-gray-300 hover:text-white text-xs font-bold">✕</button>
+                </div>
               </div>
 
               <!-- Sort By -->
@@ -1767,9 +1848,11 @@
                     <option value="year_desc">Newest First</option>
                     <option value="popularity">Popular</option>
                     <option value="rating_desc">Highest Rated</option>
+                    <option value="hidden_gems">⭐ Hidden Gems</option>
+                    <option value="vote_count_desc">Most Reviewed 💬</option>
                     <option value="rating_asc">Lowest Rated</option>
-                    <option value="runtime_desc">Longest First</option>
-                    <option value="runtime_asc">Shortest First</option>
+                    <option value="runtime_desc">Longest First ⏳</option>
+                    <option value="runtime_asc">Shortest First ⏱️</option>
                     <option value="az">A-Z</option>
                     <option value="za">Z-A</option>
                     <option value="year_asc">Oldest First</option>
@@ -1784,6 +1867,28 @@
                 <div class="relative">
                   <select id="resultsGenre" onchange="onHomeFilterSelectChange()" class="w-full h-10 appearance-none bg-black/50 border border-white/10 hover:border-white/25 rounded-xl px-3.5 pr-8 text-xs font-bold text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
                     <option value="all">All Genres</option>
+                  </select>
+                  <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+
+              <!-- Streaming Platform -->
+              <div id="resultsProviderWrapper">
+                <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Streaming Platform</label>
+                <div class="relative">
+                  <select id="resultsProvider" onchange="onHomeFilterSelectChange()" class="w-full h-10 appearance-none bg-black/50 border border-white/10 hover:border-white/25 rounded-xl px-3.5 pr-8 text-xs font-bold text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                    <option value="all">All Platforms</option>
+                  </select>
+                  <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+
+              <!-- Language -->
+              <div>
+                <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Language</label>
+                <div class="relative">
+                  <select id="resultsLanguage" onchange="onHomeFilterSelectChange()" class="w-full h-10 appearance-none bg-black/50 border border-white/10 hover:border-white/25 rounded-xl px-3.5 pr-8 text-xs font-bold text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                    <option value="all">All Languages</option>
                   </select>
                   <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
@@ -1815,11 +1920,12 @@
                   <label class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400">Minimum Rating</label>
                   <span id="homeRatingDisplay" class="text-xs font-bold text-blue-400">Any</span>
                 </div>
-                <div class="grid grid-cols-4 gap-1 p-1 bg-black/50 border border-white/10 rounded-xl">
+                <div class="grid grid-cols-5 gap-1 p-1 bg-black/50 border border-white/10 rounded-xl">
                   <button type="button" onclick="setHomeRating('all')" id="homeRatingBtn_all" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn active">Any</button>
-                  <button type="button" onclick="setHomeRating('6')" id="homeRatingBtn_6" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐ 6+</button>
-                  <button type="button" onclick="setHomeRating('7')" id="homeRatingBtn_7" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐ 7+</button>
-                  <button type="button" onclick="setHomeRating('8')" id="homeRatingBtn_8" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐ 8+</button>
+                  <button type="button" onclick="setHomeRating('6')" id="homeRatingBtn_6" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐6+</button>
+                  <button type="button" onclick="setHomeRating('7')" id="homeRatingBtn_7" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐7+</button>
+                  <button type="button" onclick="setHomeRating('8')" id="homeRatingBtn_8" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐8+</button>
+                  <button type="button" onclick="setHomeRating('8.5')" id="homeRatingBtn_8.5" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn">⭐8.5+</button>
                 </div>
               </div>
 
@@ -1836,6 +1942,11 @@
                   <button type="button" onclick="setHomeRuntime('long')" id="homeRuntimeBtn_long" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn">&gt;120m</button>
                 </div>
               </div>
+
+              <!-- Mobile Close / Apply Button -->
+              <button type="button" onclick="closeHomeFilterDropdown()" class="w-full sm:hidden py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
+                Show Results
+              </button>
             </div>
           </div>
 
@@ -3817,6 +3928,27 @@
       { value: 'year_asc', label: 'Oldest First' }
     ];
 
+    const TMDB_LANGUAGES = [
+      { code: 'en', label: 'English 🇬🇧' },
+      { code: 'sv', label: 'Swedish 🇸🇪' },
+      { code: 'ko', label: 'Korean 🇰🇷' },
+      { code: 'ja', label: 'Japanese 🇯🇵' },
+      { code: 'fr', label: 'French 🇫🇷' },
+      { code: 'es', label: 'Spanish 🇪🇸' },
+      { code: 'de', label: 'German 🇩🇪' },
+      { code: 'it', label: 'Italian 🇮🇹' },
+      { code: 'da', label: 'Danish 🇩🇰' },
+      { code: 'no', label: 'Norwegian 🇳🇴' },
+      { code: 'fi', label: 'Finnish 🇫🇮' },
+      { code: 'zh', label: 'Chinese 🇨🇳' },
+      { code: 'hi', label: 'Hindi 🇮🇳' },
+      { code: 'pt', label: 'Portuguese 🇵🇹' },
+      { code: 'ru', label: 'Russian 🇷🇺' },
+      { code: 'pl', label: 'Polish 🇵🇱' },
+      { code: 'nl', label: 'Dutch 🇳🇱' },
+      { code: 'tr', label: 'Turkish 🇹🇷' }
+    ];
+
     let homeFilterRating = 'all';
     let homeFilterRuntime = 'all';
     window.homeFilterRating = 'all';
@@ -3825,6 +3957,7 @@
     function toggleHomeFilterDropdown(e) {
       if (e) e.stopPropagation();
       const menu = document.getElementById('homeFilterDropdownMenu');
+      const backdrop = document.getElementById('homeFilterBackdrop');
       const btn = document.getElementById('homeFilterToggleBtn');
       if (!menu) return;
       const isOpen = !menu.classList.contains('hidden');
@@ -3833,6 +3966,8 @@
       } else {
         closeActorFilterDropdown();
         menu.classList.remove('hidden');
+        if (backdrop && window.innerWidth < 640) backdrop.classList.remove('hidden');
+        if (window.innerWidth < 640) document.body.classList.add('modal-open');
         if (btn) {
           btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
           btn.classList.remove('border-white/10', 'text-gray-300');
@@ -3842,8 +3977,11 @@
 
     function openHomeFilterDropdown() {
       const menu = document.getElementById('homeFilterDropdownMenu');
+      const backdrop = document.getElementById('homeFilterBackdrop');
       const btn = document.getElementById('homeFilterToggleBtn');
       if (menu) menu.classList.remove('hidden');
+      if (backdrop && window.innerWidth < 640) backdrop.classList.remove('hidden');
+      if (window.innerWidth < 640) document.body.classList.add('modal-open');
       if (btn) {
         btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
         btn.classList.remove('border-white/10', 'text-gray-300');
@@ -3852,7 +3990,10 @@
 
     function closeHomeFilterDropdown() {
       const menu = document.getElementById('homeFilterDropdownMenu');
+      const backdrop = document.getElementById('homeFilterBackdrop');
       if (menu) menu.classList.add('hidden');
+      if (backdrop) backdrop.classList.add('hidden');
+      document.body.classList.remove('modal-open');
       syncHomeFilterButtonState();
     }
 
@@ -3873,8 +4014,8 @@
       window.homeFilterRating = val;
       const display = document.getElementById('homeRatingDisplay');
       if (display) display.textContent = val === 'all' ? 'Any' : `⭐ ${val}+`;
-      ['all', '6', '7', '8'].forEach(r => {
-        const btn = document.getElementById(`homeRatingBtn_${r}`);
+      ['all', '6', '7', '8', '8.5'].forEach(r => {
+        const btn = document.getElementById(`homeRatingBtn_${r.replace('.', '_')}`) || document.getElementById(`homeRatingBtn_${r}`);
         if (btn) btn.classList.toggle('active', r === val);
       });
       currentPage = 1;
@@ -3904,10 +4045,14 @@
       const sortSelect = el?.filterSort || document.getElementById('resultsSort');
       const genreSelect = el?.filterGenre || document.getElementById('resultsGenre');
       const decadeSelect = el?.filterDecade || document.getElementById('resultsDecade');
+      const langSelect = document.getElementById('resultsLanguage');
+      const provSelect = document.getElementById('resultsProvider');
 
       if (sortSelect) sortSelect.value = 'year_desc';
       if (genreSelect) genreSelect.value = 'all';
       if (decadeSelect) decadeSelect.value = 'all';
+      if (langSelect) langSelect.value = 'all';
+      if (provSelect) provSelect.value = 'all';
 
       setHomeRating('all');
       setHomeRuntime('all');
@@ -3921,7 +4066,9 @@
       const sort = (el?.filterSort || document.getElementById('resultsSort'))?.value || 'year_desc';
       const genre = (el?.filterGenre || document.getElementById('resultsGenre'))?.value || 'all';
       const decade = (el?.filterDecade || document.getElementById('resultsDecade'))?.value || 'all';
-      const hasCustom = (sort && sort !== 'year_desc') || (genre && genre !== 'all') || (decade && decade !== 'all') || (window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterRuntime && window.homeFilterRuntime !== 'all');
+      const lang = document.getElementById('resultsLanguage')?.value || 'all';
+      const prov = document.getElementById('resultsProvider')?.value || 'all';
+      const hasCustom = (sort && sort !== 'year_desc') || (genre && genre !== 'all') || (decade && decade !== 'all') || (lang && lang !== 'all') || (prov && prov !== 'all') || (window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterRuntime && window.homeFilterRuntime !== 'all');
       if (btn) {
         btn.classList.toggle('border-blue-500', hasCustom || isOpen);
         btn.classList.toggle('text-blue-400', hasCustom || isOpen);
@@ -6670,24 +6817,144 @@
     }
     function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
     function updateStats() { if (scannedMovies.length === 0) { if (el.statsBar) el.statsBar.classList.add('hidden'); return; } document.getElementById('stat-total').textContent = scannedMovies.length; let genreCounts = {}; let decadeCounts = {}; let totalRating = 0; let ratedCount = 0; scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genreCounts[GENRE_MAP[id]] = (genreCounts[GENRE_MAP[id]] || 0) + 1; }); if (m.releaseDate) { const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10; if (!isNaN(dec)) decadeCounts[dec] = (decadeCounts[dec] || 0) + 1; } const rVal = getCachedRating(m); if (rVal) { const r = parseFloat(rVal); if (!isNaN(r) && r > 0) { totalRating += r; ratedCount++; } } }); const topG = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a])[0] || '-'; const topD = Object.keys(decadeCounts).sort((a, b) => decadeCounts[b] - decadeCounts[a])[0]; const avg = ratedCount ? (totalRating / ratedCount).toFixed(1) : '-'; document.getElementById('stat-genre').textContent = topG; document.getElementById('stat-decade').innerHTML = topD ? `${topD}S` : '-'; const avgEl = document.getElementById('stat-avg'); if (avgEl) avgEl.textContent = avg; }
-    function populateFilterDropdowns() { const genresSet = new Set(); const decadesSet = new Set(); scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genresSet.add(GENRE_MAP[id]); }); if (m.releaseDate) decadesSet.add(Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10); }); if (el.filterGenre) { el.filterGenre.innerHTML = '<option value="all">All Genres</option>'; Array.from(genresSet).sort().forEach(g => { el.filterGenre.innerHTML += `<option value="${g}">${g}</option>`; }); syncFilterLabel(el.filterGenre); } if (el.filterDecade) { el.filterDecade.innerHTML = '<option value="all">All Decades</option>'; Array.from(decadesSet).sort((a, b) => b - a).forEach(d => { if (!isNaN(d)) el.filterDecade.innerHTML += `<option value="${d}">${d}s</option>`; }); syncFilterLabel(el.filterDecade); } }
+    function populateFilterDropdowns() {
+      const genresSet = new Set();
+      const decadesSet = new Set();
+      const languagesSet = new Set();
+      const providersSet = new Set();
+
+      scannedMovies.forEach(m => {
+        if (m.genreIds) {
+          m.genreIds.forEach(id => {
+            if (GENRE_MAP[id]) genresSet.add(GENRE_MAP[id]);
+          });
+        }
+        if (m.releaseDate) {
+          const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10;
+          if (!isNaN(dec)) decadesSet.add(dec);
+        }
+        if (m.originalLanguage) {
+          languagesSet.add(m.originalLanguage);
+        }
+        const regionData = m.allProviders ? (m.allProviders[currentRegion] || null) : m.regionData;
+        if (regionData) {
+          (regionData.flatrate || []).forEach(p => {
+            if (p.provider_name) providersSet.add(p.provider_name);
+          });
+        }
+      });
+
+      const genreSel = el?.filterGenre || document.getElementById('resultsGenre');
+      if (genreSel) {
+        const cur = genreSel.value;
+        genreSel.innerHTML = '<option value="all">All Genres</option>';
+        Array.from(genresSet).sort().forEach(g => {
+          genreSel.innerHTML += `<option value="${g}">${g}</option>`;
+        });
+        genreSel.value = cur && (cur === 'all' || genresSet.has(cur)) ? cur : 'all';
+      }
+
+      const decadeSel = el?.filterDecade || document.getElementById('resultsDecade');
+      if (decadeSel) {
+        const cur = decadeSel.value;
+        decadeSel.innerHTML = '<option value="all">All Decades</option>';
+        Array.from(decadesSet).sort((a, b) => b - a).forEach(d => {
+          if (!isNaN(d)) decadeSel.innerHTML += `<option value="${d}">${d}s</option>`;
+        });
+        decadeSel.value = cur && (cur === 'all' || decadesSet.has(parseInt(cur))) ? cur : 'all';
+      }
+
+      const langSel = document.getElementById('resultsLanguage');
+      if (langSel) {
+        const cur = langSel.value;
+        langSel.innerHTML = '<option value="all">All Languages</option>';
+        TMDB_LANGUAGES.forEach(l => {
+          if (languagesSet.has(l.code)) {
+            langSel.innerHTML += `<option value="${l.code}">${l.label}</option>`;
+          }
+        });
+        const knownCodes = new Set(TMDB_LANGUAGES.map(l => l.code));
+        const hasOthers = Array.from(languagesSet).some(c => !knownCodes.has(c));
+        if (hasOthers) {
+          langSel.innerHTML += '<option value="other">Other Languages 🌐</option>';
+        }
+        langSel.value = cur || 'all';
+      }
+
+      const provSel = document.getElementById('resultsProvider');
+      if (provSel) {
+        const cur = provSel.value;
+        provSel.innerHTML = '<option value="all">All Platforms</option>';
+        Array.from(providersSet).sort().forEach(p => {
+          provSel.innerHTML += `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`;
+        });
+        provSel.value = cur && (cur === 'all' || providersSet.has(cur)) ? cur : 'all';
+      }
+    }
+
     function applyFiltersAndRender() {
-      const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : ''; const sort = el.filterSort ? el.filterSort.value : 'year_desc'; const genre = el.filterGenre ? el.filterGenre.value : 'all'; const decade = el.filterDecade ? el.filterDecade.value : 'all';
+      const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : '';
+      const sort = (el?.filterSort || document.getElementById('resultsSort'))?.value || 'year_desc';
+      const genre = (el?.filterGenre || document.getElementById('resultsGenre'))?.value || 'all';
+      const decade = (el?.filterDecade || document.getElementById('resultsDecade'))?.value || 'all';
+      const language = document.getElementById('resultsLanguage')?.value || 'all';
+      const provider = document.getElementById('resultsProvider')?.value || 'all';
+
       const qNormFilter = normalizeTitle(query);
       let filtered = scannedMovies.filter(m => {
         const matchQ = qNormFilter === '' || normalizeTitle(m.title).includes(qNormFilter);
         const matchG = genre === 'all' || (m.genreIds && m.genreIds.some(id => GENRE_MAP[id] === genre));
         const matchD = decade === 'all' || (m.releaseDate && Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10 === parseInt(decade));
-        const rVal = parseFloat(getCachedRating(m) || 0);
+        
+        let matchLang = true;
+        if (language !== 'all') {
+          if (language === 'other') {
+            const knownCodes = new Set(TMDB_LANGUAGES.map(l => l.code));
+            matchLang = !knownCodes.has(m.originalLanguage);
+          } else {
+            matchLang = (m.originalLanguage === language);
+          }
+        }
+
+        let matchProv = true;
+        if (provider !== 'all') {
+          const rData = m.allProviders ? (m.allProviders[currentRegion] || null) : m.regionData;
+          const flatrate = rData?.flatrate || [];
+          matchProv = flatrate.some(p => (p.provider_name || p.name) === provider);
+        }
+
+        const rVal = parseFloat(getCachedRating(m) || m.rating || 0);
         const matchR = (!window.homeFilterRating || window.homeFilterRating === 'all') ? true : (rVal >= parseFloat(window.homeFilterRating));
+        
         const runVal = m.runtime || 0;
         let matchRun = true;
         if (window.homeFilterRuntime === 'short') matchRun = runVal > 0 && runVal < 90;
         else if (window.homeFilterRuntime === 'medium') matchRun = runVal >= 90 && runVal <= 120;
         else if (window.homeFilterRuntime === 'long') matchRun = runVal > 120;
-        return matchQ && matchG && matchD && matchR && matchRun;
+
+        return matchQ && matchG && matchD && matchLang && matchProv && matchR && matchRun;
       });
-      filtered.sort((a, b) => { if (sort === 'runtime_desc') return (b.runtime || 0) - (a.runtime || 0); if (sort === 'runtime_asc') return (a.runtime || 0) - (b.runtime || 0); if (sort === 'popularity') return getMoviePopularity(b) - getMoviePopularity(a); if (sort === 'az') return a.title.localeCompare(b.title); if (sort === 'za') return b.title.localeCompare(a.title); if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || 0)) - (parseFloat(getCachedRating(a) || 0)); if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || 0)) - (parseFloat(getCachedRating(b) || 0)); if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0'); if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999'); return 0; });
+
+      filtered.sort((a, b) => {
+        if (sort === 'runtime_desc') return (b.runtime || 0) - (a.runtime || 0);
+        if (sort === 'runtime_asc') return (a.runtime || 0) - (b.runtime || 0);
+        if (sort === 'popularity') return getMoviePopularity(b) - getMoviePopularity(a);
+        if (sort === 'az') return a.title.localeCompare(b.title);
+        if (sort === 'za') return b.title.localeCompare(a.title);
+        if (sort === 'rating_desc') return (parseFloat(getCachedRating(b) || b.rating || 0)) - (parseFloat(getCachedRating(a) || a.rating || 0));
+        if (sort === 'rating_asc') return (parseFloat(getCachedRating(a) || a.rating || 0)) - (parseFloat(getCachedRating(b) || b.rating || 0));
+        if (sort === 'vote_count_desc') return (b.vote_count || 0) - (a.vote_count || 0);
+        if (sort === 'hidden_gems') {
+          const rA = parseFloat(getCachedRating(a) || a.rating || 0);
+          const rB = parseFloat(getCachedRating(b) || b.rating || 0);
+          const scoreA = (rA >= 7.0 ? rA * 10 : 0) - Math.min(getMoviePopularity(a), 100) * 0.1;
+          const scoreB = (rB >= 7.0 ? rB * 10 : 0) - Math.min(getMoviePopularity(b), 100) * 0.1;
+          return scoreB - scoreA;
+        }
+        if (sort === 'year_desc') return (b.releaseDate || '0').localeCompare(a.releaseDate || '0');
+        if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999');
+        return 0;
+      });
       currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
       const selectedNamesFilterSet = new Set(
         currentProviders
@@ -7714,6 +7981,7 @@
                   backdrop: best.backdrop_path ? `https://image.tmdb.org/t/p/w1280${best.backdrop_path}` : null,
                   rating: best.vote_average ? best.vote_average.toFixed(1) : null,
                   releaseDate: bestDate,
+                  originalLanguage: best.original_language || 'en',
                   popularity: typeof best.popularity === 'number' ? best.popularity : 0,
                   vote_count: typeof best.vote_count === 'number' ? best.vote_count : 0,
                   genreIds: best.genre_ids || [],
@@ -7779,11 +8047,14 @@
     let actorModalWatchlistMode = true;
     let actorMediaTypeFilter = 'all';
     let actorFilterQuery = '';
-    let actorFilterSort = 'popularity';
+    let actorFilterSort = 'year_desc';
     let actorFilterGenre = 'all';
     let actorFilterDecade = 'all';
+    let actorFilterLanguage = 'all';
     let actorFilterRating = 'all';
     window.actorFilterRating = 'all';
+    window.actorFilterRuntime = 'all';
+    window.actorFilterLanguage = 'all';
     let actorCurrentPage = 1;
     const ACTOR_ITEMS_PER_PAGE = 60;
 
@@ -7922,6 +8193,15 @@
           const gIds = m.genre_ids || (m.genres ? m.genres.map(g => g.id) : []);
           if (!gIds.some(gid => GENRE_MAP[gid] === actorFilterGenre || String(gid) === actorFilterGenre)) return false;
         }
+        if (actorFilterLanguage && actorFilterLanguage !== 'all') {
+          const lang = m.original_language || '';
+          if (actorFilterLanguage === 'other') {
+            const knownCodes = new Set(TMDB_LANGUAGES.map(l => l.code));
+            if (knownCodes.has(lang)) return false;
+          } else {
+            if (lang !== actorFilterLanguage) return false;
+          }
+        }
         if (actorFilterDecade && actorFilterDecade !== 'all') {
           if (!m.release_date) return false;
           const year = parseInt(m.release_date.split('-')[0], 10);
@@ -7940,6 +8220,12 @@
           const minR = parseFloat(actorFilterRating);
           const r = parseFloat(getCachedRating(m) || m.vote_average || 0);
           if (r < minR) return false;
+        }
+        if (window.actorFilterRuntime && window.actorFilterRuntime !== 'all') {
+          const runVal = m.runtime || (m.episode_run_time ? m.episode_run_time[0] : 0) || 0;
+          if (window.actorFilterRuntime === 'short' && (runVal <= 0 || runVal >= 90)) return false;
+          if (window.actorFilterRuntime === 'medium' && (runVal < 90 || runVal > 120)) return false;
+          if (window.actorFilterRuntime === 'long' && runVal <= 120) return false;
         }
         return true;
       }
@@ -7980,6 +8266,16 @@
           const rB = parseFloat(getCachedRating(b) || b.vote_average || 0);
           return rA - rB;
         }); break;
+        case 'vote_count_desc': moviesToShow.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0)); break;
+        case 'hidden_gems': moviesToShow.sort((a, b) => {
+          const rA = parseFloat(getCachedRating(a) || a.vote_average || 0);
+          const rB = parseFloat(getCachedRating(b) || b.vote_average || 0);
+          const scoreA = (rA >= 7.0 ? rA * 10 : 0) - Math.min(getMoviePopularity(a), 100) * 0.1;
+          const scoreB = (rB >= 7.0 ? rB * 10 : 0) - Math.min(getMoviePopularity(b), 100) * 0.1;
+          return scoreB - scoreA;
+        }); break;
+        case 'runtime_desc': moviesToShow.sort((a, b) => (b.runtime || 0) - (a.runtime || 0)); break;
+        case 'runtime_asc': moviesToShow.sort((a, b) => (a.runtime || 0) - (b.runtime || 0)); break;
         case 'year_desc': moviesToShow.sort((a, b) => (b.release_date || '0').localeCompare(a.release_date || '0')); break;
         case 'year_asc': moviesToShow.sort((a, b) => (a.release_date || '9999').localeCompare(b.release_date || '9999')); break;
         default: moviesToShow.sort((a, b) => getMoviePopularity(b) - getMoviePopularity(a)); break;
@@ -8173,7 +8469,7 @@
       const watchlistBtnActive = showWatchlistOnly ? 'active' : '';
       const allBtnActive = showWatchlistOnly ? '' : 'active';
 
-      const hasActiveActorFilters = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'popularity') || (actorFilterRating && actorFilterRating !== 'all');
+      const hasActiveActorFilters = (actorFilterGenre && actorFilterGenre !== 'all') || (actorFilterLanguage && actorFilterLanguage !== 'all') || (actorFilterDecade && actorFilterDecade !== 'all') || (actorFilterSort && actorFilterSort !== 'year_desc') || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
       const actorTabsWidthClass = availableRoles.length > 1 ? 'lg:w-[600px]' : 'lg:w-[460px]';
       const mediaFilterTabsHtml = `
@@ -8246,13 +8542,8 @@
           const eps = m.episode_count || 0;
           const isTv = m.media_type === 'tv';
 
-          // How famous the title itself is — capped so one mega-hit show/movie
-          // can't dominate purely on raw numbers.
           const fame = Math.min(votes, 8000) / 80 + Math.min(pop, 100) * 0.6 + avg * 8;
 
-          // How central this person actually was to that title. This is the real
-          // signal for whether audiences would recognize them *because of* this
-          // specific role — a show's own popularity says nothing about that.
           let involvement;
           if (isTv) {
             const epsFactor = Math.min(eps, 80) / 80;
@@ -8262,24 +8553,15 @@
             involvement = typeof m.order === 'number' ? Math.max(0, (8 - Math.min(m.order, 8)) / 8) : 0.2;
           }
 
-          // A title's fame only counts in proportion to how involved they actually
-          // were in it — a huge hit with a minor/guest spot shouldn't beat a real
-          // lead or series-regular role on a smaller title.
           return fame * (0.2 + involvement * 0.8);
         };
 
-        // Tier 1: Lead roles — top-billed (order 0) in a movie, OR a genuine
-        // series-regular TV role (10+ episodes AND well-billed — episode count
-        // alone would let guest stars on huge hit shows outrank the actor's
-        // actual signature role, and a movie-style order-0 check on TV credits
-        // would wrongly promote a single well-billed guest episode)
         const singleMainLeadCredits = pool.filter(m =>
           (m.media_type !== 'tv' && m.order === 0) ||
           (m.media_type === 'tv' && (m.episode_count || 0) >= 10 && (typeof m.order !== 'number' || m.order <= 5)) ||
           (isDirector && m.job === 'Director')
         ).sort((a, b) => creditScore(b) - creditScore(a) || (b.popularity || 0) - (a.popularity || 0));
 
-        // Tier 2: Top billing co-lead roles (order < 3) or notable, reasonably-billed TV appearances
         const topCoLeadCredits = pool.filter(m =>
           (m.media_type !== 'tv' && typeof m.order === 'number' && m.order < 3) ||
           (m.media_type === 'tv' && (m.episode_count || 0) >= 3 && (typeof m.order !== 'number' || m.order <= 8))
@@ -8300,6 +8582,14 @@
 
       const desktopBackdropImg = knownForBackdrop || profileImg;
 
+      // Extract unique languages for this actor
+      const actorLangsSet = new Set();
+      allMovies.forEach(m => {
+        if (m.original_language) actorLangsSet.add(m.original_language);
+      });
+      const actorLangsList = TMDB_LANGUAGES.filter(l => actorLangsSet.has(l.code));
+      const hasOtherLangs = Array.from(actorLangsSet).some(c => !TMDB_LANGUAGES.some(tl => tl.code === c));
+
       const actorControlsHtml = `
         <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">
           ${mediaFilterTabsHtml}
@@ -8309,6 +8599,9 @@
               <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
               ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
             </div>
+
+            <!-- Actor Filter Backdrop (Mobile bottom sheet backdrop) -->
+            <div id="actorFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeActorFilterDropdown()"></div>
             
             <div class="relative shrink-0 z-50" id="actorFilterDropdownWrapper">
               <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center gap-1.5 bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
@@ -8318,14 +8611,25 @@
                 ${hasActiveActorFilters ? `<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>` : ''}
               </button>
 
-              <!-- Floating Dropdown Popover Menu for Actor -->
-              <div id="actorFilterDropdownMenu" class="hidden absolute right-0 top-[calc(100%+8px)] z-[100] w-[310px] sm:w-[340px] max-w-[calc(100vw-2rem)] bg-[#0c1322]/95 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_35px_rgba(59,130,246,0.2)] p-4 sm:p-5 space-y-3.5 animate-fade">
+              <!-- Responsive Filter Panel for Actor (Bottom sheet on mobile, popover on desktop) -->
+              <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive space-y-3.5">
+                <!-- Mobile Drag Handle -->
+                <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-2 sm:hidden pointer-events-none"></div>
+
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-                  <span class="text-xs font-extrabold uppercase tracking-widest text-gray-300">Filters &amp; Sorting</span>
-                  <button type="button" onclick="resetActorFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2 py-0.5 rounded hover:bg-white/5 transition-all cursor-pointer">
-                    Reset
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
+                    </svg>
+                    <span class="text-xs font-extrabold uppercase tracking-widest text-gray-200">Filters &amp; Sorting</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button type="button" onclick="resetActorFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2 py-0.5 rounded hover:bg-white/5 transition-all cursor-pointer">
+                      Reset all
+                    </button>
+                    <button type="button" onclick="closeActorFilterDropdown()" class="sm:hidden w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 text-gray-300 hover:text-white text-xs font-bold">✕</button>
+                  </div>
                 </div>
 
                 <!-- Sort By -->
@@ -8336,7 +8640,11 @@
                       <option value="year_desc" ${actorFilterSort === 'year_desc' ? 'selected' : ''}>Newest First</option>
                       <option value="popularity" ${actorFilterSort === 'popularity' ? 'selected' : ''}>Popular</option>
                       <option value="rating_desc" ${actorFilterSort === 'rating_desc' ? 'selected' : ''}>Highest Rated</option>
+                      <option value="hidden_gems" ${actorFilterSort === 'hidden_gems' ? 'selected' : ''}>⭐ Hidden Gems</option>
+                      <option value="vote_count_desc" ${actorFilterSort === 'vote_count_desc' ? 'selected' : ''}>Most Reviewed 💬</option>
                       <option value="rating_asc" ${actorFilterSort === 'rating_asc' ? 'selected' : ''}>Lowest Rated</option>
+                      <option value="runtime_desc" ${actorFilterSort === 'runtime_desc' ? 'selected' : ''}>Longest First ⏳</option>
+                      <option value="runtime_asc" ${actorFilterSort === 'runtime_asc' ? 'selected' : ''}>Shortest First ⏱️</option>
                       <option value="az" ${actorFilterSort === 'az' ? 'selected' : ''}>A-Z</option>
                       <option value="za" ${actorFilterSort === 'za' ? 'selected' : ''}>Z-A</option>
                       <option value="year_asc" ${actorFilterSort === 'year_asc' ? 'selected' : ''}>Oldest First</option>
@@ -8352,6 +8660,19 @@
                     <select id="actorGenreSelect" onchange="onActorFilterSelectChange('genre', this.value)" class="w-full h-10 appearance-none bg-black/50 border border-white/10 hover:border-white/25 rounded-xl px-3.5 pr-8 text-xs font-bold text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
                       <option value="all" ${actorFilterGenre === 'all' ? 'selected' : ''}>All Genres</option>
                       ${(window.currentActorAvailableGenres || []).map(g => `<option value="${escapeHTML(g)}" ${actorFilterGenre === g ? 'selected' : ''}>${escapeHTML(g)}</option>`).join('')}
+                    </select>
+                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
+                </div>
+
+                <!-- Language -->
+                <div>
+                  <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5">Language</label>
+                  <div class="relative">
+                    <select id="actorLanguageSelect" onchange="onActorFilterSelectChange('language', this.value)" class="w-full h-10 appearance-none bg-black/50 border border-white/10 hover:border-white/25 rounded-xl px-3.5 pr-8 text-xs font-bold text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                      <option value="all" ${(!window.actorFilterLanguage || window.actorFilterLanguage === 'all') ? 'selected' : ''}>All Languages</option>
+                      ${actorLangsList.map(l => `<option value="${l.code}" ${window.actorFilterLanguage === l.code ? 'selected' : ''}>${l.label}</option>`).join('')}
+                      ${hasOtherLangs ? `<option value="other" ${window.actorFilterLanguage === 'other' ? 'selected' : ''}>Other Languages 🌐</option>` : ''}
                     </select>
                     <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                   </div>
@@ -8374,13 +8695,33 @@
                     <label class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400">Minimum Rating</label>
                     <span id="actorRatingDisplay" class="text-xs font-bold text-blue-400">${(!window.actorFilterRating || window.actorFilterRating === 'all') ? 'Any' : `⭐ ${window.actorFilterRating}+`}</span>
                   </div>
-                  <div class="grid grid-cols-4 gap-1 p-1 bg-black/50 border border-white/10 rounded-xl">
+                  <div class="grid grid-cols-5 gap-1 p-1 bg-black/50 border border-white/10 rounded-xl">
                     <button type="button" onclick="setActorRating('all')" id="actorRatingBtn_all" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${(!window.actorFilterRating || window.actorFilterRating === 'all') ? 'active' : ''}">Any</button>
-                    <button type="button" onclick="setActorRating('6')" id="actorRatingBtn_6" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '6' ? 'active' : ''}">⭐ 6+</button>
-                    <button type="button" onclick="setActorRating('7')" id="actorRatingBtn_7" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '7' ? 'active' : ''}">⭐ 7+</button>
-                    <button type="button" onclick="setActorRating('8')" id="actorRatingBtn_8" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '8' ? 'active' : ''}">⭐ 8+</button>
+                    <button type="button" onclick="setActorRating('6')" id="actorRatingBtn_6" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '6' ? 'active' : ''}">⭐6+</button>
+                    <button type="button" onclick="setActorRating('7')" id="actorRatingBtn_7" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '7' ? 'active' : ''}">⭐7+</button>
+                    <button type="button" onclick="setActorRating('8')" id="actorRatingBtn_8" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '8' ? 'active' : ''}">⭐8+</button>
+                    <button type="button" onclick="setActorRating('8.5')" id="actorRatingBtn_8_5" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRating === '8.5' ? 'active' : ''}">⭐8.5+</button>
                   </div>
                 </div>
+
+                <!-- Film Length (Segmented Control) -->
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-[11px] font-extrabold uppercase tracking-widest text-gray-400">Film Length</label>
+                    <span id="actorRuntimeDisplay" class="text-xs font-bold text-blue-400">${window.actorFilterRuntime === 'short' ? '< 90m' : (window.actorFilterRuntime === 'medium' ? '90-120m' : (window.actorFilterRuntime === 'long' ? '> 120m' : 'Any'))}</span>
+                  </div>
+                  <div class="grid grid-cols-4 gap-1 p-1 bg-black/50 border border-white/10 rounded-xl">
+                    <button type="button" onclick="setActorRuntime('all')" id="actorRuntimeBtn_all" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${(!window.actorFilterRuntime || window.actorFilterRuntime === 'all') ? 'active' : ''}">Any</button>
+                    <button type="button" onclick="setActorRuntime('short')" id="actorRuntimeBtn_short" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRuntime === 'short' ? 'active' : ''}">&lt;90m</button>
+                    <button type="button" onclick="setActorRuntime('medium')" id="actorRuntimeBtn_medium" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRuntime === 'medium' ? 'active' : ''}">90-120</button>
+                    <button type="button" onclick="setActorRuntime('long')" id="actorRuntimeBtn_long" class="h-8 rounded-lg text-xs font-bold transition-all opt-seg-btn ${window.actorFilterRuntime === 'long' ? 'active' : ''}">&gt;120m</button>
+                  </div>
+                </div>
+
+                <!-- Mobile Close / Apply Button -->
+                <button type="button" onclick="closeActorFilterDropdown()" class="w-full sm:hidden py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
+                  Show Results
+                </button>
               </div>
             </div>
           </div>
@@ -8441,7 +8782,11 @@
       { value: 'year_desc', label: 'Newest First' },
       { value: 'popularity', label: 'Popular' },
       { value: 'rating_desc', label: 'Highest Rated' },
+      { value: 'hidden_gems', label: '⭐ Hidden Gems' },
+      { value: 'vote_count_desc', label: 'Most Reviewed 💬' },
       { value: 'rating_asc', label: 'Lowest Rated' },
+      { value: 'runtime_desc', label: 'Longest First ⏳' },
+      { value: 'runtime_asc', label: 'Shortest First ⏱️' },
       { value: 'az', label: 'A-Z' },
       { value: 'za', label: 'Z-A' },
       { value: 'year_asc', label: 'Oldest First' }
@@ -8463,6 +8808,7 @@
     function toggleActorFilterDropdown(e) {
       if (e) e.stopPropagation();
       const menu = document.getElementById('actorFilterDropdownMenu');
+      const backdrop = document.getElementById('actorFilterBackdrop');
       const btn = document.getElementById('actorFilterToggleBtn');
       if (!menu) return;
       const isOpen = !menu.classList.contains('hidden');
@@ -8471,20 +8817,28 @@
       } else {
         closeHomeFilterDropdown();
         menu.classList.remove('hidden');
+        if (backdrop && window.innerWidth < 640) backdrop.classList.remove('hidden');
+        if (window.innerWidth < 640) document.body.classList.add('modal-open');
         if (btn) btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
       }
     }
 
     function openActorFilterDropdown() {
       const menu = document.getElementById('actorFilterDropdownMenu');
+      const backdrop = document.getElementById('actorFilterBackdrop');
       const btn = document.getElementById('actorFilterToggleBtn');
       if (menu) menu.classList.remove('hidden');
+      if (backdrop && window.innerWidth < 640) backdrop.classList.remove('hidden');
+      if (window.innerWidth < 640) document.body.classList.add('modal-open');
       if (btn) btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
     }
 
     function closeActorFilterDropdown() {
       const menu = document.getElementById('actorFilterDropdownMenu');
+      const backdrop = document.getElementById('actorFilterBackdrop');
       if (menu) menu.classList.add('hidden');
+      if (backdrop) backdrop.classList.add('hidden');
+      document.body.classList.remove('modal-open');
       syncActorFilterButtonState();
     }
 
@@ -8497,6 +8851,10 @@
       if (type === 'sort') actorFilterSort = val;
       if (type === 'genre') actorFilterGenre = val;
       if (type === 'decade') actorFilterDecade = val;
+      if (type === 'language') {
+        actorFilterLanguage = val;
+        window.actorFilterLanguage = val;
+      }
       actorCurrentPage = 1;
       refreshActorFilmographyGrid();
       syncActorFilterButtonState();
@@ -8506,8 +8864,22 @@
       window.actorFilterRating = val;
       const display = document.getElementById('actorRatingDisplay');
       if (display) display.textContent = val === 'all' ? 'Any' : `⭐ ${val}+`;
-      ['all', '6', '7', '8'].forEach(r => {
-        const btn = document.getElementById(`actorRatingBtn_${r}`);
+      ['all', '6', '7', '8', '8.5'].forEach(r => {
+        const btn = document.getElementById(`actorRatingBtn_${r.replace('.', '_')}`) || document.getElementById(`actorRatingBtn_${r}`);
+        if (btn) btn.classList.toggle('active', r === val);
+      });
+      actorCurrentPage = 1;
+      refreshActorFilmographyGrid();
+      syncActorFilterButtonState();
+    }
+
+    function setActorRuntime(val) {
+      window.actorFilterRuntime = val;
+      const display = document.getElementById('actorRuntimeDisplay');
+      const labels = { all: 'Any', short: '< 90m', medium: '90-120m', long: '> 120m' };
+      if (display) display.textContent = labels[val] || 'Any';
+      ['all', 'short', 'medium', 'long'].forEach(r => {
+        const btn = document.getElementById(`actorRuntimeBtn_${r}`);
         if (btn) btn.classList.toggle('active', r === val);
       });
       actorCurrentPage = 1;
@@ -8519,23 +8891,27 @@
       actorFilterSort = 'year_desc';
       actorFilterGenre = 'all';
       actorFilterDecade = 'all';
+      actorFilterLanguage = 'all';
+      window.actorFilterLanguage = 'all';
       window.actorFilterRating = 'all';
+      window.actorFilterRuntime = 'all';
 
       const sortSel = document.getElementById('actorSortSelect');
       const genreSel = document.getElementById('actorGenreSelect');
       const decadeSel = document.getElementById('actorDecadeSelect');
+      const langSel = document.getElementById('actorLanguageSelect');
       if (sortSel) sortSel.value = 'year_desc';
       if (genreSel) genreSel.value = 'all';
       if (decadeSel) decadeSel.value = 'all';
+      if (langSel) langSel.value = 'all';
 
       setActorRating('all');
-      refreshActorFilmographyGrid();
-      syncActorFilterButtonState();
+      setActorRuntime('all');
     }
 
     function syncActorFilterButtonState() {
       const btn = document.getElementById('actorFilterToggleBtn');
-      const hasActive = (actorFilterSort !== 'year_desc' || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (window.actorFilterRating && window.actorFilterRating !== 'all'));
+      const hasActive = (actorFilterSort !== 'year_desc' || actorFilterGenre !== 'all' || actorFilterDecade !== 'all' || (actorFilterLanguage && actorFilterLanguage !== 'all') || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all'));
       const menu = document.getElementById('actorFilterDropdownMenu');
       const isOpen = menu && !menu.classList.contains('hidden');
       if (btn) {
