@@ -1828,30 +1828,6 @@
               <span>VPN</span> <span id="vpnToggleDotInline"
                 class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
             </button>
-
-            <!-- Desktop / Wider screen tools: Insights & Roulette -->
-            <button id="statsBtn"
-              class="hidden sm:flex h-[42px] shrink-0 items-center justify-center gap-2 px-3.5 sm:px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
-              title="Insights">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                </path>
-              </svg>
-              <span>Insights</span>
-            </button>
-            <button id="rouletteBtn"
-              class="hidden sm:flex h-[42px] shrink-0 items-center justify-center gap-2 px-3.5 sm:px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
-              title="Roulette">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <circle cx="12" cy="12" r="9"></circle>
-                <circle cx="12" cy="12" r="3"></circle>
-                <path stroke-linecap="round"
-                  d="M12 3v6m0 6v6M3 12h6m6 0h6M5.636 5.636l4.243 4.243m4.242 4.242l4.243 4.243M5.636 18.364l4.243-4.243m4.242-4.242l4.243-4.243">
-                </path>
-              </svg>
-              <span>Roulette</span>
-            </button>
           </div>
 
           <!-- Home Filter Backdrop (Mobile bottom sheet backdrop) -->
@@ -1960,6 +1936,24 @@
                   <button type="button" onclick="setHomeRuntime('long')" id="homeRuntimeBtn_long" class="h-full rounded-lg text-xs font-bold transition-all opt-seg-btn">&gt;120m</button>
                 </div>
               </div>
+            </div>
+
+            <!-- Extra Tools: Insights & Roulette -->
+            <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-2.5 sm:gap-3">
+              <button id="statsBtn" type="button" class="h-[42px] flex items-center justify-center gap-2 px-3.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer" title="Insights">
+                <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <span>Insights</span>
+              </button>
+              <button id="rouletteBtn" type="button" class="h-[42px] flex items-center justify-center gap-2 px-3.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer" title="Roulette">
+                <svg class="w-4 h-4 text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path stroke-linecap="round" d="M12 3v6m0 6v6M3 12h6m6 0h6M5.636 5.636l4.243 4.243m4.242 4.242l4.243 4.243M5.636 18.364l4.243-4.243m4.242-4.242l4.243-4.243"></path>
+                </svg>
+                <span>Roulette</span>
+              </button>
             </div>
 
             <!-- Mobile Close / Apply Button -->
@@ -3444,8 +3438,8 @@
     if (el.toggleFriendBtn) { el.toggleFriendBtn.addEventListener('click', () => { if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.friendInput) el.friendInput.focus(); }); }
     if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if (el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if (el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } if (isFriendMatchActive) { if (el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies = []; clearScanStorage(); isFriendMatchActive = false; if (el.activeGridContainer) el.activeGridContainer.innerHTML = ''; if (el.statsBar) el.statsBar.classList.add('hidden'); if (el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
     if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
-    if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { if (scannedMovies.length > 0) { openInsightsPopup(); } el.statsBtn.blur(); }); }
-    if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { openRouletteModal(); el.rouletteBtn.blur(); }); }
+    if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { closeHomeFilterDropdown(); if (scannedMovies.length > 0) { openInsightsPopup(); } el.statsBtn.blur(); }); }
+    if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { closeHomeFilterDropdown(); openRouletteModal(); el.rouletteBtn.blur(); }); }
     let trailerPlayer = null;
     let isTrailerPaused = false;
 
