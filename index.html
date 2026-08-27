@@ -2125,7 +2125,7 @@
           <!-- Categories Bar (Left on desktop, full width on mobile) -->
           <div id="categoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
             <div
-              class="filter-tabs-scroll flex gap-1.5 py-1 pl-2 pr-2.5 bg-black/40 border border-white/10 rounded-xl w-full h-[42px] items-center">
+              class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full h-[42px] items-center">
               <button class="tab-btn tab-btn-flexrow active" data-tab="stream">Available <span id="tabCount-stream"
                   class="tab-badge">0</span></button>
               <button class="tab-btn tab-btn-flexrow" data-tab="rentbuy">Rent / Buy <span id="tabCount-rentbuy"
@@ -9522,7 +9522,7 @@
       const hasActiveActorFilters = (actorFilterSort !== 'popularity') || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
       const mediaFilterTabsHtml = `
-        <div class="filter-tabs-scroll flex gap-1.5 py-1 pl-2 pr-2.5 bg-black/40 border border-white/10 rounded-xl w-full h-[42px] items-center">
+        <div class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full h-[42px] items-center">
           <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
           <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
           <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
