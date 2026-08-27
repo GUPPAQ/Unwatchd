@@ -67,6 +67,22 @@
       display: none;
     }
 
+    /* Kill the native gray/blue tap-flash on touch devices for every element.
+       Without this, tapping any clickable element on iOS/Android briefly shows
+       a highlight box that can look like a stuck hover/selection state. */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Snappier, more native-feeling taps: removes the ~300ms tap delay and
+       accidental double-tap-zoom on every clickable element, not just the
+       handful that already had this set explicitly. */
+    button,
+    a,
+    [role="button"] {
+      touch-action: manipulation;
+    }
+
     body {
       background-color: var(--bg-base);
       color: #f8fafc;
@@ -334,9 +350,11 @@
       transition: all 0.2s ease;
     }
 
-    .filter-select-wrapper:hover .filter-select-label {
-      color: #ffffff;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    @media (hover: hover) and (pointer: fine) {
+      .filter-select-wrapper:hover .filter-select-label {
+        color: #ffffff;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+      }
     }
 
     .filter-select-wrapper:focus-within .filter-select-label {
@@ -404,9 +422,11 @@
       opacity: 0.6;
     }
 
-    .liquid-glass:hover {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.07) 40%, rgba(255, 255, 255, 0.03) 100%);
-      border-color: rgba(255, 255, 255, 0.28);
+    @media (hover: hover) and (pointer: fine) {
+      .liquid-glass:hover {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.07) 40%, rgba(255, 255, 255, 0.03) 100%);
+        border-color: rgba(255, 255, 255, 0.28);
+      }
     }
 
     .provider-glass {
@@ -416,9 +436,11 @@
       overflow: hidden;
     }
 
-    .provider-glass:hover {
-      background: rgba(255, 255, 255, 0.09);
-      border-color: rgba(255, 255, 255, 0.2);
+    @media (hover: hover) and (pointer: fine) {
+      .provider-glass:hover {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
     }
 
     .watchnow-vpn-toggle {
@@ -553,9 +575,11 @@
       }
     }
 
-    .tab-btn:hover:not(.active) {
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.08);
+    @media (hover: hover) and (pointer: fine) {
+      .tab-btn:hover:not(.active) {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.08);
+      }
     }
 
     .tab-btn:active {
@@ -580,31 +604,6 @@
       transition: all 0.2s ease;
     }
 
-    .actor-tab-btn {
-      padding-left: 2px !important;
-      padding-right: 2px !important;
-      font-size: 0.6875rem !important;
-      gap: 3px !important;
-    }
-
-    @media (min-width: 380px) {
-      .actor-tab-btn {
-        padding-left: 4px !important;
-        padding-right: 4px !important;
-        font-size: 0.72rem !important;
-        gap: 4px !important;
-      }
-    }
-
-    @media (min-width: 640px) {
-      .actor-tab-btn {
-        padding-left: 0.85rem !important;
-        padding-right: 0.85rem !important;
-        font-size: 0.8125rem !important;
-        gap: 7px !important;
-      }
-    }
-
     .actor-tab-badge {
       padding: 1px 4px !important;
       font-size: 0.625rem !important;
@@ -617,6 +616,29 @@
         padding: 1px 6px !important;
         font-size: 0.6875rem !important;
       }
+    }
+
+    /* Filter/category tab rows: a single scrollable line instead of wrapping
+       into a 2x2 grid on narrow screens. Buttons keep their natural width
+       (tab-btn-flexrow) and the row scrolls horizontally if it doesn't fit,
+       with a soft edge fade as a "there's more" cue. */
+    .filter-tabs-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      scroll-snap-type: x proximity;
+      -webkit-mask-image: linear-gradient(to right, transparent 0, black 14px, black calc(100% - 14px), transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0, black 14px, black calc(100% - 14px), transparent 100%);
+    }
+
+    .filter-tabs-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn-flexrow {
+      flex: 0 0 auto !important;
+      scroll-snap-align: start;
     }
 
     /* Results Controls Card: Unboxed & Clean on all screen sizes */
@@ -662,9 +684,11 @@
       border-radius: 0.5rem;
     }
 
-    .opt-seg-btn:hover {
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.08);
+    @media (hover: hover) and (pointer: fine) {
+      .opt-seg-btn:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.08);
+      }
     }
 
     .opt-seg-btn.active {
@@ -767,10 +791,12 @@
       text-align: left;
     }
 
-    .custom-filter-trigger:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.2);
-      color: #ffffff;
+    @media (hover: hover) and (pointer: fine) {
+      .custom-filter-trigger:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+      }
     }
 
     .custom-filter-trigger.active-custom {
@@ -833,9 +859,11 @@
       text-align: left;
     }
 
-    .custom-filter-item:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #ffffff;
+    @media (hover: hover) and (pointer: fine) {
+      .custom-filter-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+      }
     }
 
     .custom-filter-item.selected {
@@ -916,9 +944,11 @@
       cursor: pointer;
     }
 
-    .page-btn:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
+    @media (hover: hover) and (pointer: fine) {
+      .page-btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
     }
 
     .page-btn:disabled {
@@ -937,10 +967,12 @@
         box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
-    .glow-card:hover,
-    .tilt-card:hover .glow-card {
-      border-color: rgba(59, 130, 246, 0.75) !important;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.35) !important;
+    @media (hover: hover) and (pointer: fine) {
+      .glow-card:hover,
+      .tilt-card:hover .glow-card {
+        border-color: rgba(59, 130, 246, 0.75) !important;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.35) !important;
+      }
     }
 
     .tilt-card {
@@ -1212,10 +1244,12 @@
       border-radius: 0 3px 3px 0;
     }
 
-    .insight-stat-card:hover {
-      border-color: rgba(255, 255, 255, 0.18);
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
-      transform: translateY(-2px);
+    @media (hover: hover) and (pointer: fine) {
+      .insight-stat-card:hover {
+        border-color: rgba(255, 255, 255, 0.18);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+        transform: translateY(-2px);
+      }
     }
 
     .insight-stat-card.stat-blue::before {
@@ -1632,9 +1666,11 @@
       border-color: rgba(59, 130, 246, 0.3);
     }
 
-    .actor-toggle-btn:hover:not(.active) {
-      color: rgba(255, 255, 255, 0.8);
-      background: rgba(255, 255, 255, 0.05);
+    @media (hover: hover) and (pointer: fine) {
+      .actor-toggle-btn:hover:not(.active) {
+        color: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.05);
+      }
     }
 
     .actor-toggle-btn-lg {
@@ -2078,14 +2114,14 @@
           <!-- Categories Bar (Left on desktop, full width on mobile) -->
           <div id="categoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
             <div
-              class="grid grid-cols-2 min-[420px]:grid-cols-4 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-auto min-[420px]:h-[42px] items-center">
-              <button class="tab-btn active" data-tab="stream">Available <span id="tabCount-stream"
+              class="filter-tabs-scroll flex gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-[42px] items-center">
+              <button class="tab-btn tab-btn-flexrow active" data-tab="stream">Available <span id="tabCount-stream"
                   class="tab-badge">0</span></button>
-              <button class="tab-btn" data-tab="rentbuy">Rent / Buy <span id="tabCount-rentbuy"
+              <button class="tab-btn tab-btn-flexrow" data-tab="rentbuy">Rent / Buy <span id="tabCount-rentbuy"
                   class="tab-badge">0</span></button>
-              <button class="tab-btn" data-tab="other">Unsubscribed <span id="tabCount-other"
+              <button class="tab-btn tab-btn-flexrow" data-tab="other">Unsubscribed <span id="tabCount-other"
                   class="tab-badge">0</span></button>
-              <button class="tab-btn" data-tab="unavailable">Unavailable <span id="tabCount-unavailable"
+              <button class="tab-btn tab-btn-flexrow" data-tab="unavailable">Unavailable <span id="tabCount-unavailable"
                   class="tab-badge">0</span></button>
             </div>
           </div>
@@ -9475,11 +9511,11 @@
       const hasActiveActorFilters = (actorFilterSort !== 'popularity') || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
       const mediaFilterTabsHtml = `
-        <div class="grid grid-cols-2 min-[420px]:grid-cols-4 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-auto min-[420px]:h-[42px] items-center">
-          <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn flex-1 min-w-0 font-bold flex items-center justify-center ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Series</span> <span class="tab-badge actor-tab-badge">${safeCounts.tv}</span></button>
+        <div class="filter-tabs-scroll flex gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full h-[42px] items-center">
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Series</span> <span class="tab-badge actor-tab-badge">${safeCounts.tv}</span></button>
         </div>`;
 
       const roleIcons = {
