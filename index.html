@@ -9525,10 +9525,10 @@
 
       const mediaFilterTabsHtml = `
         <div class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full items-center">
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; refreshActorFilmographyGrid()"><span>Series</span> <span class="tab-badge actor-tab-badge">${safeCounts.tv}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; setTimeout(refreshActorFilmographyGrid, 0)"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; setTimeout(refreshActorFilmographyGrid, 0)"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; setTimeout(refreshActorFilmographyGrid, 0)"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; setTimeout(refreshActorFilmographyGrid, 0)"><span>Series</span> <span class="tab-badge actor-tab-badge">${safeCounts.tv}</span></button>
         </div>`;
 
       const roleIcons = {
@@ -10676,26 +10676,6 @@
       }).observe(document.body, { childList: true, subtree: true });
     })();
 
-    // One-time "peek" nudge on the scrollable filter tab rows so touch users
-    // notice there's more to scroll, without a permanent fade overlay.
-    (function () {
-      if (!window.matchMedia('(hover: none)').matches) return;
-      const nudged = new WeakSet();
-      function tryNudge(el) {
-        if (nudged.has(el) || el.classList.contains('tabs-fit') || el.scrollWidth <= el.clientWidth + 4) return;
-        nudged.add(el);
-        el.scrollTo({ left: 36, behavior: 'smooth' });
-        setTimeout(() => el.scrollTo({ left: 0, behavior: 'smooth' }), 500);
-      }
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => { if (entry.isIntersecting) tryNudge(entry.target); });
-      }, { threshold: 0.6 });
-      function scan() {
-        document.querySelectorAll('.filter-tabs-scroll').forEach((el) => io.observe(el));
-      }
-      scan();
-      new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
-    })();
   </script>
 </body>
 
