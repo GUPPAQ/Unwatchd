@@ -20,6 +20,20 @@
   <meta name="description"
     content="Your personal, global streaming directory. Connect your Letterboxd and instantly find out where to watch your films.">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Without this, every Tailwind `hover:`/`group-hover:` utility (130+ of
+    // them across this file) compiles to a plain, unconditional :hover rule.
+    // On iOS Safari, any element matched by an unconditional :hover selector
+    // requires two taps: the first tap only "activates" the hover state, the
+    // second tap actually fires the click. This flag makes Tailwind wrap
+    // those utilities in @media (hover: hover) instead, so touch devices
+    // never see a :hover rule for them and every tap fires immediately.
+    tailwind.config = {
+      future: {
+        hoverOnlyWhenSupported: true,
+      },
+    };
+  </script>
   <script src="https://www.youtube.com/iframe_api"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -628,8 +642,6 @@
       scrollbar-width: none;
       -ms-overflow-style: none;
       scroll-snap-type: x proximity;
-      -webkit-mask-image: linear-gradient(to right, transparent 0, black 14px, black calc(100% - 14px), transparent 100%);
-      mask-image: linear-gradient(to right, transparent 0, black 14px, black calc(100% - 14px), transparent 100%);
     }
 
     .filter-tabs-scroll::-webkit-scrollbar {
