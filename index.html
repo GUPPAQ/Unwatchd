@@ -6579,7 +6579,18 @@
       iframeEl.style.left = ((rect.width - w) / 2) + 'px';
       iframeEl.style.top = ((rect.height - h) / 2) + 'px';
     }
+    // Mobile Safari fires 'resize' whenever its address-bar chrome
+    // slides in/out during ordinary scrolling (it changes innerHeight,
+    // never innerWidth). Reacting to that here was doing layout work
+    // constantly while the user scrolled, right in the same window
+    // where Safari itself is still reconciling touch coordinates with
+    // the animating chrome - a likely contributor to taps not
+    // registering. Only actual width changes (rotation, real resize)
+    // should trigger a re-fit.
+    let __heroResizeLastWidth = window.innerWidth;
     window.addEventListener('resize', () => {
+      if (window.innerWidth === __heroResizeLastWidth) return;
+      __heroResizeLastWidth = window.innerWidth;
       const f = document.getElementById('heroVideoIframe');
       if (!f) return;
       const fs = document.getElementById('heroVideoFullscreen');
@@ -10403,7 +10414,12 @@
       if (firstChip) watchNowResizeObserver.observe(firstChip);
       watchNowResizeObserver.observe(track);
     }
-    window.addEventListener('resize', syncWatchNowHeight);
+    let __watchNowResizeLastWidth = window.innerWidth;
+    window.addEventListener('resize', () => {
+      if (window.innerWidth === __watchNowResizeLastWidth) return;
+      __watchNowResizeLastWidth = window.innerWidth;
+      syncWatchNowHeight();
+    });
 
     function bindCastCrewDrag() {
       initDynamicScrollTrack('castCrewTrack', 'castPrevBtn', 'castNextBtn', true);
@@ -10652,7 +10668,16 @@
       }
       scanAll();
       let scheduled = false;
+      let lastWidth = window.innerWidth;
       function scheduleScanAll() {
+        // Safari's address-bar chrome sliding in/out during normal
+        // scrolling fires 'resize' constantly but only ever changes
+        // innerHeight, never innerWidth. Recomputing/toggling classes on
+        // this row in response was reflowing it during that same window,
+        // which is very likely what was making taps land on stale
+        // coordinates and get eaten - only react to real width changes.
+        if (window.innerWidth === lastWidth) return;
+        lastWidth = window.innerWidth;
         if (scheduled) return;
         scheduled = true;
         requestAnimationFrame(() => { scheduled = false; scanAll(); });
