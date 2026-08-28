@@ -93,8 +93,20 @@
        handful that already had this set explicitly. */
     button,
     a,
-    [role="button"] {
+    [role="button"],
+    .tab-btn,
+    .custom-filter-trigger {
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Isolate child elements of interactive buttons so the button itself is
+       always the direct, single event target on touch & click across all browsers. */
+    button > *,
+    a > *,
+    .tab-btn > *,
+    .custom-filter-trigger > * {
+      pointer-events: none;
     }
 
     body {
@@ -594,10 +606,27 @@
         color: #ffffff;
         background: rgba(255, 255, 255, 0.08);
       }
+
+      .tab-btn:active {
+        transform: scale(0.98);
+      }
     }
 
-    .tab-btn:active {
-      transform: scale(0.98);
+    /* On touch devices (coarse pointer), NEVER shrink button geometry on :active,
+       as Firefox/mobile touch-release hit testing against a shrunk bounding box
+       causes dropped clicks if the touch is near the edge. Use safe opacity/visual feedback instead. */
+    @media (pointer: coarse) {
+      button:active,
+      a:active,
+      .tab-btn:active,
+      .opt-seg-btn:active,
+      .custom-filter-trigger:active,
+      .active\:scale-95:active,
+      [class*="active:scale-95"]:active,
+      [class*="active:scale-98"]:active {
+        transform: none !important;
+        opacity: 0.75 !important;
+      }
     }
 
     .tab-btn.active {
@@ -640,10 +669,18 @@
       overflow-y: hidden;
       scrollbar-width: none;
       -ms-overflow-style: none;
+      touch-action: pan-x pan-y;
+      -webkit-overflow-scrolling: touch;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .filter-tabs-scroll::-webkit-scrollbar {
       display: none;
+    }
+
+    .filter-tabs-scroll.tabs-fit {
+      overflow-x: hidden !important;
     }
 
     .filter-tabs-scroll.tabs-fit .tab-btn-flexrow {
@@ -2128,13 +2165,13 @@
           <div id="categoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
             <div
               class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full items-center">
-              <button class="tab-btn tab-btn-flexrow active" data-tab="stream">Available <span id="tabCount-stream"
+              <button type="button" class="tab-btn tab-btn-flexrow active" data-tab="stream" onclick="setHomeTab('stream')">Available <span id="tabCount-stream"
                   class="tab-badge">0</span></button>
-              <button class="tab-btn tab-btn-flexrow" data-tab="rentbuy">Rent / Buy <span id="tabCount-rentbuy"
+              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="rentbuy" onclick="setHomeTab('rentbuy')">Rent / Buy <span id="tabCount-rentbuy"
                   class="tab-badge">0</span></button>
-              <button class="tab-btn tab-btn-flexrow" data-tab="other">Unsubscribed <span id="tabCount-other"
+              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="other" onclick="setHomeTab('other')">Unsubscribed <span id="tabCount-other"
                   class="tab-badge">0</span></button>
-              <button class="tab-btn tab-btn-flexrow" data-tab="unavailable">Unavailable <span id="tabCount-unavailable"
+              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="unavailable" onclick="setHomeTab('unavailable')">Unavailable <span id="tabCount-unavailable"
                   class="tab-badge">0</span></button>
             </div>
           </div>
@@ -5054,14 +5091,21 @@
       }
     });
 
+    function setHomeTab(tabName) {
+      if (!tabName) return;
+      activeTab = tabName;
+      currentPage = 1;
+      const tabBtns = document.querySelectorAll('#categoriesBar .tab-btn');
+      tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+      renderActiveGrid();
+    }
+    window.setHomeTab = setHomeTab;
+
     if (el.tabBtns) {
       el.tabBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-          el.tabBtns.forEach(b => b.classList.remove('active'));
-          e.currentTarget.classList.add('active');
-          activeTab = e.currentTarget.dataset.tab;
-          currentPage = 1;
-          renderActiveGrid();
+          const tab = e.currentTarget.dataset.tab;
+          if (tab) setHomeTab(tab);
         });
       });
     }
@@ -9536,10 +9580,10 @@
 
       const mediaFilterTabsHtml = `
         <div class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full items-center">
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="actorMediaTypeFilter='watchlist'; actorCurrentPage=1; setTimeout(refreshActorFilmographyGrid, 0)"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="actorMediaTypeFilter='all'; actorCurrentPage=1; setTimeout(refreshActorFilmographyGrid, 0)"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="actorMediaTypeFilter='movie'; actorCurrentPage=1; setTimeout(refreshActorFilmographyGrid, 0)"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="actorMediaTypeFilter='tv'; actorCurrentPage=1; setTimeout(refreshActorFilmographyGrid, 0)"><span>Series</span> <span class="tab-badge actor-tab-badge">${safeCounts.tv}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="setActorTab('watchlist')"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="setActorTab('all')"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="setActorTab('movie')"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
+          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="setActorTab('tv')"><span>Series</span> <span class="tab-badge actor-tab-badge">${safeCounts.tv}</span></button>
         </div>`;
 
       const roleIcons = {
@@ -9809,6 +9853,21 @@
       { value: '1950s', label: '1950s' },
       { value: 'older', label: 'Older' }
     ];
+
+    function setActorTab(mediaType) {
+      if (!mediaType) return;
+      actorMediaTypeFilter = mediaType;
+      actorCurrentPage = 1;
+      const tabBtns = document.querySelectorAll('#actorCategoriesBar .actor-tab-btn');
+      if (tabBtns.length >= 4) {
+        tabBtns[0].classList.toggle('active', actorMediaTypeFilter === 'watchlist');
+        tabBtns[1].classList.toggle('active', actorMediaTypeFilter === 'all');
+        tabBtns[2].classList.toggle('active', actorMediaTypeFilter === 'movie');
+        tabBtns[3].classList.toggle('active', actorMediaTypeFilter === 'tv');
+      }
+      refreshActorFilmographyGrid();
+    }
+    window.setActorTab = setActorTab;
 
     function toggleActorFilterDropdown(e) {
       if (e) e.stopPropagation();
