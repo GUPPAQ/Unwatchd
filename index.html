@@ -10647,6 +10647,12 @@
     // the bar; if not, let the row scroll.
     (function () {
       function layout(row) {
+        // If the row isn't actually laid out yet (e.g. it just got inserted
+        // into a modal that's still mid-reveal), clientWidth reads 0 and
+        // "0 <= 0" would wrongly count as "fits", forcing all four tabs to
+        // shrink into no space at all instead of scrolling. Skip and wait
+        // for ResizeObserver to fire again once it has a real size.
+        if (row.clientWidth === 0) return;
         row.classList.remove('tabs-fit');
         const fits = row.scrollWidth <= row.clientWidth + 1;
         row.classList.toggle('tabs-fit', fits);
@@ -10663,39 +10669,30 @@
           row.addEventListener('click', function () { });
         }
       }
-      function scanAll() {
-        document.querySelectorAll('.filter-tabs-scroll').forEach(layout);
-      }
-      scanAll();
-      let scheduled = false;
-      let lastWidth = window.innerWidth;
-      function scheduleScanAll() {
-        // Safari's address-bar chrome sliding in/out during normal
-        // scrolling fires 'resize' constantly but only ever changes
-        // innerHeight, never innerWidth. Recomputing/toggling classes on
-        // this row in response was reflowing it during that same window,
-        // which is very likely what was making taps land on stale
-        // coordinates and get eaten - only react to real width changes.
-        if (window.innerWidth === lastWidth) return;
-        lastWidth = window.innerWidth;
-        if (scheduled) return;
-        scheduled = true;
-        requestAnimationFrame(() => { scheduled = false; scanAll(); });
-      }
-      window.addEventListener('resize', scheduleScanAll);
 
-      // Only react when a tab row is actually (re-)inserted into the page
-      // (e.g. the actor filmography re-rendering) - NOT on every unrelated
-      // DOM change elsewhere on the page. Recomputing/toggling classes on
-      // this row during an unrelated mutation was landing mid-tap often
-      // enough to shift the layout under the user's finger and cancel the
-      // click, which is what made the double-tap issue feel random.
+      // ResizeObserver only fires when a row's own box size actually
+      // changes - it naturally re-measures once a hidden/mid-reveal row
+      // gets its real size, and it's immune to Safari's address-bar
+      // chrome resizing the viewport (that doesn't change this row's own
+      // size unless the reflow actually affects it).
+      const ro = new ResizeObserver((entries) => {
+        entries.forEach((entry) => layout(entry.target));
+      });
+      function observe(row) {
+        if (row.dataset.tabsObserved) return;
+        row.dataset.tabsObserved = '1';
+        ro.observe(row);
+      }
+      document.querySelectorAll('.filter-tabs-scroll').forEach(observe);
+
+      // Still needed to catch freshly-inserted rows (e.g. the actor
+      // filmography re-rendering) so we can start observing them.
       new MutationObserver((mutations) => {
         for (const m of mutations) {
           for (const node of m.addedNodes) {
             if (node.nodeType !== 1) continue;
-            if (node.matches && node.matches('.filter-tabs-scroll')) layout(node);
-            if (node.querySelectorAll) node.querySelectorAll('.filter-tabs-scroll').forEach(layout);
+            if (node.matches && node.matches('.filter-tabs-scroll')) observe(node);
+            if (node.querySelectorAll) node.querySelectorAll('.filter-tabs-scroll').forEach(observe);
           }
         }
       }).observe(document.body, { childList: true, subtree: true });
