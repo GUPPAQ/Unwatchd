@@ -1583,6 +1583,8 @@
         background: rgba(0, 0, 0, 0.4) !important;
       }
 
+      #homeFilterToggleBtn:not(.bg-blue-500\/10):hover,
+      #actorFilterToggleBtn:not(.bg-blue-500\/10):hover,
       #vpnToggleBtnInline:hover:not(.vpn-active),
       #statsBtn:hover:not(.vpn-active) {
         background-color: rgba(255, 255, 255, 0.1) !important;
@@ -1606,35 +1608,103 @@
       }
     }
 
+    /* ZERO HOVER / ZERO FOCUS ARTIFACTS ON TOUCH DEVICES */
     @media (hover: none),
     (pointer: coarse) {
+
+      *,
+      *:hover,
+      *:focus,
+      *:focus-visible {
+        outline: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+      }
 
       #vpnToggleBtn,
       #regionContainer,
       .tab-btn,
+      .actor-tab-btn,
       .service-btn,
       .execute-btn,
       .page-btn,
+      #homeFilterToggleBtn,
+      #actorFilterToggleBtn,
       #statsBtn,
       #rouletteBtn,
       #vpnToggleBtnInline,
       select.filter-select,
-      #categoriesBar {
+      #categoriesBar,
+      #actorCategoriesBar,
+      .custom-filter-trigger {
         transition: none !important;
         -webkit-tap-highlight-color: transparent !important;
       }
 
+      /* Control buttons: Options, VPN, Insights, Roulette on mobile */
+      #homeFilterToggleBtn:not(.bg-blue-500\/10):hover,
+      #homeFilterToggleBtn:not(.bg-blue-500\/10):focus,
+      #homeFilterToggleBtn:not(.bg-blue-500\/10):active,
+      #actorFilterToggleBtn:not(.bg-blue-500\/10):hover,
+      #actorFilterToggleBtn:not(.bg-blue-500\/10):focus,
+      #actorFilterToggleBtn:not(.bg-blue-500\/10):active,
+      #vpnToggleBtnInline:not(.vpn-active):hover,
+      #vpnToggleBtnInline:not(.vpn-active):focus,
+      #vpnToggleBtnInline:not(.vpn-active):active,
+      #vpnToggleBtn:not(.vpn-active):hover,
+      #vpnToggleBtn:not(.vpn-active):focus,
+      #vpnToggleBtn:not(.vpn-active):active,
+      #statsBtn:hover,
       #statsBtn:focus,
       #statsBtn:active,
-      #vpnToggleBtnInline:focus:not(.vpn-active),
-      #vpnToggleBtnInline:active:not(.vpn-active),
+      #rouletteBtn:hover,
       #rouletteBtn:focus,
-      #rouletteBtn:active {
+      #rouletteBtn:active,
+      #regionTriggerBtn:hover,
+      #regionTriggerBtn:focus,
+      #regionTriggerBtn:active {
         background-color: rgba(0, 0, 0, 0.4) !important;
         border-color: rgba(255, 255, 255, 0.1) !important;
-        color: #9ca3af !important;
-        outline: none !important;
+        color: #d1d5db !important;
         box-shadow: none !important;
+        transform: none !important;
+      }
+
+      /* When filters are active (blue border & blue text), retain blue on touch */
+      #homeFilterToggleBtn.bg-blue-500\/10,
+      #actorFilterToggleBtn.bg-blue-500\/10 {
+        background-color: rgba(59, 130, 246, 0.1) !important;
+        border-color: #3b82f6 !important;
+        color: #60a5fa !important;
+      }
+
+      /* Tab buttons: Available, Rent/Buy, Watchlist, etc. on mobile */
+      .tab-btn:not(.active):hover,
+      .tab-btn:not(.active):focus,
+      .tab-btn:not(.active):active,
+      .actor-tab-btn:not(.active):hover,
+      .actor-tab-btn:not(.active):focus,
+      .actor-tab-btn:not(.active):active {
+        background: transparent !important;
+        border-color: transparent !important;
+        color: #9ca3af !important;
+        box-shadow: none !important;
+        transform: none !important;
+      }
+
+      /* Dropdown triggers on mobile */
+      .custom-filter-trigger:not(.active-custom):not(.is-open):hover,
+      .custom-filter-trigger:not(.active-custom):not(.is-open):focus,
+      .custom-filter-trigger:not(.active-custom):not(.is-open):active {
+        background-color: rgba(0, 0, 0, 0.4) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        color: #d1d5db !important;
+      }
+
+      /* Liquid glass buttons on mobile */
+      .liquid-glass:hover,
+      .liquid-glass:focus {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 40%, rgba(255, 255, 255, 0.02) 100%) !important;
+        transform: none !important;
       }
     }
 
@@ -2198,7 +2268,7 @@
             <!-- Options / Filter Toggle Button -->
             <button id="homeFilterToggleBtn" type="button" onclick="toggleHomeFilterDropdown(event)"
               aria-label="Filters and sorting"
-              class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+              class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 border border-white/10 text-gray-300 rounded-xl transition-colors font-bold text-xs cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
@@ -4923,6 +4993,9 @@
 
     function toggleHomeFilterDropdown(e) {
       if (e) e.stopPropagation();
+      try { e?.currentTarget?.blur(); } catch (err) {}
+      try { document.getElementById('homeFilterToggleBtn')?.blur(); } catch (err) {}
+      try { document.activeElement?.blur(); } catch (err) {}
       const menu = document.getElementById('homeFilterDropdownMenu');
       if (!menu) return;
       const isOpen = !menu.classList.contains('hidden');
@@ -4956,10 +5029,8 @@
         }
       }
       menu.classList.remove('hidden');
-      if (btn) {
-        btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
-        btn.classList.remove('border-white/10', 'text-gray-300');
-      }
+      syncHomeFilterButtonState();
+      try { btn?.blur(); } catch (err) {}
     }
 
     function closeHomeFilterDropdown() {
@@ -4975,6 +5046,8 @@
         if (backdrop && backdrop.parentElement !== card) card.appendChild(backdrop);
         if (menu && menu.parentElement !== card) card.appendChild(menu);
       }
+      try { document.getElementById('homeFilterToggleBtn')?.blur(); } catch (err) {}
+      try { document.activeElement?.blur(); } catch (err) {}
       syncHomeFilterButtonState();
     }
 
@@ -9722,7 +9795,7 @@
                 </div>
 
                 <!-- Options / Filter Toggle Button for Actor -->
-                <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 hover:bg-white/10 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all font-bold text-xs active:scale-95 cursor-pointer">
+                <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-colors font-bold text-xs cursor-pointer">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
                   </svg>
@@ -9866,6 +9939,9 @@
 
     function toggleActorFilterDropdown(e) {
       if (e) e.stopPropagation();
+      try { e?.currentTarget?.blur(); } catch (err) {}
+      try { document.getElementById('actorFilterToggleBtn')?.blur(); } catch (err) {}
+      try { document.activeElement?.blur(); } catch (err) {}
       const menu = document.getElementById('actorFilterDropdownMenu');
       if (!menu) return;
       const isOpen = !menu.classList.contains('hidden');
@@ -9899,7 +9975,8 @@
         }
       }
       menu.classList.remove('hidden');
-      if (btn) btn.classList.add('bg-blue-500/10', 'border-blue-500', 'text-blue-400');
+      syncActorFilterButtonState();
+      try { btn?.blur(); } catch (err) {}
     }
 
     function closeActorFilterDropdown() {
@@ -9915,6 +9992,8 @@
         if (backdrop && backdrop.parentElement !== card) card.appendChild(backdrop);
         if (menu && menu.parentElement !== card) card.appendChild(menu);
       }
+      try { document.getElementById('actorFilterToggleBtn')?.blur(); } catch (err) {}
+      try { document.activeElement?.blur(); } catch (err) {}
       syncActorFilterButtonState();
     }
 
@@ -10784,10 +10863,14 @@
         // If it was a clean tap (minimal movement, short duration)
         if (deltaX < 16 && deltaY < 16 && duration < 450) {
           lastHandledTouchTime = Date.now();
-          if (btn && typeof btn.click === 'function') {
-            setTimeout(() => {
-              btn.click();
-            }, 0);
+          if (btn) {
+            try { btn.blur(); } catch (err) {}
+            if (typeof btn.click === 'function') {
+              setTimeout(() => {
+                btn.click();
+                try { btn.blur(); } catch (err) {}
+              }, 0);
+            }
           }
         }
       }, { passive: true });
@@ -10798,6 +10881,7 @@
       document.addEventListener('click', (e) => {
         const now = Date.now();
         if (now - lastHandledTouchTime < 350) {
+          try { e.target?.blur(); } catch (err) {}
           if (lastClickTarget === e.target && now - lastClickTime < 350) {
             e.stopPropagation();
             e.preventDefault();
