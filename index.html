@@ -1186,82 +1186,83 @@
       animation: rouletteSpinIcon 0.6s linear infinite;
     }
 
-    /* Premium popup panel style */
+    /* Modal popup panel style matching site aesthetics */
     .premium-popup-panel {
-      background: linear-gradient(165deg, rgba(15, 25, 50, 0.97) 0%, rgba(8, 12, 28, 0.98) 100%);
-      border: 1px solid transparent;
-      background-clip: padding-box;
+      background: rgba(11, 17, 33, 0.96);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.9), 0 0 50px rgba(59, 130, 246, 0.08);
       position: relative;
     }
 
-    .premium-popup-panel::before {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: inherit;
-      padding: 1px;
-      background: linear-gradient(165deg, rgba(59, 130, 246, 0.3) 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0.05) 70%, rgba(59, 130, 246, 0.2) 100%);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
-      animation: popupBorderGlow 4s ease-in-out infinite;
+    @media (min-width: 640px) {
+      .premium-popup-panel {
+        border-color: rgba(255, 255, 255, 0.12);
+      }
     }
 
-    .premium-popup-panel::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: radial-gradient(ellipse at 50% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 60%);
-      pointer-events: none;
+    /* Modal popup header */
+    .modal-header-container {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 1.25rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      width: 100%;
     }
 
-    /* Premium popup header */
+    .modal-header-category {
+      font-size: 0.6875rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #60a5fa;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+
+    .modal-header-title {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    @media (min-width: 640px) {
+      .modal-header-title {
+        font-size: 1.5rem;
+      }
+    }
+
+    /* Backward compatibility for any inline premium-popup-header */
     .premium-popup-header {
       display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding-bottom: 1.15rem;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 1.25rem;
       margin-bottom: 1.5rem;
-      padding-right: 3rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      position: relative;
-    }
-
-    .premium-popup-header::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 0;
-      width: 75px;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(59, 130, 246, 0.6), transparent);
-    }
-
-    .premium-popup-header .header-accent {
-      width: 4px;
-      height: 1.5rem;
-      border-radius: 9999px;
-      background: linear-gradient(180deg, #3b82f6, #6366f1);
-      box-shadow: 0 0 14px rgba(59, 130, 246, 0.85), 0 0 5px rgba(99, 102, 241, 0.5);
-      flex-shrink: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      width: 100%;
     }
 
     .premium-popup-header h3 {
-      font-size: 1.05rem;
+      font-size: 1.25rem;
       font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
       color: white;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      word-break: break-word;
     }
 
     @media (min-width: 640px) {
       .premium-popup-header h3 {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
       }
     }
 
@@ -1269,63 +1270,32 @@
     .insight-stat-card {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      gap: 0.35rem;
-      padding: 1rem 1.15rem;
-      border-radius: 1.125rem;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.09);
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 1.25rem 1.15rem;
+      border-radius: 1.25rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       position: relative;
       overflow: hidden;
       transition: all 0.25s ease;
     }
 
-    .insight-stat-card::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 15%;
-      bottom: 15%;
-      width: 3.5px;
-      border-radius: 0 3px 3px 0;
-    }
-
     @media (hover: hover) and (pointer: fine) {
       .insight-stat-card:hover {
-        border-color: rgba(255, 255, 255, 0.18);
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.06);
         transform: translateY(-2px);
       }
     }
 
-    .insight-stat-card.stat-blue::before {
-      background: linear-gradient(180deg, #3b82f6, #2563eb);
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
-    }
-
-    .insight-stat-card.stat-purple::before {
-      background: linear-gradient(180deg, #a855f7, #7c3aed);
-      box-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
-    }
-
-    .insight-stat-card.stat-teal::before {
-      background: linear-gradient(180deg, #14b8a6, #0d9488);
-      box-shadow: 0 0 10px rgba(20, 184, 166, 0.6);
-    }
-
-    .insight-stat-card.stat-amber::before {
-      background: linear-gradient(180deg, #f59e0b, #d97706);
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
-    }
-
     .insight-stat-card .stat-icon {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       line-height: 1;
-      margin-bottom: 0.15rem;
     }
 
     .insight-stat-card .stat-label {
-      font-size: 0.72rem;
+      font-size: 0.6875rem;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -1333,40 +1303,35 @@
     }
 
     .insight-stat-card .stat-value {
-      font-size: 1.35rem;
+      font-size: 1.4rem;
       font-weight: 900;
       color: white;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       line-height: 1.1;
+      letter-spacing: -0.02em;
     }
 
     @media (min-width: 640px) {
       .insight-stat-card .stat-value {
-        font-size: 1.6rem;
+        font-size: 1.75rem;
       }
     }
 
-    /* Premium text container for description popups */
+    /* Text container for description popups */
     .premium-text-body {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0.01) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.35);
-      padding: 1.5rem 1.75rem;
-      border-radius: 1.25rem;
       color: #e2e8f0;
-      font-size: 1.05rem;
+      font-size: 1rem;
       line-height: 1.8;
-      font-weight: 500;
+      font-weight: 400;
       max-height: 65vh;
       overflow-y: auto;
     }
 
     @media (min-width: 640px) {
       .premium-text-body {
-        padding: 1.85rem 2.25rem;
-        font-size: 1.15rem;
+        font-size: 1.125rem;
         line-height: 1.85;
       }
     }
@@ -2412,16 +2377,10 @@
   <div id="actorPageView" class="fixed inset-0 z-[290] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
 
   <div id="genericPopupOverlay"
-    class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm"
+    class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md"
     onclick="if(event.target===this) closeGenericPopup()">
     <div id="genericPopupContent"
-      class="premium-popup-panel rounded-3xl max-w-xl md:max-w-2xl w-full p-6 sm:p-9 relative shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)] max-h-[88vh] flex flex-col pointer-events-auto">
-      <button onclick="closeGenericPopup()" aria-label="Close"
-        class="absolute top-4 right-4 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full liquid-glass active:scale-95 text-white flex items-center justify-center transition-all cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
+      class="premium-popup-panel rounded-3xl max-w-xl md:max-w-2xl w-full p-6 sm:p-8 relative max-h-[88vh] flex flex-col pointer-events-auto overflow-hidden">
       <div id="genericPopupBody" class="w-full overflow-y-auto overscroll-none pr-1 popup-content-stagger"></div>
     </div>
   </div>
@@ -2556,7 +2515,7 @@
     class="fixed inset-0 z-[600] hidden items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md"
     onclick="if(event.target===this) closeRouletteModal()">
     <div id="rouletteModalContent"
-      class="premium-popup-panel rounded-3xl max-w-2xl lg:max-w-3xl w-full relative shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_80px_rgba(59,130,246,0.12)] max-h-[95vh] flex flex-col pointer-events-auto overflow-hidden border border-white/15">
+      class="premium-popup-panel rounded-3xl max-w-2xl lg:max-w-3xl w-full relative shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_80px_rgba(59,130,246,0.12)] max-h-[95vh] flex flex-col pointer-events-auto overflow-hidden">
 
       <!-- Blurred backdrop poster -->
       <div id="rouletteBackdropPoster" class="absolute inset-0 z-0 overflow-hidden rounded-3xl">
@@ -2567,22 +2526,22 @@
         </div>
       </div>
 
-      <!-- Close Button -->
-      <button onclick="closeRouletteModal()" aria-label="Close"
-        class="absolute top-4 right-4 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full liquid-glass active:scale-95 text-white flex items-center justify-center transition-all cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-
       <!-- Content Body -->
       <div id="rouletteBody"
         class="relative z-10 w-full flex flex-col items-center text-center p-5 sm:p-8 overflow-y-auto overscroll-none">
 
         <!-- Header -->
-        <div class="premium-popup-header w-full mb-3 sm:mb-4">
-          <span class="header-accent"></span>
-          <h3 class="text-base sm:text-lg font-black uppercase tracking-widest text-white">Watchlist Roulette</h3>
+        <div class="modal-header-container w-full mb-4 sm:mb-5">
+          <div class="flex flex-col text-left min-w-0 pr-2">
+            <span class="modal-header-category text-purple-400">Random Selection</span>
+            <h3 class="modal-header-title">Watchlist Roulette</h3>
+          </div>
+          <button onclick="closeRouletteModal()" aria-label="Close"
+            class="shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full liquid-glass active:scale-95 text-white flex items-center justify-center transition-all cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
         </div>
 
         <!-- CS CASE OPENING HORIZONTAL REEL VIEWPORT -->
@@ -6500,14 +6459,31 @@
       });
     }
 
-    function _premiumHeaderHTML(title) {
-      return `<div class="premium-popup-header"><span class="header-accent"></span><h3>${escapeHTML(title)}</h3></div>`;
+    function _modalHeaderHTML(title, category = '') {
+      return `
+        <div class="modal-header-container">
+          <div class="flex flex-col min-w-0 pr-2 text-left">
+            ${category ? `<span class="modal-header-category">${escapeHTML(category)}</span>` : ''}
+            <h3 class="modal-header-title">${escapeHTML(title)}</h3>
+          </div>
+          <button type="button" onclick="closeGenericPopup()" aria-label="Close"
+            class="shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full liquid-glass active:scale-95 text-white flex items-center justify-center transition-all cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      `;
     }
 
-    function openCustomPopup(title, html) {
+    function _premiumHeaderHTML(title, category = '') {
+      return _modalHeaderHTML(title, category);
+    }
+
+    function openCustomPopup(title, html, category = '') {
       const body = document.getElementById('genericPopupBody');
       if (!body) return;
-      body.innerHTML = `${_premiumHeaderHTML(title)}${html}`;
+      body.innerHTML = `${_modalHeaderHTML(title, category)}${html}`;
       _openGenericPopupAnimated();
     }
 
@@ -6548,7 +6524,7 @@
           ` : ''}
         </div>`;
       }
-      openCustomPopup(`Streaming Options: ${data.title}`, html);
+      openCustomPopup(data.title, html, 'Streaming Options');
     };
 
     window.openRentBuyPopup = function (movieId) {
@@ -6561,14 +6537,13 @@
           <span class="font-bold uppercase tracking-widest text-sm text-gray-400">Not available to rent or buy</span>
           <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No digital purchase or rental options found in this region.</span>
         </div>`;
-      openCustomPopup(`Rent & Buy Options: ${data.title}`, html);
+      openCustomPopup(data.title, html, 'Rent & Buy Options');
     };
 
     function openTextPopup(title, text) {
       const body = document.getElementById('genericPopupBody');
       if (!body) return;
-      body.innerHTML = `${_premiumHeaderHTML(title)}<div class="premium-text-body">${text}</div>`;
-      _openGenericPopupAnimated();
+      openCustomPopup(title, `<div class="premium-text-body">${text}</div>`, 'Overview');
     }
 
     function openInsightsPopup() {
@@ -6583,32 +6558,40 @@
       const decade = document.getElementById('stat-decade')?.textContent || '-';
       const avg = document.getElementById('stat-avg')?.textContent || '-';
 
-      body.innerHTML = `${_premiumHeaderHTML('Watchlist Insights')}
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
-          <div class="insight-stat-card stat-blue">
+      const statsHtml = `
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div class="insight-stat-card">
             <span class="stat-icon">🎬</span>
-            <span class="stat-label">Total</span>
-            <span class="stat-value">${escapeHTML(total)}</span>
+            <div class="flex flex-col gap-0.5">
+              <span class="stat-label">Total Films</span>
+              <span class="stat-value">${escapeHTML(total)}</span>
+            </div>
           </div>
-          <div class="insight-stat-card stat-purple">
+          <div class="insight-stat-card">
             <span class="stat-icon">🍿</span>
-            <span class="stat-label">Genre</span>
-            <span class="stat-value">${escapeHTML(genre)}</span>
+            <div class="flex flex-col gap-0.5">
+              <span class="stat-label">Top Genre</span>
+              <span class="stat-value">${escapeHTML(genre)}</span>
+            </div>
           </div>
-          <div class="insight-stat-card stat-teal">
+          <div class="insight-stat-card">
             <span class="stat-icon">🕰</span>
-            <span class="stat-label">Decade</span>
-            <span class="stat-value">${escapeHTML(decade)}</span>
+            <div class="flex flex-col gap-0.5">
+              <span class="stat-label">Top Decade</span>
+              <span class="stat-value">${escapeHTML(decade)}</span>
+            </div>
           </div>
-          <div class="insight-stat-card stat-amber">
+          <div class="insight-stat-card">
             <span class="stat-icon">⭐</span>
-            <span class="stat-label">Rating</span>
-            <span class="stat-value">${escapeHTML(avg)}</span>
+            <div class="flex flex-col gap-0.5">
+              <span class="stat-label">Avg Rating</span>
+              <span class="stat-value">${escapeHTML(avg)}</span>
+            </div>
           </div>
         </div>`;
 
       if (el.statsBtn) el.statsBtn.classList.add('vpn-active');
-      _openGenericPopupAnimated();
+      openCustomPopup('Watchlist Insights', statsHtml, 'Analytics');
     }
     // 2-line-clamped hero description with a "More" link that opens the full text in the popup
     // above, instead of expanding inline (used on the full-page movie/actor hero).
@@ -6759,7 +6742,7 @@
         fsContainer.className = 'fixed inset-0 z-[400] bg-black hidden';
         const closeBtn = document.createElement('button');
         closeBtn.setAttribute('aria-label', 'Close');
-        closeBtn.className = 'absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center liquid-glass text-white cursor-pointer';
+        closeBtn.className = 'absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center liquid-glass active:scale-95 transition-all text-white cursor-pointer';
         closeBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
         closeBtn.onclick = collapseHeroVideoFullscreen;
         fsContainer.appendChild(closeBtn);
