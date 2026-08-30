@@ -2039,7 +2039,7 @@
       </div>
       <div class="flex items-center gap-3">
         <button id="vpnToggleBtn" title="Also show films you could unlock by switching your VPN to another region"
-          class="bg-black/40 border border-white/10 rounded-full flex items-center gap-2 pl-4 pr-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-gray-400 shadow-lg shrink-0">
+          class="bg-black/40 border border-white/10 rounded-full flex items-center gap-2 pl-4 pr-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-gray-400 shadow-lg shrink-0 transition-all active:scale-95 cursor-pointer">
           <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -2050,7 +2050,7 @@
         </button>
         <div class="relative inline-block custom-filter-dropdown-container">
           <div id="regionContainer" class="relative">
-            <button id="regionTriggerBtn" type="button" onclick="toggleCustomFilterMenu(this, 'regionPopover')" class="h-8 sm:h-9 px-3 bg-black/40 hover:bg-white/10 border border-white/10 rounded-full flex items-center gap-2 shadow-lg transition-all text-xs font-bold text-gray-200 cursor-pointer">
+            <button id="regionTriggerBtn" type="button" onclick="toggleCustomFilterMenu(this, 'regionPopover')" class="h-8 sm:h-9 px-3 bg-black/40 hover:bg-white/10 border border-white/10 rounded-full flex items-center gap-2 shadow-lg transition-all active:scale-95 text-xs font-bold text-gray-200 cursor-pointer">
               <span class="text-[10px] text-gray-500 font-extrabold uppercase tracking-widest pointer-events-none">Region</span>
               <span id="regionActiveLabel" class="flex items-center gap-1.5">🇸🇪 <span class="hidden min-[400px]:inline">Sweden</span></span>
               <svg class="custom-filter-chevron w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -2091,7 +2091,7 @@
             </div>
           </div>
           <button id="quickSearchBtn"
-            class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest px-8 transition-colors border-l border-white/10">Search</button>
+            class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest px-8 transition-all active:scale-95 cursor-pointer border-l border-white/10">Search</button>
         </div>
         <div id="searchDropdown"
           class="absolute top-full left-0 w-full mt-2 bg-[#0f172a] rounded-xl hidden flex-col z-[100] max-h-96 overflow-y-auto custom-scrollbar shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-blue-500/30">
@@ -2145,7 +2145,7 @@
               <button id="serviceBrowserCancel"
                 class="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white px-5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition-colors outline-none cursor-pointer">Cancel</button>
               <button id="serviceBrowserSave"
-                class="execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-xs rounded-xl px-6 py-2.5 shadow-[0_0_20px_rgba(255,255,255,0.1)] outline-none cursor-pointer">Save</button>
+                class="execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-xs rounded-xl px-6 py-2.5 shadow-[0_0_20px_rgba(255,255,255,0.1)] outline-none active:scale-95 transition-all cursor-pointer">Save</button>
             </div>
           </div>
         </div>
@@ -2195,7 +2195,7 @@
           </div>
         </div>
         <button id="startButton"
-          class="execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-sm rounded-xl px-12 py-4 shadow-[0_0_20px_rgba(255,255,255,0.1)] shrink-0 disabled:opacity-50 disabled:cursor-not-allowed h-[58px] flex items-center justify-center">Execute</button>
+          class="execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-sm rounded-xl px-12 py-4 shadow-[0_0_20px_rgba(255,255,255,0.1)] shrink-0 disabled:opacity-50 disabled:cursor-not-allowed h-[58px] flex items-center justify-center active:scale-[0.98] transition-all cursor-pointer">Execute</button>
       </div>
     </section>
     <section id="progressSection"
@@ -2263,7 +2263,7 @@
             <!-- Options / Filter Toggle Button -->
             <button id="homeFilterToggleBtn" type="button" onclick="toggleHomeFilterDropdown(event)"
               aria-label="Filters and sorting"
-              class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 border border-white/10 text-gray-300 rounded-xl transition-colors font-bold text-xs cursor-pointer">
+              class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 border border-white/10 text-gray-300 rounded-xl transition-all active:scale-95 font-bold text-xs cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
@@ -7635,7 +7635,7 @@
         } else if (text === '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none">...</button>`;
         } else {
-          return `<button type="button" onclick="setAllCastPage(${page})" class="w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer">${text}</button>`;
+          return `<button type="button" onclick="setAllCastPage(${page})" class="w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all active:scale-95 cursor-pointer">${text}</button>`;
         }
       };
 
@@ -9492,7 +9492,7 @@
         } else if (text === '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none">...</button>`;
         } else {
-          return `<button type="button" onclick="setActorPage(${page})" class="w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer">${text}</button>`;
+          return `<button type="button" onclick="setActorPage(${page})" class="w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all active:scale-95 cursor-pointer">${text}</button>`;
         }
       };
 
@@ -9800,7 +9800,7 @@
                 </div>
 
                 <!-- Options / Filter Toggle Button for Actor -->
-                <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-colors font-bold text-xs cursor-pointer">
+                <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all active:scale-95 font-bold text-xs cursor-pointer">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
                   </svg>
