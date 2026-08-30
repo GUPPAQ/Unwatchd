@@ -5490,6 +5490,282 @@
       }
     }
 
+    function renderMovieWatchOptionsBox(movieObj, details, isDesktop = false, isModal = false) {
+      if (!movieObj) return '';
+
+      // Resolve full providers dictionary across all available regions
+      const allProvidersMap = movieObj.allProviders
+        || (details && details['watch/providers'] && details['watch/providers'].results)
+        || (typeof movieDetailsCache !== 'undefined' && movieDetailsCache.get(`${movieObj.mediaType === 'tv' ? 'tv' : 'movie'}_${movieObj.id}`)?.['watch/providers']?.results)
+        || null;
+
+      if (!movieObj.allProviders && allProvidersMap) {
+        movieObj.allProviders = allProvidersMap;
+      }
+
+      // True provider data for the user's active home region
+      const homeRegionData = (allProvidersMap && allProvidersMap[currentRegion])
+        || (!movieObj.vpnInfo ? movieObj.regionData : null)
+        || (details && details['watch/providers'] && details['watch/providers'].results ? details['watch/providers'].results[currentRegion] : null)
+        || null;
+
+      // Helper to match against user's selected services by ID or normalized name
+      const selectedNamesSet = new Set(
+        currentProviders
+          .filter(cp => selectedServiceIds.has(cp.id))
+          .map(cp => cleanNormalize(cp.name))
+      );
+      const isSubscribedProvider = (p) => {
+        if (!p) return false;
+        if (p.provider_id && selectedServiceIds.has(p.provider_id)) return true;
+        if (p.id && selectedServiceIds.has(p.id)) return true;
+        const norm = cleanNormalize(p.provider_name || p.name || '');
+        return norm ? selectedNamesSet.has(norm) : false;
+      };
+
+      // Helper to prioritize VPN providers: Netflix > HBO / Max > Prime Video > Disney > Apple > others
+      const sortVpnProvidersByPriority = (provList) => {
+        return [...provList].sort((a, b) => {
+          const nameA = cleanNormalize(a.provider_name || a.name || '');
+          const nameB = cleanNormalize(b.provider_name || b.name || '');
+          const getScore = (n) => {
+            if (n.includes('netflix')) return 100;
+            if (n.includes('hbo') || n.includes('max')) return 90;
+            if (n.includes('amazon') || n.includes('prime')) return 80;
+            if (n.includes('disney')) return 70;
+            if (n.includes('apple')) return 60;
+            return 10;
+          };
+          return getScore(nameB) - getScore(nameA);
+        });
+      };
+
+      let effectiveVpnInfo = null;
+      let isVpnUnlocked = false;
+      let vpnMatchedProviders = [];
+
+      const homeFlatrate = filterAndDeduplicateProviders(homeRegionData?.flatrate || []);
+      const userHomeFlatrate = homeFlatrate.filter(isSubscribedProvider);
+
+      if (userHomeFlatrate.length > 0) {
+        effectiveVpnInfo = null;
+      } else if (vpnModeEnabled && allProvidersMap) {
+        if (movieObj.vpnInfo && movieObj.vpnInfo.region && allProvidersMap[movieObj.vpnInfo.region]) {
+          const altData = allProvidersMap[movieObj.vpnInfo.region];
+          const altFlat = filterAndDeduplicateProviders(altData?.flatrate || []);
+          const matched = altFlat.filter(isSubscribedProvider);
+          if (matched.length > 0) {
+            const sortedMatched = sortVpnProvidersByPriority(matched);
+            sortedMatched.forEach(p => { p.__isVpn = true; p.__vpnRegion = movieObj.vpnInfo.region; });
+            effectiveVpnInfo = {
+              region: movieObj.vpnInfo.region,
+              services: sortedMatched.map(p => ({ label: p.provider_name || p.name }))
+            };
+            isVpnUnlocked = true;
+            vpnMatchedProviders = sortedMatched;
+          }
+        }
+
+        if (!effectiveVpnInfo) {
+          for (const code of Object.keys(REGION_META)) {
+            if (code === currentRegion || !allProvidersMap[code]) continue;
+            const altData = allProvidersMap[code];
+            const altFlat = filterAndDeduplicateProviders(altData?.flatrate || []);
+            const matched = altFlat.filter(isSubscribedProvider);
+            if (matched.length > 0) {
+              const sortedMatched = sortVpnProvidersByPriority(matched);
+              sortedMatched.forEach(p => { p.__isVpn = true; p.__vpnRegion = code; });
+              effectiveVpnInfo = {
+                region: code,
+                services: sortedMatched.map(p => ({ label: p.provider_name || p.name }))
+              };
+              isVpnUnlocked = true;
+              vpnMatchedProviders = sortedMatched;
+              break;
+            }
+          }
+        }
+      }
+
+      const makeProviderLink = (p, extraText = '', mode = 'pill', modeExtra = null) => {
+        let safeName = (p.provider_name || p.name || '').replace("with Ads", "").trim();
+
+        const providerMeta = currentProviders.find(cp => cp.id === (p.provider_id || p.id)) || null;
+        let logoSrc = providerMeta ? providerMeta.logoPath : (p.logoPath || null);
+        if (!logoSrc) {
+          const local = localIconFor(safeName);
+          const rawPath = p.logo_path || p.tmdbLogoPath;
+          const tmdbLogo = rawPath ? (rawPath.startsWith('http') ? rawPath : `https://image.tmdb.org/t/p/original${rawPath.startsWith('/') ? '' : '/'}${rawPath}`) : null;
+          const domain = domainFor(safeName) || (cleanNormalize(safeName) + '.com');
+          const logoDev = domain ? logoDevIcon(domain) : null;
+          logoSrc = local || tmdbLogo || logoDev;
+        }
+
+        const isVpnProvider = !!(p.__isVpn || (isVpnUnlocked && (p.__vpnRegion || (effectiveVpnInfo && effectiveVpnInfo.region !== currentRegion))));
+        const vpnRegionCode = p.__vpnRegion || (effectiveVpnInfo ? effectiveVpnInfo.region : currentRegion);
+        const vpnArticle = (vpnRegionCode === 'GB' || vpnRegionCode === 'US' || vpnRegionCode === 'NL') ? 'the ' : '';
+        const vpnRegionName = isVpnProvider ? (vpnRegionCode === 'GB' ? 'UK' : (vpnRegionCode === 'US' ? 'US' : (REGION_META[vpnRegionCode]?.name || vpnRegionCode || ''))) : '';
+        const vpnRegionFlag = isVpnProvider ? (REGION_META[vpnRegionCode]?.flag || '🌐') : '🌐';
+
+        const effectiveRegion = isVpnProvider ? vpnRegionCode : currentRegion;
+        let link = getRegionServiceUrl(safeName, effectiveRegion, movieObj.title);
+
+        const deeplink = getDeeplinkFor(safeName);
+        const appLink = deeplink && deeplink.appUrl ? deeplink.appUrl(movieObj.title) : null;
+
+        if (deeplink && deeplink.searchUrl) {
+          link = deeplink.searchUrl(movieObj.title);
+        }
+
+        if (mode === 'popup') {
+          const actionLabel = extraText || (modeExtra && modeExtra.type ? modeExtra.type : 'Stream');
+          const isRentBuy = actionLabel === 'Rent' || actionLabel === 'Buy' || actionLabel === 'Rent/Buy';
+
+          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-white/10 active:scale-[0.98] w-full shadow-md">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
+                ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
+              </div>
+              <div class="flex flex-col min-w-0">
+                <span class="truncate text-sm sm:text-base font-extrabold text-white group-hover/prov:text-blue-300 transition-colors leading-tight">${escapeHTML(safeName)}</span>
+                ${isVpnProvider ? `<span class="text-[11px] sm:text-xs text-blue-300 font-semibold leading-tight mt-0.5 flex items-center gap-1 whitespace-nowrap min-w-0"><span class="text-xs leading-none shrink-0" aria-hidden="true">${vpnRegionFlag}</span><span class="truncate">Available in ${vpnArticle}<strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
+              </div>
+            </div>
+            <div class="shrink-0 flex items-center gap-2">
+              ${isRentBuy ? `<span class="px-2.5 py-1 rounded-lg bg-white/10 text-gray-300 text-[10.5px] font-extrabold uppercase tracking-wider">${actionLabel}</span>` : ''}
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </div>
+          </a>`;
+        }
+
+        if (mode === 'single') {
+          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-4 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-blue-500/50 hover:bg-white/10 shadow-md">
+            <div class="flex items-center gap-3.5 sm:gap-4 min-w-0">
+              <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
+                ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-sm font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
+              </div>
+              <div class="flex flex-col min-w-0 justify-center">
+                <span class="truncate min-w-0 text-lg sm:text-xl font-black text-white group-hover/prov:text-blue-300 transition-colors tracking-tight leading-tight">${escapeHTML(safeName)}${extraText}</span>
+                ${isVpnProvider ? `<span class="text-[11.5px] sm:text-xs text-blue-300 font-semibold leading-tight mt-0.5 flex items-center gap-1.5 whitespace-nowrap min-w-0"><span class="text-xs leading-none shrink-0" aria-hidden="true">${vpnRegionFlag}</span><span class="truncate">Available in ${vpnArticle}<strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
+              </div>
+            </div>
+            <svg class="w-6 h-6 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1.5 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+          </a>`;
+        }
+
+        return `<a href="${escapeHTML(link)}" target="_blank" title="${escapeHTML(safeName)}${isVpnProvider ? ` (Available in ${vpnArticle}${escapeHTML(vpnRegionName)} via VPN)` : ''}" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov relative flex items-center justify-between gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-blue-500/50 hover:bg-white/10 active:scale-[0.98] shadow-md min-w-0">
+          <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 md:w-15 md:h-15 rounded-2xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover/prov:scale-105 transition-transform pointer-events-none">
+              ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-sm font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
+            </div>
+            ${isVpnProvider ? `<span class="px-1.5 py-0.5 rounded-full bg-blue-500/30 border border-blue-400/40 text-[10px] font-bold text-blue-300 flex items-center gap-0.5 shadow-sm pointer-events-none"><span>${vpnRegionFlag}</span><span class="text-[9px] font-extrabold hidden lg:inline">VPN</span></span>` : ''}
+          </div>
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </a>`;
+      };
+
+      let streamingHtml = '';
+      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle w-full py-2 px-1.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white${vpnModeEnabled ? ' vpn-active' : ''} text-xs font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm min-w-0"><span class="flex items-center gap-1 sm:gap-1.5 truncate min-w-0"><svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="truncate">VPN</span></span><span class="watchnow-vpn-dot shrink-0 ml-0.5"></span></button>`;
+
+      // Rent / Buy always from local home region (e.g. Sweden)
+      const rent = filterAndDeduplicateProviders(homeRegionData?.rent || [], true);
+      const buy = filterAndDeduplicateProviders(homeRegionData?.buy || [], true);
+      const rbMap = new Map();
+
+      rent.forEach(p => {
+        rbMap.set(p.provider_id, { p, type: 'Rent' });
+      });
+      buy.forEach(p => {
+        if (rbMap.has(p.provider_id)) { rbMap.get(p.provider_id).type = 'Rent/Buy'; }
+        else { rbMap.set(p.provider_id, { p, type: 'Buy' }); }
+      });
+
+      // Unsubscribed streaming always from local home region (e.g. Sweden)
+      const otherFlatrate = homeFlatrate.filter(p => !isSubscribedProvider(p));
+
+      // Subscribed streaming: if unlocked via VPN, show ONLY ONE as main (Netflix or HBO first), rest in More popup
+      const userFlatrate = isVpnUnlocked ? vpnMatchedProviders : userHomeFlatrate;
+      const visibleFlatrate = isVpnUnlocked ? vpnMatchedProviders.slice(0, 1) : userHomeFlatrate.slice(0, 3);
+      const cleanFlatrate = isVpnUnlocked ? vpnMatchedProviders : homeFlatrate;
+
+      const streamingGridClass = visibleFlatrate.length === 3 ? 'grid grid-cols-3 gap-1.5 sm:gap-2' : (visibleFlatrate.length === 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col');
+      const streamingGridClassHFull = visibleFlatrate.length === 3 ? 'grid grid-cols-3 gap-1.5 sm:gap-2 h-full' : (visibleFlatrate.length === 2 ? 'grid grid-cols-2 gap-2 h-full' : 'flex flex-col h-full');
+
+      if (visibleFlatrate.length === 1) {
+        streamingHtml = makeProviderLink(visibleFlatrate[0], '', 'single');
+      } else if (visibleFlatrate.length > 1) {
+        streamingHtml = visibleFlatrate.map(p => makeProviderLink(p, '', 'pill')).join('');
+      } else if (otherFlatrate.length > 0) {
+        const noSubText = 'Not on your active subscriptions';
+        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
+      } else if (rbMap.size > 0) {
+        const noSubText = 'Only available to rent or buy';
+        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
+      } else {
+        const noSubText = 'Not available to stream';
+        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
+      }
+
+      let userFlatrateLinksHtml = '';
+      userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, isVpnUnlocked ? 'Subscription (VPN)' : 'Subscription', 'popup'); });
+      let otherFlatrateLinksHtml = '';
+      otherFlatrate.forEach(p => { otherFlatrateLinksHtml += makeProviderLink(p, 'Unsubscribed', 'popup'); });
+      let rbLinksHtml = '';
+      rbMap.forEach(val => { rbLinksHtml += makeProviderLink(val.p, val.type, 'popup', { type: val.type }); });
+
+      const extraStreamingCount = Math.max(0, userFlatrate.length - visibleFlatrate.length);
+
+      if (!window.moviePopupDataCache) window.moviePopupDataCache = new Map();
+      window.moviePopupDataCache.set(movieObj.id, {
+        title: movieObj.title,
+        userFlatrateLinksHtml,
+        otherFlatrateLinksHtml,
+        rbLinksHtml,
+        rentBuyCount: rbMap.size,
+        streamingCount: cleanFlatrate.length,
+        extraCount: extraStreamingCount
+      });
+
+      const displayExtraCount = extraStreamingCount > 0 ? `+${extraStreamingCount}` : (otherFlatrate.length > 0 ? `+${otherFlatrate.length}` : (cleanFlatrate.length > 0 ? `${cleanFlatrate.length}` : ''));
+      const extraBtnHtml = `<button type="button" onclick="openExtraStreamingPopup(${movieObj.id})" class="w-full py-2 px-1.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white text-xs font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm min-w-0"><span class="flex items-center gap-1 sm:gap-1.5 truncate min-w-0"><svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg><span class="truncate">More</span></span>${displayExtraCount ? `<span class="bg-white/10 px-1.5 py-0.5 rounded-md text-[10px] sm:text-[10.5px] font-black text-gray-300 shrink-0 ml-0.5">${displayExtraCount}</span>` : `<svg class="w-3 h-3 text-gray-400 shrink-0 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>`}</button>`;
+      const rentBuyBtnHtml = `<button type="button" onclick="openRentBuyPopup(${movieObj.id})" class="w-full py-2 px-1.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white text-xs font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm min-w-0"><span class="flex items-center gap-1 sm:gap-1.5 truncate min-w-0"><svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg><span class="truncate">Rent / Buy</span></span><span class="bg-white/10 px-1.5 py-0.5 rounded-md text-[10px] sm:text-[10.5px] font-black text-gray-300 shrink-0 ml-0.5">${rbMap.size}</span></button>`;
+      const rentBuyDropdownHtml = `<div class="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2 border-t border-white/10 shrink-0">${extraBtnHtml}${rentBuyBtnHtml}${vpnToggleBtnHtml}</div>`;
+
+      if (isModal) {
+        return `<div class="${streamingGridClass}">${streamingHtml}</div>${rentBuyDropdownHtml}`;
+      }
+
+      return `<div class="${isDesktop ? 'flex-1 flex flex-col min-h-0 pb-2.5' : 'flex-1 flex flex-col min-h-0 pb-1'}"><div class="${streamingGridClassHFull}">${streamingHtml}</div></div>${rentBuyDropdownHtml}`;
+    }
+
+    function updateMoviePageVpnNote(movieObj, details) {
+      const footnoteEl = document.getElementById('moviePageVpnFootnote');
+      if (!footnoteEl || !movieObj) return;
+      const allProvidersMap = movieObj.allProviders
+        || (details && details['watch/providers'] && details['watch/providers'].results)
+        || (typeof movieDetailsCache !== 'undefined' && movieDetailsCache.get(`${movieObj.mediaType === 'tv' ? 'tv' : 'movie'}_${movieObj.id}`)?.['watch/providers']?.results)
+        || null;
+      const homeRegionData = (allProvidersMap && allProvidersMap[currentRegion])
+        || (!movieObj.vpnInfo ? movieObj.regionData : null)
+        || (details && details['watch/providers'] && details['watch/providers'].results ? details['watch/providers'].results[currentRegion] : null)
+        || null;
+      const selectedNamesSet = new Set(
+        currentProviders
+          .filter(cp => selectedServiceIds.has(cp.id))
+          .map(cp => cleanNormalize(cp.name))
+      );
+      const isSubscribedProvider = (p) => {
+        if (!p) return false;
+        if (p.provider_id && selectedServiceIds.has(p.provider_id)) return true;
+        if (p.id && selectedServiceIds.has(p.id)) return true;
+        const norm = cleanNormalize(p.provider_name || p.name || '');
+        return norm ? selectedNamesSet.has(norm) : false;
+      };
+      const homeFlatrate = filterAndDeduplicateProviders(homeRegionData?.flatrate || []);
+      const userHomeFlatrate = homeFlatrate.filter(isSubscribedProvider);
+      const hasVpnUnlocked = userHomeFlatrate.length === 0 && vpnModeEnabled;
+      footnoteEl.classList.toggle('hidden', !hasVpnUnlocked);
+    }
 
     function generateFullMovieHTML(movieObj, details, isModal = false, context = 'lookup', isPage = false, collectionData = null) {
       const safeTitle = escapeHTML(movieObj.title || (details && details.title) || (details && details.name) || 'Untitled'); const year = movieObj.releaseDate ? movieObj.releaseDate.split('-')[0] : 'N/A'; const isTvMedia = movieObj.mediaType === 'tv' || (details && details.number_of_episodes !== undefined);
