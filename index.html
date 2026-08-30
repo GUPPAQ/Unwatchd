@@ -1094,50 +1094,7 @@
       opacity: 0;
     }
 
-    /* ── Roulette CS Case Opening Styles ── */
-    @keyframes needlePulse {
-
-      0%,
-      100% {
-        opacity: 0.85;
-        filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.7));
-      }
-
-      50% {
-        opacity: 1;
-        filter: drop-shadow(0 0 22px rgba(251, 191, 36, 1)) drop-shadow(0 0 40px rgba(251, 191, 36, 0.4));
-      }
-    }
-
-    @keyframes winnerCardPop {
-      0% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0), inset 0 0 0 0 rgba(251, 191, 36, 0);
-      }
-
-      50% {
-        transform: scale(1.06);
-        box-shadow: 0 0 50px 8px rgba(251, 191, 36, 0.7), 0 0 100px 20px rgba(251, 191, 36, 0.2);
-      }
-
-      100% {
-        transform: scale(1.03);
-        box-shadow: 0 0 30px 4px rgba(251, 191, 36, 0.5), 0 0 60px 12px rgba(251, 191, 36, 0.15);
-      }
-    }
-
-    @keyframes winnerBorderGlow {
-
-      0%,
-      100% {
-        border-color: rgba(251, 191, 36, 0.7);
-      }
-
-      50% {
-        border-color: rgba(251, 191, 36, 1);
-      }
-    }
-
+    /* ── Roulette Styles ── */
     @keyframes rouletteSpinIcon {
       0% {
         transform: rotate(0deg);
@@ -1148,42 +1105,8 @@
       }
     }
 
-    @keyframes rouletteTextReveal {
-      0% {
-        opacity: 0;
-        transform: translateY(14px);
-        filter: blur(6px);
-      }
-
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-        filter: blur(0);
-      }
-    }
-
-    .roulette-needle {
-      animation: needlePulse 1.8s ease-in-out infinite;
-    }
-
-    .roulette-reel-card {
-      border: 2px solid rgba(255, 255, 255, 0.08);
-      transition: border-color 0.3s, transform 0.4s, box-shadow 0.4s;
-    }
-
-    .roulette-winner-highlight {
-      animation: winnerCardPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards, winnerBorderGlow 2s ease-in-out 0.6s infinite;
-      border-color: rgba(251, 191, 36, 0.95) !important;
-      border-width: 3px !important;
-      z-index: 10;
-    }
-
-    .roulette-info-reveal {
-      animation: rouletteTextReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
     .roulette-spin-active {
-      animation: rouletteSpinIcon 0.6s linear infinite;
+      animation: rouletteSpinIcon 0.5s linear infinite;
     }
 
     /* Modal popup panel style matching site aesthetics */
@@ -1433,25 +1356,6 @@
 
     .popup-content-stagger>*:nth-child(5) {
       animation-delay: 0.25s;
-    }
-
-    /* Roulette loading dots */
-    .roulette-loading-dots span {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: rgba(59, 130, 246, 0.8);
-      margin: 0 3px;
-      animation: rouletteDotPulse 1.2s ease-in-out infinite;
-    }
-
-    .roulette-loading-dots span:nth-child(2) {
-      animation-delay: 0.15s;
-    }
-
-    .roulette-loading-dots span:nth-child(3) {
-      animation-delay: 0.3s;
     }
 
     details>summary::-webkit-details-marker {
@@ -2510,135 +2414,68 @@
     </div>
   </div>
 
-  <!-- WATCHLIST ROULETTE MODAL (CS CASE OPENING REEL) -->
+  <!-- WATCHLIST ROULETTE MODAL (SIMPLE & ELEGANT PICKER) -->
   <div id="rouletteModal"
-    class="fixed inset-0 z-[600] hidden items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md"
+    class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md"
     onclick="if(event.target===this) closeRouletteModal()">
     <div id="rouletteModalContent"
-      class="premium-popup-panel rounded-3xl max-w-2xl lg:max-w-3xl w-full relative shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_80px_rgba(59,130,246,0.12)] max-h-[95vh] flex flex-col pointer-events-auto overflow-hidden">
+      class="premium-popup-panel rounded-3xl max-w-lg w-full relative max-h-[90vh] flex flex-col pointer-events-auto overflow-hidden p-6 sm:p-8">
 
-      <!-- Blurred backdrop poster -->
-      <div id="rouletteBackdropPoster" class="absolute inset-0 z-0 overflow-hidden rounded-3xl">
-        <img id="rouletteBackdropImg" src="" alt=""
-          class="w-full h-full object-cover scale-125 blur-[50px] opacity-0 transition-opacity duration-700 pointer-events-none" />
-        <div
-          class="absolute inset-0 bg-gradient-to-b from-[#080c1c]/90 via-[#080c1c]/80 to-[#080c1c]/95 pointer-events-none">
+      <!-- Header -->
+      <div class="modal-header-container w-full mb-5">
+        <div class="flex flex-col text-left min-w-0 pr-2">
+          <span class="modal-header-category text-purple-400">Random Pick</span>
+          <h3 class="modal-header-title">Watchlist Roulette</h3>
         </div>
+        <button onclick="closeRouletteModal()" aria-label="Close"
+          class="shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full liquid-glass active:scale-95 text-white flex items-center justify-center transition-all cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
       </div>
 
-      <!-- Content Body -->
-      <div id="rouletteBody"
-        class="relative z-10 w-full flex flex-col items-center text-center p-5 sm:p-8 overflow-y-auto overscroll-none">
-
-        <!-- Header -->
-        <div class="modal-header-container w-full mb-4 sm:mb-5">
-          <div class="flex flex-col text-left min-w-0 pr-2">
-            <span class="modal-header-category text-purple-400">Random Selection</span>
-            <h3 class="modal-header-title">Watchlist Roulette</h3>
-          </div>
-          <button onclick="closeRouletteModal()" aria-label="Close"
-            class="shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full liquid-glass active:scale-95 text-white flex items-center justify-center transition-all cursor-pointer">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
+      <!-- Movie Card Display -->
+      <div id="rouletteCardContainer" class="w-full flex flex-col sm:flex-row gap-5 items-center sm:items-start text-center sm:text-left transition-all duration-300">
+        <!-- Poster -->
+        <div id="roulettePosterWrapper" class="shrink-0 w-32 sm:w-36 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/50 relative">
+          <img id="roulettePosterImg" src="" alt="" class="w-full h-full object-cover transition-opacity duration-200">
         </div>
 
-        <!-- CS CASE OPENING HORIZONTAL REEL VIEWPORT -->
-        <div id="rouletteReelViewport"
-          class="relative w-full h-[200px] sm:h-[260px] overflow-hidden rounded-2xl bg-black/80 shadow-[inset_0_2px_40px_rgba(0,0,0,0.95),inset_0_-2px_40px_rgba(0,0,0,0.95)] mb-5 flex items-center"
-          style="border: 1px solid rgba(255,255,255,0.08);">
-
-          <!-- Left & Right Gradient Shadows / Edge Fades -->
-          <div class="absolute inset-y-0 left-0 w-20 sm:w-32 z-20 pointer-events-none"
-            style="background: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);">
-          </div>
-          <div class="absolute inset-y-0 right-0 w-20 sm:w-32 z-20 pointer-events-none"
-            style="background: linear-gradient(to left, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);">
-          </div>
-
-          <!-- Top & Bottom subtle vignette -->
-          <div class="absolute inset-x-0 top-0 h-8 z-20 pointer-events-none"
-            style="background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);"></div>
-          <div class="absolute inset-x-0 bottom-0 h-8 z-20 pointer-events-none"
-            style="background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);"></div>
-
-          <!-- Vertical Center Selector Indicator (CS Needle) -->
-          <div id="rouletteNeedle"
-            class="roulette-needle absolute top-0 bottom-0 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex flex-col items-center">
-            <!-- Top triangle -->
-            <div
-              class="w-0 h-0 border-l-[7px] sm:border-l-[9px] border-l-transparent border-r-[7px] sm:border-r-[9px] border-r-transparent border-t-[10px] sm:border-t-[12px] border-t-amber-400 shrink-0"
-              style="filter: drop-shadow(0 2px 6px rgba(251,191,36,0.8));"></div>
-            <!-- Vertical line -->
-            <div class="flex-1 w-[2px] sm:w-[3px] bg-gradient-to-b from-amber-400 via-amber-300/80 to-amber-400"
-              style="box-shadow: 0 0 12px rgba(251,191,36,0.9), 0 0 30px rgba(251,191,36,0.3);"></div>
-            <!-- Bottom triangle -->
-            <div
-              class="w-0 h-0 border-l-[7px] sm:border-l-[9px] border-l-transparent border-r-[7px] sm:border-r-[9px] border-r-transparent border-b-[10px] sm:border-b-[12px] border-b-amber-400 shrink-0"
-              style="filter: drop-shadow(0 -2px 6px rgba(251,191,36,0.8));"></div>
-          </div>
-
-          <!-- Sliding Horizontal Strip -->
-          <div id="rouletteReelTrack"
-            class="flex items-center gap-2.5 sm:gap-3 will-change-transform transform-gpu px-4">
-            <!-- Dynamically populated with movie poster cards -->
-          </div>
-
-        </div>
-
-        <!-- REVEALED INFO SECTION -->
-        <div id="rouletteInfoSection" class="w-full flex flex-col items-center transition-all duration-300">
-
-          <!-- Spinning Status -->
-          <div id="rouletteSpinStatus"
-            class="flex items-center gap-2.5 py-3 text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm">
-            <svg class="w-4 h-4 animate-spin text-blue-400 shrink-0" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-              </path>
-            </svg>
-            <span>Spinning the reel...</span>
-          </div>
-
-          <!-- Compact Result Info -->
-          <div id="rouletteResultDetails" class="w-full hidden flex-col items-center gap-2 pt-1 pb-1">
-            <h2 id="rouletteTitle" class="text-xl sm:text-2xl font-black text-white tracking-tight px-2 line-clamp-1">
-            </h2>
-            <div id="rouletteMetaLine"
-              class="flex flex-wrap items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-400">
-            </div>
+        <!-- Info -->
+        <div class="flex-1 min-w-0 flex flex-col justify-between self-stretch">
+          <div class="flex flex-col gap-1.5 mb-4">
+            <h2 id="rouletteTitle" class="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight line-clamp-2"></h2>
+            <div id="rouletteMetaLine" class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 text-xs font-semibold text-gray-400"></div>
+            <p id="rouletteOverview" class="text-gray-400 text-xs leading-relaxed line-clamp-3 mt-1 font-medium hidden sm:block"></p>
           </div>
 
           <!-- Action Buttons -->
-          <div id="rouletteActionButtons" class="flex items-center gap-3 sm:gap-4 w-full mt-3">
+          <div class="flex items-center gap-2.5 w-full mt-auto">
             <button id="rouletteViewBtn"
-              class="flex-1 py-3 px-5 rounded-2xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-black text-sm tracking-wide shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:pointer-events-none">
-              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
-                </path>
+              class="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
               </svg>
               Open Movie
             </button>
             <button id="rouletteRespinBtn" onclick="spinRoulette()"
-              class="flex-1 py-3 px-5 rounded-2xl liquid-glass active:scale-95 text-white font-black text-sm tracking-wide border border-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:pointer-events-none">
-              <svg id="rouletteRespinSvg" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                </path>
+              class="py-2.5 px-4 rounded-xl liquid-glass active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider border border-white/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:text-purple-300">
+              <svg id="rouletteRespinSvg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
               </svg>
-              Spin Again
+              Shuffle
             </button>
           </div>
-
         </div>
+      </div>
 
+      <!-- Empty State -->
+      <div id="rouletteEmptyState" class="hidden flex-col items-center justify-center text-center p-6 gap-2">
+        <span class="text-3xl opacity-60 mb-1">🎲</span>
+        <span class="font-bold uppercase tracking-widest text-sm text-gray-400">No movies available</span>
+        <span class="text-xs text-gray-500 font-medium">Sync your Letterboxd watchlist to use Roulette.</span>
       </div>
 
     </div>
@@ -3665,41 +3502,15 @@
     }
 
     // =========================================================================
-    // WATCHLIST ROULETTE (Cinematic)
+    // WATCHLIST ROULETTE (Simple & Elegant Random Picker)
     // =========================================================================
     let isRouletteSpinning = false;
     let rouletteSpinGeneration = 0;
-
-    function resetRouletteUI() {
-      const body = document.getElementById('rouletteBody');
-      const reelTrack = document.getElementById('rouletteReelTrack');
-      const backdropImg = document.getElementById('rouletteBackdropImg');
-      const titleEl = document.getElementById('rouletteTitle');
-      const metaLine = document.getElementById('rouletteMetaLine');
-      const spinStatus = document.getElementById('rouletteSpinStatus');
-      const resultDetails = document.getElementById('rouletteResultDetails');
-      const viewBtn = document.getElementById('rouletteViewBtn');
-      const respinBtn = document.getElementById('rouletteRespinBtn');
-      const respinSvg = document.getElementById('rouletteRespinSvg');
-
-      if (body) body.classList.remove('roulette-spinning', 'roulette-revealed');
-      if (reelTrack) { reelTrack.innerHTML = ''; reelTrack.style.transition = 'none'; reelTrack.style.transform = 'translateX(0px)'; }
-      if (spinStatus) { spinStatus.style.display = 'flex'; spinStatus.innerHTML = `<svg class="w-4 h-4 animate-spin text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Spinning the reel...</span>`; }
-      if (resultDetails) { resultDetails.style.display = 'none'; resultDetails.classList.remove('roulette-info-reveal'); }
-      if (backdropImg) { backdropImg.style.opacity = '0'; backdropImg.src = ''; }
-      if (titleEl) titleEl.textContent = '';
-      if (metaLine) metaLine.innerHTML = '';
-      if (viewBtn) { viewBtn.disabled = true; viewBtn.onclick = null; }
-      if (respinBtn) respinBtn.disabled = false;
-      if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
-    }
 
     function openRouletteModal() {
       const modal = document.getElementById('rouletteModal');
       const content = document.getElementById('rouletteModalContent');
       if (!modal || !content) return;
-
-      resetRouletteUI();
 
       modal.classList.remove('hidden', 'popup-overlay-out');
       modal.classList.add('flex');
@@ -3710,7 +3521,7 @@
         content.classList.add('popup-animate-in');
       });
 
-      spinRoulette();
+      spinRoulette(true);
     }
 
     function closeRouletteModal() {
@@ -3718,7 +3529,6 @@
       const content = document.getElementById('rouletteModalContent');
       if (!modal) return;
 
-      // Force-reset spinning state so reopening works cleanly
       isRouletteSpinning = false;
       rouletteSpinGeneration++;
 
@@ -3733,49 +3543,27 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex', 'popup-overlay-out');
         if (content) content.classList.remove('popup-animate-out');
-        resetRouletteUI();
       }, 220);
     }
 
-    async function spinRoulette() {
+    async function spinRoulette(isInitial = false) {
       if (isRouletteSpinning) return;
       isRouletteSpinning = true;
       rouletteSpinGeneration++;
       const myGeneration = rouletteSpinGeneration;
 
-      const body = document.getElementById('rouletteBody');
-      const reelViewport = document.getElementById('rouletteReelViewport');
-      const reelTrack = document.getElementById('rouletteReelTrack');
+      const cardContainer = document.getElementById('rouletteCardContainer');
+      const emptyState = document.getElementById('rouletteEmptyState');
+      const posterImg = document.getElementById('roulettePosterImg');
       const titleEl = document.getElementById('rouletteTitle');
-      const spinStatus = document.getElementById('rouletteSpinStatus');
-      const resultDetails = document.getElementById('rouletteResultDetails');
-      const backdropImg = document.getElementById('rouletteBackdropImg');
-      const metaRating = null; // now built dynamically
-      const metaYear = null;
-      const metaRuntime = null;
-      const metaGenre = null;
-      const streamingSec = null;
+      const metaLine = document.getElementById('rouletteMetaLine');
+      const overviewEl = document.getElementById('rouletteOverview');
       const viewBtn = document.getElementById('rouletteViewBtn');
       const respinBtn = document.getElementById('rouletteRespinBtn');
       const respinSvg = document.getElementById('rouletteRespinSvg');
 
       if (respinBtn) respinBtn.disabled = true;
-      if (viewBtn) viewBtn.disabled = true;
       if (respinSvg) respinSvg.classList.add('roulette-spin-active');
-
-      if (spinStatus) {
-        spinStatus.style.display = 'flex';
-        spinStatus.innerHTML = `<svg class="w-4 h-4 animate-spin text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Spinning the reel...</span>`;
-      }
-      if (resultDetails) {
-        resultDetails.style.display = 'none';
-        resultDetails.classList.remove('roulette-info-reveal');
-      }
-      if (body) {
-        body.classList.remove('roulette-revealed');
-        body.classList.add('roulette-spinning');
-      }
-      if (backdropImg) backdropImg.style.opacity = '0';
 
       let candidatePool = currentGroupedResults[activeTab] || [];
       if (!candidatePool || candidatePool.length === 0) {
@@ -3783,97 +3571,40 @@
       }
 
       if (!candidatePool || candidatePool.length === 0) {
-        if (spinStatus) spinStatus.innerHTML = '<span class="text-red-400 font-bold">No movies found in your watchlist</span>';
-        if (body) body.classList.remove('roulette-spinning');
+        if (cardContainer) cardContainer.classList.add('hidden');
+        if (emptyState) {
+          emptyState.classList.remove('hidden');
+          emptyState.classList.add('flex');
+        }
         isRouletteSpinning = false;
         if (respinBtn) respinBtn.disabled = false;
         if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
         return;
       }
 
-      // Pick a random winner from the candidate pool
-      const winnerMovie = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+      if (emptyState) {
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+      }
+      if (cardContainer) cardContainer.classList.remove('hidden');
 
-      // Generate a CS:GO style case opening strip of 50 items
-      const TOTAL_CARDS = 50;
-      const WINNER_INDEX = 38;
-
-      const reelItems = [];
-      for (let i = 0; i < TOTAL_CARDS; i++) {
-        if (i === WINNER_INDEX) {
-          reelItems.push(winnerMovie);
-        } else {
-          const rand = candidatePool[Math.floor(Math.random() * candidatePool.length)];
-          reelItems.push(rand);
-        }
+      // Subtle quick shuffle transition
+      if (!isInitial && cardContainer) {
+        cardContainer.style.opacity = '0.35';
+        cardContainer.style.transform = 'scale(0.97)';
+        await new Promise(r => setTimeout(r, 160));
       }
 
-      // Populate track
-      reelTrack.innerHTML = reelItems.map((m, idx) => {
-        const posterUrl = m.poster || '';
-        const safeTitle = escapeHTML(m.title || 'Movie');
-        return `<div class="roulette-reel-card shrink-0 w-[120px] sm:w-[150px] aspect-[2/3] rounded-xl sm:rounded-2xl overflow-hidden relative bg-[#0a0e1a] shadow-[0_8px_30px_rgba(0,0,0,0.7)] flex items-center justify-center" data-index="${idx}">
-          ${posterUrl ? `<img src="${posterUrl}" class="w-full h-full object-cover pointer-events-none" loading="eager" alt="${safeTitle}">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800/80 text-xs font-bold text-gray-500 p-2 text-center">${safeTitle}</div>`}
-        </div>`;
-      }).join('');
-
-      // Reset track position instantly
-      reelTrack.style.transition = 'none';
-      reelTrack.style.transform = 'translateX(0px)';
-
-      // Wait a frame for geometry to render
-      await new Promise(r => requestAnimationFrame(r));
-      await new Promise(r => requestAnimationFrame(r));
-
-      // Calculate landing metrics
-      const firstCard = reelTrack.querySelector('.roulette-reel-card');
-      const cardWidth = firstCard ? firstCard.offsetWidth : 144;
-      const gap = reelViewport.offsetWidth >= 640 ? 12 : 10; // gap-2.5 / gap-3
-      const viewportWidth = reelViewport ? reelViewport.offsetWidth : 600;
-
-      // Authentic CS-style subtle random landing offset within card (-25% to +25%)
-      const randomJitter = (Math.random() - 0.5) * (cardWidth * 0.5);
-
-      // Distance from reel start to center of card 38
-      const winnerCenterOffset = (WINNER_INDEX * (cardWidth + gap)) + (cardWidth / 2) + randomJitter;
-
-      // Target translateX to center winning card under the needle
-      const targetTranslateX = winnerCenterOffset - (viewportWidth / 2);
-
-      // CS:GO Case Opening Easing curve: rapid burst then suspenseful deceleration
-      const spinDuration = 5.2; // seconds
-      reelTrack.style.transition = `transform ${spinDuration}s cubic-bezier(0.08, 0.82, 0.17, 1)`;
-      reelTrack.style.transform = `translateX(-${targetTranslateX}px)`;
-
-      // Await deceleration completion
-      await new Promise(r => setTimeout(r, spinDuration * 1000 + 60));
-
-      // Bail out if spin was cancelled (modal closed or respin triggered)
       if (myGeneration !== rouletteSpinGeneration) return;
 
-      // Highlight winning card in the reel
-      const winnerCardEl = reelTrack.querySelector(`.roulette-reel-card[data-index="${WINNER_INDEX}"]`);
-      if (winnerCardEl) {
-        winnerCardEl.classList.add('roulette-winner-highlight');
+      const winnerMovie = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+
+      if (posterImg) {
+        posterImg.src = winnerMovie.poster || '';
+        posterImg.alt = winnerMovie.title || 'Movie Poster';
       }
+      if (titleEl) titleEl.textContent = winnerMovie.title || 'Untitled';
 
-      // Hide spinning status & reveal result details below
-      if (spinStatus) spinStatus.style.display = 'none';
-      if (resultDetails) {
-        resultDetails.style.display = 'flex';
-        resultDetails.classList.add('roulette-info-reveal');
-      }
-
-      if (titleEl) titleEl.textContent = winnerMovie.title;
-
-      // Set blurred backdrop
-      if (backdropImg && winnerMovie.poster) {
-        backdropImg.src = winnerMovie.poster;
-        backdropImg.style.opacity = '0.35';
-      }
-
-      // Build compact metadata line dynamically with · separators
-      const metaLine = document.getElementById('rouletteMetaLine');
       if (metaLine) {
         const parts = [];
         const rating = getTmdbRating(winnerMovie);
@@ -3887,6 +3618,10 @@
         metaLine.innerHTML = parts.join('<span class="text-gray-600 mx-0.5">·</span>');
       }
 
+      if (overviewEl) {
+        overviewEl.textContent = winnerMovie.overview || '';
+      }
+
       if (viewBtn) {
         viewBtn.disabled = false;
         viewBtn.onclick = () => {
@@ -3895,13 +3630,13 @@
         };
       }
 
-      if (respinBtn) respinBtn.disabled = false;
-      if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
-      if (body) {
-        body.classList.remove('roulette-spinning');
-        body.classList.add('roulette-revealed');
+      if (cardContainer) {
+        cardContainer.style.opacity = '1';
+        cardContainer.style.transform = 'scale(1)';
       }
 
+      if (respinBtn) respinBtn.disabled = false;
+      if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
       isRouletteSpinning = false;
     }
 
