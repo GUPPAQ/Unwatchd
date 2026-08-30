@@ -10833,68 +10833,6 @@
       }).observe(document.body, { childList: true, subtree: true });
     })();
 
-    // Bulletproof Touch / Tap Handler for Touchscreens (Firefox Mobile / iOS / Android)
-    // Ensures finger taps (< 16px movement, < 450ms duration) always trigger the button
-    // even if Firefox's APZ cancels synthetic click due to sub-pixel finger wobble.
-    (function () {
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let touchStartTime = 0;
-      let activeTargetBtn = null;
-      let lastHandledTouchTime = 0;
-
-      document.addEventListener('pointerdown', (e) => {
-        if (e.pointerType !== 'touch') return;
-        const btn = e.target.closest('button, .tab-btn, .opt-seg-btn, .custom-filter-trigger, [role="button"]');
-        if (!btn) return;
-        activeTargetBtn = btn;
-        touchStartX = e.clientX;
-        touchStartY = e.clientY;
-        touchStartTime = Date.now();
-      }, { passive: true });
-
-      document.addEventListener('pointerup', (e) => {
-        if (e.pointerType !== 'touch' || !activeTargetBtn) return;
-        const btn = activeTargetBtn;
-        activeTargetBtn = null;
-
-        const deltaX = Math.abs(e.clientX - touchStartX);
-        const deltaY = Math.abs(e.clientY - touchStartY);
-        const duration = Date.now() - touchStartTime;
-
-        // If it was a clean tap (minimal movement, short duration)
-        if (deltaX < 16 && deltaY < 16 && duration < 450) {
-          lastHandledTouchTime = Date.now();
-          if (btn) {
-            try { btn.blur(); } catch (err) {}
-            if (typeof btn.click === 'function') {
-              setTimeout(() => {
-                btn.click();
-                try { btn.blur(); } catch (err) {}
-              }, 0);
-            }
-          }
-        }
-      }, { passive: true });
-
-      // Deduplicate to prevent double-firing if native click also executes
-      let lastClickTarget = null;
-      let lastClickTime = 0;
-      document.addEventListener('click', (e) => {
-        const now = Date.now();
-        if (now - lastHandledTouchTime < 350) {
-          try { e.target?.blur(); } catch (err) {}
-          if (lastClickTarget === e.target && now - lastClickTime < 350) {
-            e.stopPropagation();
-            e.preventDefault();
-            return;
-          }
-        }
-        lastClickTarget = e.target;
-        lastClickTime = now;
-      }, true);
-    })();
-
   </script>
 </body>
 
