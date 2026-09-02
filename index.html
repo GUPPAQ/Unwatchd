@@ -2293,7 +2293,7 @@
         </div>
       </div>
       <div id="activeGridContainer"
-        class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 min-[2200px]:grid-cols-10 gap-4 sm:gap-5 lg:gap-6 perspective-1000 min-h-[300px] content-start">
+        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 min-[2200px]:grid-cols-7 gap-4 sm:gap-5 lg:gap-6 2xl:gap-7 perspective-1000 min-h-[300px] content-start">
       </div>
       <div id="paginationControls" class="flex justify-center items-center gap-2 mt-6 sm:mt-7 mb-0 hidden"></div>
       <!-- Separator line (Only shown when results matrix is active) -->
@@ -7772,14 +7772,14 @@
       const tmdbRating = getTmdbRating(movieObj);
       if (tmdbRating) {
         const badge = document.createElement('div');
-        badge.className = 'poster-badge-glass absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5';
-        badge.innerHTML = `<svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${tmdbRating}`;
+        badge.className = 'poster-badge-glass absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 2xl:px-3 2xl:py-1 rounded-full text-[11px] sm:text-xs 2xl:text-sm font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5';
+        badge.innerHTML = `<svg class="w-3 h-3 2xl:w-3.5 2xl:h-3.5 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${tmdbRating}`;
         a.appendChild(badge);
       }
 
       if (movieObj.vpnInfo) {
         const vpnBadge = document.createElement('div');
-        vpnBadge.className = 'poster-badge-glass absolute top-2.5 left-2.5 bg-[#091e42]/75 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold text-blue-300 border border-blue-400/30 shadow-md flex items-center gap-1.5 z-20 uppercase tracking-wider';
+        vpnBadge.className = 'poster-badge-glass absolute top-2.5 left-2.5 bg-[#091e42]/75 px-2.5 py-0.5 2xl:px-3 2xl:py-1 rounded-full text-[10px] 2xl:text-xs font-extrabold text-blue-300 border border-blue-400/30 shadow-md flex items-center gap-1.5 z-20 uppercase tracking-wider';
         vpnBadge.title = `Requires switching your VPN to ${REGION_META[movieObj.vpnInfo.region].name}`;
         vpnBadge.innerHTML = `${REGION_META[movieObj.vpnInfo.region].flag} VPN`;
         a.appendChild(vpnBadge);
