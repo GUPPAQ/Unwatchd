@@ -1710,26 +1710,26 @@
     @media (min-width: 1280px) {
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 5 * 1.25rem) / 6) !important;
+        width: calc((100% - 4 * 1.25rem) / 5) !important;
       }
     }
 
     @media (min-width: 1536px) {
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 6 * 1.25rem) / 7) !important;
+        width: calc((100% - 5 * 1.5rem) / 6) !important;
       }
     }
 
-    @media (min-width: 1920px) {
+    @media (min-width: 2200px) {
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 7 * 1.25rem) / 8) !important;
+        width: calc((100% - 6 * 1.5rem) / 7) !important;
       }
     }
 
     /* Cast Chip Sizing:
-       - Mobile: 3.35, Tablet: 4.35, Desktop: 6, 2xl: 7, 4k: 8 */
+       - Mobile: 3.35, Tablet: 4.35, Desktop: 5, 2xl: 6, 4k: 7 */
     #castCrewTrack>.cast-chip-card {
       width: calc((100% - 3 * 0.75rem) / 3.35) !important;
       flex-shrink: 0 !important;
@@ -1749,19 +1749,19 @@
 
     @media (min-width: 1280px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 5 * 1rem) / 6) !important;
+        width: calc((100% - 4 * 1rem) / 5) !important;
       }
     }
 
     @media (min-width: 1536px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 6 * 1rem) / 7) !important;
+        width: calc((100% - 5 * 1rem) / 6) !important;
       }
     }
 
-    @media (min-width: 1920px) {
+    @media (min-width: 2200px) {
       #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 7 * 1rem) / 8) !important;
+        width: calc((100% - 6 * 1rem) / 7) !important;
       }
     }
 
@@ -2408,7 +2408,7 @@
 
       <!-- Cast & Crew Grid -->
       <div id="allCastGrid"
-        class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 min-[2200px]:grid-cols-10 gap-4 sm:gap-6 content-start">
+        class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 min-[2200px]:grid-cols-7 gap-4 sm:gap-6 content-start">
       </div>
 
       <!-- Footer with Top Separator & TMDB Disclaimer -->
@@ -9697,7 +9697,7 @@
                 <h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>
                 ${actorControlsHtml}
               </div>
-              <div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 min-[2200px]:grid-cols-10 gap-3.5 sm:gap-4.5 lg:gap-5 content-start">${filmographyHtml}</div>
+              <div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 min-[2200px]:grid-cols-7 gap-4 sm:gap-5 lg:gap-6 2xl:gap-7 content-start">${filmographyHtml}</div>
             </div>
           </div>
           <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 mt-6 sm:mt-7 pb-8 sm:pb-10">
@@ -9712,7 +9712,7 @@
             </div>
           </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 min-[2200px]:grid-cols-10 gap-3.5 sm:gap-4.5 lg:gap-5 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div></div>`;
+      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 min-[2200px]:grid-cols-7 gap-4 sm:gap-5 lg:gap-6 2xl:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div></div>`;
     }
 
     let currentActorId = null;
@@ -10210,7 +10210,7 @@
       if (!firstCard) return;
       const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
       const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 1920 ? 7 : (window.innerWidth >= 1536 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2)));
+      const visibleCount = window.innerWidth >= 2200 ? 7 : (window.innerWidth >= 1536 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2)));
       track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
     }
 
@@ -10222,7 +10222,7 @@
       if (!firstCard) return;
       const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
       const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 1920 ? 7 : (window.innerWidth >= 1536 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2)));
+      const visibleCount = window.innerWidth >= 2200 ? 7 : (window.innerWidth >= 1536 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2)));
       track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
     }
 
@@ -10234,7 +10234,7 @@
       if (!firstCard) return;
       const gap = parseFloat(window.getComputedStyle(track).gap) || 12;
       const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 1920 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1024 ? 6 : (window.innerWidth >= 640 ? 4 : 3)));
+      const visibleCount = window.innerWidth >= 2200 ? 7 : (window.innerWidth >= 1536 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 4 : 3)));
       track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
     }
 
