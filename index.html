@@ -10273,16 +10273,6 @@
       setTimeout(updateUI, 100);
       setTimeout(updateUI, 300);
 
-      // Smooth mouse wheel listener: converts vertical/horizontal mouse wheel scrolls into smooth horizontal gliding
-      track.addEventListener('wheel', (e) => {
-        const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-        if (Math.abs(delta) > 0) {
-          e.preventDefault();
-          stopMomentum();
-          track.scrollBy({ left: delta * 1.5, behavior: 'smooth' });
-        }
-      }, { passive: false });
-
       let isDown = false;
       let startX = 0;
       let scrollLeft = 0;
