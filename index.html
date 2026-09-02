@@ -1677,15 +1677,16 @@
       font-size: 0.8rem;
     }
 
-    #castCrewTrack>*,
-    #relatedMoviesTrack>*,
-    #similarMoviesTrack>* {
-      scroll-snap-align: start;
+    /* Smooth fluid horizontal scrolling without rigid snap jumps */
+    #castCrewTrack,
+    #relatedMoviesTrack,
+    #similarMoviesTrack {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
     }
 
     /* Sizing rules with uniform 35% touch peek effect:
-       - Movies: 2.35 on mobile, 3.35 on tablet (iPad portrait), 4.35 on iPad landscape, 6 on desktop
-       - Cast: 3.35 on mobile, 4.35 on tablet (iPad portrait), 5.35 on iPad landscape, 6 on desktop */
+       - Movies: 2.35 on mobile, 3.35 on tablet, 4.35 on iPad landscape, 6 on desktop, 7 on 2xl, 8 on 4k */
     #relatedMoviesTrack>.tilt-card,
     #similarMoviesTrack>.tilt-card {
       width: calc((100% - 2 * 1rem) / 2.35) !important;
@@ -1693,7 +1694,6 @@
     }
 
     @media (min-width: 640px) {
-
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
         width: calc((100% - 3 * 1.25rem) / 3.35) !important;
@@ -1701,7 +1701,6 @@
     }
 
     @media (min-width: 1024px) {
-
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
         width: calc((100% - 4 * 1.25rem) / 4.35) !important;
@@ -1709,18 +1708,28 @@
     }
 
     @media (min-width: 1280px) {
-
       #relatedMoviesTrack>.tilt-card,
       #similarMoviesTrack>.tilt-card {
         width: calc((100% - 5 * 1.25rem) / 6) !important;
       }
     }
 
-    /* Cast Chip Sizing (Uniform 35% peek):
-       - Mobile: 3 full cards + 35% peek (3.35)
-       - Tablet (iPad portrait): 4 full cards + 35% peek (4.35)
-       - iPad landscape: 4 full cards + 35% peek (4.35)
-       - Desktop (>= 1280px): EXACTLY 6 actors, flush and cleanly aligned */
+    @media (min-width: 1536px) {
+      #relatedMoviesTrack>.tilt-card,
+      #similarMoviesTrack>.tilt-card {
+        width: calc((100% - 6 * 1.25rem) / 7) !important;
+      }
+    }
+
+    @media (min-width: 1920px) {
+      #relatedMoviesTrack>.tilt-card,
+      #similarMoviesTrack>.tilt-card {
+        width: calc((100% - 7 * 1.25rem) / 8) !important;
+      }
+    }
+
+    /* Cast Chip Sizing:
+       - Mobile: 3.35, Tablet: 4.35, Desktop: 6, 2xl: 7, 4k: 8 */
     #castCrewTrack>.cast-chip-card {
       width: calc((100% - 3 * 0.75rem) / 3.35) !important;
       flex-shrink: 0 !important;
@@ -1741,6 +1750,18 @@
     @media (min-width: 1280px) {
       #castCrewTrack>.cast-chip-card {
         width: calc((100% - 5 * 1rem) / 6) !important;
+      }
+    }
+
+    @media (min-width: 1536px) {
+      #castCrewTrack>.cast-chip-card {
+        width: calc((100% - 6 * 1rem) / 7) !important;
+      }
+    }
+
+    @media (min-width: 1920px) {
+      #castCrewTrack>.cast-chip-card {
+        width: calc((100% - 7 * 1rem) / 8) !important;
       }
     }
 
@@ -2337,11 +2358,11 @@
       </div>
 
       <div
-        class="relative z-30 max-w-[1480px] 2xl:max-w-[1680px] mx-auto w-full px-5 sm:px-10 pt-24 sm:pt-28 pb-6 sm:pb-8 flex flex-col gap-1.5 sm:gap-2 pointer-events-auto">
+        class="relative z-30 w-full max-w-[1480px] xl:max-w-[1700px] 2xl:max-w-[2000px] min-[2400px]:max-w-[2300px] mx-auto px-5 sm:px-10 lg:px-14 2xl:px-16 pt-24 sm:pt-28 pb-6 sm:pb-8 flex flex-col gap-1.5 sm:gap-2 pointer-events-auto">
         <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Full Cast &amp; Crew</span>
         <div id="allCastModalTitleContainer" class="flex flex-col items-start min-w-0">
           <h1 id="allCastModalTitle"
-            class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">
+            class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl 2xl:text-9xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">
           </h1>
         </div>
         <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-400 drop-shadow-sm min-w-0">
@@ -2350,7 +2371,7 @@
     </div>
 
     <!-- MAIN CONTENT CONTAINER -->
-    <div class="max-w-[1480px] 2xl:max-w-[1680px] mx-auto w-full px-5 sm:px-10 pt-4 pb-0 z-30 flex-1 flex flex-col">
+    <div class="w-full max-w-[1480px] xl:max-w-[1700px] 2xl:max-w-[2000px] min-[2400px]:max-w-[2300px] mx-auto px-5 sm:px-10 lg:px-14 2xl:px-16 pt-4 pb-0 z-30 flex-1 flex flex-col">
 
       <!-- Controls Row: Tabs on top (Row 1) & Search underneath (Row 2) on mobile/iPad portrait, side-by-side on desktop/iPad landscape -->
       <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 mb-6 animate-fade">
@@ -2387,7 +2408,7 @@
 
       <!-- Cast & Crew Grid -->
       <div id="allCastGrid"
-        class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-4 sm:gap-6 content-start">
+        class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 min-[2200px]:grid-cols-10 gap-4 sm:gap-6 content-start">
       </div>
 
       <!-- Footer with Top Separator & TMDB Disclaimer -->
@@ -2498,7 +2519,7 @@
       class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer">
     </div>
     <div id="modalContent"
-      class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl 2xl:max-w-5xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]">
+      class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl xl:max-w-5xl 2xl:max-w-6xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]">
     </div>
   </div>
 
@@ -2509,7 +2530,7 @@
       class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer">
     </div>
     <div id="actorModalContent"
-      class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl 2xl:max-w-5xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]">
+      class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl xl:max-w-5xl 2xl:max-w-6xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]">
     </div>
   </div>
 
@@ -5887,7 +5908,7 @@
 
         chips += seeAllChip;
 
-        castCrewHtml = `<div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Cast &amp; Crew</h3></div><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-1, event)" aria-label="Scroll cast left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(1, event)" aria-label="Scroll cast right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button><div id="castCrewTrack" class="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-0 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${chips}</div></div></div>`;
+        castCrewHtml = `<div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Cast &amp; Crew</h3></div><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-1, event)" aria-label="Scroll cast left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(1, event)" aria-label="Scroll cast right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button><div id="castCrewTrack" class="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-0 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${chips}</div></div></div>`;
       }
       const bestTrailer = getBestTrailer(details);
       const isMobileDevice = isMobile || (typeof window !== 'undefined' && window.innerWidth < 640);
@@ -5993,7 +6014,7 @@
         const sectionTitle = isTvItem ? (collectionName.includes('Franchise') || collectionName.includes('Series') ? collectionName : `Related Movies, Series & Franchises`) : collectionName;
         const countLabel = isTvItem ? (collectionParts.length === 1 ? 'Series' : 'Series') : (collectionParts.length === 1 ? 'Film' : 'Films');
 
-        relatedHtml = `<div class="space-y-3"><div class="flex items-center gap-2.5 flex-wrap"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400 flex items-center gap-2"><svg class="w-5 h-5 fill-current text-blue-400 shrink-0" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg><span>${escapeHTML(sectionTitle)}</span></h3><span class="hidden sm:inline-flex bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>${collectionParts.length} ${countLabel}</span></div><div class="relative group/related">${relatedScrollBtns}<div id="relatedMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${relatedCards}</div></div></div>`;
+        relatedHtml = `<div class="space-y-3"><div class="flex items-center gap-2.5 flex-wrap"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400 flex items-center gap-2"><svg class="w-5 h-5 fill-current text-blue-400 shrink-0" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg><span>${escapeHTML(sectionTitle)}</span></h3><span class="hidden sm:inline-flex bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>${collectionParts.length} ${countLabel}</span></div><div class="relative group/related">${relatedScrollBtns}<div id="relatedMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${relatedCards}</div></div></div>`;
       }
 
       // Filter out any movies that are already present in the Collection track from Similar Movies
@@ -6024,7 +6045,7 @@
         const similarScrollBtns = hasSimilarScroll
           ? `<button id="similarPrevBtn" type="button" onclick="scrollSimilarTrack(-1, event)" aria-label="Scroll similar films left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/similar:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="similarNextBtn" type="button" onclick="scrollSimilarTrack(1, event)" aria-label="Scroll similar films right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/similar:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button>`
           : '';
-        similarHtml = `<div class="space-y-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">More Like This</h3><div class="relative group/similar">${similarScrollBtns}<div id="similarMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth" style="scroll-snap-type: x proximity;">${recCards}</div></div></div>`;
+        similarHtml = `<div class="space-y-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">More Like This</h3><div class="relative group/similar">${similarScrollBtns}<div id="similarMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${recCards}</div></div></div>`;
       }
 
       const initialMuteParam = isHeroVideoMuted ? 1 : 0;
@@ -6046,18 +6067,18 @@
                 ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] lg:h-[70%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] via-15% via-[#0b1121]/80 via-40% via-[#0b1121]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div>
               </div>
               <!-- Content overlay: sits directly over the bottom of the poster/backdrop on all screens -->
-              <div class="absolute inset-x-0 bottom-0 z-30 p-5 sm:p-10 lg:p-14 pointer-events-none">
-                <div class="max-w-[1480px] 2xl:max-w-[1680px] mx-auto w-full flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-6">
-                  <div class="w-full max-w-full lg:max-w-3xl min-w-0 pointer-events-auto flex flex-col items-center lg:items-start gap-2 sm:gap-2.5 mx-auto lg:mx-0">
+              <div class="absolute inset-x-0 bottom-0 z-30 p-5 sm:p-10 lg:p-14 2xl:p-16 pointer-events-none">
+                <div class="w-full max-w-[1480px] xl:max-w-[1700px] 2xl:max-w-[2000px] min-[2400px]:max-w-[2300px] mx-auto flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-6">
+                  <div class="w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl min-w-0 pointer-events-auto flex flex-col items-center lg:items-start gap-2 sm:gap-2.5 mx-auto lg:mx-0">
                     ${pageTitleHeaderHtml}
                     <!-- Rating, Year, Runtime & Genres (Single unbroken row) -->
-                    <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg font-bold text-gray-200 whitespace-nowrap overflow-hidden max-w-full">
+                    <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg 2xl:text-xl font-bold text-gray-200 whitespace-nowrap overflow-hidden max-w-full">
                       ${modalRatingBadgeHtml}
                       <span class="text-white font-extrabold shrink-0">${year}</span>
                       ${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}
                       ${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}
                     </div>
-                    <div class="mt-1 w-full max-w-full lg:max-w-3xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
+                    <div class="mt-1 w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
                   </div>
                   <div class="hidden lg:flex items-center gap-2.5 sm:gap-3 pointer-events-auto shrink-0 mt-1 lg:mt-0">
                     ${pageTrailerBtnHtml}
@@ -6067,11 +6088,11 @@
               </div>
             </div>`
           : `<div class="relative w-full pt-24 pb-8 sm:pb-12 px-6 sm:px-14 bg-gradient-to-b from-[#111827] via-[#0f172a] to-[#0b1121] border-b border-white/5">
-              <div class="max-w-[1480px] 2xl:max-w-[1680px] mx-auto w-full flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-                <div class="w-full max-w-full lg:max-w-3xl min-w-0 flex flex-col items-center lg:items-start mx-auto lg:mx-0">
+              <div class="w-full max-w-[1480px] xl:max-w-[1700px] 2xl:max-w-[2000px] min-[2400px]:max-w-[2300px] mx-auto flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+                <div class="w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl min-w-0 flex flex-col items-center lg:items-start mx-auto lg:mx-0">
                   ${pageTitleHeaderHtml}
-                  <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg font-bold text-gray-200 mt-2 whitespace-nowrap overflow-hidden max-w-full">${modalRatingBadgeHtml}<span class="text-white font-extrabold shrink-0">${year}</span>${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}</div>
-                  <div class="mt-3 w-full max-w-full lg:max-w-3xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
+                  <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg 2xl:text-xl font-bold text-gray-200 mt-2 whitespace-nowrap overflow-hidden max-w-full">${modalRatingBadgeHtml}<span class="text-white font-extrabold shrink-0">${year}</span>${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}</div>
+                  <div class="mt-3 w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
                 </div>
                 <div class="hidden lg:flex items-center gap-2.5 sm:gap-3 pointer-events-auto shrink-0">${pageTrailerBtnHtml}${soundBtnInlineHtml ? soundBtnInlineHtml.replace('sm:hidden', '') : ''}</div>
               </div>
@@ -6082,14 +6103,14 @@
             <button onclick="goHomeFromPage()" aria-label="Close" class="liquid-glass pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
           </nav>
           ${heroBannerSectionHtml}
-          <div class="max-w-[1480px] 2xl:max-w-[1680px] mx-auto px-5 sm:px-10 lg:px-14 ${hasHero ? 'pt-0' : 'pt-8'} pb-0 flex flex-col gap-7 sm:gap-9 lg:gap-11">
+          <div class="w-full max-w-[1480px] xl:max-w-[1700px] 2xl:max-w-[2000px] min-[2400px]:max-w-[2300px] mx-auto px-5 sm:px-10 lg:px-14 2xl:px-16 ${hasHero ? 'pt-0' : 'pt-8'} pb-0 flex flex-col gap-7 sm:gap-9 lg:gap-11">
             <div class="lg:hidden space-y-3">
               ${watchNowHeaderHtml}
               <div class="watch-options-box p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col justify-between gap-2.5">
                 ${renderMovieWatchOptionsBox(movieObj, details, false, false)}
               </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_400px] 2xl:grid-cols-[1fr_460px] gap-x-10 xl:gap-x-12 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] 2xl:grid-cols-[1fr_480px] gap-x-10 xl:gap-x-12 items-start">
               <div class="min-w-0">${castCrewHtml}</div>
               <aside class="hidden lg:flex flex-col space-y-3">
                 ${watchNowHeaderHtml}
@@ -6101,7 +6122,7 @@
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
             ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
           </div>
-          <div class="max-w-[1480px] 2xl:max-w-[1680px] mx-auto px-5 sm:px-10 lg:px-14 mt-6 sm:mt-7 pb-8 sm:pb-10">
+          <div class="w-full max-w-[1480px] xl:max-w-[1700px] 2xl:max-w-[2000px] min-[2400px]:max-w-[2300px] mx-auto px-5 sm:px-10 lg:px-14 2xl:px-16 mt-6 sm:mt-7 pb-8 sm:pb-10">
             <div class="pt-6 border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               ${movieActionBtnsHtml}
               <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
@@ -9657,29 +9678,29 @@
               ${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}
               <div class="absolute inset-x-0 bottom-0 h-[65%] sm:h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] sm:via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div>
             </div>
-            <div class="absolute inset-0 z-30 flex flex-col justify-end p-5 sm:p-14 pt-20 pb-6 sm:pb-16 pointer-events-none actor-hero-content">
-              <div class="max-w-[1480px] 2xl:max-w-[1680px] mx-auto w-full flex flex-col gap-3 sm:gap-4">
+            <div class="absolute inset-0 z-30 flex flex-col justify-end p-5 sm:p-14 2xl:p-16 pt-20 pb-6 sm:pb-16 pointer-events-none actor-hero-content">
+              <div class="w-full max-w-[1480px] xl:max-w-[1700px] 2xl:max-w-[2000px] min-[2400px]:max-w-[2300px] mx-auto flex flex-col gap-3 sm:gap-4">
                 <div class="flex flex-row items-center gap-4 sm:gap-8">
-                  ${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async" class="w-28 min-[400px]:w-32 sm:w-48 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 pointer-events-auto">` : `<div class="w-28 min-[400px]:w-32 sm:w-48 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 flex items-center justify-center text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 pointer-events-auto">${safeName.charAt(0)}</div>`}
+                  ${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async" class="w-28 min-[400px]:w-32 sm:w-48 2xl:w-56 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 pointer-events-auto">` : `<div class="w-28 min-[400px]:w-32 sm:w-48 2xl:w-56 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 flex items-center justify-center text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 pointer-events-auto">${safeName.charAt(0)}</div>`}
                   <div class="pointer-events-auto min-w-0 flex-1 flex flex-col justify-center gap-1 sm:gap-2">
-                    <h1 class="actor-hero-name text-2xl min-[400px]:text-3xl sm:text-7xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[1.08] sm:leading-[0.98]">${safeName}</h1>
-                    ${knownForTitle ? `<p class="actor-hero-known-for text-xs sm:text-base font-medium text-gray-300 drop-shadow"><span class="text-blue-400 font-extrabold uppercase text-[10px] sm:text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>` : ''}
-                    <div class="mt-1 sm:mt-2 max-w-3xl">${bio ? createHeroOverviewHtml(bio, safeName) : ''}</div>
+                    <h1 class="actor-hero-name text-2xl min-[400px]:text-3xl sm:text-7xl 2xl:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[1.08] sm:leading-[0.98]">${safeName}</h1>
+                    ${knownForTitle ? `<p class="actor-hero-known-for text-xs sm:text-base 2xl:text-lg font-medium text-gray-300 drop-shadow"><span class="text-blue-400 font-extrabold uppercase text-[10px] sm:text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>` : ''}
+                    <div class="mt-1 sm:mt-2 max-w-3xl 2xl:max-w-4xl">${bio ? createHeroOverviewHtml(bio, safeName) : ''}</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="max-w-[1480px] 2xl:max-w-[1680px] mx-auto px-5 sm:px-10 lg:px-14 pt-4 sm:pt-0 pb-0 flex flex-col gap-6 sm:gap-10">
+          <div class="w-full max-w-[1480px] xl:max-w-[1700px] 2xl:max-w-[2000px] min-[2400px]:max-w-[2300px] mx-auto px-5 sm:px-10 lg:px-14 2xl:px-16 pt-4 sm:pt-0 pb-0 flex flex-col gap-6 sm:gap-10">
             <div>
               <div class="flex flex-col gap-3 mb-4 relative z-40">
                 <h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>
                 ${actorControlsHtml}
               </div>
-              <div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3.5 sm:gap-4.5 content-start">${filmographyHtml}</div>
+              <div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 min-[2200px]:grid-cols-10 gap-3.5 sm:gap-4.5 lg:gap-5 content-start">${filmographyHtml}</div>
             </div>
           </div>
-          <div class="max-w-[1480px] 2xl:max-w-[1680px] mx-auto px-5 sm:px-10 lg:px-14 mt-6 sm:mt-7 pb-8 sm:pb-10">
+          <div class="w-full max-w-[1480px] xl:max-w-[1700px] 2xl:max-w-[2000px] min-[2400px]:max-w-[2300px] mx-auto px-5 sm:px-10 lg:px-14 2xl:px-16 mt-6 sm:mt-7 pb-8 sm:pb-10">
             <div class="pt-6 border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               ${actorActionBtnsHtml}
               <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
@@ -9691,7 +9712,7 @@
             </div>
           </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3.5 sm:gap-4.5 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div></div>`;
+      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 min-[2200px]:grid-cols-10 gap-3.5 sm:gap-4.5 lg:gap-5 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div></div>`;
     }
 
     let currentActorId = null;
@@ -10189,7 +10210,7 @@
       if (!firstCard) return;
       const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
       const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 1024 ? 6 : (window.innerWidth >= 640 ? 4 : 2);
+      const visibleCount = window.innerWidth >= 1920 ? 7 : (window.innerWidth >= 1536 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2)));
       track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
     }
 
@@ -10201,7 +10222,7 @@
       if (!firstCard) return;
       const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
       const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 1024 ? 6 : (window.innerWidth >= 640 ? 4 : 2);
+      const visibleCount = window.innerWidth >= 1920 ? 7 : (window.innerWidth >= 1536 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2)));
       track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
     }
 
@@ -10213,7 +10234,7 @@
       if (!firstCard) return;
       const gap = parseFloat(window.getComputedStyle(track).gap) || 12;
       const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 1024 ? 6 : (window.innerWidth >= 640 ? 5 : 3);
+      const visibleCount = window.innerWidth >= 1920 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1024 ? 6 : (window.innerWidth >= 640 ? 4 : 3)));
       track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
     }
 
@@ -10251,6 +10272,16 @@
       updateUI();
       setTimeout(updateUI, 100);
       setTimeout(updateUI, 300);
+
+      // Smooth mouse wheel listener: converts vertical/horizontal mouse wheel scrolls into smooth horizontal gliding
+      track.addEventListener('wheel', (e) => {
+        const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+        if (Math.abs(delta) > 0) {
+          e.preventDefault();
+          stopMomentum();
+          track.scrollBy({ left: delta * 1.5, behavior: 'smooth' });
+        }
+      }, { passive: false });
 
       let isDown = false;
       let startX = 0;
