@@ -7991,7 +7991,7 @@
             });
             el.searchDropdown.classList.remove('hidden');
           }
-        }, 400);
+        }, 250);
       });
     }
     async function renderSingleMovieResult(movie) {
@@ -8206,80 +8206,110 @@
       }
     }
 
+    const SEARCH_STOPWORDS = new Set([
+      'the', 'a', 'an', 'and', 'or', 'of', 'in', 'on', 'at', 'to', 'for', 'with', 'by', 'from', 'is', 'it', 'as', 'be', 'this', 'that', 'movie', 'film', 'show', 'tv'
+    ]);
+
+    function stripArticles(s) {
+      return (s || '').replace(/^(the|a|an)\s+/i, '').trim();
+    }
+
     function scoreSearchResult(item, queryRaw) {
       if (!item || !queryRaw) return 0;
       let score = item.__keywordBoost || 0;
 
       const qNorm = normalizeTitle(queryRaw);
+      const qNoArticles = stripArticles(qNorm);
+
       const yearMatch = queryRaw.match(/\b(19\d\d|20\d\d)\b/);
       const targetYear = yearMatch ? yearMatch[1] : null;
       const cleanQuery = targetYear ? queryRaw.replace(/\b(19\d\d|20\d\d)\b/, '').trim() : queryRaw;
       const cleanQNorm = normalizeTitle(cleanQuery);
+      const cleanQNoArticles = stripArticles(cleanQNorm);
 
       const displayTitle = getResultTitle(item);
       const titleNorm = normalizeTitle(displayTitle);
+      const titleNoArticles = stripArticles(titleNorm);
+
       const origTitle = getResultOriginalTitle(item);
       const origNorm = normalizeTitle(origTitle);
+      const origNoArticles = stripArticles(origNorm);
+
       const date = getResultDate(item);
-      const itemYear = date ? date.split('-')[0] : '';
+      const itemYear = (date && typeof date === 'string' && date.length >= 4) ? date.substring(0, 4) : '';
       const isPerson = item.__mediaType === 'person';
 
-      // Check word coverage: how many words of the query match title or matched role
-      const queryWords = cleanQNorm.split(/\s+/).filter(w => w.length > 1 && !['by', 'with', 'the', 'and'].includes(w));
-      if (queryWords.length > 0) {
-        const fullContext = `${titleNorm} ${origNorm} ${item.matchedRole ? normalizeTitle(item.matchedRole) : ''}`;
-        let matchedWords = 0;
-        queryWords.forEach(w => {
-          if (fullContext.includes(w)) matchedWords++;
-        });
-        if (matchedWords === queryWords.length && queryWords.length > 1) {
-          score += 20000;
-        } else {
-          score += matchedWords * 3000;
-        }
-      }
+      const voteCount = item.vote_count || 0;
+      const voteAvg = item.vote_average || 0;
+      const popularity = item.popularity || 0;
+
+      // Smart logarithmic popularity score: massive titles (thousands of votes) float up naturally over obscure 0-vote entries
+      const popScore = (Math.log10(voteCount + 1) * 1500) + (Math.min(popularity, 200) * 20) + (voteAvg * 100);
 
       if (!isPerson) {
         // --- MOVIE / TV SHOW SCORING ---
-        // 1. Exact Title Match
-        if (titleNorm === qNorm || titleNorm === cleanQNorm || origNorm === qNorm || origNorm === cleanQNorm) {
-          score += 10000;
+        // 1. Exact Title Match (Highest priority)
+        if (titleNorm === qNorm || origNorm === qNorm || titleNorm === cleanQNorm || origNorm === cleanQNorm) {
+          score += 60000;
+        } else if (titleNoArticles === qNoArticles || origNoArticles === qNoArticles || titleNoArticles === cleanQNoArticles || origNoArticles === cleanQNoArticles) {
+          score += 55000;
         }
-        // 2. Title starts with query
+        // 2. Starts with query
         else if (titleNorm.startsWith(cleanQNorm) || origNorm.startsWith(cleanQNorm)) {
-          score += 5000;
+          score += 30000;
+        } else if (titleNoArticles.startsWith(cleanQNoArticles) || origNoArticles.startsWith(cleanQNoArticles)) {
+          score += 25000;
         }
-        // 3. Title contains query as distinct phrase/word
-        else if (titleNorm.includes(cleanQNorm) || origNorm.includes(cleanQNorm)) {
-          score += 2000;
+        // 3. Contains as whole word / phrase
+        else if (new RegExp('\\b' + cleanQNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(titleNorm) || new RegExp('\\b' + cleanQNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(origNorm)) {
+          score += 18000;
+        } else if (titleNorm.includes(cleanQNorm) || origNorm.includes(cleanQNorm)) {
+          score += 12000;
+        } else {
+          // Word coverage
+          const queryWords = cleanQNorm.split(/\s+/).filter(w => w.length >= 2 && !SEARCH_STOPWORDS.has(w));
+          if (queryWords.length > 0) {
+            let matchedWords = 0;
+            queryWords.forEach(w => {
+              if (titleNorm.includes(w) || origNorm.includes(w)) matchedWords++;
+            });
+            if (matchedWords === queryWords.length && queryWords.length > 1) {
+              score += 22000;
+            } else if (matchedWords > 0) {
+              score += matchedWords * 3500;
+            }
+          }
         }
 
-        // Exact Year match
-        if (targetYear && itemYear === targetYear) {
-          score += 6000;
+        // Year match handling
+        if (targetYear) {
+          if (itemYear === targetYear) {
+            score += 30000;
+          } else if (itemYear) {
+            const diff = Math.abs(parseInt(itemYear, 10) - parseInt(targetYear, 10));
+            if (diff > 1) score -= 12000;
+          }
         }
 
-        // Popularity / Vote Boost for Movies & TV
-        const voteCount = item.vote_count || 0;
-        const voteAvg = item.vote_average || 0;
-        const popularity = item.popularity || 0;
-        score += Math.min(voteCount * 0.05 + voteAvg * 20 + popularity * 2, 2500);
+        score += popScore;
       } else {
         // --- PERSON SCORING ---
         // 1. Exact Person Name Match (e.g. "Christopher Nolan")
         if (titleNorm === qNorm || titleNorm === cleanQNorm) {
-          score += 9000;
+          score += 58000;
         }
-        // 2. Person Name starts with query (e.g. "Dexter Fletcher" when searching "Dexter")
+        // 2. Starts with person name
         else if (titleNorm.startsWith(cleanQNorm)) {
           const isSingleWordQuery = !cleanQNorm.includes(' ');
-          score += isSingleWordQuery ? 800 : 2500;
+          score += isSingleWordQuery ? 15000 : 28000;
+        } else if (new RegExp('\\b' + cleanQNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(titleNorm)) {
+          score += 12000;
         } else if (titleNorm.includes(cleanQNorm)) {
-          score += 300;
+          score += 6000;
         }
 
         // Popularity boost for person
-        score += Math.min((item.popularity || 0) * 2, 500);
+        score += Math.min(popularity, 150) * 100;
       }
 
       return score;
@@ -8294,17 +8324,22 @@
       const targetYear = yearMatch ? yearMatch[1] : null;
       const cleanQuery = targetYear ? cleanRaw.replace(/\b(19\d\d|20\d\d)\b/, '').replace(/\s+/g, ' ').trim() : cleanRaw;
 
-      // Primary multi search
-      const searches = [
+      // Primary multi searches
+      const searchPromises = [
         fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanRaw)}`).then(r => r.json()).catch(() => ({}))
       ];
       if (cleanQuery && cleanQuery !== cleanRaw && cleanQuery.length >= 2) {
-        searches.push(
+        searchPromises.push(
           fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanQuery)}`).then(r => r.json()).catch(() => ({}))
         );
       }
+      if (targetYear && cleanQuery.length >= 2) {
+        searchPromises.push(
+          fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanQuery)}&primary_release_year=${targetYear}`).then(r => r.json()).catch(() => ({}))
+        );
+      }
 
-      // Decompose into Title + Person or Keyword chunks (e.g. "fight club David Fincher", "nosferatu Lily Rose Depp")
+      // Smart Decomposition into Title + Person or Keyword chunks (e.g. "fight club David Fincher", "oppenheimer Cillian Murphy")
       const strippedQuery = cleanQuery.replace(/\b(by|with|directed by|starring|dir|featuring|feat|and)\b/gi, ' ').replace(/\s+/g, ' ').trim();
       const words = strippedQuery.split(/\s+/).filter(Boolean);
 
@@ -8313,7 +8348,10 @@
         for (let i = 1; i < words.length; i++) {
           const partA = words.slice(0, i).join(' ').trim();
           const partB = words.slice(i).join(' ').trim();
-          if (partA.length >= 2 && partB.length >= 2) {
+          const normA = normalizeTitle(partA);
+          const normB = normalizeTitle(partB);
+          // Ensure neither part is a stopword and both parts have substance (>= 3 chars)
+          if (normA.length >= 3 && !SEARCH_STOPWORDS.has(normA) && normB.length >= 3 && !SEARCH_STOPWORDS.has(normB)) {
             candidateSplits.push([partA, partB]);
             candidateSplits.push([partB, partA]);
           }
@@ -8321,33 +8359,21 @@
       }
 
       const personLookups = new Set();
-      const mediaLookups = new Set();
       candidateSplits.forEach(([partA, partB]) => {
         personLookups.add(partA);
-        personLookups.add(partB);
-        mediaLookups.add(partA);
-        mediaLookups.add(partB);
       });
 
-      const personPromises = Array.from(personLookups).slice(0, 6).map(name =>
+      const personPromises = Array.from(personLookups).slice(0, 4).map(name =>
         fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(name)}`)
           .then(r => r.json())
-          .then(data => ({ name, results: (data.results || []).slice(0, 3) }))
+          .then(data => ({ name, results: (data.results || []).filter(p => (p.popularity || 0) >= 1.2).slice(0, 2) }))
           .catch(() => ({ name, results: [] }))
       );
 
-      const mediaPromises = Array.from(mediaLookups).slice(0, 4).map(term =>
-        fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(term)}`)
-          .then(r => r.json())
-          .then(data => ({ term, results: (data.results || []).slice(0, 5) }))
-          .catch(() => ({ term, results: [] }))
-      );
-
       try {
-        const [mainResponses, personResponses, mediaResponses] = await Promise.all([
-          Promise.all(searches),
-          Promise.all(personPromises),
-          Promise.all(mediaPromises)
+        const [mainResponses, personResponses] = await Promise.all([
+          Promise.all(searchPromises),
+          Promise.all(personPromises)
         ]);
 
         const seenKeys = new Set();
@@ -8376,21 +8402,16 @@
           (data.results || []).forEach(r => addResult(r));
         });
 
-        // 2. Add media sub-query results
-        mediaResponses.forEach(mObj => {
-          mObj.results.forEach(r => addResult(r));
-        });
-
-        // 3. Add person search results and cross-reference their film credits
+        // 2. Add reputable person search results and cross-reference film credits
         const allFoundPeople = [];
         personResponses.forEach(pObj => {
           pObj.results.forEach(p => {
             addResult(p, 'person');
-            allFoundPeople.push(p);
+            allFoundPeople.push({ person: p, queryTerm: pObj.name });
           });
         });
 
-        const creditsPromises = allFoundPeople.slice(0, 5).map(async (person) => {
+        const creditsPromises = allFoundPeople.slice(0, 4).map(async ({ person, queryTerm }) => {
           const credits = await getPersonCombinedCredits(person.id);
           if (!credits) return;
 
@@ -8402,26 +8423,28 @@
             ...(credits.cast || []).map(c => ({ ...c, __castRole: c.character || 'Cast' }))
           ];
 
+          const pNorm = normalizeTitle(person.name);
+          const qTermNorm = normalizeTitle(queryTerm);
+          if (!pNorm.includes(qTermNorm) && !qTermNorm.includes(pNorm)) return;
+
           candidateSplits.forEach(([partA, partB]) => {
-            const pNorm = normalizeTitle(person.name);
-            const partANorm = normalizeTitle(partA);
-            const partBNorm = normalizeTitle(partB);
+            if (normalizeTitle(partA) !== qTermNorm) return;
+            const targetTitleNorm = normalizeTitle(partB);
+            const targetNoArticles = stripArticles(targetTitleNorm);
+            if (targetTitleNorm.length < 2 || SEARCH_STOPWORDS.has(targetTitleNorm)) return;
 
-            const personMatchesA = pNorm.includes(partANorm) || partANorm.includes(pNorm);
-            const personMatchesB = pNorm.includes(partBNorm) || partBNorm.includes(pNorm);
-
-            if (!personMatchesA && !personMatchesB) return;
-            const targetTitleNorm = personMatchesA ? partBNorm : partANorm;
+            const targetRegex = new RegExp('\\b' + targetTitleNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
 
             allCredits.forEach(cr => {
               const crTitle = normalizeTitle(cr.title || cr.name || cr.original_title || cr.original_name);
               if (!crTitle) return;
+              const crNoArticles = stripArticles(crTitle);
 
-              const exactTitle = crTitle === targetTitleNorm;
-              const startsTitle = crTitle.startsWith(targetTitleNorm);
-              const containsTitle = crTitle.includes(targetTitleNorm) || targetTitleNorm.includes(crTitle);
+              const exactTitle = (crTitle === targetTitleNorm || crNoArticles === targetNoArticles);
+              const startsTitle = (crTitle.startsWith(targetTitleNorm) || crNoArticles.startsWith(targetNoArticles));
+              const wordMatch = targetRegex.test(crTitle);
 
-              if (exactTitle || startsTitle || containsTitle) {
+              if (exactTitle || startsTitle || wordMatch) {
                 const wasDirector = cr.__crewRole === 'Director' || isDirector;
                 const wasWriter = cr.__crewRole === 'Writer' || isWriter;
                 let roleDescription = `Starring ${person.name}`;
@@ -8430,7 +8453,7 @@
 
                 addResult(cr, cr.media_type || (cr.first_air_date ? 'tv' : 'movie'), {
                   matchedRole: roleDescription,
-                  __keywordBoost: exactTitle ? 60000 : (startsTitle ? 40000 : 25000)
+                  __keywordBoost: exactTitle ? 35000 : (startsTitle ? 20000 : 12000)
                 });
               }
             });
