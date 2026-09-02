@@ -70,6 +70,25 @@
     html {
       scrollbar-width: none;
       -ms-overflow-style: none;
+      font-size: 16px;
+    }
+
+    @media (min-width: 1536px) {
+      html {
+        font-size: 17px;
+      }
+    }
+
+    @media (min-width: 1920px) {
+      html {
+        font-size: 18px;
+      }
+    }
+
+    @media (min-width: 2400px) {
+      html {
+        font-size: 19px;
+      }
     }
 
     ::-webkit-scrollbar {
@@ -1897,14 +1916,14 @@
 
 <body>
   <div class="bg-fixed-gradient"></div>
-  <div class="max-w-[1200px] xl:max-w-[1440px] 2xl:max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 safe-area-wrapper relative z-10 flex flex-col min-h-screen">
+  <div class="w-full max-w-[1280px] xl:max-w-[1600px] 2xl:max-w-[2000px] min-[2400px]:max-w-[2300px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 safe-area-wrapper relative z-10 flex flex-col min-h-screen">
     <header class="flex flex-col md:flex-row justify-between items-center gap-6 mb-4 animate-fade relative z-[100]"
       style="animation-delay: 0s;">
       <div class="flex items-center gap-4 -translate-x-3 md:translate-x-0">
-        <img src="./icons/icon-1024-transparent.png" alt="Unwatchd logo" class="w-20 h-20 shrink-0">
+        <img src="./icons/icon-1024-transparent.png" alt="Unwatchd logo" class="w-20 h-20 2xl:w-24 2xl:h-24 shrink-0">
         <div>
-          <h1 class="text-4xl font-extrabold tracking-tight text-white mb-1">Unwatchd</h1>
-          <p class="text-sm text-gray-500 font-medium tracking-wide">Global Streaming Directory</p>
+          <h1 class="text-4xl 2xl:text-5xl font-extrabold tracking-tight text-white mb-1">Unwatchd</h1>
+          <p class="text-sm 2xl:text-base text-gray-500 font-medium tracking-wide">Global Streaming Directory</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -2253,7 +2272,7 @@
         </div>
       </div>
       <div id="activeGridContainer"
-        class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-4 sm:gap-5 lg:gap-6 perspective-1000 min-h-[300px] content-start">
+        class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 min-[2200px]:grid-cols-10 gap-4 sm:gap-5 lg:gap-6 perspective-1000 min-h-[300px] content-start">
       </div>
       <div id="paginationControls" class="flex justify-center items-center gap-2 mt-6 sm:mt-7 mb-0 hidden"></div>
       <!-- Separator line (Only shown when results matrix is active) -->
@@ -2262,7 +2281,7 @@
 
     <!-- Footer with TMDB Disclaimer (Always visible at bottom, line only appears above when results are shown) -->
     <footer
-      class="mt-6 sm:mt-8 pb-8 sm:pb-10 flex items-center justify-center animate-fade relative z-10 w-full px-5 sm:px-10 lg:px-14 max-w-[1480px] 2xl:max-w-[1680px] mx-auto">
+      class="mt-6 sm:mt-8 pb-8 sm:pb-10 flex items-center justify-center animate-fade relative z-10 w-full px-5 sm:px-10 lg:px-14 max-w-[1480px] 2xl:max-w-[2000px] mx-auto">
       <div class="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 max-w-lg mx-auto">
         <a href="https://www.themoviedb.org/" target="_blank"
           class="shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img
