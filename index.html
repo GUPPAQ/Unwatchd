@@ -91,7 +91,8 @@
       }
     }
 
-    ::-webkit-scrollbar {
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
       display: none;
     }
 
@@ -263,24 +264,12 @@
       filter: grayscale(100%) opacity(0.5);
     }
 
-    .app-icon-squircle {
-      clip-path: url(#appIconSquircle);
-      -webkit-clip-path: url(#appIconSquircle);
-      border-radius: 17%;
-      overflow: hidden;
-      transform: translateZ(0);
-      -webkit-backface-visibility: hidden;
-      backface-visibility: hidden;
-    }
-
     .logo-wrapper {
       position: relative;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      clip-path: url(#appIconSquircle);
-      -webkit-clip-path: url(#appIconSquircle);
-      border-radius: 17%;
+      border-radius: 22.5%;
       display: grid;
       place-items: center;
       -webkit-backface-visibility: hidden;
@@ -318,7 +307,7 @@
     }
 
     .service-btn.selected {
-      filter: drop-shadow(0 0 1.5px #3b82f6) drop-shadow(0 0 6px rgba(59, 130, 246, 0.45));
+      filter: none;
     }
 
     .service-btn.selected .logo-wrapper {
@@ -1282,21 +1271,18 @@
       max-height: 60vh;
       overflow-y: auto;
       overscroll-behavior: contain;
-      padding-right: 0.75rem;
-      margin-right: -0.25rem;
+      padding-right: 0.5rem;
       scrollbar-width: thin;
-      scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.05);
+      scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
     }
 
     .premium-text-body::-webkit-scrollbar {
-      display: block !important;
       width: 6px;
     }
 
     .premium-text-body::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
+      background: transparent;
       border-radius: 9999px;
-      margin: 4px 0;
     }
 
     .premium-text-body::-webkit-scrollbar-thumb {
@@ -1313,25 +1299,24 @@
       .premium-text-body {
         font-size: 1.125rem;
         line-height: 1.85;
-        max-height: 64vh;
+        max-height: 62vh;
       }
     }
 
-    /* Generic popup body scrollbar */
+    /* Generic popup body scrollbar - only appears when content actually overflows */
     #genericPopupBody {
       scrollbar-width: thin;
-      scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.05);
+      scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
     }
 
     #genericPopupBody::-webkit-scrollbar {
-      display: block !important;
       width: 6px;
     }
 
     #genericPopupBody::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
+      background: transparent;
       border-radius: 9999px;
-      margin: 4px 0;
+      margin: 6px 0;
     }
 
     #genericPopupBody::-webkit-scrollbar-thumb {
@@ -2002,13 +1987,6 @@
 </head>
 
 <body>
-  <svg width="0" height="0" class="absolute pointer-events-none opacity-0" aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;">
-    <defs>
-      <clipPath id="appIconSquircle" clipPathUnits="objectBoundingBox">
-        <path d="M 0,0.125 C 0,0.08984 0.08984,0 0.125,0 L 0.875,0 C 0.91016,0 1,0.08984 1,0.125 L 1,0.875 C 1,0.91016 0.91016,1 0.875,1 L 0.125,1 C 0.08984,1 0,0.91016 0,0.875 Z" />
-      </clipPath>
-    </defs>
-  </svg>
   <div class="bg-fixed-gradient"></div>
   <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 safe-area-wrapper relative z-10 flex flex-col min-h-screen">
     <header class="flex flex-col md:flex-row justify-between items-center gap-6 mb-4 animate-fade relative z-[100]"
@@ -3919,9 +3897,9 @@
       const logoDev = provider.logoDevPath || '';
       const tmdb = provider.tmdbLogoPath || '';
       if (!provider.logoPath) {
-        return `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400 app-icon-squircle rounded-[17%]">${initials}</div>`;
+        return `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400 rounded-[22.5%]">${initials}</div>`;
       }
-      return `<img src="${provider.logoPath}" alt="${escapeHTML(provider.name)}" loading="lazy" class="bg-gray-800" data-logodev="${escapeHTML(logoDev)}" data-tmdb="${escapeHTML(tmdb)}" onerror="const ld=this.dataset.logodev; const tm=this.dataset.tmdb; if(ld && this.src!==ld){this.src=ld;} else if(tm && this.src!==tm){this.src=tm;} else {this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400 app-icon-squircle rounded-[17%]\\'>${initials}</div>';}">`;
+      return `<img src="${provider.logoPath}" alt="${escapeHTML(provider.name)}" loading="lazy" class="bg-gray-800" data-logodev="${escapeHTML(logoDev)}" data-tmdb="${escapeHTML(tmdb)}" onerror="const ld=this.dataset.logodev; const tm=this.dataset.tmdb; if(ld && this.src!==ld){this.src=ld;} else if(tm && this.src!==tm){this.src=tm;} else {this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400 rounded-[22.5%]\\'>${initials}</div>';}">`;
     }
 
     // Fix: Rolled back to the original layout structure to prevent blurry CSS rendering and restore .png images
@@ -5736,7 +5714,7 @@
 
           return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-white/10 active:scale-[0.98] w-full shadow-md">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="app-icon-squircle w-10 h-10 sm:w-11 sm:h-11 shrink-0 shadow-md group-hover/prov:scale-105 transition-transform pointer-events-none">
+              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-[22.5%] overflow-hidden shrink-0 shadow-md group-hover/prov:scale-105 transition-transform pointer-events-none">
                 ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
               </div>
               <div class="flex flex-col min-w-0">
@@ -5754,7 +5732,7 @@
         if (mode === 'single') {
           return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-4 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-blue-500/50 hover:bg-white/10 shadow-md">
             <div class="flex items-center gap-3.5 sm:gap-4 min-w-0">
-              <div class="app-icon-squircle w-12 h-12 sm:w-14 sm:h-14 shrink-0 shadow-md group-hover/prov:scale-105 transition-transform pointer-events-none">
+              <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-[22.5%] overflow-hidden shrink-0 shadow-md group-hover/prov:scale-105 transition-transform pointer-events-none">
                 ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-sm font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
               </div>
               <div class="flex flex-col min-w-0 justify-center">
@@ -5768,7 +5746,7 @@
 
         return `<a href="${escapeHTML(link)}" target="_blank" title="${escapeHTML(safeName)}${isVpnProvider ? ` (Available in ${vpnArticle}${escapeHTML(vpnRegionName)} via VPN)` : ''}" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov relative flex items-center justify-between gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-blue-500/50 hover:bg-white/10 active:scale-[0.98] shadow-md min-w-0">
           <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
-            <div class="app-icon-squircle w-12 h-12 sm:w-14 sm:h-14 md:w-15 md:h-15 shrink-0 shadow-md group-hover/prov:scale-105 transition-transform pointer-events-none">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 md:w-15 md:h-15 rounded-[22.5%] overflow-hidden shrink-0 shadow-md group-hover/prov:scale-105 transition-transform pointer-events-none">
               ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-sm font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
             </div>
             ${isVpnProvider ? `<span class="px-1.5 py-0.5 rounded-full bg-blue-500/30 border border-blue-400/40 text-[10px] font-bold text-blue-300 flex items-center gap-0.5 shadow-sm pointer-events-none"><span>${vpnRegionFlag}</span><span class="text-[9px] font-extrabold hidden lg:inline">VPN</span></span>` : ''}
@@ -5987,7 +5965,7 @@
       const isMobileDevice = isMobile || (typeof window !== 'undefined' && window.innerWidth < 640);
       const heroTrailer = (!isMobileDevice && bestTrailer && bestTrailer.official && /trailer/i.test(bestTrailer.name || '')) ? bestTrailer : null;
       const btnClass = "w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 rounded-xl sm:rounded-2xl transition-all text-white shadow-sm shrink-0 cursor-pointer";
-      const actionBtnClass = "app-icon-squircle w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-12 sm:h-12 shadow-sm shrink-0 active:scale-95 hover:scale-105 transition-all block cursor-pointer";
+      const actionBtnClass = "w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-12 sm:h-12 rounded-[22.5%] overflow-hidden shadow-sm shrink-0 active:scale-95 hover:scale-105 transition-all block cursor-pointer";
       const trailerBtnClass = "flex items-center justify-center gap-2 sm:gap-2.5 liquid-glass px-4 py-2.5 sm:px-5 sm:py-3.5 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-white w-full sm:w-auto sm:min-w-[150px] whitespace-nowrap shadow-md cursor-pointer active:scale-95";
       
       const watchNowHeaderHtml = `<div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div>`;
@@ -9537,7 +9515,7 @@
       const lbSlug = person.name ? person.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '';
 
       const btnClass = 'w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 rounded-xl sm:rounded-2xl transition-all text-white shadow-sm shrink-0 cursor-pointer';
-      const actionBtnClass = 'app-icon-squircle w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-12 sm:h-12 shadow-sm shrink-0 active:scale-95 hover:scale-105 transition-all block cursor-pointer';
+      const actionBtnClass = 'w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-12 sm:h-12 rounded-[22.5%] overflow-hidden shadow-sm shrink-0 active:scale-95 hover:scale-105 transition-all block cursor-pointer';
 
       const watchlistBtnActive = showWatchlistOnly ? 'active' : '';
       const allBtnActive = showWatchlistOnly ? '' : 'active';
