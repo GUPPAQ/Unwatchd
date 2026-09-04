@@ -91,8 +91,7 @@
       }
     }
 
-    html::-webkit-scrollbar,
-    body::-webkit-scrollbar {
+    ::-webkit-scrollbar {
       display: none;
     }
 
@@ -1277,6 +1276,7 @@
     }
 
     .premium-text-body::-webkit-scrollbar {
+      display: block;
       width: 6px;
     }
 
@@ -1301,32 +1301,6 @@
         line-height: 1.85;
         max-height: 62vh;
       }
-    }
-
-    /* Generic popup body scrollbar - only appears when content actually overflows */
-    #genericPopupBody {
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
-    }
-
-    #genericPopupBody::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    #genericPopupBody::-webkit-scrollbar-track {
-      background: transparent;
-      border-radius: 9999px;
-      margin: 6px 0;
-    }
-
-    #genericPopupBody::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.28);
-      border-radius: 9999px;
-      transition: background 0.2s ease;
-    }
-
-    #genericPopupBody::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.5);
     }
 
     /* Popup open/close animations */
