@@ -5279,7 +5279,7 @@
           if (valEl) {
             valEl.textContent = rating;
           } else {
-            b.innerHTML = `<svg class="w-3 h-3 2xl:w-3.5 2xl:h-3.5 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg><span class="poster-rating-val">${rating}</span>`;
+            b.innerHTML = `<span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] sm:text-xs leading-none tracking-tight">${rating}</span>`;
           }
         });
       } else {
@@ -5287,9 +5287,9 @@
         cards.forEach(cardInner => {
           if (!cardInner.querySelector('.poster-rating-badge')) {
             const badge = document.createElement('div');
-            badge.className = 'poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 2xl:px-3 2xl:py-1 rounded-full text-[11px] sm:text-xs 2xl:text-sm font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5';
+            badge.className = 'poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/80 backdrop-blur-md px-1.5 py-0.5 rounded-[5px] text-[11px] sm:text-xs font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5';
             badge.dataset.movieId = mIdStr;
-            badge.innerHTML = `<svg class="w-3 h-3 2xl:w-3.5 2xl:h-3.5 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg><span class="poster-rating-val">${rating}</span>`;
+            badge.innerHTML = `<span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] sm:text-xs leading-none tracking-tight">${rating}</span>`;
             cardInner.appendChild(badge);
           }
         });
@@ -6321,8 +6321,8 @@
                 ${mPoster ? `<img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
                 <div class="glare"></div>
               </div>
-              ${isCurrentMovie ? `<div class="absolute top-2.5 right-2.5 bg-blue-600/95 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold text-white border border-blue-400/30 shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-20 uppercase tracking-wider">Viewing</div>` : (recRating ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg><span class="poster-rating-val">${recRating}</span></div>` : '')}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-full text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${isCurrentMovie ? `<div class="absolute top-2.5 right-2.5 bg-blue-600/95 px-2 py-0.5 rounded-[5px] text-[10px] font-extrabold text-white border border-blue-400/30 shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-20 uppercase tracking-wider">Viewing</div>` : (recRating ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/80 backdrop-blur-md px-1.5 py-0.5 rounded-[5px] text-[11px] font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] leading-none tracking-tight">${recRating}</span></div>` : '')}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-[5px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         }).join('');
@@ -6359,8 +6359,8 @@
                 <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">
                 <div class="glare"></div>
               </div>
-              ${recRating ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg><span class="poster-rating-val">${recRating}</span></div>` : ''}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-full text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${recRating ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/80 backdrop-blur-md px-1.5 py-0.5 rounded-[5px] text-[11px] font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] leading-none tracking-tight">${recRating}</span></div>` : ''}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-[5px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         }).join('');
@@ -8164,16 +8164,16 @@
       const posterRating = getCachedRating(movieObj);
       if (posterRating) {
         const badge = document.createElement('div');
-        badge.className = 'poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 2xl:px-3 2xl:py-1 rounded-full text-[11px] sm:text-xs 2xl:text-sm font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5';
+        badge.className = 'poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/80 backdrop-blur-md px-1.5 py-0.5 rounded-[5px] text-[11px] sm:text-xs font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5';
         badge.dataset.movieId = movieObj.id;
         if (movieObj.imdbId) badge.dataset.imdbId = movieObj.imdbId;
-        badge.innerHTML = `<svg class="w-3 h-3 2xl:w-3.5 2xl:h-3.5 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg><span class="poster-rating-val">${posterRating}</span>`;
+        badge.innerHTML = `<span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] sm:text-xs leading-none tracking-tight">${posterRating}</span>`;
         a.appendChild(badge);
       }
 
       if (movieObj.vpnInfo) {
         const vpnBadge = document.createElement('div');
-        vpnBadge.className = 'poster-badge-glass absolute top-2.5 left-2.5 bg-[#091e42]/75 px-2.5 py-0.5 2xl:px-3 2xl:py-1 rounded-full text-[10px] 2xl:text-xs font-extrabold text-blue-300 border border-blue-400/30 shadow-md flex items-center gap-1.5 z-20 uppercase tracking-wider';
+        vpnBadge.className = 'poster-badge-glass absolute top-2.5 left-2.5 bg-[#091e42]/85 backdrop-blur-md px-2 py-0.5 rounded-[5px] text-[10px] sm:text-[11px] font-extrabold text-blue-300 border border-blue-400/30 shadow-md flex items-center gap-1.5 z-20 uppercase tracking-wider';
         vpnBadge.title = `Requires switching your VPN to ${REGION_META[movieObj.vpnInfo.region].name}`;
         vpnBadge.innerHTML = `${REGION_META[movieObj.vpnInfo.region].flag} VPN`;
         a.appendChild(vpnBadge);
@@ -9786,7 +9786,7 @@
           const subtext = `${mYear ? mYear : ''}${mediaBadge}${roleStr ? ' · ' + roleStr : ''}`;
           const filmRating = getCachedRating(m);
           const actorRatingHtml = filmRating
-            ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-extrabold text-white border border-white/15 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><svg class="w-3 h-3 text-amber-400 fill-current shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg><span class="poster-rating-val">${filmRating}</span></div>`
+            ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/80 backdrop-blur-md px-1.5 py-0.5 rounded-[5px] text-[10px] sm:text-xs font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[10px] sm:text-xs leading-none tracking-tight">${filmRating}</span></div>`
             : '';
           filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '', '${m.mediaType || 'movie'}')` : `handleActorFilmClick(${m.id}, '', ${!isModal}, '${m.mediaType || 'movie'}')`}">
             <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 h-full" data-movie-card-id="${m.id}">
