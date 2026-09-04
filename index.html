@@ -4656,15 +4656,15 @@
         const isCustom = cur && cur !== 'all';
         const ratingOptions = [
           { value: 'all', label: 'Any Rating', icon: '🌟' },
-          { value: '6', label: '6.0+ Rated', icon: '⭐' },
-          { value: '7', label: '7.0+ Rated', icon: '⭐' },
-          { value: '8', label: '8.0+ Rated', icon: '⭐' },
-          { value: '8.5', label: '8.5+ Rated', icon: '⭐' }
+          { value: '6', label: 'IMDb 6.0+', icon: '⭐' },
+          { value: '7', label: 'IMDb 7.0+', icon: '⭐' },
+          { value: '8', label: 'IMDb 8.0+', icon: '⭐' },
+          { value: '8.5', label: 'IMDb 8.5+', icon: '⭐' }
         ];
         const selected = ratingOptions.find(r => r.value === cur) || ratingOptions[0];
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum Rating</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum IMDb Rating</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -5237,11 +5237,12 @@
         } else {
           const fallback = badge.dataset.fallbackTmdb;
           if (fallback) {
-            badge.className = 'modal-rating-badge poster-badge-glass bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-extrabold text-white border border-white/15 shadow-md inline-flex items-center gap-1.5 shrink-0';
+            badge.className = 'modal-rating-badge inline-flex items-center gap-1.5 shrink-0';
             badge.title = `TMDB Rating: ${fallback}/10`;
-            badge.innerHTML = `<span class="bg-blue-600/80 text-white px-1.5 py-0.5 rounded text-[9px] font-bold tracking-tight shrink-0 select-none">TMDB</span><svg class="w-3 h-3 text-amber-400 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${fallback}`;
+            badge.innerHTML = `<span class="bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded-[3px] text-[9px] sm:text-[10px] leading-none select-none tracking-tight">TMDB</span><span class="font-extrabold text-white text-sm sm:text-base tracking-tight">${fallback}</span>`;
           } else {
             badge.remove();
+            document.querySelectorAll('.rating-sep').forEach(s => s.remove());
           }
         }
       });
@@ -5948,12 +5949,12 @@
       const cachedImdbRating = imdbId ? imdbRatingCache.get(imdbId) : null;
       let modalRatingBadgeHtml = '';
       if (cachedImdbRating) {
-        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge poster-badge-glass bg-[#030712]/80 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-extrabold text-white border border-amber-400/30 shadow-md inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" title="IMDb Rating: ${cachedImdbRating}/10"><span class="bg-[#f5c518] text-black px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-black tracking-tight leading-none shrink-0 select-none">IMDb</span><span class="imdb-rating-num font-extrabold text-amber-300">${cachedImdbRating}</span></div>`;
+        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" title="IMDb Rating: ${cachedImdbRating}/10"><span class="bg-[#F5C518] text-black font-black px-1.5 py-0.5 rounded-[3px] text-[10px] sm:text-[11px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">${cachedImdbRating}</span></div>`;
       } else if (imdbId) {
-        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge poster-badge-glass bg-[#030712]/80 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-extrabold text-white border border-amber-400/30 shadow-md inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" data-fallback-tmdb="${tmdbRating || ''}" title="Loading IMDb rating..."><span class="bg-[#f5c518] text-black px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-black tracking-tight leading-none shrink-0 select-none">IMDb</span><span class="imdb-rating-num font-extrabold text-amber-300 animate-pulse">...</span></div>`;
+        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" data-fallback-tmdb="${tmdbRating || ''}" title="Loading IMDb rating..."><span class="bg-[#F5C518] text-black font-black px-1.5 py-0.5 rounded-[3px] text-[10px] sm:text-[11px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none animate-pulse">...</span></div>`;
         setTimeout(() => { resolveImdbRatingBadges(imdbId, isTvMedia); }, 0);
       } else if (tmdbRating) {
-        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge poster-badge-glass bg-[#030712]/70 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-extrabold text-white border border-white/15 shadow-md inline-flex items-center gap-1.5 shrink-0" title="TMDB Rating: ${tmdbRating}/10"><span class="bg-blue-600/80 text-white px-1.5 py-0.5 rounded text-[9px] font-bold tracking-tight shrink-0 select-none">TMDB</span><svg class="w-3 h-3 text-amber-400 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 1.5l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.3l-5.4 2.9 1.1-6-4.5-4.4 6.1-.8z"/></svg>${tmdbRating}</div>`;
+        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge inline-flex items-center gap-1.5 shrink-0" title="TMDB Rating: ${tmdbRating}/10"><span class="bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded-[3px] text-[9px] sm:text-[10px] leading-none select-none tracking-tight">TMDB</span><span class="font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">${tmdbRating}</span></div>`;
       }
 
       const requestId = movieObj.id;
@@ -6194,6 +6195,7 @@
                     <!-- Rating, Year, Runtime & Genres (Single unbroken row) -->
                     <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg 2xl:text-xl font-bold text-gray-200 whitespace-nowrap overflow-hidden max-w-full">
                       ${modalRatingBadgeHtml}
+                      ${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}
                       <span class="text-white font-extrabold shrink-0">${year}</span>
                       ${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}
                       ${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}
@@ -6211,7 +6213,7 @@
               <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
                 <div class="w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl min-w-0 flex flex-col items-center lg:items-start mx-auto lg:mx-0">
                   ${pageTitleHeaderHtml}
-                  <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg 2xl:text-xl font-bold text-gray-200 mt-2 whitespace-nowrap overflow-hidden max-w-full">${modalRatingBadgeHtml}<span class="text-white font-extrabold shrink-0">${year}</span>${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}</div>
+                  <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg 2xl:text-xl font-bold text-gray-200 mt-2 whitespace-nowrap overflow-hidden max-w-full">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold shrink-0">${year}</span>${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}</div>
                   <div class="mt-3 w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
                 </div>
                 <div class="hidden lg:flex items-center gap-2.5 sm:gap-3 pointer-events-auto shrink-0">${pageTrailerBtnHtml}${soundBtnInlineHtml ? soundBtnInlineHtml.replace('sm:hidden', '') : ''}</div>
@@ -6258,7 +6260,7 @@
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
       const modalMobilePoster = getTextlessPosterUrl(details, movieObj.poster);
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] via-15% via-[#0b1121]/80 via-40% via-[#0b1121]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-7 sm:gap-9 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-white font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div>${overviewHtml}</div><div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div><div id="modalWatchOptionsBox" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5">${renderMovieWatchOptionsBox(movieObj, details, false, true)}</div></div>${castCrewHtml}${relatedHtml}${similarHtml}</div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div><p id="moviePageVpnFootnote" class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto hidden">*Some streaming services may detect or restrict VPN connections</p></div></div>`;
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] via-15% via-[#0b1121]/80 via-40% via-[#0b1121]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-7 sm:gap-9 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-white font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div>${overviewHtml}</div><div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div><div id="modalWatchOptionsBox" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5">${renderMovieWatchOptionsBox(movieObj, details, false, true)}</div></div>${castCrewHtml}${relatedHtml}${similarHtml}</div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div><p id="moviePageVpnFootnote" class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto hidden">*Some streaming services may detect or restrict VPN connections</p></div></div>`;
     }
 
     function getShortText(text, limit = 195) {
@@ -7882,11 +7884,21 @@
     }
 
     function getRatingInfo(movieObj) {
+      if (!movieObj) return { rating: null, label: 'IMDb', source: 'imdb' };
+      const imdbId = movieObj.imdbId || movieObj.imdb_id;
+      if (imdbId && imdbRatingCache.has(imdbId)) {
+        return { rating: imdbRatingCache.get(imdbId), label: 'IMDb', source: 'imdb' };
+      }
       const rating = getTmdbRating(movieObj);
-      return { rating, label: 'TMDB', source: 'tmdb' };
+      return { rating, label: 'IMDb', source: 'imdb' };
     }
 
     function getCachedRating(movieObj) {
+      if (!movieObj) return null;
+      const imdbId = movieObj.imdbId || movieObj.imdb_id;
+      if (imdbId && imdbRatingCache.has(imdbId)) {
+        return imdbRatingCache.get(imdbId);
+      }
       return getTmdbRating(movieObj);
     }
 
@@ -9056,7 +9068,7 @@
                 if (myScanSessionId !== activeScanSessionId || cancelRequested || !best) return;
                 if (!best) return;
                 const mediaType = best.__mediaType === 'tv' ? 'tv' : 'movie';
-                const pUrl = `https://api.themoviedb.org/3/${mediaType}/${best.id}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`;
+                const pUrl = `https://api.themoviedb.org/3/${mediaType}/${best.id}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers,external_ids`;
                 const pRes = await fetch(pUrl);
                 const pData = await pRes.json().catch(() => ({}));
                 if (pData && pData.id) {
@@ -9106,7 +9118,8 @@
                   genreIds: (pData.genres && pData.genres.length > 0) ? pData.genres.map(g => g.id) : (best.genre_ids || []),
                   url: (optimizedProviders[currentRegion] && optimizedProviders[currentRegion].link) ? optimizedProviders[currentRegion].link : `https://www.themoviedb.org/${mediaType}/${best.id}`,
                   allProviders: optimizedProviders,
-                  slug: filmSlug
+                  slug: filmSlug,
+                  imdbId: pData.external_ids?.imdb_id || null
                 });
                 if (filmSlug && best.id) {
                   registerSlug(filmSlug, best.id, mediaType === 'tv' ? 'series' : 'film');
