@@ -5153,7 +5153,10 @@
     async function getFullMovieDetails(movieId, mediaType = 'movie') {
       const cacheKey = `${mediaType}_${movieId}`;
       if (movieDetailsCache.has(cacheKey)) {
-        return movieDetailsCache.get(cacheKey);
+        const cached = movieDetailsCache.get(cacheKey);
+        if (cached && (cached.credits || cached.aggregate_credits) && (cached.recommendations || cached.similar)) {
+          return cached;
+        }
       }
       const appendParams = mediaType === 'tv'
         ? 'credits,aggregate_credits,videos,external_ids,recommendations,similar,watch/providers,images'
@@ -5272,6 +5275,11 @@
     function updatePosterRatingBadgeInDom(movieId, rating) {
       if (!movieId || !rating) return;
       const mIdStr = String(movieId);
+      const fastBadge = document.getElementById(`poster-rating-${mIdStr}`);
+      if (fastBadge) {
+        const valEl = fastBadge.querySelector('.poster-rating-val');
+        if (valEl) { valEl.textContent = rating; return; }
+      }
       const badges = document.querySelectorAll(`.poster-rating-badge[data-movie-id="${mIdStr}"]`);
       if (badges.length > 0) {
         badges.forEach(b => {
@@ -5283,16 +5291,15 @@
           }
         });
       } else {
-        const cards = document.querySelectorAll(`[data-movie-card-id="${mIdStr}"]`);
-        cards.forEach(cardInner => {
-          if (!cardInner.querySelector('.poster-rating-badge')) {
-            const badge = document.createElement('div');
-            badge.className = 'poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/80 backdrop-blur-md px-1.5 py-0.5 rounded-[5px] text-[11px] sm:text-xs font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5';
-            badge.dataset.movieId = mIdStr;
-            badge.innerHTML = `<span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] sm:text-xs leading-none tracking-tight">${rating}</span>`;
-            cardInner.appendChild(badge);
-          }
-        });
+        const card = document.querySelector(`[data-movie-card-id="${mIdStr}"]`);
+        if (card && !card.querySelector('.poster-rating-badge')) {
+          const badge = document.createElement('div');
+          badge.id = `poster-rating-${mIdStr}`;
+          badge.className = 'poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/92 px-1.5 py-0.5 rounded-[5px] text-[11px] sm:text-xs font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5';
+          badge.dataset.movieId = mIdStr;
+          badge.innerHTML = `<span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] sm:text-xs leading-none tracking-tight">${rating}</span>`;
+          card.appendChild(badge);
+        }
       }
     }
 
@@ -5302,7 +5309,7 @@
       debouncedApplyFiltersTimer = setTimeout(() => {
         debouncedApplyFiltersTimer = null;
         try { applyFiltersAndRender(); } catch (e) { }
-      }, 80);
+      }, 150);
     }
 
     let debouncedRefreshActorGridTimer = null;
@@ -5311,7 +5318,7 @@
       debouncedRefreshActorGridTimer = setTimeout(() => {
         debouncedRefreshActorGridTimer = null;
         try { refreshActorFilmographyGrid(); } catch (e) { }
-      }, 80);
+      }, 150);
     }
 
     let isSyncingWatchlistRatings = false;
@@ -5338,33 +5345,24 @@
           }
         }
 
-        const missingImdbId = movies.filter(m => !m.imdbId && !m.imdb_id);
-        for (let i = 0; i < missingImdbId.length; i += 10) {
-          const batch = missingImdbId.slice(i, i + 10);
-          await Promise.all(batch.map(async (m) => {
-            try {
-              const mediaType = m.mediaType === 'tv' ? 'tv' : 'movie';
-              const cached = movieDetailsCache.get(`${mediaType}_${m.id}`);
-              if (cached?.external_ids?.imdb_id) {
-                m.imdbId = cached.external_ids.imdb_id;
-                return;
-              }
-              const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${m.id}/external_ids?api_key=${TMDB_API_KEY}`);
-              const data = await res.json().catch(() => ({}));
-              if (data?.imdb_id) {
-                m.imdbId = data.imdb_id;
-              }
-            } catch (e) { }
-          }));
-          await new Promise(r => setTimeout(r, 40));
-        }
-
         const needingRating = movies.filter(m => {
           const iId = m.imdbId || m.imdb_id;
           return iId && !imdbRatingCache.has(iId);
         });
 
-        const CHUNK_SIZE = 12;
+        if (needingRating.length === 0) return;
+
+        // Prioritize currently visible cards first for instant responsiveness
+        const visibleList = (currentGroupedResults && currentGroupedResults[activeTab]) ? currentGroupedResults[activeTab] : movies.slice(0, 24);
+        const visibleIds = new Set(visibleList.map(m => m.id));
+        needingRating.sort((a, b) => {
+          const aVis = visibleIds.has(a.id) ? 0 : 1;
+          const bVis = visibleIds.has(b.id) ? 0 : 1;
+          return aVis - bVis;
+        });
+
+        const CHUNK_SIZE = 6;
+        let anyNewSynced = false;
         for (let i = 0; i < needingRating.length; i += CHUNK_SIZE) {
           const chunk = needingRating.slice(i, i + CHUNK_SIZE);
           let chunkHasNewRatings = false;
@@ -5378,6 +5376,7 @@
                 m.imdbRating = r;
                 m.rating = r;
                 chunkHasNewRatings = true;
+                anyNewSynced = true;
                 updatePosterRatingBadgeInDom(m.id, r);
               }
             } catch (e) { }
@@ -5385,15 +5384,18 @@
 
           if (chunkHasNewRatings) {
             saveImdbRatingCache();
-            if ((window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterSort === 'rating_desc')) {
-              debouncedApplyFilters();
-            }
           }
-          await new Promise(r => setTimeout(r, 40));
+          // Non-blocking gentle pause so the main thread & scrolling stay butter smooth
+          await new Promise(r => setTimeout(r, 100));
         }
 
-        saveScanToStorage(movies, isFriendMatchActive);
-        updateStats();
+        if (anyNewSynced) {
+          saveScanToStorage(movies, isFriendMatchActive);
+          updateStats();
+          if ((window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterSort === 'rating_desc')) {
+            debouncedApplyFilters();
+          }
+        }
       } catch (err) {
         console.warn('[Sync Watchlist IMDb Ratings Error]', err);
       } finally {
@@ -6321,8 +6323,8 @@
                 ${mPoster ? `<img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
                 <div class="glare"></div>
               </div>
-              ${isCurrentMovie ? `<div class="absolute top-2.5 right-2.5 bg-blue-600/95 px-2 py-0.5 rounded-[5px] text-[10px] font-extrabold text-white border border-blue-400/30 shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-20 uppercase tracking-wider">Viewing</div>` : (recRating ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/80 backdrop-blur-md px-1.5 py-0.5 rounded-[5px] text-[11px] font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] leading-none tracking-tight">${recRating}</span></div>` : '')}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-[5px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${isCurrentMovie ? `<div class="absolute top-2.5 right-2.5 bg-blue-600/95 px-2 py-0.5 rounded-[5px] text-[10px] font-extrabold text-white border border-blue-400/30 shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-20 uppercase tracking-wider">Viewing</div>` : (recRating ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/92 px-1.5 py-0.5 rounded-[5px] text-[11px] font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] leading-none tracking-tight">${recRating}</span></div>` : '')}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/92 w-7.5 h-7.5 rounded-[5px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         }).join('');
@@ -6359,8 +6361,8 @@
                 <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">
                 <div class="glare"></div>
               </div>
-              ${recRating ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/80 backdrop-blur-md px-1.5 py-0.5 rounded-[5px] text-[11px] font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] leading-none tracking-tight">${recRating}</span></div>` : ''}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/70 w-7.5 h-7.5 rounded-[5px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${recRating ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/92 px-1.5 py-0.5 rounded-[5px] text-[11px] font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] leading-none tracking-tight">${recRating}</span></div>` : ''}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/92 w-7.5 h-7.5 rounded-[5px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         }).join('');
@@ -8164,7 +8166,8 @@
       const posterRating = getCachedRating(movieObj);
       if (posterRating) {
         const badge = document.createElement('div');
-        badge.className = 'poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/80 backdrop-blur-md px-1.5 py-0.5 rounded-[5px] text-[11px] sm:text-xs font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5';
+        badge.id = `poster-rating-${movieObj.id}`;
+        badge.className = 'poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/92 px-1.5 py-0.5 rounded-[5px] text-[11px] sm:text-xs font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5';
         badge.dataset.movieId = movieObj.id;
         if (movieObj.imdbId) badge.dataset.imdbId = movieObj.imdbId;
         badge.innerHTML = `<span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[11px] sm:text-xs leading-none tracking-tight">${posterRating}</span>`;
@@ -8173,7 +8176,7 @@
 
       if (movieObj.vpnInfo) {
         const vpnBadge = document.createElement('div');
-        vpnBadge.className = 'poster-badge-glass absolute top-2.5 left-2.5 bg-[#091e42]/85 backdrop-blur-md px-2 py-0.5 rounded-[5px] text-[10px] sm:text-[11px] font-extrabold text-blue-300 border border-blue-400/30 shadow-md flex items-center gap-1.5 z-20 uppercase tracking-wider';
+        vpnBadge.className = 'poster-badge-glass absolute top-2.5 left-2.5 bg-[#091e42]/92 px-2 py-0.5 rounded-[5px] text-[10px] sm:text-[11px] font-extrabold text-blue-300 border border-blue-400/30 shadow-md flex items-center gap-1.5 z-20 uppercase tracking-wider';
         vpnBadge.title = `Requires switching your VPN to ${REGION_META[movieObj.vpnInfo.region].name}`;
         vpnBadge.innerHTML = `${REGION_META[movieObj.vpnInfo.region].flag} VPN`;
         a.appendChild(vpnBadge);
@@ -9312,7 +9315,10 @@
                 const pRes = await fetch(pUrl);
                 const pData = await pRes.json().catch(() => ({}));
                 if (pData && pData.id) {
-                  movieDetailsCache.set(`${mediaType}_${best.id}`, pData);
+                  const existing = movieDetailsCache.get(`${mediaType}_${best.id}`);
+                  if (!existing || (!existing.credits && !existing.aggregate_credits)) {
+                    movieDetailsCache.set(`${mediaType}_${best.id}`, pData);
+                  }
                 }
                 const provResults = pData['watch/providers']?.results || pData.results || {};
                 const filterAndDeduplicateProvidersScan = (list, isRentBuy = false) => {
@@ -9786,7 +9792,7 @@
           const subtext = `${mYear ? mYear : ''}${mediaBadge}${roleStr ? ' · ' + roleStr : ''}`;
           const filmRating = getCachedRating(m);
           const actorRatingHtml = filmRating
-            ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/80 backdrop-blur-md px-1.5 py-0.5 rounded-[5px] text-[10px] sm:text-xs font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[10px] sm:text-xs leading-none tracking-tight">${filmRating}</span></div>`
+            ? `<div class="poster-badge-glass poster-rating-badge absolute top-2.5 right-2.5 bg-[#030712]/92 px-1.5 py-0.5 rounded-[5px] text-[10px] sm:text-xs font-black text-white border border-white/10 shadow-md z-20 flex items-center gap-1.5" data-movie-id="${m.id}"><span class="bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="poster-rating-val font-black text-white text-[10px] sm:text-xs leading-none tracking-tight">${filmRating}</span></div>`
             : '';
           filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '', '${m.mediaType || 'movie'}')` : `handleActorFilmClick(${m.id}, '', ${!isModal}, '${m.mediaType || 'movie'}')`}">
             <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 h-full" data-movie-card-id="${m.id}">
@@ -10286,7 +10292,10 @@
               const pRes = await fetch(pUrl);
               pData = await pRes.json().catch(() => ({}));
               if (pData && pData.id) {
-                movieDetailsCache.set(`${mediaType}_${m.id}`, pData);
+                const existing = movieDetailsCache.get(`${mediaType}_${m.id}`);
+                if (!existing || (!existing.credits && !existing.aggregate_credits)) {
+                  movieDetailsCache.set(`${mediaType}_${m.id}`, pData);
+                }
               }
             }
             if (pData) {
