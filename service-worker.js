@@ -1,5 +1,5 @@
 // Bump this any time you change index.html — old caches get wiped automatically.
-const CACHE_NAME = "private-screening-v20";
+const CACHE_NAME = "private-screening-v21";
 const FILES_TO_CACHE = [
   "/",
   "/index.html",
@@ -13,7 +13,8 @@ const FILES_TO_CACHE = [
   "/icons/svtplay.png",
   "/icons/tv4play.png",
   "/icons/skyshowtime.png",
-  "/icons/discoveryplus.png"
+  "/icons/discoveryplus.png",
+  "/icons/tmdb.png"
 ];
 
 self.addEventListener("install", event => {
