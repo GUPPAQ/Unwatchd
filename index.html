@@ -2049,7 +2049,7 @@
           <div class="flex-1 relative flex items-center">
             <input id="quickSearchInput" type="text" autocomplete="off" spellcheck="false"
               placeholder="Search films, TV shows, actors, directors..."
-              class="w-full h-full bg-transparent pl-4 sm:pl-5 pr-10 py-4 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500" />
+              class="w-full h-full bg-transparent pl-4 sm:pl-5 pr-10 py-4 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 truncate" />
             <div class="absolute right-3 flex items-center">
               <span class="kbd-hint pointer-events-none">⌘K</span>
               <button id="clearSearchBtn" class="hidden ml-2 text-gray-500 hover:text-white transition-colors">
@@ -2219,8 +2219,8 @@
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
               <input id="resultsSearch" type="text" autocomplete="off" spellcheck="false"
-                placeholder="Filter by title..."
-                class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
+                placeholder="Search..."
+                class="w-full bg-transparent pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors truncate">
               <button id="clearResultsBtn"
                 class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4938,6 +4938,17 @@
 
     if (el.filterSearch) { el.filterSearch.addEventListener('input', (e) => { if (el.clearResultsBtn) el.clearResultsBtn.classList.toggle('hidden', e.target.value.trim().length === 0); currentPage = 1; applyFiltersAndRender(); }); }
     if (el.clearResultsBtn) { el.clearResultsBtn.addEventListener('click', () => { if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden'); currentPage = 1; applyFiltersAndRender(); if (el.filterSearch) el.filterSearch.focus(); }); }
+    function updateSearchPlaceholders() {
+      const isMobile = window.innerWidth < 640;
+      const ph = isMobile ? 'Search...' : 'Filter by title...';
+      if (el.filterSearch) el.filterSearch.placeholder = ph;
+      const aSearch = document.getElementById('actorFilmSearch');
+      if (aSearch) aSearch.placeholder = ph;
+      const qSearch = document.getElementById('quickSearchInput');
+      if (qSearch) qSearch.placeholder = isMobile ? 'Search films, shows...' : 'Search films, TV shows, actors, directors...';
+    }
+    updateSearchPlaceholders();
+    window.addEventListener('resize', updateSearchPlaceholders);
     function syncFilterLabel(sel) {
       const labelMap = { resultsSort: 'sortLabel', resultsGenre: 'genreLabel', resultsDecade: 'decadeLabel', resultsRuntime: 'runtimeLabel' };
       const labelId = labelMap[sel.id];
@@ -6426,7 +6437,7 @@
       const letterboxdBtn = `<a href="https://letterboxd.com/tmdb/${movieObj.id}" target="_blank" title="Letterboxd" aria-label="Letterboxd" class="${actionBtnClass}"><img src="./icons/letterboxd.png" alt="Letterboxd" class="w-full h-full object-cover"></a>`;
       const imdbBtn = imdbId ? `<a href="https://www.imdb.com/title/${escapeHTML(imdbId)}/" target="_blank" title="IMDb" aria-label="IMDb" class="${actionBtnClass}"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full object-cover"></a>` : '';
       const tmdbMediaType = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
-      const tmdbBtn = `<a href="https://www.themoviedb.org/${tmdbMediaType}/${movieObj.id}" target="_blank" title="TMDB" aria-label="TMDB" class="${actionBtnClass}"><img src="./icons/tmdb.png" alt="TMDB" class="w-full h-full object-cover"></a>`;
+      const tmdbBtn = `<a href="https://www.themoviedb.org/${tmdbMediaType}/${movieObj.id}" target="_blank" title="TMDB" aria-label="TMDB" class="${actionBtnClass} lg:hidden"><img src="./icons/tmdb.png" alt="TMDB" class="w-full h-full object-cover"></a>`;
       const instaBtn = extIds.instagram_id ? `<a href="https://instagram.com/${escapeHTML(extIds.instagram_id)}" target="_blank" title="Instagram" aria-label="Instagram" class="${actionBtnClass}"><img src="./icons/instagram.png" alt="Instagram" class="w-full h-full object-cover"></a>` : '';
       const twitterBtn = extIds.twitter_id ? `<a href="https://x.com/${escapeHTML(extIds.twitter_id)}" target="_blank" title="X (Twitter)" aria-label="X (Twitter)" class="${actionBtnClass}"><img src="./icons/x.png" alt="X" class="w-full h-full object-cover"></a>` : '';
       const tiktokBtn = extIds.tiktok_id ? `<a href="https://tiktok.com/@${escapeHTML(extIds.tiktok_id.replace(/^@/, ''))}" target="_blank" title="TikTok" aria-label="TikTok" class="${actionBtnClass}"><img src="./icons/tiktok.png" alt="TikTok" class="w-full h-full object-cover"></a>` : '';
@@ -10204,7 +10215,7 @@
       const extIds = person.external_ids || {};
       const letterboxdBtn = lbSlug ? `<a href="https://letterboxd.com/actor/${escapeHTML(lbSlug)}/" target="_blank" title="Letterboxd" aria-label="Letterboxd" class="${actionBtnClass}"><img src="./icons/letterboxd.png" alt="Letterboxd" class="w-full h-full object-cover"></a>` : '';
       const imdbBtn = imdbId ? `<a href="https://www.imdb.com/name/${escapeHTML(imdbId)}/" target="_blank" title="IMDb" aria-label="IMDb" class="${actionBtnClass}"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full object-cover"></a>` : '';
-      const tmdbBtn = `<a href="https://www.themoviedb.org/person/${tmdbId}" target="_blank" title="TMDB" aria-label="TMDB" class="${actionBtnClass}"><img src="./icons/tmdb.png" alt="TMDB" class="w-full h-full object-cover"></a>`;
+      const tmdbBtn = `<a href="https://www.themoviedb.org/person/${tmdbId}" target="_blank" title="TMDB" aria-label="TMDB" class="${actionBtnClass} lg:hidden"><img src="./icons/tmdb.png" alt="TMDB" class="w-full h-full object-cover"></a>`;
       const instaBtn = extIds.instagram_id ? `<a href="https://instagram.com/${escapeHTML(extIds.instagram_id)}" target="_blank" title="Instagram" aria-label="Instagram" class="${actionBtnClass}"><img src="./icons/instagram.png" alt="Instagram" class="w-full h-full object-cover"></a>` : '';
       const twitterBtn = extIds.twitter_id ? `<a href="https://x.com/${escapeHTML(extIds.twitter_id)}" target="_blank" title="X (Twitter)" aria-label="X (Twitter)" class="${actionBtnClass}"><img src="./icons/x.png" alt="X" class="w-full h-full object-cover"></a>` : '';
       const tiktokBtn = extIds.tiktok_id ? `<a href="https://tiktok.com/@${escapeHTML(extIds.tiktok_id.replace(/^@/, ''))}" target="_blank" title="TikTok" aria-label="TikTok" class="${actionBtnClass}"><img src="./icons/tiktok.png" alt="TikTok" class="w-full h-full object-cover"></a>` : '';
@@ -10284,6 +10295,7 @@
         : '';
 
       const desktopBackdropImg = knownForBackdrop || profileImg;
+      const filterPlaceholder = (typeof window !== 'undefined' && window.innerWidth < 640) ? 'Search...' : 'Filter by title...';
 
       const actorControlsHtml = `
         <div class="relative w-full z-50" id="actorControlsCard">
@@ -10296,7 +10308,7 @@
               <div class="flex items-center gap-2 w-full">
                 <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
                   <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                  <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title..." value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
+                  <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="${filterPlaceholder}" value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors truncate">
                   ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                 </div>
 
