@@ -159,12 +159,6 @@
         margin-left: 8px;
       }
     }
-    .drawer-chevron {
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .drawer-btn.is-active .drawer-chevron {
-      transform: rotate(180deg);
-    }
     .drawer-btn.is-active {
       background: rgba(255, 255, 255, 0.16) !important;
       border-color: rgba(255, 255, 255, 0.3) !important;
@@ -6521,12 +6515,9 @@
         }));
         socialsDrawerHtml = `
           <div class="relative flex items-center shrink-0">
-            <button type="button" onclick="toggleSocialsDrawer(this)" data-socials="${socialsPayload}" class="${btnClass} text-gray-300 hover:text-white drawer-btn gap-0.5 sm:gap-1" title="Official Socials" aria-label="Official Socials">
-              <svg class="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button type="button" onclick="toggleSocialsDrawer(this)" data-socials="${socialsPayload}" class="${btnClass} text-gray-300 hover:text-white drawer-btn" title="Official Socials" aria-label="Official Socials">
+              <svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 sm:w-5 sm:h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-              </svg>
-              <svg class="w-2.5 h-2.5 min-[360px]:w-3 min-[360px]:h-3 text-gray-400 drawer-chevron shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
               </svg>
             </button>
             <div class="social-drawer hidden sm:flex">
@@ -10410,12 +10401,9 @@
         }));
         socialsDrawerHtml = `
           <div class="relative flex items-center shrink-0">
-            <button type="button" onclick="toggleSocialsDrawer(this)" data-socials="${socialsPayload}" class="${btnClass} text-gray-300 hover:text-white drawer-btn gap-0.5 sm:gap-1" title="Official Socials" aria-label="Official Socials">
-              <svg class="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button type="button" onclick="toggleSocialsDrawer(this)" data-socials="${socialsPayload}" class="${btnClass} text-gray-300 hover:text-white drawer-btn" title="Official Socials" aria-label="Official Socials">
+              <svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 sm:w-5 sm:h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-              </svg>
-              <svg class="w-2.5 h-2.5 min-[360px]:w-3 min-[360px]:h-3 text-gray-400 drawer-chevron shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
               </svg>
             </button>
             <div class="social-drawer hidden sm:flex">
