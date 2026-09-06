@@ -139,6 +139,56 @@
       overscroll-behavior: none !important;
     }
 
+    /* Socials Sideways Drawer (Desktop) */
+    .social-drawer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 0;
+      opacity: 0;
+      overflow: hidden;
+      pointer-events: none;
+      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out, margin 0.3s ease-out;
+      margin-left: 0;
+    }
+    @media (min-width: 640px) {
+      .social-drawer.is-open {
+        max-width: 280px;
+        opacity: 1;
+        pointer-events: auto;
+        margin-left: 8px;
+      }
+    }
+    .drawer-btn .drawer-chevron {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .drawer-btn.is-active .drawer-chevron {
+      transform: rotate(180deg);
+    }
+    .drawer-btn.is-active {
+      background: rgba(255, 255, 255, 0.14) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
+      color: #fff !important;
+    }
+
+    /* Mobile Social Bottom Sheet */
+    .mobile-sheet-backdrop {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease-out;
+    }
+    .mobile-sheet-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .mobile-sheet-panel {
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-sheet-backdrop.is-open .mobile-sheet-panel {
+      transform: translateY(0);
+    }
+
     @media (display-mode: standalone) {
       html {
         scrollbar-width: none;
@@ -2486,6 +2536,23 @@
           </div>
         </div>
       </footer>
+    </div>
+  </div>
+
+  <!-- MOBILE SOCIALS BOTTOM SHEET MODAL -->
+  <div id="mobileSocialSheet" class="mobile-sheet-backdrop fixed inset-0 z-[500] hidden bg-black/75 backdrop-blur-sm flex flex-col justify-end pointer-events-none" onclick="closeMobileSocialsSheet(event)">
+    <div class="mobile-sheet-panel bg-[#0d1527] border-t border-white/15 rounded-t-3xl p-5 pb-8 shadow-2xl max-w-lg mx-auto w-full pointer-events-auto" onclick="event.stopPropagation()">
+      <div class="w-10 h-1 bg-white/25 rounded-full mx-auto mb-4"></div>
+      <div class="flex items-center justify-between mb-4">
+        <div class="min-w-0 pr-3">
+          <h3 id="mobileSocialSheetTitle" class="text-base font-extrabold text-white truncate leading-tight">Official Links</h3>
+          <p id="mobileSocialSheetSubtitle" class="text-xs text-gray-400 font-medium truncate mt-0.5"></p>
+        </div>
+        <button type="button" onclick="closeMobileSocialsSheet()" aria-label="Close" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer active:scale-95 transition-all shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div id="mobileSocialSheetList" class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1"></div>
     </div>
   </div>
 
@@ -6439,10 +6506,36 @@
       const imdbBtn = imdbId ? `<a href="https://www.imdb.com/title/${escapeHTML(imdbId)}/" target="_blank" title="IMDb" aria-label="IMDb" class="${actionBtnClass}"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full object-cover"></a>` : '';
       const tmdbMediaType = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
       const tmdbBtn = `<a href="https://www.themoviedb.org/${tmdbMediaType}/${movieObj.id}" target="_blank" title="TMDB" aria-label="TMDB" class="${actionBtnClass} lg:hidden"><img src="./icons/tmdb.png" alt="TMDB" class="w-full h-full object-cover"></a>`;
-      const instaBtn = extIds.instagram_id ? `<a href="https://instagram.com/${escapeHTML(extIds.instagram_id)}" target="_blank" title="Instagram" aria-label="Instagram" class="${socialBtnClass}"><img src="./icons/instagram.png" alt="Instagram" class="w-full h-full object-cover"></a>` : '';
-      const twitterBtn = extIds.twitter_id ? `<a href="https://x.com/${escapeHTML(extIds.twitter_id)}" target="_blank" title="X (Twitter)" aria-label="X (Twitter)" class="${socialBtnClass}"><img src="./icons/x.png" alt="X" class="w-full h-full object-cover"></a>` : '';
-      const tiktokBtn = extIds.tiktok_id ? `<a href="https://tiktok.com/@${escapeHTML(extIds.tiktok_id.replace(/^@/, ''))}" target="_blank" title="TikTok" aria-label="TikTok" class="${socialBtnClass}"><img src="./icons/tiktok.png" alt="TikTok" class="w-full h-full object-cover"></a>` : '';
-      const facebookBtn = extIds.facebook_id ? `<a href="https://facebook.com/${escapeHTML(extIds.facebook_id)}" target="_blank" title="Facebook" aria-label="Facebook" class="${socialBtnClass}"><img src="./icons/facebook.png" alt="Facebook" class="w-full h-full object-cover"></a>` : '';
+      const socialsList = [];
+      if (extIds.instagram_id) socialsList.push({ name: 'Instagram', handle: '@' + extIds.instagram_id.replace(/^@/, ''), url: `https://instagram.com/${escapeHTML(extIds.instagram_id)}`, icon: './icons/instagram.png' });
+      if (extIds.twitter_id) socialsList.push({ name: 'X (Twitter)', handle: '@' + extIds.twitter_id.replace(/^@/, ''), url: `https://x.com/${escapeHTML(extIds.twitter_id)}`, icon: './icons/x.png' });
+      if (extIds.tiktok_id) socialsList.push({ name: 'TikTok', handle: '@' + extIds.tiktok_id.replace(/^@/, ''), url: `https://tiktok.com/@${escapeHTML(extIds.tiktok_id.replace(/^@/, ''))}`, icon: './icons/tiktok.png' });
+      if (extIds.facebook_id) socialsList.push({ name: 'Facebook', handle: extIds.facebook_id, url: `https://facebook.com/${escapeHTML(extIds.facebook_id)}`, icon: './icons/facebook.png' });
+
+      let socialsDrawerHtml = '';
+      if (socialsList.length > 0) {
+        const socialsPayload = escapeHTML(JSON.stringify({
+          title: safeTitle,
+          subtitle: year ? `${year}` : '',
+          socials: socialsList
+        }));
+        socialsDrawerHtml = `
+          <div class="relative flex items-center shrink-0">
+            <button type="button" onclick="toggleSocialsDrawer(this)" data-socials="${socialsPayload}" class="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-auto sm:h-12 sm:px-3 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 rounded-xl sm:rounded-2xl transition-all text-gray-300 hover:text-white shadow-sm shrink-0 cursor-pointer drawer-btn" title="Official Socials">
+              <svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 sm:w-4 sm:h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+              </svg>
+              <span class="text-xs font-bold text-gray-200 hidden sm:inline">Socials</span>
+              <svg class="w-3.5 h-3.5 drawer-chevron shrink-0 text-gray-400 hidden sm:inline transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+            <div class="social-drawer hidden sm:flex">
+              ${socialsList.map(s => `<a href="${s.url}" target="_blank" title="${s.name}" aria-label="${s.name}" class="${actionBtnClass} grayscale hover:grayscale-0"><img src="${s.icon}" alt="${s.name}" class="w-full h-full object-cover"></a>`).join('')}
+            </div>
+          </div>
+        `;
+      }
       const trailerHeaderBtn = bestTrailer
         ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${trailerBtnClass} cursor-pointer"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></button>`
         : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${trailerBtnClass}"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></a>`;
@@ -6450,11 +6543,10 @@
       const shareParam = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
       const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<svg class=\\'w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 text-green-400\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M5 13l4 4L19 7\\'/></svg>'; setTimeout(()=>t.innerHTML=old, 2000);" title="Copy Link" aria-label="Copy Link" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></button>`;
       const primaryFilmBtns = [trailerActionBtn, letterboxdBtn, imdbBtn, tmdbBtn].filter(Boolean);
-      const utilityBtns = [instaBtn, twitterBtn, tiktokBtn, facebookBtn, shareBtn].filter(Boolean);
-      const divider = (primaryFilmBtns.length > 0 && utilityBtns.length > 0)
+      const divider = (primaryFilmBtns.length > 0 && (socialsDrawerHtml || shareBtn))
         ? '<div class="w-px h-5 sm:h-6 bg-white/10 my-auto shrink-0 mx-0.5 sm:mx-1"></div>'
         : '';
-      const movieActionBtns = [...primaryFilmBtns, divider, ...utilityBtns].filter(Boolean);
+      const movieActionBtns = [...primaryFilmBtns, divider, socialsDrawerHtml, shareBtn].filter(Boolean);
       const movieActionBtnsHtml = `<div class="flex items-center justify-center lg:justify-start gap-1.5 min-[360px]:gap-2 sm:gap-3 flex-nowrap w-full lg:w-auto overflow-x-auto max-w-full no-scrollbar">${movieActionBtns.join('')}</div>`;
 
       const overviewHtml = createExpandableTextHtml(overview, 'movieOverviewText');
@@ -7874,6 +7966,87 @@
         }
       } catch (e) { console.warn('[Modal Detail Load]', e); content.innerHTML = `<div class="p-10 text-center text-red-400">Error loading details.</div>`; }
     }
+
+    function toggleSocialsDrawer(btn) {
+      const rawData = btn.getAttribute('data-socials');
+      let payload = null;
+      try { payload = JSON.parse(rawData); } catch(e) {}
+
+      if (window.innerWidth < 640) {
+        if (payload) {
+          openMobileSocialsSheet(payload.title, payload.subtitle, payload.socials);
+        }
+        return;
+      }
+
+      const container = btn.closest('.relative');
+      const drawer = container ? container.querySelector('.social-drawer') : null;
+      if (!drawer) return;
+
+      const isOpen = drawer.classList.contains('is-open');
+      document.querySelectorAll('.social-drawer.is-open').forEach(d => {
+        d.classList.remove('is-open');
+        const b = d.closest('.relative')?.querySelector('.drawer-btn');
+        if (b) b.classList.remove('is-active');
+      });
+
+      if (!isOpen) {
+        drawer.classList.add('is-open');
+        btn.classList.add('is-active');
+      }
+    }
+
+    function openMobileSocialsSheet(title, subtitle, socials) {
+      const modal = document.getElementById('mobileSocialSheet');
+      if (!modal) return;
+      const titleEl = document.getElementById('mobileSocialSheetTitle');
+      const subEl = document.getElementById('mobileSocialSheetSubtitle');
+      if (titleEl) titleEl.textContent = title ? `Official Links • ${title}` : 'Official Links';
+      if (subEl) subEl.textContent = subtitle || '';
+
+      const listEl = document.getElementById('mobileSocialSheetList');
+      if (listEl && Array.isArray(socials)) {
+        listEl.innerHTML = socials.map(s => `
+          <a href="${s.url}" target="_blank" class="flex items-center justify-between p-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.98] transition-all border border-white/5 group cursor-pointer">
+            <div class="flex items-center gap-3.5 min-w-0">
+              <img src="${s.icon}" alt="${escapeHTML(s.name)}" class="w-10 h-10 rounded-[22.5%] shrink-0 shadow-sm object-cover">
+              <div class="truncate">
+                <div class="text-sm font-bold text-white leading-tight group-hover:text-blue-400 transition-colors">${escapeHTML(s.name)}</div>
+                <div class="text-xs text-gray-400 font-medium truncate">${escapeHTML(s.handle || '')}</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-500 group-hover:text-gray-300 transition-colors shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </a>
+        `).join('');
+      }
+
+      modal.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        modal.classList.add('is-open');
+      });
+    }
+
+    function closeMobileSocialsSheet(e) {
+      if (e && e.target && e.target.id !== 'mobileSocialSheet' && !e.target.closest('button[aria-label="Close"]')) {
+        return;
+      }
+      const modal = document.getElementById('mobileSocialSheet');
+      if (!modal) return;
+      modal.classList.remove('is-open');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 280);
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.drawer-btn') && !e.target.closest('.social-drawer')) {
+        document.querySelectorAll('.social-drawer.is-open').forEach(d => {
+          d.classList.remove('is-open');
+          const b = d.closest('.relative')?.querySelector('.drawer-btn');
+          if (b) b.classList.remove('is-active');
+        });
+      }
+    });
 
     function openTrailerModal(videoKey, movieTitle) {
       document.body.classList.add('trailer-open');
@@ -10223,17 +10396,42 @@
       const letterboxdBtn = lbSlug ? `<a href="https://letterboxd.com/actor/${escapeHTML(lbSlug)}/" target="_blank" title="Letterboxd" aria-label="Letterboxd" class="${actionBtnClass}"><img src="./icons/letterboxd.png" alt="Letterboxd" class="w-full h-full object-cover"></a>` : '';
       const imdbBtn = imdbId ? `<a href="https://www.imdb.com/name/${escapeHTML(imdbId)}/" target="_blank" title="IMDb" aria-label="IMDb" class="${actionBtnClass}"><img src="./icons/imdb.png" alt="IMDb" class="w-full h-full object-cover"></a>` : '';
       const tmdbBtn = `<a href="https://www.themoviedb.org/person/${tmdbId}" target="_blank" title="TMDB" aria-label="TMDB" class="${actionBtnClass} lg:hidden"><img src="./icons/tmdb.png" alt="TMDB" class="w-full h-full object-cover"></a>`;
-      const instaBtn = extIds.instagram_id ? `<a href="https://instagram.com/${escapeHTML(extIds.instagram_id)}" target="_blank" title="Instagram" aria-label="Instagram" class="${socialBtnClass}"><img src="./icons/instagram.png" alt="Instagram" class="w-full h-full object-cover"></a>` : '';
-      const twitterBtn = extIds.twitter_id ? `<a href="https://x.com/${escapeHTML(extIds.twitter_id)}" target="_blank" title="X (Twitter)" aria-label="X (Twitter)" class="${socialBtnClass}"><img src="./icons/x.png" alt="X" class="w-full h-full object-cover"></a>` : '';
-      const tiktokBtn = extIds.tiktok_id ? `<a href="https://tiktok.com/@${escapeHTML(extIds.tiktok_id.replace(/^@/, ''))}" target="_blank" title="TikTok" aria-label="TikTok" class="${socialBtnClass}"><img src="./icons/tiktok.png" alt="TikTok" class="w-full h-full object-cover"></a>` : '';
-      const facebookBtn = extIds.facebook_id ? `<a href="https://facebook.com/${escapeHTML(extIds.facebook_id)}" target="_blank" title="Facebook" aria-label="Facebook" class="${socialBtnClass}"><img src="./icons/facebook.png" alt="Facebook" class="w-full h-full object-cover"></a>` : '';
+      const socialsList = [];
+      if (extIds.instagram_id) socialsList.push({ name: 'Instagram', handle: '@' + extIds.instagram_id.replace(/^@/, ''), url: `https://instagram.com/${escapeHTML(extIds.instagram_id)}`, icon: './icons/instagram.png' });
+      if (extIds.twitter_id) socialsList.push({ name: 'X (Twitter)', handle: '@' + extIds.twitter_id.replace(/^@/, ''), url: `https://x.com/${escapeHTML(extIds.twitter_id)}`, icon: './icons/x.png' });
+      if (extIds.tiktok_id) socialsList.push({ name: 'TikTok', handle: '@' + extIds.tiktok_id.replace(/^@/, ''), url: `https://tiktok.com/@${escapeHTML(extIds.tiktok_id.replace(/^@/, ''))}`, icon: './icons/tiktok.png' });
+      if (extIds.facebook_id) socialsList.push({ name: 'Facebook', handle: extIds.facebook_id, url: `https://facebook.com/${escapeHTML(extIds.facebook_id)}`, icon: './icons/facebook.png' });
+
+      let socialsDrawerHtml = '';
+      if (socialsList.length > 0) {
+        const socialsPayload = escapeHTML(JSON.stringify({
+          title: safeName,
+          subtitle: activeRole || person.known_for_department || '',
+          socials: socialsList
+        }));
+        socialsDrawerHtml = `
+          <div class="relative flex items-center shrink-0">
+            <button type="button" onclick="toggleSocialsDrawer(this)" data-socials="${socialsPayload}" class="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-auto sm:h-12 sm:px-3 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 rounded-xl sm:rounded-2xl transition-all text-gray-300 hover:text-white shadow-sm shrink-0 cursor-pointer drawer-btn" title="Official Socials">
+              <svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 sm:w-4 sm:h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+              </svg>
+              <span class="text-xs font-bold text-gray-200 hidden sm:inline">Socials</span>
+              <svg class="w-3.5 h-3.5 drawer-chevron shrink-0 text-gray-400 hidden sm:inline transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+            <div class="social-drawer hidden sm:flex">
+              ${socialsList.map(s => `<a href="${s.url}" target="_blank" title="${s.name}" aria-label="${s.name}" class="${actionBtnClass} grayscale hover:grayscale-0"><img src="${s.icon}" alt="${s.name}" class="w-full h-full object-cover"></a>`).join('')}
+            </div>
+          </div>
+        `;
+      }
       const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?actor=${tmdbId}'); const t=this; const old=t.innerHTML; t.innerHTML='<svg class=\\'w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 text-green-400\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M5 13l4 4L19 7\\'/></svg>'; setTimeout(()=>t.innerHTML=old, 2000);" title="Copy Link" aria-label="Copy Link" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></button>`;
       const primaryActorBtns = [letterboxdBtn, imdbBtn, tmdbBtn].filter(Boolean);
-      const utilityBtns = [instaBtn, twitterBtn, tiktokBtn, facebookBtn, shareBtn].filter(Boolean);
-      const divider = (primaryActorBtns.length > 0 && utilityBtns.length > 0)
+      const divider = (primaryActorBtns.length > 0 && (socialsDrawerHtml || shareBtn))
         ? '<div class="w-px h-5 sm:h-6 bg-white/10 my-auto shrink-0 mx-0.5 sm:mx-1"></div>'
         : '';
-      const actorActionBtns = [...primaryActorBtns, divider, ...utilityBtns].filter(Boolean);
+      const actorActionBtns = [...primaryActorBtns, divider, socialsDrawerHtml, shareBtn].filter(Boolean);
       const actorActionBtnsHtml = `<div class="flex items-center justify-center lg:justify-start gap-1.5 min-[360px]:gap-2 sm:gap-3 flex-nowrap w-full lg:w-auto overflow-x-auto max-w-full no-scrollbar">${actorActionBtns.join('')}</div>`;
 
       const bioHtml = createExpandableTextHtml(bio, 'actorBioText');
