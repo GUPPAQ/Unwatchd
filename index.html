@@ -159,15 +159,16 @@
         margin-left: 8px;
       }
     }
-    .drawer-btn .drawer-chevron {
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    .drawer-btn svg {
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .drawer-btn.is-active .drawer-chevron {
-      transform: rotate(180deg);
+    .drawer-btn.is-active svg {
+      transform: scale(1.1);
+      color: #fff !important;
     }
     .drawer-btn.is-active {
-      background: rgba(255, 255, 255, 0.14) !important;
-      border-color: rgba(255, 255, 255, 0.25) !important;
+      background: rgba(255, 255, 255, 0.16) !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
       color: #fff !important;
     }
 
@@ -6521,13 +6522,9 @@
         }));
         socialsDrawerHtml = `
           <div class="relative flex items-center shrink-0">
-            <button type="button" onclick="toggleSocialsDrawer(this)" data-socials="${socialsPayload}" class="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-auto sm:h-12 sm:px-3 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 rounded-xl sm:rounded-2xl transition-all text-gray-300 hover:text-white shadow-sm shrink-0 cursor-pointer drawer-btn" title="Official Socials">
-              <svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 sm:w-4 sm:h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button type="button" onclick="toggleSocialsDrawer(this)" data-socials="${socialsPayload}" class="${btnClass} text-gray-300 hover:text-white drawer-btn" title="Official Socials" aria-label="Official Socials">
+              <svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 sm:w-5 sm:h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-              </svg>
-              <span class="text-xs font-bold text-gray-200 hidden sm:inline">Socials</span>
-              <svg class="w-3.5 h-3.5 drawer-chevron shrink-0 text-gray-400 hidden sm:inline transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
               </svg>
             </button>
             <div class="social-drawer hidden sm:flex">
@@ -6546,7 +6543,7 @@
       const divider = (primaryFilmBtns.length > 0 && (socialsDrawerHtml || shareBtn))
         ? '<div class="w-px h-5 sm:h-6 bg-white/10 my-auto shrink-0 mx-0.5 sm:mx-1"></div>'
         : '';
-      const movieActionBtns = [...primaryFilmBtns, divider, socialsDrawerHtml, shareBtn].filter(Boolean);
+      const movieActionBtns = [...primaryFilmBtns, divider, shareBtn, socialsDrawerHtml].filter(Boolean);
       const movieActionBtnsHtml = `<div class="flex items-center justify-center lg:justify-start gap-1.5 min-[360px]:gap-2 sm:gap-3 flex-nowrap w-full lg:w-auto overflow-x-auto max-w-full no-scrollbar">${movieActionBtns.join('')}</div>`;
 
       const overviewHtml = createExpandableTextHtml(overview, 'movieOverviewText');
@@ -10411,13 +10408,9 @@
         }));
         socialsDrawerHtml = `
           <div class="relative flex items-center shrink-0">
-            <button type="button" onclick="toggleSocialsDrawer(this)" data-socials="${socialsPayload}" class="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-auto sm:h-12 sm:px-3 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 rounded-xl sm:rounded-2xl transition-all text-gray-300 hover:text-white shadow-sm shrink-0 cursor-pointer drawer-btn" title="Official Socials">
-              <svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 sm:w-4 sm:h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button type="button" onclick="toggleSocialsDrawer(this)" data-socials="${socialsPayload}" class="${btnClass} text-gray-300 hover:text-white drawer-btn" title="Official Socials" aria-label="Official Socials">
+              <svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 sm:w-5 sm:h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-              </svg>
-              <span class="text-xs font-bold text-gray-200 hidden sm:inline">Socials</span>
-              <svg class="w-3.5 h-3.5 drawer-chevron shrink-0 text-gray-400 hidden sm:inline transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
               </svg>
             </button>
             <div class="social-drawer hidden sm:flex">
@@ -10431,7 +10424,7 @@
       const divider = (primaryActorBtns.length > 0 && (socialsDrawerHtml || shareBtn))
         ? '<div class="w-px h-5 sm:h-6 bg-white/10 my-auto shrink-0 mx-0.5 sm:mx-1"></div>'
         : '';
-      const actorActionBtns = [...primaryActorBtns, divider, socialsDrawerHtml, shareBtn].filter(Boolean);
+      const actorActionBtns = [...primaryActorBtns, divider, shareBtn, socialsDrawerHtml].filter(Boolean);
       const actorActionBtnsHtml = `<div class="flex items-center justify-center lg:justify-start gap-1.5 min-[360px]:gap-2 sm:gap-3 flex-nowrap w-full lg:w-auto overflow-x-auto max-w-full no-scrollbar">${actorActionBtns.join('')}</div>`;
 
       const bioHtml = createExpandableTextHtml(bio, 'actorBioText');
