@@ -145,18 +145,47 @@
       align-items: center;
       gap: 6px;
       max-width: 0;
-      opacity: 0;
       overflow: hidden;
       pointer-events: none;
-      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out, margin 0.3s ease-out;
+      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1), margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       margin-left: 0;
     }
     @media (min-width: 640px) {
       .social-drawer.is-open {
-        max-width: 280px;
-        opacity: 1;
+        max-width: 320px;
         pointer-events: auto;
         margin-left: 8px;
+      }
+    }
+    .social-drawer > a {
+      opacity: 0;
+      transform: scale(0.8) translateX(-8px);
+      pointer-events: none;
+      transition: opacity 0.16s ease-in, transform 0.16s ease-in, filter 0.2s ease;
+    }
+    @media (min-width: 640px) {
+      .social-drawer.is-open > a {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+        pointer-events: auto;
+      }
+      .social-drawer.is-open > a:nth-child(1) {
+        transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.04s, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) 0.04s, filter 0.2s ease;
+      }
+      .social-drawer.is-open > a:nth-child(2) {
+        transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.10s, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) 0.10s, filter 0.2s ease;
+      }
+      .social-drawer.is-open > a:nth-child(3) {
+        transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.16s, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) 0.16s, filter 0.2s ease;
+      }
+      .social-drawer.is-open > a:nth-child(4) {
+        transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.22s, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) 0.22s, filter 0.2s ease;
+      }
+      .social-drawer.is-open > a:nth-child(5) {
+        transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.28s, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) 0.28s, filter 0.2s ease;
+      }
+      .social-drawer.is-open > a:nth-child(6) {
+        transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.34s, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) 0.34s, filter 0.2s ease;
       }
     }
     .drawer-btn.is-active {
