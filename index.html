@@ -6720,65 +6720,65 @@
     function getRatingColorStyle(ratingStr) {
       if (!ratingStr || ratingStr === '—' || ratingStr === 'N/A' || ratingStr === '...') {
         return {
-          bg: 'bg-white/[0.04]',
+          bg: 'bg-white/[0.03]',
           border: 'border-white/10',
           text: 'text-gray-400',
-          glow: '',
-          colorHex: '#9ca3af'
+          colorHex: '#9ca3af',
+          label: 'Unrated'
         };
       }
       const val = parseFloat(ratingStr);
       if (isNaN(val)) {
         return {
-          bg: 'bg-white/[0.04]',
+          bg: 'bg-white/[0.03]',
           border: 'border-white/10',
           text: 'text-gray-400',
-          glow: '',
-          colorHex: '#9ca3af'
+          colorHex: '#9ca3af',
+          label: 'Unrated'
         };
       }
-      if (val >= 9.5) {
+      if (val >= 9.0) {
         return {
-          bg: 'bg-[#F5C518]/20',
-          border: 'border-[#F5C518]/50',
-          text: 'text-[#F5C518]',
-          glow: 'shadow-[0_0_12px_rgba(245,197,24,0.35)]',
-          colorHex: '#F5C518'
+          bg: 'bg-purple-500/15',
+          border: 'border-purple-400/40',
+          text: 'text-purple-300',
+          colorHex: '#c084fc',
+          label: 'Masterpiece'
         };
       }
-      if (val >= 8.5) {
+      if (val >= 8.0) {
         return {
-          bg: 'bg-emerald-500/20',
-          border: 'border-emerald-500/40',
-          text: 'text-emerald-400',
-          glow: 'shadow-[0_0_10px_rgba(16,185,129,0.25)]',
-          colorHex: '#34d399'
+          bg: 'bg-blue-500/15',
+          border: 'border-blue-400/40',
+          text: 'text-blue-300',
+          colorHex: '#60a5fa',
+          label: 'Great'
         };
       }
-      if (val >= 7.5) {
+      if (val >= 7.0) {
         return {
-          bg: 'bg-cyan-500/20',
-          border: 'border-cyan-500/40',
-          text: 'text-cyan-400',
-          glow: 'shadow-[0_0_8px_rgba(6,182,212,0.2)]',
-          colorHex: '#38bdf8'
+          bg: 'bg-emerald-500/15',
+          border: 'border-emerald-400/40',
+          text: 'text-emerald-300',
+          colorHex: '#34d399',
+          label: 'Good'
         };
       }
-      if (val >= 6.5) {
+      if (val >= 6.0) {
         return {
-          bg: 'bg-amber-500/20',
-          border: 'border-amber-500/40',
-          text: 'text-amber-400',
-          glow: '',
-          colorHex: '#fbbf24'
+          bg: 'bg-amber-500/15',
+          border: 'border-amber-400/40',
+          text: 'text-amber-300',
+          colorHex: '#fbbf24',
+          label: 'Mid'
         };
       }
       return {
-        bg: 'bg-red-500/20',
-        border: 'border-red-500/40',
-        text: 'text-red-400',
-        glow: '',
-        colorHex: '#f87171'
+        bg: 'bg-rose-500/15',
+        border: 'border-rose-400/40',
+        text: 'text-rose-300',
+        colorHex: '#f87171',
+        label: 'Garbage'
       };
     }
 
@@ -6787,7 +6787,7 @@
       if (!epTooltipEl) {
         epTooltipEl = document.createElement('div');
         epTooltipEl.id = 'epGraphFloatingTooltip';
-        epTooltipEl.className = 'fixed pointer-events-none z-[120] transition-opacity duration-150 opacity-0 bg-[#0b1121]/95 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_16px_36px_rgba(0,0,0,0.85)] p-3 text-white max-w-[280px] pointer-events-none';
+        epTooltipEl.className = 'fixed pointer-events-none z-[120] transition-opacity duration-150 opacity-0 bg-[#0b1121]/95 backdrop-blur-md border border-white/15 rounded-xl shadow-2xl p-2.5 text-white max-w-[260px] pointer-events-none';
         document.body.appendChild(epTooltipEl);
       }
       return epTooltipEl;
@@ -6805,9 +6805,9 @@
       tooltip.innerHTML = `
         <div class="flex items-center justify-between gap-2 mb-1">
           <span class="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider">S${season < 10 ? '0' + season : season}E${episode < 10 ? '0' + episode : episode}</span>
-          <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[11px] font-black ${ratingStyle.bg} ${ratingStyle.border} border ${ratingStyle.text}">
+          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-bold ${ratingStyle.bg} ${ratingStyle.border} border ${ratingStyle.text}">
             <span class="text-[8px] bg-[#F5C518] text-black font-black px-0.5 rounded-[1px]" style="font-family: Impact, sans-serif;">IMDb</span>
-            ${epRating}
+            <span>${epRating}</span>
           </span>
         </div>
         <div class="text-xs font-extrabold text-white leading-snug truncate">${epName}</div>
@@ -6839,12 +6839,12 @@
       if (!preview) return;
 
       document.querySelectorAll(`.episode-graph-section[data-tv-id="${tvId}"] .ep-cell`).forEach(c => {
-        c.classList.remove('ring-2', 'ring-white', 'shadow-lg');
+        c.classList.remove('ring-2', 'ring-white', 'shadow-md');
       });
 
       const cell = document.getElementById(`epCell_${tvId}_${season}_${episode}`);
       if (cell) {
-        cell.classList.add('ring-2', 'ring-white', 'shadow-lg');
+        cell.classList.add('ring-2', 'ring-white', 'shadow-md');
       }
 
       const showData = tvShowEpisodesCache.get(tvId);
@@ -6863,7 +6863,7 @@
           <div class="relative w-full sm:w-44 aspect-video rounded-xl overflow-hidden bg-gray-900 shrink-0 border border-white/10 shadow-md">
             ${stillUrl ? `<img src="${stillUrl}" alt="${epName}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-xs text-gray-500 font-bold">No Image</div>`}
             <div class="absolute top-1.5 left-1.5 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-mono font-bold text-gray-200">
-              S${season}E${episode}
+              S${season < 10 ? '0' + season : season}E${episode < 10 ? '0' + episode : episode}
             </div>
           </div>
           <div class="flex-1 min-w-0 space-y-1 w-full">
@@ -6890,6 +6890,26 @@
       preview.classList.remove('hidden');
     }
 
+    function toggleEpisodeGraph(tvId) {
+      const body = document.getElementById(`epGraphBody_${tvId}`);
+      const chevron = document.getElementById(`epGraphChevron_${tvId}`);
+      const label = document.getElementById(`epGraphToggleText_${tvId}`);
+      const btn = document.getElementById(`epGraphToggleBtn_${tvId}`);
+      if (!body) return;
+      const isHidden = body.classList.contains('hidden');
+      if (isHidden) {
+        body.classList.remove('hidden');
+        if (chevron) chevron.classList.add('rotate-180');
+        if (label) label.textContent = 'Hide';
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+      } else {
+        body.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+        if (label) label.textContent = 'Show';
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
     function renderEpisodeGraphSkeleton(tvId, seasons) {
       if (!seasons || seasons.length === 0) return '';
       const regularSeasons = seasons.filter(s => s.season_number > 0 && s.episode_count > 0);
@@ -6910,8 +6930,6 @@
       const seasonAverages = {};
       let totalRatingSum = 0;
       let totalRatingCount = 0;
-      let highestEp = null;
-      let lowestEp = null;
 
       regularSeasons.forEach(s => {
         let sSum = 0;
@@ -6924,8 +6942,6 @@
             sCount++;
             totalRatingSum += val;
             totalRatingCount++;
-            if (!highestEp || val > parseFloat(highestEp.rating)) highestEp = ep;
-            if (!lowestEp || val < parseFloat(lowestEp.rating)) lowestEp = ep;
           }
         }
         if (sCount > 0) {
@@ -6936,7 +6952,7 @@
       const overallAvg = totalRatingCount > 0 ? (totalRatingSum / totalRatingCount).toFixed(1) : null;
 
       const headerCols = regularSeasons.map(s => `
-        <div class="w-10 sm:w-12 text-center text-xs sm:text-sm font-extrabold text-gray-300 shrink-0 select-none" title="${escapeHTML(s.name)} (${s.episode_count} eps)">
+        <div class="w-9 sm:w-11 text-center text-xs sm:text-sm font-extrabold text-gray-300 shrink-0 select-none" title="${escapeHTML(s.name)} (${s.episode_count} eps)">
           S${s.season_number}
         </div>
       `).join('');
@@ -6946,15 +6962,15 @@
         const epLabel = epIdx < 10 ? 'E0' + epIdx : 'E' + epIdx;
         const cells = regularSeasons.map(s => {
           if (epIdx > s.episode_count) {
-            return `<div class="w-10 sm:w-12 h-9 sm:h-10 flex items-center justify-center shrink-0 opacity-15"><div class="w-1.5 h-1.5 rounded-full bg-white/20"></div></div>`;
+            return `<div class="w-9 sm:w-11 h-8 sm:h-10 flex items-center justify-center shrink-0 opacity-15"><div class="w-1.5 h-1.5 rounded-full bg-white/20"></div></div>`;
           }
           const cellId = `epCell_${tvId}_${s.season_number}_${epIdx}`;
           const cached = epMap.get(`${s.season_number}_${epIdx}`);
           const r = cached?.rating;
           const style = getRatingColorStyle(r);
           const cellClasses = r
-            ? `ep-cell w-10 sm:w-12 h-9 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-xs sm:text-sm font-extrabold ${style.bg} ${style.border} border ${style.text} ${style.glow} shrink-0 cursor-pointer select-none transition-all duration-200 hover:scale-110 hover:z-30 hover:brightness-125 active:scale-95`
-            : `ep-cell w-10 sm:w-12 h-9 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold bg-white/[0.04] border border-white/10 text-gray-400 shrink-0 cursor-pointer select-none transition-all duration-200 hover:scale-110 hover:z-30 hover:border-white/40 active:scale-95`;
+            ? `ep-cell w-9 sm:w-11 h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 cursor-pointer select-none transition-transform duration-150 sm:hover:scale-[1.08] active:scale-95 border ${style.bg} ${style.border} ${style.text} hover:z-20 hover:brightness-110`
+            : `ep-cell w-9 sm:w-11 h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 cursor-pointer select-none transition-transform duration-150 sm:hover:scale-[1.08] active:scale-95 border bg-white/[0.03] border-white/10 text-gray-500 hover:z-20 hover:border-white/30`;
           const cellTitle = cached
             ? `S${s.season_number}E${epIdx}: ${escapeHTML(cached.name || 'Episode ' + epIdx)}${r ? ' • IMDb ' + r : ''}`
             : `Season ${s.season_number}, Episode ${epIdx}`;
@@ -6968,7 +6984,7 @@
             onmouseleave="handleEpisodeCellLeave()"
             class="${cellClasses}"
             title="${cellTitle}">
-            <span class="ep-cell-rating text-[11px] sm:text-xs font-extrabold ${style.text}">${r || '...'}</span>
+            <span class="ep-cell-rating text-[11px] sm:text-xs font-bold font-mono tracking-tight ${style.text}">${r || '...'}</span>
           </div>`;
         }).join('');
 
@@ -6984,8 +7000,8 @@
         const avg = seasonAverages[s.season_number];
         const avgStyle = getRatingColorStyle(avg);
         const avgClasses = avg
-          ? `w-10 sm:w-12 h-6 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-black ${avgStyle.bg} ${avgStyle.border} border ${avgStyle.text} shrink-0 select-none`
-          : `w-10 sm:w-12 h-6 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-black text-gray-500 bg-white/5 border border-white/5 shrink-0 select-none`;
+          ? `w-9 sm:w-11 h-6 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0 select-none border ${avgStyle.bg} ${avgStyle.border} ${avgStyle.text}`
+          : `w-9 sm:w-11 h-6 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-black text-gray-500 bg-white/5 border border-white/5 shrink-0 select-none`;
         return `
           <div id="epSeasonAvg_${tvId}_${s.season_number}" class="${avgClasses}" title="Season ${s.season_number} Average: ${avg || 'Loading...'}">
             ${avg || '--'}
@@ -6993,19 +7009,16 @@
         `;
       }).join('');
 
-      const statsBarHtml = (highestEp && lowestEp) ? `
-        <span class="inline-flex items-center gap-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md cursor-pointer hover:bg-emerald-500/25 transition-colors" title="${escapeHTML(highestEp.name)}" onclick="handleEpisodeCellClick(${tvId}, ${highestEp.season}, ${highestEp.episode})">
-          <span>Highest:</span> <strong class="text-white">S${highestEp.season}E${highestEp.episode} (${highestEp.rating})</strong>
-        </span>
-        <span class="inline-flex items-center gap-1 bg-red-500/15 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-md cursor-pointer hover:bg-red-500/25 transition-colors" title="${escapeHTML(lowestEp.name)}" onclick="handleEpisodeCellClick(${tvId}, ${lowestEp.season}, ${lowestEp.episode})">
-          <span>Lowest:</span> <strong class="text-white">S${lowestEp.season}E${lowestEp.episode} (${lowestEp.rating})</strong>
-        </span>
-      ` : '';
-
       return `
         <div id="episodeGraphSection_${tvId}" class="episode-graph-section space-y-3" data-tv-id="${tvId}">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <div class="flex items-center gap-2.5 flex-wrap">
+          <!-- Collapsible Header Button -->
+          <button id="epGraphToggleBtn_${tvId}"
+            type="button"
+            onclick="toggleEpisodeGraph(${tvId})"
+            class="w-full flex items-center justify-between gap-3 p-2 -mx-2 rounded-xl text-left cursor-pointer select-none group transition-all duration-150 hover:bg-white/[0.04] active:scale-[0.99]"
+            aria-expanded="false"
+            aria-controls="epGraphBody_${tvId}">
+            <div class="flex items-center gap-2.5 flex-wrap min-w-0">
               <h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400 flex items-center gap-2">
                 <svg class="w-5 h-5 fill-current text-blue-400 shrink-0" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
                 <span>Episode Ratings</span>
@@ -7016,45 +7029,63 @@
               </span>
               <span class="text-xs text-gray-400 font-bold hidden sm:inline-block">• ${regularSeasons.length} Seasons • ${totalEpisodesCount} Episodes</span>
             </div>
-            <div id="epGraphStatsBar_${tvId}" class="flex items-center gap-2 flex-wrap text-[11px] font-bold text-gray-400">
-              ${statsBarHtml}
-            </div>
-          </div>
-
-          <!-- Rating Legend Bar -->
-          <div class="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] font-bold text-gray-400 overflow-x-auto no-scrollbar py-0.5">
-            <span class="text-gray-500 uppercase tracking-wider shrink-0 text-[10px]">Rating:</span>
-            <span class="inline-flex items-center gap-1 shrink-0"><span class="w-2.5 h-2.5 rounded-sm bg-[#F5C518] shadow-[0_0_6px_rgba(245,197,24,0.6)]"></span><span class="text-gray-300">9.5+</span></span>
-            <span class="inline-flex items-center gap-1 shrink-0"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]"></span><span class="text-gray-300">8.5-9.4</span></span>
-            <span class="inline-flex items-center gap-1 shrink-0"><span class="w-2.5 h-2.5 rounded-sm bg-cyan-400"></span><span class="text-gray-300">7.5-8.4</span></span>
-            <span class="inline-flex items-center gap-1 shrink-0"><span class="w-2.5 h-2.5 rounded-sm bg-amber-400"></span><span class="text-gray-300">6.5-7.4</span></span>
-            <span class="inline-flex items-center gap-1 shrink-0"><span class="w-2.5 h-2.5 rounded-sm bg-red-400"></span><span class="text-gray-300">&lt;6.5</span></span>
-          </div>
-
-          <!-- Matrix Heatmap Panel -->
-          <div class="relative glass-panel rounded-2xl p-3 sm:p-4 bg-[#080d19]/80 border border-white/10 shadow-xl overflow-hidden">
-            <div id="epGraphTrack_${tvId}" class="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/15 scrollbar-track-transparent">
-              <div class="inline-flex flex-col min-w-full">
-                <!-- Headers -->
-                <div class="flex items-center gap-1.5 sm:gap-2 mb-2 pb-2 border-b border-white/10">
-                  <div class="w-8 sm:w-10 text-right pr-2 text-[10px] sm:text-xs font-bold text-gray-500 shrink-0 sticky left-0 bg-[#080d19] border-r border-white/5 z-20">#</div>
-                  ${headerCols}
-                </div>
-
-                <!-- Episode Rows -->
-                ${rowsHtml}
-
-                <!-- Season Averages -->
-                <div class="flex items-center gap-1.5 sm:gap-2 mt-2 pt-2 border-t border-white/10">
-                  <div class="w-8 sm:w-10 text-right pr-2 text-[10px] sm:text-xs font-bold text-gray-500 shrink-0 sticky left-0 bg-[#080d19] border-r border-white/5 z-20">Avg</div>
-                  ${footerCols}
-                </div>
+            <div class="flex items-center gap-2 text-xs font-bold text-gray-400 group-hover:text-white transition-colors shrink-0">
+              <span id="epGraphToggleText_${tvId}" class="hidden sm:inline">Show</span>
+              <div class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-blue-400/40 group-hover:bg-blue-500/10 transition-all">
+                <svg id="epGraphChevron_${tvId}" class="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
               </div>
             </div>
+          </button>
 
-            <!-- Episode Preview / Detail Banner -->
-            <div id="epPreviewCard_${tvId}" class="mt-3.5 pt-3.5 border-t border-white/10 hidden animate-fade">
-              <!-- Injected dynamically on click -->
+          <!-- Collapsible Body Content -->
+          <div id="epGraphBody_${tvId}" class="ep-graph-body hidden space-y-3 animate-fade">
+            <!-- Rating Legend Bar with Words -->
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap text-[11px] font-semibold text-gray-400 pt-0.5">
+              <span class="text-gray-500 uppercase tracking-wider text-[10px] font-bold shrink-0 mr-1">Scale:</span>
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-purple-500/15 border border-purple-400/30 text-purple-300 shrink-0">
+                <span class="w-2 h-2 rounded-full bg-purple-400"></span>Masterpiece
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 border border-blue-400/30 text-blue-300 shrink-0">
+                <span class="w-2 h-2 rounded-full bg-blue-400"></span>Great
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 shrink-0">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>Good
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/30 text-amber-300 shrink-0">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>Mid
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-400/30 text-rose-300 shrink-0">
+                <span class="w-2 h-2 rounded-full bg-rose-400"></span>Garbage
+              </span>
+            </div>
+
+            <!-- Matrix Heatmap Panel -->
+            <div class="relative rounded-2xl p-3 sm:p-4 bg-[#080d19]/90 border border-white/10 shadow-xl overflow-hidden">
+              <div id="epGraphTrack_${tvId}" class="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/15 scrollbar-track-transparent">
+                <div class="inline-flex flex-col min-w-full">
+                  <!-- Headers -->
+                  <div class="flex items-center gap-1.5 sm:gap-2 mb-2 pb-2 border-b border-white/10">
+                    <div class="w-8 sm:w-10 text-right pr-2 text-[10px] sm:text-xs font-mono font-bold text-gray-500 shrink-0 sticky left-0 bg-[#080d19] border-r border-white/5 z-20">#</div>
+                    ${headerCols}
+                  </div>
+
+                  <!-- Episode Rows -->
+                  ${rowsHtml}
+
+                  <!-- Season Averages -->
+                  <div class="flex items-center gap-1.5 sm:gap-2 mt-2 pt-2 border-t border-white/10">
+                    <div class="w-8 sm:w-10 text-right pr-2 text-[10px] sm:text-xs font-mono font-bold text-gray-500 shrink-0 sticky left-0 bg-[#080d19] border-r border-white/5 z-20">Avg</div>
+                    ${footerCols}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Episode Preview / Detail Banner -->
+              <div id="epPreviewCard_${tvId}" class="mt-3.5 pt-3.5 border-t border-white/10 hidden animate-fade">
+                <!-- Injected dynamically on click -->
+              </div>
             </div>
           </div>
         </div>
@@ -7066,14 +7097,14 @@
       if (!cell) return;
 
       const style = getRatingColorStyle(ep.rating);
-      cell.className = `ep-cell w-10 sm:w-12 h-9 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-xs sm:text-sm font-extrabold ${style.bg} ${style.border} border ${style.text} ${style.glow} shrink-0 cursor-pointer select-none transition-all duration-200 hover:scale-110 hover:z-30 hover:brightness-125 active:scale-95`;
+      cell.className = `ep-cell w-9 sm:w-11 h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 cursor-pointer select-none transition-transform duration-150 sm:hover:scale-[1.08] active:scale-95 border ${style.bg} ${style.border} ${style.text} hover:z-20 hover:brightness-110`;
 
       cell.title = `S${ep.season}E${ep.episode}: ${ep.name || 'Episode ' + ep.episode}${ep.rating ? ' • IMDb ' + ep.rating : ''}`;
 
       const ratingEl = cell.querySelector('.ep-cell-rating');
       if (ratingEl) {
         ratingEl.textContent = ep.rating || '—';
-        ratingEl.className = `ep-cell-rating text-[11px] sm:text-xs font-extrabold ${style.text}`;
+        ratingEl.className = `ep-cell-rating text-[11px] sm:text-xs font-bold font-mono tracking-tight ${style.text}`;
       }
     }
 
@@ -7082,8 +7113,6 @@
 
       let totalRatingSum = 0;
       let totalRatingCount = 0;
-      let highestEp = null;
-      let lowestEp = null;
 
       regularSeasons.forEach(s => {
         const seasonEps = allEpisodes.filter(e => e.season === s.season_number && e.rating && !isNaN(parseFloat(e.rating)));
@@ -7095,7 +7124,7 @@
           const avgEl = document.getElementById(`epSeasonAvg_${tvId}_${s.season_number}`);
           if (avgEl) {
             avgEl.textContent = sAvg;
-            avgEl.className = `w-10 sm:w-12 h-6 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-black ${avgStyle.bg} ${avgStyle.border} border ${avgStyle.text} shrink-0 select-none`;
+            avgEl.className = `w-9 sm:w-11 h-6 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0 select-none border ${avgStyle.bg} ${avgStyle.border} ${avgStyle.text}`;
             avgEl.title = `Season ${s.season_number} Average: ${sAvg} (${seasonEps.length} episodes)`;
           }
 
@@ -7103,8 +7132,6 @@
             const val = parseFloat(e.rating);
             totalRatingSum += val;
             totalRatingCount++;
-            if (!highestEp || val > parseFloat(highestEp.rating)) highestEp = e;
-            if (!lowestEp || val < parseFloat(lowestEp.rating)) lowestEp = e;
           });
         }
       });
@@ -7114,18 +7141,6 @@
         const seriesAvgEl = document.getElementById(`epGraphSeriesAvg_${tvId}`);
         if (seriesAvgEl) {
           seriesAvgEl.textContent = `${overallAvg} ★`;
-        }
-
-        const statsBar = document.getElementById(`epGraphStatsBar_${tvId}`);
-        if (statsBar && highestEp && lowestEp) {
-          statsBar.innerHTML = `
-            <span class="inline-flex items-center gap-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md cursor-pointer hover:bg-emerald-500/25 transition-colors" title="${escapeHTML(highestEp.name)}" onclick="handleEpisodeCellClick(${tvId}, ${highestEp.season}, ${highestEp.episode})">
-              <span>Highest:</span> <strong class="text-white">S${highestEp.season}E${highestEp.episode} (${highestEp.rating})</strong>
-            </span>
-            <span class="inline-flex items-center gap-1 bg-red-500/15 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-md cursor-pointer hover:bg-red-500/25 transition-colors" title="${escapeHTML(lowestEp.name)}" onclick="handleEpisodeCellClick(${tvId}, ${lowestEp.season}, ${lowestEp.episode})">
-              <span>Lowest:</span> <strong class="text-white">S${lowestEp.season}E${lowestEp.episode} (${lowestEp.rating})</strong>
-            </span>
-          `;
         }
       }
     }
@@ -7237,6 +7252,7 @@
     window.handleEpisodeCellClick = handleEpisodeCellClick;
     window.handleEpisodeCellHover = handleEpisodeCellHover;
     window.handleEpisodeCellLeave = handleEpisodeCellLeave;
+    window.toggleEpisodeGraph = toggleEpisodeGraph;
     window.initEpisodeGraph = initEpisodeGraph;
 
     function generateFullMovieHTML(movieObj, details, isModal = false, context = 'lookup', isPage = false, collectionData = null) {
