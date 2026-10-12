@@ -6720,9 +6720,9 @@
     function getRatingColorStyle(ratingStr) {
       if (!ratingStr || ratingStr === '—' || ratingStr === 'N/A' || ratingStr === '...') {
         return {
-          bg: 'bg-white/[0.03]',
+          bg: 'bg-white/[0.04] shadow-none',
           border: 'border-white/10',
-          text: 'text-gray-400',
+          text: 'text-gray-400 font-semibold',
           colorHex: '#9ca3af',
           label: 'Unrated'
         };
@@ -6730,55 +6730,80 @@
       const val = parseFloat(ratingStr);
       if (isNaN(val)) {
         return {
-          bg: 'bg-white/[0.03]',
+          bg: 'bg-white/[0.04] shadow-none',
           border: 'border-white/10',
-          text: 'text-gray-400',
+          text: 'text-gray-400 font-semibold',
           colorHex: '#9ca3af',
           label: 'Unrated'
         };
       }
-      if (val >= 9.0) {
+      if (val >= 9.7) {
+        // Blå 9,7 och över
         return {
-          bg: 'bg-purple-500/15',
-          border: 'border-purple-400/40',
-          text: 'text-purple-300',
-          colorHex: '#c084fc',
-          label: 'Masterpiece'
+          bg: 'bg-gradient-to-b from-[#3b82f6] to-[#1d4ed8] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_8px_rgba(37,99,235,0.4)]',
+          border: 'border-blue-300/40',
+          text: 'text-white font-extrabold',
+          colorHex: '#3b82f6',
+          label: '≥ 9.7'
+        };
+      }
+      if (val >= 9.0) {
+        // 9,0 och över mörkgrön
+        return {
+          bg: 'bg-gradient-to-b from-[#059669] to-[#047857] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_8px_rgba(5,150,105,0.4)]',
+          border: 'border-emerald-300/40',
+          text: 'text-white font-extrabold',
+          colorHex: '#047857',
+          label: '9.0 – 9.6'
         };
       }
       if (val >= 8.0) {
+        // 8,0 och över är grön
         return {
-          bg: 'bg-blue-500/15',
-          border: 'border-blue-400/40',
-          text: 'text-blue-300',
-          colorHex: '#60a5fa',
-          label: 'Great'
+          bg: 'bg-gradient-to-b from-[#22c55e] to-[#16a34a] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_8px_rgba(34,197,94,0.4)]',
+          border: 'border-green-300/40',
+          text: 'text-white font-extrabold',
+          colorHex: '#22c55e',
+          label: '8.0 – 8.9'
         };
       }
       if (val >= 7.0) {
+        // 7,0 över är gul
         return {
-          bg: 'bg-emerald-500/15',
-          border: 'border-emerald-400/40',
-          text: 'text-emerald-300',
-          colorHex: '#34d399',
-          label: 'Good'
+          bg: 'bg-gradient-to-b from-[#facc15] to-[#ca8a04] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_2px_8px_rgba(234,179,8,0.35)]',
+          border: 'border-yellow-200/60',
+          text: 'text-gray-950 font-black',
+          colorHex: '#eab308',
+          label: '7.0 – 7.9'
         };
       }
       if (val >= 6.0) {
+        // 6,0 och över är orange
         return {
-          bg: 'bg-amber-500/15',
-          border: 'border-amber-400/40',
-          text: 'text-amber-300',
-          colorHex: '#fbbf24',
-          label: 'Mid'
+          bg: 'bg-gradient-to-b from-[#f97316] to-[#c2410c] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_8px_rgba(249,115,22,0.4)]',
+          border: 'border-orange-300/40',
+          text: 'text-white font-extrabold',
+          colorHex: '#ea580c',
+          label: '6.0 – 6.9'
         };
       }
+      if (val >= 5.0) {
+        // 5,0 och över är röd
+        return {
+          bg: 'bg-gradient-to-b from-[#ef4444] to-[#b91c1c] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_8px_rgba(220,38,38,0.4)]',
+          border: 'border-red-300/40',
+          text: 'text-white font-extrabold',
+          colorHex: '#dc2626',
+          label: '5.0 – 5.9'
+        };
+      }
+      // under 5,0 är lila
       return {
-        bg: 'bg-rose-500/15',
-        border: 'border-rose-400/40',
-        text: 'text-rose-300',
-        colorHex: '#f87171',
-        label: 'Garbage'
+        bg: 'bg-gradient-to-b from-[#9333ea] to-[#6b21a8] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_8px_rgba(147,51,234,0.4)]',
+        border: 'border-purple-300/40',
+        text: 'text-white font-extrabold',
+        colorHex: '#7e22ce',
+        label: '< 5.0'
       };
     }
 
@@ -6787,7 +6812,7 @@
       if (!epTooltipEl) {
         epTooltipEl = document.createElement('div');
         epTooltipEl.id = 'epGraphFloatingTooltip';
-        epTooltipEl.className = 'fixed pointer-events-none z-[120] transition-opacity duration-150 opacity-0 bg-[#0b1121]/95 backdrop-blur-md border border-white/15 rounded-xl shadow-2xl p-2.5 text-white max-w-[260px] pointer-events-none';
+        epTooltipEl.className = 'fixed pointer-events-none z-[120] transition-opacity duration-150 opacity-0 bg-[#0b1121]/95 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-3 text-white max-w-[280px] pointer-events-none';
         document.body.appendChild(epTooltipEl);
       }
       return epTooltipEl;
@@ -6803,15 +6828,15 @@
       const ratingStyle = getRatingColorStyle(epRating);
 
       tooltip.innerHTML = `
-        <div class="flex items-center justify-between gap-2 mb-1">
+        <div class="flex items-center justify-between gap-2 mb-1.5">
           <span class="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider">S${season < 10 ? '0' + season : season}E${episode < 10 ? '0' + episode : episode}</span>
-          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-bold ${ratingStyle.bg} ${ratingStyle.border} border ${ratingStyle.text}">
-            <span class="text-[8px] bg-[#F5C518] text-black font-black px-0.5 rounded-[1px]" style="font-family: Impact, sans-serif;">IMDb</span>
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-black ${ratingStyle.bg} ${ratingStyle.border} border ${ratingStyle.text}">
+            <span class="text-[8px] bg-[#F5C518] text-black font-black px-1 rounded-[2px] leading-none" style="font-family: Impact, -apple-system, sans-serif;">IMDb</span>
             <span>${epRating}</span>
           </span>
         </div>
         <div class="text-xs font-extrabold text-white leading-snug truncate">${epName}</div>
-        ${ep?.air_date ? `<div class="text-[10px] text-gray-400 mt-0.5 font-medium">${formatAirDate(ep.air_date)}</div>` : ''}
+        ${ep?.air_date ? `<div class="text-[10px] text-gray-400 mt-1 font-medium">${formatAirDate(ep.air_date)}</div>` : ''}
       `;
 
       const rect = cell.getBoundingClientRect();
@@ -6839,12 +6864,12 @@
       if (!preview) return;
 
       document.querySelectorAll(`.episode-graph-section[data-tv-id="${tvId}"] .ep-cell`).forEach(c => {
-        c.classList.remove('ring-2', 'ring-white', 'shadow-md');
+        c.classList.remove('ring-2', 'ring-white', 'shadow-[0_0_16px_rgba(255,255,255,0.8)]', 'scale-110', 'z-30');
       });
 
       const cell = document.getElementById(`epCell_${tvId}_${season}_${episode}`);
       if (cell) {
-        cell.classList.add('ring-2', 'ring-white', 'shadow-md');
+        cell.classList.add('ring-2', 'ring-white', 'shadow-[0_0_16px_rgba(255,255,255,0.8)]', 'scale-110', 'z-30');
       }
 
       const showData = tvShowEpisodesCache.get(tvId);
@@ -6859,25 +6884,25 @@
       const imdbLink = ep?.imdb_id ? `https://www.imdb.com/title/${ep.imdb_id}/` : null;
 
       preview.innerHTML = `
-        <div class="flex flex-col sm:flex-row gap-3.5 sm:gap-4 items-start sm:items-center">
-          <div class="relative w-full sm:w-44 aspect-video rounded-xl overflow-hidden bg-gray-900 shrink-0 border border-white/10 shadow-md">
+        <div class="flex flex-col sm:flex-row gap-3.5 sm:gap-4 items-start sm:items-center liquid-glass p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-white/15">
+          <div class="relative w-full sm:w-44 aspect-video rounded-xl overflow-hidden bg-gray-900 shrink-0 border border-white/15 shadow-md">
             ${stillUrl ? `<img src="${stillUrl}" alt="${epName}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-xs text-gray-500 font-bold">No Image</div>`}
-            <div class="absolute top-1.5 left-1.5 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-mono font-bold text-gray-200">
+            <div class="absolute top-1.5 left-1.5 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-mono font-bold text-gray-200 border border-white/10">
               S${season < 10 ? '0' + season : season}E${episode < 10 ? '0' + episode : episode}
             </div>
           </div>
-          <div class="flex-1 min-w-0 space-y-1 w-full">
+          <div class="flex-1 min-w-0 space-y-1.5 w-full">
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <h4 class="text-sm sm:text-base font-extrabold text-white truncate">${epName}</h4>
               ${imdbLink ? `
-                <a href="${imdbLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md ${ratingStyle.bg} ${ratingStyle.border} border text-xs font-black ${ratingStyle.text} hover:brightness-125 transition-all">
-                  <span class="bg-[#F5C518] text-black font-black px-1 rounded-[2px] text-[8px] leading-none" style="font-family: Impact, sans-serif;">IMDb</span>
+                <a href="${imdbLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${ratingStyle.bg} ${ratingStyle.border} border text-xs font-black ${ratingStyle.text} hover:brightness-125 transition-all shadow-sm">
+                  <span class="bg-[#F5C518] text-black font-black px-1 rounded-[2px] text-[8px] leading-none" style="font-family: Impact, -apple-system, sans-serif;">IMDb</span>
                   <span>${epRating}</span>
-                  <svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  <svg class="w-3 h-3 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </a>
               ` : (epRating !== '—' ? `
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md ${ratingStyle.bg} ${ratingStyle.border} border text-xs font-black ${ratingStyle.text}">
-                  <span class="bg-[#F5C518] text-black font-black px-1 rounded-[2px] text-[8px] leading-none" style="font-family: Impact, sans-serif;">IMDb</span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${ratingStyle.bg} ${ratingStyle.border} border text-xs font-black ${ratingStyle.text} shadow-sm">
+                  <span class="bg-[#F5C518] text-black font-black px-1 rounded-[2px] text-[8px] leading-none" style="font-family: Impact, -apple-system, sans-serif;">IMDb</span>
                   <span>${epRating}</span>
                 </span>
               ` : '')}
@@ -6900,12 +6925,12 @@
       if (isHidden) {
         body.classList.remove('hidden');
         if (chevron) chevron.classList.add('rotate-180');
-        if (label) label.textContent = 'Hide';
+        if (label) label.textContent = 'Hide Heatmap';
         if (btn) btn.setAttribute('aria-expanded', 'true');
       } else {
         body.classList.add('hidden');
         if (chevron) chevron.classList.remove('rotate-180');
-        if (label) label.textContent = 'Show';
+        if (label) label.textContent = 'View Heatmap';
         if (btn) btn.setAttribute('aria-expanded', 'false');
       }
     }
@@ -6952,7 +6977,7 @@
       const overallAvg = totalRatingCount > 0 ? (totalRatingSum / totalRatingCount).toFixed(1) : null;
 
       const headerCols = regularSeasons.map(s => `
-        <div class="w-9 sm:w-11 text-center text-xs sm:text-sm font-extrabold text-gray-300 shrink-0 select-none" title="${escapeHTML(s.name)} (${s.episode_count} eps)">
+        <div class="w-9 sm:w-11 text-center text-xs sm:text-sm font-extrabold text-white/90 tracking-wider uppercase shrink-0 select-none" title="${escapeHTML(s.name)} (${s.episode_count} eps)">
           S${s.season_number}
         </div>
       `).join('');
@@ -6969,8 +6994,8 @@
           const r = cached?.rating;
           const style = getRatingColorStyle(r);
           const cellClasses = r
-            ? `ep-cell w-9 sm:w-11 h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 cursor-pointer select-none transition-transform duration-150 sm:hover:scale-[1.08] active:scale-95 border ${style.bg} ${style.border} ${style.text} hover:z-20 hover:brightness-110`
-            : `ep-cell w-9 sm:w-11 h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 cursor-pointer select-none transition-transform duration-150 sm:hover:scale-[1.08] active:scale-95 border bg-white/[0.03] border-white/10 text-gray-500 hover:z-20 hover:border-white/30`;
+            ? `ep-cell relative w-9 sm:w-11 h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 cursor-pointer select-none transition-all duration-200 sm:hover:scale-115 hover:z-30 hover:border-white hover:brightness-110 active:scale-95 border ${style.bg} ${style.border} ${style.text}`
+            : `ep-cell relative w-9 sm:w-11 h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 cursor-pointer select-none transition-all duration-200 sm:hover:scale-115 hover:z-30 hover:border-white/40 active:scale-95 border bg-white/[0.04] border-white/10 text-gray-500`;
           const cellTitle = cached
             ? `S${s.season_number}E${epIdx}: ${escapeHTML(cached.name || 'Episode ' + epIdx)}${r ? ' • IMDb ' + r : ''}`
             : `Season ${s.season_number}, Episode ${epIdx}`;
@@ -6984,13 +7009,13 @@
             onmouseleave="handleEpisodeCellLeave()"
             class="${cellClasses}"
             title="${cellTitle}">
-            <span class="ep-cell-rating text-[11px] sm:text-xs font-bold font-mono tracking-tight ${style.text}">${r || '...'}</span>
+            <span class="ep-cell-rating text-[11px] sm:text-xs tracking-tight ${style.text}">${r || '...'}</span>
           </div>`;
         }).join('');
 
         rowsHtml += `
           <div class="flex items-center gap-1.5 sm:gap-2 py-0.5">
-            <div class="w-8 sm:w-10 text-right pr-2 text-[10px] sm:text-xs font-mono font-bold text-gray-500 shrink-0 sticky left-0 bg-[#080d19] border-r border-white/5 z-20 select-none">${epLabel}</div>
+            <div class="w-8 sm:w-10 text-right pr-2 text-[10px] sm:text-xs font-mono font-bold text-gray-400 shrink-0 sticky left-0 bg-[#0b1121]/95 backdrop-blur-md border-r border-white/10 z-20 select-none">${epLabel}</div>
             ${cells}
           </div>
         `;
@@ -7000,8 +7025,8 @@
         const avg = seasonAverages[s.season_number];
         const avgStyle = getRatingColorStyle(avg);
         const avgClasses = avg
-          ? `w-9 sm:w-11 h-6 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0 select-none border ${avgStyle.bg} ${avgStyle.border} ${avgStyle.text}`
-          : `w-9 sm:w-11 h-6 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-black text-gray-500 bg-white/5 border border-white/5 shrink-0 select-none`;
+          ? `w-9 sm:w-11 h-6 rounded-md sm:rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0 select-none border ${avgStyle.bg} ${avgStyle.border} ${avgStyle.text}`
+          : `w-9 sm:w-11 h-6 rounded-md sm:rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-black text-gray-400 bg-white/5 border border-white/10 shrink-0 select-none`;
         return `
           <div id="epSeasonAvg_${tvId}_${s.season_number}" class="${avgClasses}" title="Season ${s.season_number} Average: ${avg || 'Loading...'}">
             ${avg || '--'}
@@ -7010,64 +7035,77 @@
       }).join('');
 
       return `
-        <div id="episodeGraphSection_${tvId}" class="episode-graph-section space-y-3" data-tv-id="${tvId}">
-          <!-- Collapsible Header Button -->
+        <div id="episodeGraphSection_${tvId}" class="episode-graph-section space-y-3.5" data-tv-id="${tvId}">
+          <!-- Collapsible Header Apple TV Glass Button -->
           <button id="epGraphToggleBtn_${tvId}"
             type="button"
             onclick="toggleEpisodeGraph(${tvId})"
-            class="w-full flex items-center justify-between gap-3 p-2 -mx-2 rounded-xl text-left cursor-pointer select-none group transition-all duration-150 hover:bg-white/[0.04] active:scale-[0.99]"
+            class="liquid-glass w-full rounded-2xl p-3.5 sm:p-4 border border-white/15 flex items-center justify-between gap-3.5 cursor-pointer group select-none transition-all duration-200 hover:border-white/30 active:scale-[0.99] text-left"
             aria-expanded="false"
             aria-controls="epGraphBody_${tvId}">
-            <div class="flex items-center gap-2.5 flex-wrap min-w-0">
-              <h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400 flex items-center gap-2">
-                <svg class="w-5 h-5 fill-current text-blue-400 shrink-0" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
-                <span>Episode Ratings</span>
-              </h3>
-              <span class="inline-flex items-center gap-1.5 bg-[#F5C518]/15 text-[#F5C518] border border-[#F5C518]/30 px-2 py-0.5 rounded-lg text-xs font-black tracking-wider shadow-sm">
-                <span class="bg-[#F5C518] text-black font-black px-1 py-0.2 rounded-[2px] text-[9px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', sans-serif;">IMDb</span>
-                <span id="epGraphSeriesAvg_${tvId}">${overallAvg ? overallAvg + ' ★' : 'Loading...'}</span>
-              </span>
-              <span class="text-xs text-gray-400 font-bold hidden sm:inline-block">• ${regularSeasons.length} Seasons • ${totalEpisodesCount} Episodes</span>
+            <div class="flex items-center gap-3 sm:gap-3.5 flex-wrap min-w-0">
+              <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-400 shrink-0 shadow-[0_0_12px_rgba(59,130,246,0.25)]">
+                <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-current" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+              </div>
+              <div class="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                <h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-white flex items-center gap-2">
+                  <span>Episode Ratings</span>
+                </h3>
+                <div class="flex items-center gap-2 mt-0.5 sm:mt-0">
+                  <span class="inline-flex items-center gap-1.5 bg-[#F5C518]/15 text-[#F5C518] border border-[#F5C518]/35 px-2 py-0.5 rounded-lg text-xs font-black tracking-wider shadow-sm">
+                    <span class="bg-[#F5C518] text-black font-black px-1 py-0.2 rounded-[2px] text-[9px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, sans-serif;">IMDb</span>
+                    <span id="epGraphSeriesAvg_${tvId}">${overallAvg ? overallAvg + ' ★' : 'Loading...'}</span>
+                  </span>
+                  <span class="text-xs text-gray-400 font-medium hidden sm:inline-block">• ${regularSeasons.length} Seasons • ${totalEpisodesCount} Episodes</span>
+                </div>
+              </div>
             </div>
-            <div class="flex items-center gap-2 text-xs font-bold text-gray-400 group-hover:text-white transition-colors shrink-0">
-              <span id="epGraphToggleText_${tvId}" class="hidden sm:inline">Show</span>
-              <div class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-blue-400/40 group-hover:bg-blue-500/10 transition-all">
-                <svg id="epGraphChevron_${tvId}" class="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            <div class="flex items-center gap-2 text-xs font-bold text-gray-300 group-hover:text-white transition-colors shrink-0">
+              <span id="epGraphToggleText_${tvId}" class="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-gray-200">View Heatmap</span>
+              <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-white/25 group-hover:bg-white/10 transition-all shadow-sm">
+                <svg id="epGraphChevron_${tvId}" class="w-4 h-4 text-gray-300 group-hover:text-white transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
                 </svg>
               </div>
             </div>
           </button>
 
           <!-- Collapsible Body Content -->
-          <div id="epGraphBody_${tvId}" class="ep-graph-body hidden space-y-3 animate-fade">
-            <!-- Rating Legend Bar with Words -->
-            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap text-[11px] font-semibold text-gray-400 pt-0.5">
-              <span class="text-gray-500 uppercase tracking-wider text-[10px] font-bold shrink-0 mr-1">Scale:</span>
-              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-purple-500/15 border border-purple-400/30 text-purple-300 shrink-0">
-                <span class="w-2 h-2 rounded-full bg-purple-400"></span>Masterpiece
-              </span>
-              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 border border-blue-400/30 text-blue-300 shrink-0">
-                <span class="w-2 h-2 rounded-full bg-blue-400"></span>Great
-              </span>
-              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 shrink-0">
-                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>Good
-              </span>
-              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/30 text-amber-300 shrink-0">
-                <span class="w-2 h-2 rounded-full bg-amber-400"></span>Mid
-              </span>
-              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-400/30 text-rose-300 shrink-0">
-                <span class="w-2 h-2 rounded-full bg-rose-400"></span>Garbage
-              </span>
-            </div>
+          <div id="epGraphBody_${tvId}" class="ep-graph-body hidden space-y-3.5 animate-fade">
+            <!-- Heatmap Glass Panel -->
+            <div class="relative liquid-glass rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 border border-white/15 overflow-hidden shadow-2xl">
+              <!-- SeriesGraph Legend Scale Bar -->
+              <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap text-[11px] font-bold text-gray-300 mb-3.5 pb-3 border-b border-white/10">
+                <span class="text-gray-400 uppercase tracking-widest text-[10px] font-extrabold shrink-0 mr-1">Scale:</span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/20 border border-blue-400/40 text-blue-200 shrink-0">
+                  <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]"></span>≥ 9.7
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-600/20 border border-emerald-400/40 text-emerald-200 shrink-0">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 shadow-[0_0_6px_rgba(5,150,105,0.8)]"></span>9.0 – 9.6
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-green-500/20 border border-green-400/40 text-green-200 shrink-0">
+                  <span class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.8)]"></span>8.0 – 8.9
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400/20 border border-amber-300/40 text-amber-200 shrink-0">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]"></span>7.0 – 7.9
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500/20 border border-orange-400/40 text-orange-200 shrink-0">
+                  <span class="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.8)]"></span>6.0 – 6.9
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-600/20 border border-red-400/40 text-red-200 shrink-0">
+                  <span class="w-2.5 h-2.5 rounded-full bg-red-600 shadow-[0_0_6px_rgba(220,38,38,0.8)]"></span>5.0 – 5.9
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-600/20 border border-purple-400/40 text-purple-200 shrink-0">
+                  <span class="w-2.5 h-2.5 rounded-full bg-purple-600 shadow-[0_0_6px_rgba(147,51,234,0.8)]"></span>&lt; 5.0
+                </span>
+              </div>
 
-            <!-- Matrix Heatmap Panel -->
-            <div class="relative rounded-2xl p-3 sm:p-4 bg-[#080d19]/90 border border-white/10 shadow-xl overflow-hidden">
+              <!-- Matrix Scroll Track -->
               <div id="epGraphTrack_${tvId}" class="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/15 scrollbar-track-transparent">
                 <div class="inline-flex flex-col min-w-full">
                   <!-- Headers -->
-                  <div class="flex items-center gap-1.5 sm:gap-2 mb-2 pb-2 border-b border-white/10">
-                    <div class="w-8 sm:w-10 text-right pr-2 text-[10px] sm:text-xs font-mono font-bold text-gray-500 shrink-0 sticky left-0 bg-[#080d19] border-r border-white/5 z-20">#</div>
+                  <div class="flex items-center gap-1.5 sm:gap-2 mb-2.5 pb-2.5 border-b border-white/10">
+                    <div class="w-8 sm:w-10 text-right pr-2 text-[10px] sm:text-xs font-mono font-bold text-gray-400 shrink-0 sticky left-0 bg-[#0b1121]/95 backdrop-blur-md border-r border-white/10 z-20">#</div>
                     ${headerCols}
                   </div>
 
@@ -7075,15 +7113,15 @@
                   ${rowsHtml}
 
                   <!-- Season Averages -->
-                  <div class="flex items-center gap-1.5 sm:gap-2 mt-2 pt-2 border-t border-white/10">
-                    <div class="w-8 sm:w-10 text-right pr-2 text-[10px] sm:text-xs font-mono font-bold text-gray-500 shrink-0 sticky left-0 bg-[#080d19] border-r border-white/5 z-20">Avg</div>
+                  <div class="flex items-center gap-1.5 sm:gap-2 mt-2.5 pt-2.5 border-t border-white/10">
+                    <div class="w-8 sm:w-10 text-right pr-2 text-[10px] sm:text-xs font-mono font-bold text-gray-400 shrink-0 sticky left-0 bg-[#0b1121]/95 backdrop-blur-md border-r border-white/10 z-20">Avg</div>
                     ${footerCols}
                   </div>
                 </div>
               </div>
 
               <!-- Episode Preview / Detail Banner -->
-              <div id="epPreviewCard_${tvId}" class="mt-3.5 pt-3.5 border-t border-white/10 hidden animate-fade">
+              <div id="epPreviewCard_${tvId}" class="mt-4 pt-4 border-t border-white/10 hidden animate-fade">
                 <!-- Injected dynamically on click -->
               </div>
             </div>
@@ -7097,14 +7135,14 @@
       if (!cell) return;
 
       const style = getRatingColorStyle(ep.rating);
-      cell.className = `ep-cell w-9 sm:w-11 h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 cursor-pointer select-none transition-transform duration-150 sm:hover:scale-[1.08] active:scale-95 border ${style.bg} ${style.border} ${style.text} hover:z-20 hover:brightness-110`;
+      cell.className = `ep-cell relative w-9 sm:w-11 h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 cursor-pointer select-none transition-all duration-200 sm:hover:scale-115 hover:z-30 hover:border-white hover:brightness-110 active:scale-95 border ${style.bg} ${style.border} ${style.text}`;
 
       cell.title = `S${ep.season}E${ep.episode}: ${ep.name || 'Episode ' + ep.episode}${ep.rating ? ' • IMDb ' + ep.rating : ''}`;
 
       const ratingEl = cell.querySelector('.ep-cell-rating');
       if (ratingEl) {
         ratingEl.textContent = ep.rating || '—';
-        ratingEl.className = `ep-cell-rating text-[11px] sm:text-xs font-bold font-mono tracking-tight ${style.text}`;
+        ratingEl.className = `ep-cell-rating text-[11px] sm:text-xs tracking-tight ${style.text}`;
       }
     }
 
@@ -7124,7 +7162,7 @@
           const avgEl = document.getElementById(`epSeasonAvg_${tvId}_${s.season_number}`);
           if (avgEl) {
             avgEl.textContent = sAvg;
-            avgEl.className = `w-9 sm:w-11 h-6 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0 select-none border ${avgStyle.bg} ${avgStyle.border} ${avgStyle.text}`;
+            avgEl.className = `w-9 sm:w-11 h-6 rounded-md sm:rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0 select-none border ${avgStyle.bg} ${avgStyle.border} ${avgStyle.text}`;
             avgEl.title = `Season ${s.season_number} Average: ${sAvg} (${seasonEps.length} episodes)`;
           }
 
