@@ -1,5 +1,5 @@
 // Bump this any time you change index.html — old caches get wiped automatically.
-const CACHE_NAME = "private-screening-v35";
+const CACHE_NAME = "private-screening-v36";
 const FILES_TO_CACHE = [
   "/",
   "/index.html",
