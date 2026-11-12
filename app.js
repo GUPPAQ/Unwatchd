@@ -1,4 +1,4 @@
-// GENERATED FILE – do not edit. Edit src/js/*.js and run `npm run build`.
+// GENERATED FILE – do not edit. Edit src/js/*.js and run `npm run build:assets`.
     const decodeHTMLEntities = (str) => {
       if (typeof str !== 'string') return str;
       return str
