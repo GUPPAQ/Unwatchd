@@ -5737,11 +5737,6 @@
 
       // Enqueue for background resolution
       enqueueImdbResolution(movieObj, false);
-
-      const tmdbRating = getTmdbRating(movieObj);
-      if (tmdbRating) {
-        return { rating: tmdbRating, isImdb: false, imdbId: imdbId || detailsImdbId || '' };
-      }
       return null;
     }
 
@@ -6698,16 +6693,14 @@
         ? `<img src="${titleLogo}" alt="${safeTitle}" loading="eager" decoding="async" class="titleLogoImg pageTitleImg max-h-28 sm:max-h-40 max-w-[360px] sm:max-w-[620px] object-contain mb-3 shrink-0 mx-auto lg:mx-0" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`
         : `<h1 class="movie-hero-title text-4xl min-[400px]:text-5xl sm:text-7xl md:text-8xl lg:text-[5.5rem] font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[0.95] mb-3 text-center lg:text-left">${safeTitle}</h1>`;
       const imdbId = (details && details.external_ids && details.external_ids.imdb_id) ? details.external_ids.imdb_id : (movieObj.imdbId || getStoredImdbId(isTvMedia ? 'tv' : 'movie', movieObj.id) || null);
-      const tmdbRating = getTmdbRating(movieObj) || (details && details.vote_average ? details.vote_average.toFixed(1) : null);
       const cachedImdbRating = imdbId ? imdbRatingCache.get(imdbId) : null;
       let modalRatingBadgeHtml = '';
       if (cachedImdbRating) {
         modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" title="IMDb Rating: ${cachedImdbRating}/10"><span class="bg-[#F5C518] text-black font-black px-1.5 py-0.5 rounded-[3px] text-[10px] sm:text-[11px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">${cachedImdbRating}</span></div>`;
       } else if (imdbId) {
-        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" data-fallback-tmdb="${tmdbRating || ''}" title="Loading IMDb rating..."><span class="bg-[#F5C518] text-black font-black px-1.5 py-0.5 rounded-[3px] text-[10px] sm:text-[11px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none animate-pulse">...</span></div>`;
+        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" data-fallback-tmdb="" title="Loading IMDb rating..."><span class="bg-[#F5C518] text-black font-black px-1.5 py-0.5 rounded-[3px] text-[10px] sm:text-[11px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none animate-pulse">...</span></div>`;
         setTimeout(() => { resolveImdbRatingBadges(imdbId, isTvMedia); }, 0);
-      } else if (tmdbRating) {
-        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge inline-flex items-center gap-1.5 shrink-0" title="TMDB Rating: ${tmdbRating}/10"><span class="bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded-[3px] text-[9px] sm:text-[10px] leading-none select-none tracking-tight">TMDB</span><span class="font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">${tmdbRating}</span></div>`;
+
       }
 
       const requestId = movieObj.id;
@@ -8785,21 +8778,6 @@
       });
     }
     // ── TMDB Rating System ──────────────────────────────────────────
-    function getTmdbRating(movieObj) {
-      if (!movieObj) return null;
-      const raw = movieObj.vote_average ?? movieObj.rating ?? movieObj.voteAverage;
-      let parsed = null;
-      if (typeof raw === 'number' && raw > 0) parsed = raw;
-      else if (typeof raw === 'string') {
-        const p = parseFloat(raw);
-        if (!isNaN(p) && p > 0) parsed = p;
-      }
-      if (parsed === null) return null;
-      const vCount = typeof movieObj.vote_count === 'number' ? movieObj.vote_count : 0;
-      if (vCount > 0 && vCount < 15 && parsed > 8.0) return null;
-      return parsed.toFixed(1);
-    }
-
     function getRatingInfo(movieObj) {
       if (!movieObj) return { rating: null, label: 'IMDb', source: 'imdb' };
       const mediaType = movieObj.mediaType || movieObj.media_type || (movieObj.name && !movieObj.title ? 'tv' : 'movie');
@@ -8817,8 +8795,7 @@
       if (detailsImdbId && imdbRatingCache.has(detailsImdbId)) {
         return { rating: imdbRatingCache.get(detailsImdbId), label: 'IMDb', source: 'imdb' };
       }
-      const rating = getTmdbRating(movieObj);
-      return { rating, label: 'TMDB', source: 'tmdb' };
+      return { rating: null, label: 'IMDb', source: 'imdb' };
     }
 
     function resolveAndFetchMovieImdbRating(movieObj) {
@@ -8853,7 +8830,7 @@
         }
       }
       enqueueImdbResolution(movieObj, false);
-      return getTmdbRating(movieObj);
+      return null;
     }
 
     function getMoviePopularity(m) {
@@ -9173,9 +9150,12 @@
                 badgeLabel = 'FILM';
                 badgeColor = 'text-gray-400 border-gray-500/30';
               }
+              const searchImdbRating = isPerson ? null : getRatingInfo({ ...item }).rating;
+              const searchYear = (item.release_date || item.first_air_date || '').slice(0, 4);
+              const ratingOrYear = searchImdbRating ? `IMDb ${searchImdbRating}` : searchYear;
               const ratingOrDept = item.matchedRole
-                ? `${item.matchedRole}${item.vote_average && item.vote_average > 0 ? ` • TMDB ${item.vote_average.toFixed(1)}` : ''}`
-                : (isPerson ? (item.known_for_department || 'Person') : (item.vote_average && item.vote_average > 0 ? `TMDB ${item.vote_average.toFixed(1)}` : 'NR'));
+                ? `${item.matchedRole}${searchImdbRating ? ` • IMDb ${searchImdbRating}` : ''}`
+                : (isPerson ? (item.known_for_department || 'Person') : ratingOrYear);
               const subtitleColor = item.matchedRole ? 'text-amber-400 font-extrabold' : 'text-blue-400';
               row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="${subtitleColor} text-[10px]">${escapeHTML(ratingOrDept)}</span></div>`;
               row.addEventListener('click', () => {
