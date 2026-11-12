@@ -5,5 +5,11 @@
   "type": "module",
   "dependencies": {
     "@vercel/node": "^3.0.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  },
+  "scripts": {
+    "build:assets": "node scripts/build.mjs"
   }
 }
