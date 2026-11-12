@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Unwatchd | Watchlist Filter</title>
@@ -2064,6 +2064,10 @@
         opacity: 1 !important;
       }
     }
+      /* iOS zooms into inputs with font-size < 16px; keep them at 16px on touch screens. */
+    @media (pointer: coarse) {
+      input, select, textarea { font-size: 16px !important; }
+    }
   </style>
 </head>
 
@@ -2445,7 +2449,7 @@
             src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
             alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
         <p class="text-[10px] sm:text-[11px] text-gray-400 font-medium text-center sm:text-left whitespace-nowrap">
-          This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+          This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</p>
       </div>
     </footer>
   </div>
@@ -2558,7 +2562,7 @@
                 alt="TMDB Logo" class="h-3 sm:h-3.5">
             </a>
             <p class="text-[10px] sm:text-[11px] text-gray-400 font-medium text-center sm:text-left sm:whitespace-nowrap">
-              This product uses the TMDB API but is not endorsed or certified by TMDB.
+              This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.
             </p>
           </div>
         </div>
@@ -2709,6 +2713,36 @@
         .replace(/'/g, '&#39;');
     };
     const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
+    const IMDB_TAG_HTML = `<span class="poster-rating-tag bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span>`;
+
+
+    // All TMDB requests go through here: at most TMDB_MAX_CONCURRENT in flight, and
+    // "429 Too Many Requests" / 5xx / network errors are retried with backoff instead
+    // of silently turning into "not streaming anywhere".
+    const TMDB_MAX_CONCURRENT = 20;
+    let tmdbActiveRequests = 0;
+    const tmdbWaitQueue = [];
+    async function tmdbFetch(url, init) {
+      for (let attempt = 0; ; attempt++) {
+        while (tmdbActiveRequests >= TMDB_MAX_CONCURRENT) await new Promise(r => tmdbWaitQueue.push(r));
+        tmdbActiveRequests++;
+        let res = null;
+        try {
+          res = await fetch(url, init);
+        } catch (e) {
+          if (init?.signal?.aborted || attempt >= 2) throw e;
+        } finally {
+          tmdbActiveRequests--;
+          const next = tmdbWaitQueue.shift();
+          if (next) next();
+        }
+        if (res && res.status !== 429 && res.status < 500) return res;
+        if (attempt >= 3) return res;
+        const retryAfter = res ? parseFloat(res.headers.get('Retry-After')) : NaN;
+        const delay = !isNaN(retryAfter) ? retryAfter * 1000 : 500 * 2 ** attempt + Math.random() * 250;
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
     function slugify(text) {
       if (!text) return '';
       return text.toString().toLowerCase().trim()
@@ -2747,14 +2781,14 @@
       const url2 = targetYear ? `https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}${yearParam}` : null;
 
       const [res1, res2] = await Promise.all([
-        fetch(url1).then(r => r.json()).catch(() => ({})),
-        url2 ? fetch(url2).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
+        tmdbFetch(url1).then(r => r.json()).catch(() => ({})),
+        url2 ? tmdbFetch(url2).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
       ]);
 
       let combined = dedupeMediaResults([...(res2.results || []).map(r => ({ ...r, __mediaType: mediaType })), ...(res1.results || []).map(r => ({ ...r, __mediaType: mediaType }))]);
 
       if (combined.length === 0 && targetYear) {
-        const rawRes = await fetch(`https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(titleQuery)}`).then(r => r.json()).catch(() => ({}));
+        const rawRes = await tmdbFetch(`https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(titleQuery)}`).then(r => r.json()).catch(() => ({}));
         combined = (rawRes.results || []).map(r => ({ ...r, __mediaType: mediaType }));
       }
       return combined;
@@ -2927,7 +2961,7 @@
           const baseSlug = dupMatch ? dupMatch[1] : slug;
           const dupIdx = dupMatch ? parseInt(dupMatch[2], 10) : 0;
           const query = baseSlug.replace(/-/g, ' ');
-          const res = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+          const res = await tmdbFetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
           const data = await res.json();
           if (data && data.results && data.results.length > 0) {
             const literalMatch = data.results.find(p => slugify(p.name || '') === slug);
@@ -3405,7 +3439,7 @@
         }
       } catch (e) { console.warn('[TMDB Provider Cache Read]', e); }
       const url = `https://api.themoviedb.org/3/watch/providers/movie?api_key=${TMDB_API_KEY}&watch_region=${region}`;
-      const res = await fetch(url);
+      const res = await tmdbFetch(url);
       const data = await res.json().catch(() => ({}));
       const rawList = data.results || [];
 
@@ -4279,7 +4313,7 @@
         try {
           localStorage.removeItem(TMDB_PROVIDER_CACHE_KEY(currentRegion));
           const url = `https://api.themoviedb.org/3/watch/providers/movie?api_key=${TMDB_API_KEY}&watch_region=${currentRegion}`;
-          const res = await fetch(url);
+          const res = await tmdbFetch(url);
           const data = await res.json();
           const rawList = data.results || [];
           const fallbackProviders = rawList.map(p => {
@@ -5098,8 +5132,8 @@
     const sharedMovieId = urlParams.get('movie');
     const sharedTvId = urlParams.get('tv');
     const sharedActorId = urlParams.get('actor') || urlParams.get('person');
-    if (sharedMovieId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/movie/${sharedMovieId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(movie => { if (movie.id) { movie.__mediaType = 'movie'; el.quickSearchInput.value = movie.title; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(movie); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared Movie URL Fetch]', e); }); }
-    else if (sharedTvId && el.quickSearchInput) { fetch(`https://api.themoviedb.org/3/tv/${sharedTvId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(show => { if (show.id) { show.__mediaType = 'tv'; el.quickSearchInput.value = show.name; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(show); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared TV URL Fetch]', e); }); }
+    if (sharedMovieId && el.quickSearchInput) { tmdbFetch(`https://api.themoviedb.org/3/movie/${sharedMovieId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(movie => { if (movie.id) { movie.__mediaType = 'movie'; el.quickSearchInput.value = movie.title; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(movie); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared Movie URL Fetch]', e); }); }
+    else if (sharedTvId && el.quickSearchInput) { tmdbFetch(`https://api.themoviedb.org/3/tv/${sharedTvId}?api_key=${TMDB_API_KEY}`).then(r => r.json()).then(show => { if (show.id) { show.__mediaType = 'tv'; el.quickSearchInput.value = show.name; if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); renderSingleMovieResult(show); window.history.replaceState({}, document.title, window.location.pathname); } }).catch((e) => { console.warn('[Shared TV URL Fetch]', e); }); }
     else if (sharedActorId) { openActorPage(Number(sharedActorId)); window.history.replaceState({}, document.title, window.location.pathname); }
     const rawRoute = parseRouteInfo();
     if (rawRoute) {
@@ -5142,15 +5176,29 @@
     }
 
     const imdbRatingCache = new Map();
+    const imdbRatingFetchedAt = new Map();
+    const IMDB_RATING_TTL_MS = 14 * 24 * 60 * 60 * 1000;
     try {
       const stored = localStorage.getItem('unwatchd_imdb_ratings');
+      const storedTimes = JSON.parse(localStorage.getItem('unwatchd_imdb_rating_times') || '{}') || {};
+      const now = Date.now();
       if (stored) {
         const parsed = JSON.parse(stored);
         for (const [k, v] of Object.entries(parsed)) {
-          if (k && v) imdbRatingCache.set(k, String(v));
+          if (!k || !v) continue;
+          const fetchedAt = Number(storedTimes[k]) || now; // ratings saved before timestamps existed start their 14 days now
+          if (now - fetchedAt > IMDB_RATING_TTL_MS) continue; // stale: will be fetched again
+          imdbRatingCache.set(k, String(v));
+          imdbRatingFetchedAt.set(k, fetchedAt);
         }
       }
-    } catch (e) { }
+    } catch (e) { console.warn('[IMDb Rating Cache Load]', e); }
+
+    function setImdbRating(imdbId, rating) {
+      imdbRatingCache.delete(imdbId); // re-insert so it counts as newest when trimming to 4000
+      imdbRatingCache.set(imdbId, rating);
+      imdbRatingFetchedAt.set(imdbId, Date.now());
+    }
 
     let saveImdbCacheTimer = null;
     function saveImdbRatingCache() {
@@ -5159,10 +5207,15 @@
         saveImdbCacheTimer = null;
         try {
           const obj = {};
+          const times = {};
           const entries = Array.from(imdbRatingCache.entries()).slice(-4000);
-          for (const [k, v] of entries) obj[k] = v;
+          for (const [k, v] of entries) {
+            obj[k] = v;
+            times[k] = imdbRatingFetchedAt.get(k) || Date.now();
+          }
           localStorage.setItem('unwatchd_imdb_ratings', JSON.stringify(obj));
-        } catch (e) { }
+          localStorage.setItem('unwatchd_imdb_rating_times', JSON.stringify(times));
+        } catch (e) { console.warn('[IMDb Rating Cache Save]', e); }
       }, 200);
     }
 
@@ -5210,18 +5263,7 @@
 
     function getStoredImdbRating(imdbId) {
       if (!imdbId) return null;
-      if (imdbRatingCache.has(imdbId)) return imdbRatingCache.get(imdbId);
-      try {
-        const stored = localStorage.getItem('unwatchd_imdb_ratings');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed[imdbId]) {
-            imdbRatingCache.set(imdbId, String(parsed[imdbId]));
-            return String(parsed[imdbId]);
-          }
-        }
-      } catch (e) { }
-      return null;
+      return imdbRatingCache.get(imdbId) || null;
     }
 
     async function saveScanToStorage(movies, isFriendMatch) {
@@ -5430,7 +5472,7 @@
         : 'credits,videos,external_ids,recommendations,similar,watch/providers,images';
       const url = `https://api.themoviedb.org/3/${mediaType === 'tv' ? 'tv' : 'movie'}/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=${appendParams}&include_image_language=en,null,sv`;
       try {
-        const res = await fetch(url);
+        const res = await tmdbFetch(url);
         const data = await res.json();
         if (data && data.id) {
           movieDetailsCache.set(cacheKey, data);
@@ -5492,7 +5534,7 @@
           }
 
           if (rating) {
-            imdbRatingCache.set(imdbId, rating);
+            setImdbRating(imdbId, rating);
             saveImdbRatingCache();
             return rating;
           } else {
@@ -5524,15 +5566,8 @@
           }
           badge.title = `IMDb Rating: ${rating}/10`;
         } else {
-          const fallback = badge.dataset.fallbackTmdb;
-          if (fallback) {
-            badge.className = 'modal-rating-badge inline-flex items-center gap-1.5 shrink-0';
-            badge.title = `TMDB Rating: ${fallback}/10`;
-            badge.innerHTML = `<span class="bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded-[3px] text-[9px] sm:text-[10px] leading-none select-none tracking-tight">TMDB</span><span class="font-extrabold text-white text-sm sm:text-base tracking-tight">${fallback}</span>`;
-          } else {
-            badge.remove();
-            document.querySelectorAll('.rating-sep').forEach(s => s.remove());
-          }
+          badge.remove();
+          document.querySelectorAll('.rating-sep').forEach(s => s.remove());
         }
       });
       if (rating) {
@@ -5545,7 +5580,7 @@
       }
     }
 
-    function updatePosterRatingBadgeInDom(movieIdOrImdbId, rating, isImdb = true, knownImdbId = '') {
+    function updatePosterRatingBadgeInDom(movieIdOrImdbId, rating, _unused = true, knownImdbId = '') {
       if (!movieIdOrImdbId || !rating) return;
       const idStr = String(movieIdOrImdbId);
       const isTt = idStr.startsWith('tt');
@@ -5579,29 +5614,11 @@
       const badges = document.querySelectorAll(selectorList.join(', '));
       if (badges.length > 0) {
         badges.forEach(b => {
-          b.dataset.ratingSource = isImdb ? 'imdb' : 'tmdb';
+          b.dataset.ratingSource = 'imdb';
           if (imdbIdStr) b.dataset.imdbId = imdbIdStr;
-          b.title = isImdb ? `IMDb Rating: ${rating}/10` : `TMDB Rating: ${rating}/10`;
-
+          b.title = `IMDb Rating: ${rating}/10`;
           const valEl = b.querySelector('.poster-rating-val');
-          if (valEl) {
-            valEl.textContent = rating;
-          }
-
-          const tagEl = b.querySelector('.poster-rating-tag') || b.querySelector('span:first-child');
-          if (tagEl && tagEl !== valEl) {
-            if (isImdb) {
-              tagEl.className = "poster-rating-tag bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0";
-              tagEl.style.fontFamily = "Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif";
-              tagEl.style.letterSpacing = "-0.04em";
-              tagEl.textContent = "IMDb";
-            } else {
-              tagEl.className = "poster-rating-tag bg-blue-600 text-white font-bold px-1 py-0.5 rounded-[2.5px] text-[8.5px] leading-none select-none tracking-tight shrink-0";
-              tagEl.style.fontFamily = "";
-              tagEl.style.letterSpacing = "";
-              tagEl.textContent = "TMDB";
-            }
-          }
+          if (valEl) valEl.textContent = rating;
         });
       } else if (!isTt) {
         const card = document.querySelector(`[data-movie-card-id="${idStr}"]`);
@@ -5610,12 +5627,10 @@
           badge.id = `poster-rating-${idStr}`;
           badge.className = 'poster-corner-badge poster-rating-badge';
           badge.dataset.movieId = idStr;
-          badge.dataset.ratingSource = isImdb ? 'imdb' : 'tmdb';
+          badge.dataset.ratingSource = 'imdb';
           if (imdbIdStr) badge.dataset.imdbId = imdbIdStr;
-          badge.title = isImdb ? `IMDb Rating: ${rating}/10` : `TMDB Rating: ${rating}/10`;
-          const tagHtml = isImdb
-            ? `<span class="poster-rating-tag bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span>`
-            : `<span class="poster-rating-tag bg-blue-600 text-white font-bold px-1 py-0.5 rounded-[2.5px] text-[8.5px] leading-none select-none tracking-tight shrink-0">TMDB</span>`;
+          badge.title = `IMDb Rating: ${rating}/10`;
+          const tagHtml = IMDB_TAG_HTML;
           badge.innerHTML = `${tagHtml}<span class="poster-rating-val font-black text-white text-[11px] sm:text-xs leading-none tracking-tight">${rating}</span>`;
           card.appendChild(badge);
         }
@@ -5677,7 +5692,7 @@
           }
         }
         if (!iId) {
-          const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${movieObj.id}/external_ids?api_key=${TMDB_API_KEY}`);
+          const res = await tmdbFetch(`https://api.themoviedb.org/3/${mediaType}/${movieObj.id}/external_ids?api_key=${TMDB_API_KEY}`);
           if (res.ok) {
             const data = await res.json().catch(() => null);
             if (data?.imdb_id) {
@@ -5749,12 +5764,10 @@
       if (!movieObj) return '';
       const data = getPosterRatingData(movieObj);
       if (!data || !data.rating) return '';
-      const imdbTagHtml = `<span class="poster-rating-tag bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span>`;
-      const tmdbTagHtml = `<span class="poster-rating-tag bg-blue-600 text-white font-bold px-1 py-0.5 rounded-[2.5px] text-[8.5px] leading-none select-none tracking-tight shrink-0">TMDB</span>`;
-      const tagHtml = data.isImdb ? imdbTagHtml : tmdbTagHtml;
+      const tagHtml = IMDB_TAG_HTML;
       const imdbAttr = data.imdbId ? ` data-imdb-id="${data.imdbId}"` : '';
-      const sourceAttr = data.isImdb ? ' data-rating-source="imdb"' : ' data-rating-source="tmdb"';
-      const titleAttr = data.isImdb ? `IMDb Rating: ${data.rating}/10` : `TMDB Rating: ${data.rating}/10`;
+      const sourceAttr = ' data-rating-source="imdb"';
+      const titleAttr = `IMDb Rating: ${data.rating}/10`;
       return `<div class="poster-corner-badge poster-rating-badge" data-movie-id="${movieObj.id}"${imdbAttr}${sourceAttr} title="${titleAttr}">${tagHtml}<span class="poster-rating-val font-black text-white text-[11px] sm:text-xs leading-none tracking-tight">${data.rating}</span></div>`;
     }
 
@@ -5843,7 +5856,7 @@
                   m.imdbId = iId;
                   movieToImdbIdMap.set(key, iId);
                 } else {
-                  const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${m.id}/external_ids?api_key=${TMDB_API_KEY}`);
+                  const res = await tmdbFetch(`https://api.themoviedb.org/3/${mediaType}/${m.id}/external_ids?api_key=${TMDB_API_KEY}`);
                   const data = await res.json().catch(() => ({}));
                   if (data?.imdb_id) {
                     iId = data.imdb_id;
@@ -5910,7 +5923,7 @@
                 iId = cached.external_ids.imdb_id;
                 m.imdbId = iId;
               } else {
-                const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${m.id}/external_ids?api_key=${TMDB_API_KEY}`);
+                const res = await tmdbFetch(`https://api.themoviedb.org/3/${mediaType}/${m.id}/external_ids?api_key=${TMDB_API_KEY}`);
                 const data = await res.json().catch(() => ({}));
                 if (data?.imdb_id) {
                   iId = data.imdb_id;
@@ -5941,7 +5954,7 @@
       if (!collectionId) return null;
       if (collectionCache.has(collectionId)) return collectionCache.get(collectionId);
       try {
-        const res = await fetch(`https://api.themoviedb.org/3/collection/${collectionId}?api_key=${TMDB_API_KEY}`);
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/collection/${collectionId}?api_key=${TMDB_API_KEY}`);
         const data = await res.json();
         if (data && data.parts) {
           collectionCache.set(collectionId, data);
@@ -6319,7 +6332,7 @@
       const missingItems = franchiseItems.filter(item => !existingIds.has(item.id));
       if (missingItems.length > 0) {
         const fetchedList = await Promise.all(
-          missingItems.map(item => fetch(`https://api.themoviedb.org/3/${item.type}/${item.id}?api_key=${TMDB_API_KEY}`).then(r => r.json()).catch(() => null))
+          missingItems.map(item => tmdbFetch(`https://api.themoviedb.org/3/${item.type}/${item.id}?api_key=${TMDB_API_KEY}`).then(r => r.json()).catch(() => null))
         );
         if (!details.recommendations) details.recommendations = { results: [] };
         fetchedList.forEach((item, idx) => {
@@ -6703,7 +6716,7 @@
       if (cachedImdbRating) {
         modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" title="IMDb Rating: ${cachedImdbRating}/10"><span class="bg-[#F5C518] text-black font-black px-1.5 py-0.5 rounded-[3px] text-[10px] sm:text-[11px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">${cachedImdbRating}</span></div>`;
       } else if (imdbId) {
-        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" data-fallback-tmdb="" title="Loading IMDb rating..."><span class="bg-[#F5C518] text-black font-black px-1.5 py-0.5 rounded-[3px] text-[10px] sm:text-[11px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none animate-pulse">...</span></div>`;
+        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" title="Loading IMDb rating..."><span class="bg-[#F5C518] text-black font-black px-1.5 py-0.5 rounded-[3px] text-[10px] sm:text-[11px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none animate-pulse">...</span></div>`;
         setTimeout(() => { resolveImdbRatingBadges(imdbId, isTvMedia); }, 0);
 
       }
@@ -7039,7 +7052,7 @@
               <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
                 <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5">
                   <a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
-                  <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
+                  <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span>
                 </div>
                 <p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p>
               </div>
@@ -7049,7 +7062,7 @@
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
       const modalMobilePoster = getTextlessPosterUrl(details, movieObj.poster);
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] via-15% via-[#0b1121]/80 via-40% via-[#0b1121]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-7 sm:gap-9 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-white font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div>${overviewHtml}</div><div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div><div id="modalWatchOptionsBox" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5">${renderMovieWatchOptionsBox(movieObj, details, false, true)}</div></div>${castCrewHtml}${relatedHtml}${similarHtml}</div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div><p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p></div></div>`;
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] via-15% via-[#0b1121]/80 via-40% via-[#0b1121]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-7 sm:gap-9 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-white font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div>${overviewHtml}</div><div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div><div id="modalWatchOptionsBox" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5">${renderMovieWatchOptionsBox(movieObj, details, false, true)}</div></div>${castCrewHtml}${relatedHtml}${similarHtml}</div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div><p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p></div></div>`;
     }
 
     function getShortText(text, limit = 195) {
@@ -7578,6 +7591,7 @@
 
     // Window message listener for YouTube player events
     window.addEventListener('message', (e) => {
+      if (!/^https:\/\/(www\.)?youtube(-nocookie)?\.com$/.test(e.origin)) return;
       let data;
       try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch (err) { return; }
       if (!data) return;
@@ -7797,7 +7811,7 @@
 
       try {
         const query = baseSlug.replace(/-/g, ' ');
-        const res = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
         const data = await res.json();
         if (data && Array.isArray(data.results) && data.results.length > 0) {
           const exacts = data.results.filter(p => slugify(p.name || '') === baseSlug);
@@ -7966,7 +7980,7 @@
       if (existing) { return openMoviePage(existing.slug ? existing : { ...existing, slug }, pushHistory); }
       try {
         let endpoint = mediaType === 'tv' ? 'tv' : 'movie';
-        let res = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
+        let res = await tmdbFetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
         let movie = await res.json();
 
         // If a title slug is present and the fetched result does not match the slug, check if the alternate media type (tv vs movie) is the true match
@@ -7976,7 +7990,7 @@
           if (cleanTargetSlug && !fetchedSlug.includes(cleanTargetSlug) && !cleanTargetSlug.includes(fetchedSlug)) {
             const altEndpoint = endpoint === 'tv' ? 'movie' : 'tv';
             try {
-              const altRes = await fetch(`https://api.themoviedb.org/3/${altEndpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
+              const altRes = await tmdbFetch(`https://api.themoviedb.org/3/${altEndpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
               const altMovie = await altRes.json();
               if (altMovie && altMovie.id) {
                 const altSlug = slugify(altMovie.title || altMovie.name || '');
@@ -8010,7 +8024,7 @@
           allProviders: null
         };
         try {
-          const pRes = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
+          const pRes = await tmdbFetch(`https://api.themoviedb.org/3/${endpoint}/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
           const pData = await pRes.json();
           if (pData && pData.results) {
             movieObj.regionData = pData.results[currentRegion] || null;
@@ -8782,7 +8796,7 @@
         trailerModalEl.addEventListener(evt, (e) => { e.stopPropagation(); }, { passive: true });
       });
     }
-    // ── TMDB Rating System ──────────────────────────────────────────
+    // ── Rating System (IMDb via Cinemeta) ──────────────────────────────────────────
     function getRatingInfo(movieObj) {
       if (!movieObj) return { rating: null, label: 'IMDb', source: 'imdb' };
       const mediaType = movieObj.mediaType || movieObj.media_type || (movieObj.name && !movieObj.title ? 'tv' : 'movie');
@@ -9382,7 +9396,7 @@
       if (!personId) return null;
       if (personCreditsCache.has(personId)) return personCreditsCache.get(personId);
       try {
-        const res = await fetch(`https://api.themoviedb.org/3/person/${personId}/combined_credits?api_key=${TMDB_API_KEY}`);
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/person/${personId}/combined_credits?api_key=${TMDB_API_KEY}`);
         const data = await res.json();
         personCreditsCache.set(personId, data);
         return data;
@@ -9511,16 +9525,16 @@
 
       // Primary multi searches
       const searchPromises = [
-        fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanRaw)}`).then(r => r.json()).catch(() => ({}))
+        tmdbFetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanRaw)}`).then(r => r.json()).catch(() => ({}))
       ];
       if (cleanQuery && cleanQuery !== cleanRaw && cleanQuery.length >= 2) {
         searchPromises.push(
-          fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanQuery)}`).then(r => r.json()).catch(() => ({}))
+          tmdbFetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanQuery)}`).then(r => r.json()).catch(() => ({}))
         );
       }
       if (targetYear && cleanQuery.length >= 2) {
         searchPromises.push(
-          fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanQuery)}&primary_release_year=${targetYear}`).then(r => r.json()).catch(() => ({}))
+          tmdbFetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(cleanQuery)}&primary_release_year=${targetYear}`).then(r => r.json()).catch(() => ({}))
         );
       }
 
@@ -9549,7 +9563,7 @@
       });
 
       const personPromises = Array.from(personLookups).slice(0, 4).map(name =>
-        fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(name)}`)
+        tmdbFetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(name)}`)
           .then(r => r.json())
           .then(data => ({ name, results: (data.results || []).filter(p => (p.popularity || 0) >= 1.2).slice(0, 2) }))
           .catch(() => ({ name, results: [] }))
@@ -9658,8 +9672,8 @@
       const movieUrl = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}${yearParamMovie}`;
       const tvUrl = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}${yearParamTv}`;
       const [movieRes, tvRes] = await Promise.all([
-        fetch(movieUrl).then(r => r.json()).catch((e) => { console.warn('[TMDB Search Movie Catch]', e); return {}; }),
-        fetch(tvUrl).then(r => r.json()).catch((e) => { console.warn('[TMDB Search TV Catch]', e); return {}; })
+        tmdbFetch(movieUrl).then(r => r.json()).catch((e) => { console.warn('[TMDB Search Movie Catch]', e); return {}; }),
+        tmdbFetch(tvUrl).then(r => r.json()).catch((e) => { console.warn('[TMDB Search TV Catch]', e); return {}; })
       ]);
       const movieResults = (movieRes.results || []).map(r => ({ ...r, __mediaType: 'movie' }));
       const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
@@ -9739,43 +9753,48 @@
       return best;
     }
     const PROXY_LABELS = ['own-vercel', 'corsproxy.io', 'codetabs', 'allorigins'];
+    // Own Vercel proxy first. Only if it fails do we fall back to the public CORS
+    // proxies (raced against each other, losers aborted), so usernames normally
+    // never leave our own infrastructure and we don't hit four services per page.
     const raceProxies = async (targetUrl, validatorFn, timeoutMs = 6000) => {
-      const promises = CORS_PROXIES.map(async (proxyFn, idx) => {
+      const tryProxy = async (idx, sharedSignal = null) => {
         const label = PROXY_LABELS[idx] || `proxy-${idx}`;
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
+        if (sharedSignal) sharedSignal.addEventListener('abort', () => controller.abort(), { once: true });
         try {
-          const url = proxyFn(targetUrl);
-          const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
-          clearTimeout(timer);
+          const res = await fetch(CORS_PROXIES[idx](targetUrl), { cache: 'no-store', signal: controller.signal });
           if (!res.ok) {
-            const bodyPreview = await res.text().catch(() => '');
-            console.warn(`[Proxy: ${label}] HTTP ${res.status} for ${targetUrl}`, bodyPreview.slice(0, 300));
+            console.warn(`[Proxy: ${label}] HTTP ${res.status} for ${targetUrl}`);
             throw new Error(`HTTP ${res.status}`);
           }
-          let txt = await res.text();
-          txt = unwrapProxyResponse(txt);
-          if (validatorFn(txt)) {
-            console.log(`[Proxy: ${label}] SUCCESS for ${targetUrl}`);
-            return txt;
-          }
-          console.warn(`[Proxy: ${label}] Invalid content (failed validator) for ${targetUrl}, length=${txt ? txt.length : 0}`, txt ? txt.slice(0, 300) : '(empty)');
+          const txt = unwrapProxyResponse(await res.text());
+          if (validatorFn(txt)) return txt;
+          console.warn(`[Proxy: ${label}] Invalid content for ${targetUrl}, length=${txt ? txt.length : 0}`);
           throw new Error('Invalid content');
         } catch (e) {
-          clearTimeout(timer);
-          if (e.name === 'AbortError') {
+          if (e.name === 'AbortError' && !sharedSignal?.aborted) {
             console.warn(`[Proxy: ${label}] TIMEOUT after ${timeoutMs}ms for ${targetUrl}`);
-          } else if (!e.message.startsWith('HTTP') && e.message !== 'Invalid content') {
-            console.warn(`[Proxy: ${label}] NETWORK/CORS ERROR for ${targetUrl}:`, e.message);
           }
           throw e;
+        } finally {
+          clearTimeout(timer);
         }
-      });
+      };
+
       try {
-        return await Promise.any(promises);
+        return await tryProxy(0);
+      } catch (e) { /* fall through to public proxies */ }
+
+      const shared = new AbortController();
+      try {
+        const fallbacks = CORS_PROXIES.slice(1).map((_, k) => tryProxy(k + 1, shared.signal));
+        return await Promise.any(fallbacks);
       } catch (err) {
         console.error(`[raceProxies] All proxies failed for ${targetUrl}`, err.errors || err);
         return null;
+      } finally {
+        shared.abort();
       }
     };
 
@@ -10011,7 +10030,15 @@
           saveBrowser();
         }
         if (el.formError) el.formError.classList.add('hidden'); if (el.usernameInput) localStorage.setItem('ps_username', el.usernameInput.value); if (el.friendInput) localStorage.setItem('ps_friend_username', el.friendInput.value);
-        const username = el.usernameInput ? el.usernameInput.value.trim().toLowerCase() : ''; let friendName = el.friendInput ? el.friendInput.value.trim().toLowerCase() : '';
+        const normalizeLetterboxdUser = (v) => {
+          let u = (v || '').trim().toLowerCase();
+          const m = u.match(/letterboxd\.com\/([^/?#\s]+)/); // accept a pasted profile link
+          if (m) u = m[1];
+          return u.replace(/^@/, '');
+        };
+        const isValidLetterboxdUser = (u) => /^[a-z0-9_]{1,40}$/.test(u);
+        const username = normalizeLetterboxdUser(el.usernameInput ? el.usernameInput.value : ''); let friendName = normalizeLetterboxdUser(el.friendInput ? el.friendInput.value : '');
+        if ((username && !isValidLetterboxdUser(username)) || (friendName && !isValidLetterboxdUser(friendName))) { if (el.formError) { el.formError.textContent = 'ERROR: Letterboxd usernames can only contain letters, numbers and underscores.'; el.formError.classList.remove('hidden'); } return; }
         if (el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden') && friendName === '') { if (el.removeFriendBtn) el.removeFriendBtn.click(); friendName = ''; }
         if (selectedServiceIds.size === 0) { if (el.formError) { el.formError.textContent = 'ERROR: Minimum one network subscription required.'; el.formError.classList.remove('hidden'); } return; }
         if (!username && friendName) { if (el.formError) { el.formError.textContent = 'ERROR: Enter your own username to match with a friend.'; el.formError.classList.remove('hidden'); } return; }
@@ -10048,7 +10075,7 @@
                 if (!best) return;
                 const mediaType = best.__mediaType === 'tv' ? 'tv' : 'movie';
                 const pUrl = `https://api.themoviedb.org/3/${mediaType}/${best.id}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers,external_ids`;
-                const pRes = await fetch(pUrl);
+                const pRes = await tmdbFetch(pUrl);
                 const pData = await pRes.json().catch(() => ({}));
                 if (pData && pData.id) {
                   const existing = movieDetailsCache.get(`${mediaType}_${best.id}`);
@@ -10147,7 +10174,7 @@
             const u = msg.split(':')[1];
             msg = `Profile not found: ${u}. Make sure the username is spelled correctly and is public.`;
           } else if (msg.startsWith('PROXY_FAILURE:')) {
-            msg = `Kunde inte nå Letterboxd via nätverks-proxy just nu. Kontrollera din internetanslutning eller försök igen om en stund.`;
+            msg = `Couldn't reach Letterboxd right now. Check your internet connection or try again in a moment.`;
           }
           if (el.formError) {
             el.formError.textContent = msg;
@@ -10181,7 +10208,7 @@
       if (actorDetailsCache.has(actorId)) return actorDetailsCache.get(actorId);
       const url = `https://api.themoviedb.org/3/person/${actorId}?api_key=${TMDB_API_KEY}&append_to_response=combined_credits,movie_credits,external_ids,images`;
       try {
-        const res = await fetch(url);
+        const res = await tmdbFetch(url);
         const data = await res.json();
         if (data && data.id) actorDetailsCache.set(actorId, data);
         return data;
@@ -10875,13 +10902,13 @@
               <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
                 <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5">
                   <a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
-                  <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
+                  <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span>
                 </div>
               </div>
             </div>
           </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div></div></div>`;
+      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div></div></div>`;
     }
 
     let currentActorId = null;
@@ -11057,7 +11084,7 @@
             let pData = cachedDetails;
             if (!pData || !pData['watch/providers'] || !pData.external_ids) {
               const pUrl = `https://api.themoviedb.org/3/${mediaType}/${m.id}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers,external_ids`;
-              const pRes = await fetch(pUrl);
+              const pRes = await tmdbFetch(pUrl);
               pData = await pRes.json().catch(() => ({}));
               if (pData && pData.id) {
                 const existing = movieDetailsCache.get(`${mediaType}_${m.id}`);
@@ -11788,7 +11815,7 @@
 
       try {
         const endpoint = mediaType === 'tv' ? 'tv' : 'movie';
-        const res = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/${endpoint}/${movieId}?api_key=${TMDB_API_KEY}`);
         const movie = await res.json();
         if (movie && movie.id) {
           const knownImdbId = getStoredImdbId(mediaType, movie.id);
@@ -11809,7 +11836,7 @@
             allProviders: null
           };
           try {
-            const pRes = await fetch(`https://api.themoviedb.org/3/${endpoint}/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
+            const pRes = await tmdbFetch(`https://api.themoviedb.org/3/${endpoint}/${movie.id}/watch/providers?api_key=${TMDB_API_KEY}`);
             const pData = await pRes.json();
             if (pData && pData.results) {
               movieObj.regionData = pData.results[currentRegion] || null;
