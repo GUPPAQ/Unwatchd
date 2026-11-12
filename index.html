@@ -5473,13 +5473,18 @@
             }
           };
 
+          // A timeout or server error is not the same as "this title has no rating":
+          // only remember a title as unrated when Cinemeta actually answered.
+          const isTransientFailure = (r) => !r || (!r.ok && r.status !== 404);
           let res = await fetchWithTimeout(`https://v3-cinemeta.strem.io/meta/${type}/${imdbId}.json`);
+          let transientFailure = isTransientFailure(res);
           let data = res && res.ok ? await res.json().catch(() => null) : null;
           let rating = data?.meta?.imdbRating ? String(data.meta.imdbRating) : null;
 
           if (!rating) {
             const altType = isTv ? 'movie' : 'series';
             const altRes = await fetchWithTimeout(`https://v3-cinemeta.strem.io/meta/${altType}/${imdbId}.json`);
+            transientFailure = transientFailure || isTransientFailure(altRes);
             if (altRes && altRes.ok) {
               const altData = await altRes.json().catch(() => null);
               rating = altData?.meta?.imdbRating ? String(altData.meta.imdbRating) : null;
@@ -5491,7 +5496,7 @@
             saveImdbRatingCache();
             return rating;
           } else {
-            imdbNoRatingSet.add(imdbId);
+            if (!transientFailure) imdbNoRatingSet.add(imdbId);
             return null;
           }
         } catch (e) {
