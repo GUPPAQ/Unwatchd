@@ -7653,7 +7653,6 @@
     }
 
     function stopHeroVideo() {
-      heroVideoPlaying = false;
       heroVideoFailed = false;
       if (heroRevealTimeout) { clearTimeout(heroRevealTimeout); heroRevealTimeout = null; }
       try {
@@ -7948,7 +7947,7 @@
           const pageImdbId = details?.external_ids?.imdb_id || movieObj.imdbId;
           if (pageImdbId) resolveImdbRatingBadges(pageImdbId, mediaType === 'tv');
           const similarToPreload = [
-            ...(collectionParts || []),
+            ...((collectionData && collectionData.parts) || []),
             ...((details?.recommendations?.results) || []),
             ...((details?.similar?.results) || [])
           ].slice(0, 16);
@@ -8050,21 +8049,6 @@
       container.classList.add('hidden');
       container.innerHTML = '';
       document.body.classList.remove('modal-open');
-    }
-
-    function hideActorPageView() {
-      const container = document.getElementById('actorPageView');
-      if (!container || container.classList.contains('hidden')) return;
-      window.currentActorPageId = null;
-      container.classList.add('hidden');
-      container.innerHTML = '';
-      const movieModal = document.getElementById('movieModal');
-      const actorModal = document.getElementById('actorModal');
-      const allCastModal = document.getElementById('allCastModal');
-      const isMoviePageOpen = document.getElementById('moviePageView') && !document.getElementById('moviePageView').classList.contains('hidden');
-      if (!movieModal?.classList.contains('flex') && !actorModal?.classList.contains('flex') && !allCastModal?.classList.contains('flex') && !isMoviePageOpen) {
-        document.body.classList.remove('modal-open');
-      }
     }
 
     function hideAllCastModalView() {
@@ -8932,6 +8916,53 @@
       renderAllCustomFilters('home');
     }
 
+    // Shared by the home filters and the actor page filters.
+    function buildSubscribedMatcher() {
+      const selectedNames = new Set(
+        currentProviders
+          .filter(cp => selectedServiceIds.has(cp.id))
+          .map(cp => cleanNormalize(cp.name))
+      );
+      return (p) => {
+        if (!p) return false;
+        if (p.provider_id && selectedServiceIds.has(p.provider_id)) return true;
+        if (p.id && selectedServiceIds.has(p.id)) return true;
+        const norm = cleanNormalize(p.provider_name || p.name || '');
+        return norm ? selectedNames.has(norm) : false;
+      };
+    }
+
+  function findVpnMatch(m, isSubscribedScan = buildSubscribedMatcher()) {
+      if (!vpnModeEnabled || !m.allProviders) return null;
+      const localData = m.allProviders[currentRegion] || m.regionData;
+      const localFlatrate = localData?.flatrate || [];
+      const hasLocal = localFlatrate.some(isSubscribedScan);
+      if (hasLocal) return null;
+      for (const code of Object.keys(REGION_META)) {
+        if (code === currentRegion || !m.allProviders[code]) continue;
+        const altData = m.allProviders[code];
+        const altFlat = altData?.flatrate || [];
+        const matchedIds = altFlat.filter(isSubscribedScan);
+        if (matchedIds.length > 0) {
+          const sorted = [...matchedIds].sort((a, b) => {
+            const nameA = cleanNormalize(a.provider_name || a.name || '');
+            const nameB = cleanNormalize(b.provider_name || b.name || '');
+            const getScore = (n) => {
+              if (n.includes('netflix')) return 100;
+              if (n.includes('hbo') || n.includes('max')) return 90;
+              if (n.includes('amazon') || n.includes('prime')) return 80;
+              if (n.includes('disney')) return 70;
+              if (n.includes('apple')) return 60;
+              return 10;
+            };
+            return getScore(nameB) - getScore(nameA);
+          });
+          return { region: code, services: sorted.map(p => ({ label: p.provider_name || p.name })) };
+        }
+      }
+      return null;
+    }
+
     function applyFiltersAndRender() {
       const query = el.filterSearch ? el.filterSearch.value.toLowerCase() : '';
       const sort = homeFilterSort || 'year_desc';
@@ -8949,36 +8980,7 @@
         return norm ? selectedNamesFilterSet.has(norm) : false;
       };
 
-      const getMovieVpnMatch = (m) => {
-        if (!vpnModeEnabled || !m.allProviders) return null;
-        const localData = m.allProviders[currentRegion] || m.regionData;
-        const localFlatrate = localData?.flatrate || [];
-        const hasLocal = localFlatrate.some(isSubscribedScan);
-        if (hasLocal) return null;
-        for (const code of Object.keys(REGION_META)) {
-          if (code === currentRegion || !m.allProviders[code]) continue;
-          const altData = m.allProviders[code];
-          const altFlat = altData?.flatrate || [];
-          const matchedIds = altFlat.filter(isSubscribedScan);
-          if (matchedIds.length > 0) {
-            const sorted = [...matchedIds].sort((a, b) => {
-              const nameA = cleanNormalize(a.provider_name || a.name || '');
-              const nameB = cleanNormalize(b.provider_name || b.name || '');
-              const getScore = (n) => {
-                if (n.includes('netflix')) return 100;
-                if (n.includes('hbo') || n.includes('max')) return 90;
-                if (n.includes('amazon') || n.includes('prime')) return 80;
-                if (n.includes('disney')) return 70;
-                if (n.includes('apple')) return 60;
-                return 10;
-              };
-              return getScore(nameB) - getScore(nameA);
-            });
-            return { region: code, services: sorted.map(p => ({ label: p.provider_name || p.name })) };
-          }
-        }
-        return null;
-      };
+      const getMovieVpnMatch = (m) => findVpnMatch(m, isSubscribedScan);
 
       const qNormFilter = normalizeTitle(query);
       let filtered = scannedMovies.filter(m => {
@@ -9711,18 +9713,6 @@
       }
     }
 
-    function dedupeMediaResults(list) {
-      const seen = new Set();
-      const out = [];
-      for (const r of list) {
-        const k = `${r.__mediaType}-${r.id}`;
-        if (seen.has(k)) continue;
-        seen.add(k);
-        out.push(r);
-      }
-      return out;
-    }
-
     async function findBestMediaMatch(qObj) {
       const key = getFilmKey(qObj);
       if (tmdbMatchCache.has(key)) {
@@ -10368,7 +10358,7 @@
           let isMatch = false;
           if (actorFilterProviders.has('vpn')) {
             const tempObj = { ...m, allProviders: allProv, regionData: m.regionData || (allProv ? allProv[currentRegion] : null) };
-            const vpn = getMovieVpnMatch(tempObj);
+            const vpn = findVpnMatch(tempObj);
             if (vpn) isMatch = true;
           }
 
@@ -11215,7 +11205,6 @@
       currentActorRoleHint = newRole;
       modalActiveActorRoleHint = newRole;
       actorCurrentPage = 1;
-      actorMobileFiltersOpen = false;
       actorFilterQuery = '';
       actorFilterProviders = new Set(['all']);
       actorFilterGenres = new Set(['all']);
@@ -11259,7 +11248,6 @@
       currentActorRoleHint = roleHint;
       modalActiveActorRoleHint = roleHint;
       actorMediaTypeFilter = 'watchlist';
-      actorMobileFiltersOpen = false;
       actorFilterQuery = '';
       actorFilterProviders = new Set(['all']);
       actorFilterGenres = new Set(['all']);
@@ -11344,7 +11332,13 @@
       window.currentActorPageId = null;
       container.classList.add('hidden');
       container.innerHTML = '';
-      document.body.classList.remove('modal-open');
+      const movieModal = document.getElementById('movieModal');
+      const actorModal = document.getElementById('actorModal');
+      const allCastModal = document.getElementById('allCastModal');
+      const isMoviePageOpen = document.getElementById('moviePageView') && !document.getElementById('moviePageView').classList.contains('hidden');
+      if (!movieModal?.classList.contains('flex') && !actorModal?.classList.contains('flex') && !allCastModal?.classList.contains('flex') && !isMoviePageOpen) {
+        document.body.classList.remove('modal-open');
+      }
     }
 
     async function openActorModal(actorId, actorName = '', roleHint = '', forceInline = null) {
