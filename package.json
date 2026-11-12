@@ -10,6 +10,6 @@
     "tailwindcss": "^3.4.19"
   },
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build:assets": "node scripts/build.mjs"
   }
 }

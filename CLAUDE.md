@@ -17,7 +17,7 @@ Letterboxd pages (letterboxd.com only).
 After changing anything in `src/` or Tailwind classes in `index.html`:
 
     npm install   # first time only
-    npm run build
+    npm run build:assets
 
 Commit the regenerated `app.js` and `styles.css` together with the source change.
 
@@ -27,3 +27,6 @@ Commit the regenerated `app.js` and `styles.css` together with the source change
 - All TMDB requests go through `tmdbFetch()` (concurrency cap + retry on 429/5xx).
 - Swallowed errors use `logIgnored(context, e)`; open the site with `?debug` to see them.
 - Streaming data comes from JustWatch via TMDB and must stay attributed.
+
+Note: the script is deliberately not called `build` – Vercel would then try to run it and
+expect a `public/` output folder. Vercel just serves the committed files as-is.
