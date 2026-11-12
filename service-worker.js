@@ -1,5 +1,5 @@
 // Bump this any time you change index.html — old caches get wiped automatically.
-const CACHE_NAME = "private-screening-v40";
+const CACHE_NAME = "private-screening-v43";
 const FILES_TO_CACHE = [
   "/",
   "/index.html",
@@ -44,13 +44,24 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
+  const req = event.request;
+  const url = new URL(req.url);
+  // Only handle our own static files. Everything else (TMDB API calls, poster
+  // images, /api/ proxy calls, POST requests) goes straight to the network and
+  // is never stored, so the cache can't grow without limit on users' devices.
+  if (req.method !== "GET" || url.origin !== self.location.origin || url.pathname.startsWith("/api/")) {
+    return;
+  }
+  // Network first, fall back to the cached copy when offline.
   event.respondWith(
-    fetch(event.request)
+    fetch(req)
       .then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+        }
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => caches.match(req))
   );
 });

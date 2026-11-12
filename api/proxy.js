@@ -1,3 +1,8 @@
+// Fetches Letterboxd pages on behalf of the browser (Letterboxd blocks direct
+// cross-origin requests). Only letterboxd.com is allowed, so the function
+// can't be used as an open proxy to the rest of the internet.
+const ALLOWED_HOSTS = new Set(['letterboxd.com', 'www.letterboxd.com']);
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -6,14 +11,28 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+  if (req.method !== 'GET') {
+    return res.status(405).send('Method not allowed');
+  }
 
   const targetUrl = req.query.url;
   if (!targetUrl) {
     return res.status(400).send('Missing url param');
   }
 
+  let parsed;
   try {
-    const r = await fetch(targetUrl, {
+    parsed = new URL(targetUrl);
+  } catch {
+    return res.status(400).send('Invalid url');
+  }
+  if (parsed.protocol !== 'https:' || !ALLOWED_HOSTS.has(parsed.hostname)) {
+    return res.status(403).send('Only letterboxd.com is allowed');
+  }
+
+  try {
+    const r = await fetch(parsed.toString(), {
+      redirect: 'follow',
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -21,11 +40,14 @@ export default async function handler(req, res) {
         'Referer': 'https://letterboxd.com/'
       }
     });
+    if (!ALLOWED_HOSTS.has(new URL(r.url).hostname)) {
+      return res.status(403).send('Redirected away from letterboxd.com');
+    }
     const text = await r.text();
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.status(r.status).send(text);
   } catch (e) {
     console.error('[Vercel Serverless Proxy Error]', e);
-    return res.status(500).send(e.message);
+    return res.status(500).send('Upstream fetch failed');
   }
 }
