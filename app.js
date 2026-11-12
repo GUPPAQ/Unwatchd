@@ -360,7 +360,35 @@
       return routeInfo;
     }
     const ITEMS_PER_PAGE = 96;
-    let currentRegion = localStorage.getItem('ps_region') || 'SE';
+    // First visit: guess the visitor's country from their time zone (more reliable than
+    // browser language — lots of people outside the US use en-US), then from the
+    // browser language, and fall back to the US. A region the user picks is saved and wins.
+    function detectDefaultRegion() {
+      const SUPPORTED = ['SE', 'US', 'GB', 'CA', 'AU', 'IE', 'NZ', 'DE', 'FR', 'IT', 'ES', 'NL', 'PL', 'BR', 'MX', 'IN', 'JP', 'KR', 'NO', 'DK', 'FI'];
+      const TZ_TO_REGION = {
+        'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO', 'Europe/Copenhagen': 'DK', 'Europe/Helsinki': 'FI',
+        'Europe/London': 'GB', 'Europe/Belfast': 'GB', 'Europe/Dublin': 'IE', 'Europe/Berlin': 'DE',
+        'Europe/Paris': 'FR', 'Europe/Rome': 'IT', 'Europe/Madrid': 'ES', 'Atlantic/Canary': 'ES',
+        'Europe/Amsterdam': 'NL', 'Europe/Warsaw': 'PL', 'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR',
+        'Asia/Kolkata': 'IN', 'Asia/Calcutta': 'IN', 'Pacific/Auckland': 'NZ', 'America/Mexico_City': 'MX',
+        'America/Sao_Paulo': 'BR', 'America/Toronto': 'CA', 'America/Vancouver': 'CA', 'America/Edmonton': 'CA',
+        'America/Winnipeg': 'CA', 'America/Halifax': 'CA', 'America/St_Johns': 'CA', 'America/Regina': 'CA'
+      };
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        if (TZ_TO_REGION[tz]) return TZ_TO_REGION[tz];
+        if (tz.startsWith('Australia/')) return 'AU';
+        if (tz.startsWith('America/')) return 'US';
+      } catch (e) { logIgnored('detectDefaultRegion', e); }
+      try {
+        for (const lang of (navigator.languages || [navigator.language || ''])) {
+          const region = (lang.split('-')[1] || '').toUpperCase();
+          if (SUPPORTED.includes(region)) return region;
+        }
+      } catch (e) { logIgnored('detectDefaultRegion', e); }
+      return 'US';
+    }
+    let currentRegion = localStorage.getItem('ps_region') || detectDefaultRegion();
     let vpnModeEnabled = localStorage.getItem('ps_vpn_mode') === 'true';
     const encodeTitle = (title) => encodeURIComponent(title);
     const MAX_WATCHLIST_PAGES = 100; const BATCH_SIZE = 30; const TMDB_REQUEST_DELAY_MS = 0;
