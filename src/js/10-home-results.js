@@ -265,13 +265,24 @@
         if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999');
         return 0;
       });
-      currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
+      currentGroupedResults = groupMoviesByAvailability(filtered, isSubscribedScan);
+      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
+      renderActiveGrid();
+      renderResultsHero();
+    }
 
-      filtered.forEach(movie => {
+    // Sorts movies into the four home tabs (stream / rentbuy / other / unavailable) for the
+    // current region, selected services and VPN mode. Used for the visible (filtered) grid and,
+    // unfiltered, for the results headline.
+    function groupMoviesByAvailability(movies, isSubscribedScan = buildSubscribedMatcher()) {
+      const getMovieVpnMatch = (m) => findVpnMatch(m, isSubscribedScan);
+      const groups = { stream: [], rentbuy: [], other: [], unavailable: [] };
+
+      movies.forEach(movie => {
         const localData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData;
         const vpnInfo = getMovieVpnMatch(movie);
         const baseObj = { ...movie, regionData: localData, vpnInfo };
-        if (!localData && !vpnInfo) { baseObj.subtext = 'Not streaming in region'; currentGroupedResults.unavailable.push(baseObj); return; }
+        if (!localData && !vpnInfo) { baseObj.subtext = 'Not streaming in region'; groups.unavailable.push(baseObj); return; }
 
         const localFlatrate = (localData?.flatrate || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
         const localRent = (localData?.rent || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
@@ -282,19 +293,19 @@
 
         if (matchedSubscribed.length > 0) {
           baseObj.subtext = matchedSubscribed.map(s => s.provider_name).join(', ');
-          currentGroupedResults.stream.push(baseObj);
+          groups.stream.push(baseObj);
         } else if (vpnInfo && movie.allProviders && movie.allProviders[vpnInfo.region]) {
           const vpnFlat = (movie.allProviders[vpnInfo.region]?.flatrate || []).filter(isSubscribedScan);
           baseObj.subtext = `${vpnInfo.services[0]?.label || vpnFlat[0]?.provider_name || 'VPN'} · ${REGION_META[vpnInfo.region]?.flag || ''} VPN`;
-          currentGroupedResults.stream.push(baseObj);
+          groups.stream.push(baseObj);
         } else if (matchedUnsubscribed.length > 0) {
           baseObj.subtext = matchedUnsubscribed.map(s => s.provider_name).join(', ');
-          currentGroupedResults.other.push(baseObj);
+          groups.other.push(baseObj);
         } else if (localRent.length > 0 || localBuy.length > 0) {
           const p = [...localRent, ...localBuy];
           const rawNames = [...new Set(p.map(x => x.provider_name))];
           baseObj.subtext = rawNames.slice(0, 2).join(', ');
-          currentGroupedResults.rentbuy.push(baseObj);
+          groups.rentbuy.push(baseObj);
         } else if (vpnModeEnabled && movie.allProviders) {
           let vpnRb = null;
           let vpnRbCode = null;
@@ -311,18 +322,17 @@
           if (vpnRb && vpnRbCode) {
             const rawNames = [...new Set(vpnRb.map(x => x.provider_name))];
             baseObj.subtext = `${rawNames.slice(0, 2).join(', ')} · ${REGION_META[vpnRbCode]?.flag || ''} VPN`;
-            currentGroupedResults.rentbuy.push(baseObj);
+            groups.rentbuy.push(baseObj);
           } else {
             baseObj.subtext = 'Not streaming in region';
-            currentGroupedResults.unavailable.push(baseObj);
+            groups.unavailable.push(baseObj);
           }
         } else {
           baseObj.subtext = 'Not streaming in region';
-          currentGroupedResults.unavailable.push(baseObj);
+          groups.unavailable.push(baseObj);
         }
       });
-      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
-      renderActiveGrid();
+      return groups;
     }
     function renderActiveGrid() {
       const container = el.activeGridContainer; if (!container) return; container.innerHTML = ''; const currentData = currentGroupedResults[activeTab] || [];
@@ -435,7 +445,7 @@
           if (el.progressBar) el.progressBar.style.width = '0%';
           if (el.progressPercent) el.progressPercent.textContent = '0%';
           if (el.formError) {
-            el.formError.textContent = 'Scan aborted by user.';
+            el.formError.textContent = 'Scan stopped.';
             el.formError.classList.remove('hidden');
           }
           if (el.resultsSection) el.resultsSection.classList.add('hidden');

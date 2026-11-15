@@ -2153,10 +2153,26 @@
     </section>
     <div id="quickSearchResult" class="mb-8 hidden relative z-10"></div>
 
-    <section class="glass-panel rounded-3xl p-5 sm:p-7 mb-6 animate-fade relative z-10" style="animation-delay: 0.2s;">
+    <!-- Slim scan bar: replaces the scan form while results are showing (see 15-results-hero.js) -->
+    <section id="scanCompactBar" aria-label="Current scan"
+      class="hidden glass-panel rounded-2xl mb-6 relative z-10 px-4 py-3 sm:px-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div class="basis-full sm:basis-auto sm:flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4">
+        <span class="text-white font-bold text-base truncate"><span class="text-gray-400 font-medium">Watchlist</span> <span id="scanCompactUser"></span></span>
+        <span class="hidden sm:block w-px h-5 bg-white/15"></span>
+        <span class="text-gray-300 text-sm sm:text-base truncate"><span class="text-gray-400">Services</span> <span id="scanCompactServices"></span></span>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto sm:shrink-0">
+        <button id="scanCompactFriendBtn" type="button"
+          class="flex-1 sm:flex-none h-11 px-4 rounded-xl text-sm font-semibold text-indigo-200 bg-indigo-500/10 border border-indigo-500/30 hover:bg-indigo-500/20 transition-all active:scale-95 cursor-pointer">+ Friend</button>
+        <button id="scanCompactChangeBtn" type="button"
+          class="flex-1 sm:flex-none h-11 px-5 rounded-xl text-sm font-semibold text-white bg-white/10 border border-white/15 hover:bg-white/15 transition-all active:scale-95 cursor-pointer">Change</button>
+      </div>
+    </section>
+
+    <section id="scanPanel" class="glass-panel rounded-3xl p-5 sm:p-7 mb-6 animate-fade relative z-10" style="animation-delay: 0.2s;">
       <div class="mb-8 border-b border-white/10 pb-6">
-        <h2 class="text-2xl font-bold text-white mb-1">Letterboxd Sync</h2>
-        <p class="text-sm text-gray-500">Select your active subscriptions and fetch your watchlist matrix.</p>
+        <h2 class="text-2xl font-bold text-white mb-1">Your watchlist</h2>
+        <p class="text-sm text-gray-400">Pick the streaming services you pay for, then enter your Letterboxd username.</p>
       </div>
 
       <!-- INLINE SERVICE FINDER MENU -->
@@ -2242,17 +2258,13 @@
               </svg>
               Match with a friend
             </button>
-            <p id="formError"
-              class="text-red-400 text-[10px] font-bold uppercase tracking-widest hidden bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-1.5 flex items-center justify-center sm:justify-start gap-1.5 w-fit shrink-0">
-            </p>
-            <!-- Shown after a scan that finished but couldn't load every watchlist page -->
-            <p id="scanNotice" role="status"
-              class="text-amber-300 text-[10px] font-bold uppercase tracking-widest hidden bg-amber-950/30 border border-amber-900/50 rounded-lg px-3 py-1.5 w-fit">
+            <p id="formError" role="alert"
+              class="text-red-300 text-sm font-medium leading-snug hidden bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-2 w-fit max-w-full">
             </p>
           </div>
         </div>
         <button id="startButton"
-          class="execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-sm rounded-xl px-12 py-4 shadow-[0_0_20px_rgba(255,255,255,0.1)] shrink-0 disabled:opacity-50 disabled:cursor-not-allowed h-[58px] flex items-center justify-center active:scale-[0.98] transition-all cursor-pointer">Execute</button>
+          class="execute-btn bg-white text-black font-extrabold text-base rounded-xl px-8 py-4 shadow-[0_0_20px_rgba(255,255,255,0.1)] shrink-0 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed h-[58px] flex items-center justify-center active:scale-[0.98] transition-all cursor-pointer">Find what I can stream</button>
       </div>
     </section>
     <section id="progressSection"
@@ -2260,12 +2272,11 @@
       <div class="flex justify-between items-end mb-4">
         <div>
           <div class="flex items-center gap-3 mb-1">
-            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest animate-pulse">Processing Data</p>
+            <p class="text-xs text-blue-300 font-bold uppercase tracking-widest animate-pulse">Scanning</p>
             <button id="stopButton"
-              class="text-[9px] text-red-400 hover:bg-red-500/20 font-bold uppercase tracking-widest transition-colors flex items-center gap-1 border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded cursor-pointer">Abort
-              ✕</button>
+              class="text-xs text-red-300 hover:bg-red-500/20 font-semibold transition-colors flex items-center gap-1 border border-red-500/30 bg-red-500/10 px-2.5 py-1 rounded-md cursor-pointer">Stop</button>
           </div>
-          <p id="progressLabel" class="text-base text-white font-bold">Connecting to global servers...</p>
+          <p id="progressLabel" class="text-base text-white font-bold">Starting…</p>
         </div>
         <p id="progressPercent" class="text-2xl font-black text-white leading-none">0%</p>
       </div>
@@ -2274,6 +2285,41 @@
       </div>
     </section>
     <section id="resultsSection" class="hidden pb-0 relative z-10 flex-1">
+      <!-- Results headline + Tonight's pick (filled by 15-results-hero.js) -->
+      <div id="resultsHero" class="mb-6 flex flex-col gap-5">
+        <div>
+          <h2 id="resultsHeadline" class="text-[26px] leading-[1.15] sm:text-4xl lg:text-[44px] sm:leading-[1.1] font-extrabold text-white tracking-tight"></h2>
+          <p id="resultsSubline" class="mt-2 text-base sm:text-lg text-gray-400"></p>
+        </div>
+        <!-- Shown after a scan that finished but couldn't load every watchlist page -->
+        <p id="scanNotice" role="status"
+          class="text-amber-200 text-sm leading-snug hidden bg-amber-950/30 border border-amber-900/50 rounded-xl px-3.5 py-2.5 w-fit max-w-full">
+        </p>
+        <section id="tonightPick" aria-label="Tonight's pick"
+          class="hidden glass-panel rounded-3xl overflow-hidden flex flex-col md:flex-row">
+          <button id="tonightPickArt" type="button" aria-label="Open film details"
+            class="relative block w-full md:w-[58%] aspect-video md:aspect-auto md:min-h-[320px] bg-black/40 overflow-hidden cursor-pointer group">
+            <img id="tonightPickBackdrop" alt="" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]">
+            <span class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:via-transparent md:to-black/30"></span>
+          </button>
+          <div class="flex-1 p-5 sm:p-7 flex flex-col justify-center gap-3 min-w-0">
+            <span class="text-xs font-bold uppercase tracking-[0.15em] text-blue-300">Tonight's pick</span>
+            <h3 id="tonightPickTitle" class="text-3xl sm:text-4xl font-extrabold text-white leading-none tracking-tight"></h3>
+            <p id="tonightPickMeta" class="text-sm sm:text-base text-gray-400"></p>
+            <p id="tonightPickWhere" class="text-sm sm:text-base text-gray-200"></p>
+            <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 mt-1">
+              <a id="tonightPickWatch" href="#" target="_blank" rel="noopener noreferrer"
+                class="execute-btn bg-white text-black font-extrabold text-base rounded-xl h-12 px-5 flex items-center justify-center text-center active:scale-[0.98] transition-all"></a>
+              <div class="flex gap-2">
+                <button id="tonightPickAnother" type="button"
+                  class="flex-1 h-12 px-4 rounded-xl bg-white/10 border border-white/15 hover:bg-white/15 text-white text-sm sm:text-base font-semibold whitespace-nowrap transition-all active:scale-95 cursor-pointer">Another pick</button>
+                <button id="tonightPickTrailer" type="button"
+                  class="flex-1 h-12 px-4 rounded-xl border border-white/20 hover:bg-white/10 text-white text-sm sm:text-base font-semibold whitespace-nowrap transition-all active:scale-95 cursor-pointer">Trailer</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
       <!-- MAIN RESULTS CONTROLS -->
       <div id="resultsControlsCard" class="results-controls-card relative z-50 animate-fade">
         <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
@@ -2282,13 +2328,13 @@
           <div id="categoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
             <div
               class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full items-center">
-              <button type="button" class="tab-btn tab-btn-flexrow active" data-tab="stream" onclick="setHomeTab('stream')">Available <span id="tabCount-stream"
+              <button type="button" class="tab-btn tab-btn-flexrow active" data-tab="stream" onclick="setHomeTab('stream')">Streaming <span id="tabCount-stream"
                   class="tab-badge">0</span></button>
-              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="rentbuy" onclick="setHomeTab('rentbuy')">Rent / Buy <span id="tabCount-rentbuy"
+              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="rentbuy" onclick="setHomeTab('rentbuy')">Rent or buy <span id="tabCount-rentbuy"
                   class="tab-badge">0</span></button>
-              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="other" onclick="setHomeTab('other')">Unsubscribed <span id="tabCount-other"
+              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="other" onclick="setHomeTab('other')">Other services <span id="tabCount-other"
                   class="tab-badge">0</span></button>
-              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="unavailable" onclick="setHomeTab('unavailable')">Unavailable <span id="tabCount-unavailable"
+              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="unavailable" onclick="setHomeTab('unavailable')">Not streaming <span id="tabCount-unavailable"
                   class="tab-badge">0</span></button>
             </div>
           </div>
