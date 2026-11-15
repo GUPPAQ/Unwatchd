@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "dependencies": {
-    "@vercel/node": "^3.0.0"
-  },
   "devDependencies": {
     "tailwindcss": "^3.4.19"
   },

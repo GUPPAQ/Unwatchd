@@ -657,6 +657,26 @@
         container.classList.remove('translate-y-8', 'opacity-0');
       });
 
+      // Shown when the video can't be embedded, or YouTube's player script didn't load.
+      const showTrailerFallback = () => {
+        const modalWrapper = document.getElementById('trailerIframeWrapper');
+        if (!modalWrapper) return;
+        modalWrapper.innerHTML = `
+          <div class="w-full h-full flex flex-col items-center justify-center bg-black/90 p-6 text-center rounded-2xl gap-3">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl">
+              🎬
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-white font-extrabold text-sm sm:text-base">Trailer can't play here</span>
+              <span class="text-gray-400 text-xs sm:text-sm max-w-sm">YouTube didn't load, or the uploader doesn't allow this video to play outside YouTube.</span>
+            </div>
+            <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg active:scale-95">
+              <span>Watch on YouTube</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+          </div>`;
+      };
+
       ensureYouTubeApi(() => {
         try {
           trailerPlayer = new YT.Player('trailerPlayerDiv', {
@@ -683,31 +703,14 @@
                   try { iframe.contentWindow.focus(); } catch (e) { logIgnored('openTrailerModal', e); }
                 }
               },
-              onError: () => {
-                const modalWrapper = document.getElementById('trailerIframeWrapper');
-                if (modalWrapper) {
-                  modalWrapper.innerHTML = `
-                    <div class="w-full h-full flex flex-col items-center justify-center bg-black/90 p-6 text-center rounded-2xl gap-3">
-                      <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl">
-                        🎬
-                      </div>
-                      <div class="flex flex-col gap-1">
-                        <span class="text-white font-extrabold text-sm sm:text-base">Trailer playback restricted in player</span>
-                        <span class="text-gray-400 text-xs sm:text-sm max-w-sm">This video is geoblocked or disallowed from third-party embedded players by the uploader.</span>
-                      </div>
-                      <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg active:scale-95">
-                        <span>Watch on YouTube</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                      </a>
-                    </div>`;
-                }
-              }
+              onError: showTrailerFallback
             }
           });
         } catch (err) {
           console.warn('[YT Player Embed]', err);
+          showTrailerFallback();
         }
-      });
+      }, showTrailerFallback);
 
       const closeHandler = () => closeTrailerModal();
       backdrop.onclick = closeHandler;

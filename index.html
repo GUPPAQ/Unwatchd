@@ -19,7 +19,20 @@
   <meta name="title" content="Unwatchd | Watchlist Filter">
   <meta name="description"
     content="Your personal, global streaming directory. Connect your Letterboxd and instantly find out where to watch your films.">
-  <script src="https://www.youtube.com/iframe_api"></script>
+  <!-- Link previews (Reddit, Discord, iMessage, X, Facebook...) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Unwatchd">
+  <meta property="og:url" content="https://unwatchd.online/">
+  <meta property="og:title" content="Unwatchd: what's on your watchlist that you can stream tonight">
+  <meta property="og:description" content="Enter your Letterboxd username and see which films on your watchlist are on your streaming services.">
+  <meta property="og:image" content="https://unwatchd.online/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Unwatchd: your watchlist, filtered to what you can stream tonight.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Unwatchd: what's on your watchlist that you can stream tonight">
+  <meta name="twitter:description" content="Enter your Letterboxd username and see which films on your watchlist are on your streaming services.">
+  <meta name="twitter:image" content="https://unwatchd.online/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
@@ -2118,12 +2131,12 @@
         <div
           class="flex w-full bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all">
           <div class="flex-1 relative flex items-center">
-            <input id="quickSearchInput" type="text" autocomplete="off" spellcheck="false"
+            <input id="quickSearchInput" aria-label="Search films, TV shows and people" type="text" autocomplete="off" spellcheck="false"
               placeholder="Search films, TV shows, actors, directors..."
               class="w-full h-full bg-transparent pl-4 sm:pl-5 pr-10 py-4 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 truncate" />
             <div class="absolute right-3 flex items-center">
               <span class="kbd-hint pointer-events-none">⌘K</span>
-              <button id="clearSearchBtn" class="hidden ml-2 text-gray-500 hover:text-white transition-colors">
+              <button id="clearSearchBtn" aria-label="Clear search" class="hidden ml-2 text-gray-500 hover:text-white transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -2198,9 +2211,9 @@
               class="flex-1 bg-black/40 border border-white/10 blue-focus transition-all rounded-xl flex items-center relative overflow-hidden">
               <span
                 class="pl-5 pr-1 text-gray-500 text-base font-semibold select-none z-10 whitespace-nowrap">letterboxd.com/</span>
-              <input id="usernameInput" type="text" autocomplete="off" spellcheck="false" placeholder="username"
+              <input id="usernameInput" aria-label="Your Letterboxd username" type="text" autocomplete="off" spellcheck="false" placeholder="username"
                 class="w-full h-full bg-transparent pr-10 py-4 text-base text-white font-bold focus:outline-none placeholder:text-gray-500 relative z-20" />
-              <button id="clearSyncBtn"
+              <button id="clearSyncBtn" aria-label="Clear username and results"
                 class="hidden absolute right-4 text-gray-500 hover:text-white transition-colors z-20">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -2211,9 +2224,9 @@
               class="hidden flex-1 bg-indigo-950/20 border border-indigo-500/30 transition-all rounded-xl flex items-center relative overflow-hidden blue-focus">
               <span class="pl-5 pr-1 text-indigo-400/80 text-base font-semibold select-none z-10 whitespace-nowrap">+
                 Match with</span>
-              <input id="friendInput" type="text" autocomplete="off" spellcheck="false" placeholder="friend's username"
+              <input id="friendInput" aria-label="Friend's Letterboxd username" type="text" autocomplete="off" spellcheck="false" placeholder="friend's username"
                 class="w-full h-full bg-transparent pr-10 py-4 text-base text-indigo-100 font-bold focus:outline-none placeholder:text-indigo-400/50 relative z-20" />
-              <button id="removeFriendBtn"
+              <button id="removeFriendBtn" aria-label="Remove friend"
                 class="absolute right-4 text-indigo-500 hover:text-indigo-300 transition-colors z-20">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -2293,10 +2306,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
-              <input id="resultsSearch" type="text" autocomplete="off" spellcheck="false"
+              <input id="resultsSearch" aria-label="Filter results by title" type="text" autocomplete="off" spellcheck="false"
                 placeholder="Search..."
                 class="w-full bg-transparent pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors truncate">
-              <button id="clearResultsBtn"
+              <button id="clearResultsBtn" aria-label="Clear filter"
                 class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -2521,10 +2534,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
           </svg>
-          <input id="allCastSearchInput" type="text" autocomplete="off" spellcheck="false"
+          <input id="allCastSearchInput" aria-label="Search cast and crew" type="text" autocomplete="off" spellcheck="false"
             placeholder="Search cast, crew, or character..." oninput="filterAllCastGrid()"
             class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
-          <button id="allCastSearchClear" onclick="clearAllCastSearch()"
+          <button id="allCastSearchClear" aria-label="Clear cast search" onclick="clearAllCastSearch()"
             class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

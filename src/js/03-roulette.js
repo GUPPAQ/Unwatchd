@@ -130,18 +130,31 @@
     let trailerPlayer = null;
     let isTrailerPaused = false;
 
-    function ensureYouTubeApi(callback) {
+    // YouTube's player script is loaded the first time a trailer is opened, not on page
+    // load, so visitors who never watch a trailer never contact YouTube.
+    function ensureYouTubeApi(callback, onFail) {
       if (window.YT && window.YT.Player) {
         callback();
         return;
       }
+      if (!document.getElementById('youtubeIframeApi')) {
+        const script = document.createElement('script');
+        script.id = 'youtubeIframeApi';
+        script.src = 'https://www.youtube.com/iframe_api';
+        script.async = true;
+        document.head.appendChild(script);
+      }
       const check = setInterval(() => {
         if (window.YT && window.YT.Player) {
           clearInterval(check);
+          clearTimeout(giveUp);
           callback();
         }
       }, 50);
-      setTimeout(() => clearInterval(check), 4000);
+      const giveUp = setTimeout(() => {
+        clearInterval(check);
+        if (typeof onFail === 'function') onFail();
+      }, 10000);
     }
 
     document.addEventListener('keydown', (e) => {
