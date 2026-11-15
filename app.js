@@ -397,9 +397,10 @@
     if (REGION_META.NO) REGION_META.NO.flag = '🇳🇴'; // Safe fallback
     const GENRE_MAP = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western' };
     function openStreamingService(webUrl, appUrl = null) { if (!isMobile || !appUrl || appUrl === 'null') { window.open(webUrl, "_blank"); return; } window.location.href = appUrl; setTimeout(() => { window.open(webUrl, "_blank"); }, 1200); }
+    // Index 0 must stay our own proxy: raceProxies() trusts its status codes (404 = no such user).
+    // corsproxy.io was removed - it now answers 401 to every request without an API key.
     const CORS_PROXIES = [
       (url) => `/api/proxy?url=${encodeURIComponent(url)}`,
-      (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
       (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
       (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
     ];
@@ -6602,59 +6603,6 @@
     };
 
 
-    const parseLetterboxdRSS = (xmlText) => {
-      if (!xmlText || typeof xmlText !== 'string') return null;
-      if (!xmlText.includes('<item') && !xmlText.includes('<rss')) return null;
-
-      try {
-        const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
-        const items = Array.from(doc.querySelectorAll('item'));
-        if (!items || items.length === 0) return null;
-
-        const films = [];
-        items.forEach(item => {
-          const titleEl = item.querySelector('title');
-          const linkEl = item.querySelector('link');
-          const filmTitleEl = item.getElementsByTagName('letterboxd:filmTitle')[0] || item.querySelector('filmTitle');
-          const filmYearEl = item.getElementsByTagName('letterboxd:filmYear')[0] || item.querySelector('filmYear');
-
-          let rawTitle = titleEl ? titleEl.textContent.trim() : '';
-          let link = linkEl ? linkEl.textContent.trim() : '';
-          let title = filmTitleEl ? filmTitleEl.textContent.trim() : '';
-          let year = filmYearEl ? parseInt(filmYearEl.textContent.trim(), 10) : null;
-
-          if (!year && rawTitle) {
-            const m = rawTitle.match(/\((19\d\d|20\d\d)\)/);
-            if (m) year = parseInt(m[1], 10);
-          }
-
-          if (!title && rawTitle) {
-            title = rawTitle.replace(/\s*\((19\d\d|20\d\d)\)\s*$/, '').trim();
-          }
-
-          let slug = '';
-          if (link) {
-            const m = link.match(/\/film\/([^\/]+)/);
-            if (m) slug = m[1];
-          }
-
-          if (title) {
-            films.push({
-              title,
-              year,
-              slug,
-              filmId: slug || normalizeTitle(title)
-            });
-          }
-        });
-
-        return films.length > 0 ? films : null;
-      } catch (e) {
-        console.warn('[Letterboxd RSS Parse Error]', e);
-        return null;
-      }
-    };
-
     const isGenuineWatchlistPage = (rawHtml, targetUser) => {
       if (!rawHtml) return false;
       const html = unwrapProxyResponse(rawHtml);
@@ -7097,10 +7045,15 @@
       }
       return best;
     }
-    const PROXY_LABELS = ['own-vercel', 'corsproxy.io', 'codetabs', 'allorigins'];
+    const PROXY_LABELS = ['own-vercel', 'codetabs', 'allorigins'];
     // Own Vercel proxy first. Only if it fails do we fall back to the public CORS
     // proxies (raced against each other, losers aborted), so usernames normally
-    // never leave our own infrastructure and we don't hit four services per page.
+    // never leave our own infrastructure and we don't hit several services per page.
+    //
+    // Returns the page text, LETTERBOXD_NOT_FOUND when our own proxy got a real 404 from
+    // Letterboxd (the user doesn't exist - no point asking the public proxies), or null when
+    // no proxy could fetch the page at all.
+    const LETTERBOXD_NOT_FOUND = '__LETTERBOXD_404__';
     const raceProxies = async (targetUrl, validatorFn, timeoutMs = 6000) => {
       const tryProxy = async (idx, sharedSignal = null) => {
         const label = PROXY_LABELS[idx] || `proxy-${idx}`;
@@ -7109,6 +7062,11 @@
         if (sharedSignal) sharedSignal.addEventListener('abort', () => controller.abort(), { once: true });
         try {
           const res = await fetch(CORS_PROXIES[idx](targetUrl), { cache: 'no-store', signal: controller.signal });
+          if (idx === 0 && res.status === 404) {
+            const notFound = new Error('Letterboxd returned 404');
+            notFound.letterboxdNotFound = true;
+            throw notFound;
+          }
           if (!res.ok) {
             console.warn(`[Proxy: ${label}] HTTP ${res.status} for ${targetUrl}`);
             throw new Error(`HTTP ${res.status}`);
@@ -7129,7 +7087,10 @@
 
       try {
         return await tryProxy(0);
-      } catch (e) { /* fall through to public proxies */ }
+      } catch (e) {
+        if (e.letterboxdNotFound) return LETTERBOXD_NOT_FOUND;
+        /* otherwise fall through to public proxies */
+      }
 
       const shared = new AbortController();
       try {
@@ -7147,18 +7108,8 @@
       if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
       const cacheBust = Date.now();
 
-      // Engine 1: Race RSS Feed across all proxies in parallel
-      const rssTarget = `https://letterboxd.com/${targetUser}/watchlist/rss/?_=${cacheBust}`;
-      const rssTxt = await raceProxies(rssTarget, (txt) => txt && (txt.includes('<item') || txt.includes('<rss')), 5000);
-      if (rssTxt) {
-        const rssFilms = parseLetterboxdRSS(rssTxt);
-        if (rssFilms && rssFilms.length > 0) {
-          console.log(`[Letterboxd RSS Engine] Parallel race won! Extracted ${rssFilms.length} films from RSS.`);
-          return rssFilms;
-        }
-      }
-
-      // Engine 2: Race HTML Watchlist Page 1 across all proxies in parallel
+      // There is no RSS step: Letterboxd has no public watchlist feed (the URL is behind a
+      // Cloudflare challenge), so trying it only made every scan fail through all proxies first.
       const htmlTarget = `https://letterboxd.com/${targetUser}/watchlist/page/1/?_=${cacheBust}`;
       const page1Html = await raceProxies(htmlTarget, (txt) => {
         if (!txt) return false;
@@ -7167,9 +7118,14 @@
       }, 6000);
 
       if (!page1Html) { throw new Error(`PROXY_FAILURE:${targetUser}`); }
-      if (page1Html.includes('Page not found') || page1Html.includes('404 Not Found')) {
+      if (page1Html === LETTERBOXD_NOT_FOUND || page1Html.includes('Page not found') || page1Html.includes('404 Not Found')) {
         throw new Error(`USER_NOT_FOUND:${targetUser}`);
       }
+      // Letterboxd states the watchlist size on the page itself. Reading it lets us tell a
+      // genuinely empty (or hidden) watchlist apart from a page we failed to parse.
+      const entriesMatch = page1Html.match(/data-num-entries="(\d+)"/);
+      const reportedEntries = entriesMatch ? parseInt(entriesMatch[1], 10) : null;
+      if (reportedEntries === 0) { throw new Error(`WATCHLIST_EMPTY:${targetUser}`); }
 
       let totalPages = 1;
       try {
@@ -7186,9 +7142,10 @@
       const fetchSinglePage = async (page) => {
         if (page === 1) return page1Html;
         const target = `https://letterboxd.com/${targetUser}/watchlist/page/${page}/?_=${cacheBust}`;
-        return await raceProxies(target, (txt) => {
+        const txt = await raceProxies(target, (txt) => {
           return txt && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser);
         }, 5000);
+        return txt === LETTERBOXD_NOT_FOUND ? null : txt;
       };
 
       const pagesToFetch = [];
@@ -7357,6 +7314,12 @@
       }
       const seen = new Set(); const deduped = [];
       for (const obj of extracted) { const k = getFilmKey(obj); if (!seen.has(k)) { seen.add(k); deduped.push(obj); } }
+      if (deduped.length === 0 && !cancelRequested) {
+        // The page loaded and Letterboxd didn't say it was empty, yet we found no films:
+        // that's our parser failing, not anything the user did.
+        console.error(`[fetchWatchlist] Parsed 0 films for ${targetUser}; Letterboxd reported ${reportedEntries ?? 'unknown'} entries`);
+        throw new Error(`PARSE_FAILURE:${targetUser}`);
+      }
       return deduped;
     };
     function resetUI() {
@@ -7398,13 +7361,13 @@
           if (el.progressSection) el.progressSection.classList.remove('hidden'); if (el.progressBar) el.progressBar.style.width = `0%`; if (el.progressPercent) el.progressPercent.textContent = '0%';
           const myTitles = await fetchWatchlist(username, 'Pinging your servers');
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
-          if (myTitles.length === 0) throw new Error(`DATA EMPTY: Ensure ${username} is public.`);
+          if (myTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${username}`);
           let titlesToProcess = myTitles;
           if (friendName) {
             if (el.progressBar) el.progressBar.style.width = `10%`; if (el.progressPercent) el.progressPercent.textContent = '10%';
             const friendTitles = await fetchWatchlist(friendName, 'Pinging friend servers');
             if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
-            if (friendTitles.length === 0) throw new Error(`DATA EMPTY: Ensure ${friendName} is public.`);
+            if (friendTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${friendName}`);
             const friendKeys = new Set(friendTitles.map(getFilmKey)); titlesToProcess = myTitles.filter(t => friendKeys.has(getFilmKey(t))); if (titlesToProcess.length === 0) { throw new Error('NO MATCHES: You and your friend have no movies in common!'); }
           }
           for (let i = 0; i < titlesToProcess.length; i += BATCH_SIZE) {
@@ -7519,7 +7482,13 @@
             const u = msg.split(':')[1];
             msg = `Profile not found: ${u}. Make sure the username is spelled correctly and is public.`;
           } else if (msg.startsWith('PROXY_FAILURE:')) {
-            msg = `Couldn't reach Letterboxd right now. Check your internet connection or try again in a moment.`;
+            msg = `Couldn't reach Letterboxd right now. That's a problem on our side, not your privacy settings. Please try again in a moment.`;
+          } else if (msg.startsWith('WATCHLIST_EMPTY:')) {
+            const u = msg.split(':')[1];
+            msg = `Letterboxd shows no films on ${u}'s watchlist. If that's wrong, the watchlist may be hidden in their Letterboxd privacy settings.`;
+          } else if (msg.startsWith('PARSE_FAILURE:')) {
+            const u = msg.split(':')[1];
+            msg = `We reached Letterboxd but couldn't read ${u}'s watchlist. Letterboxd may have changed its page. This is on our side, please try again later.`;
           }
           if (el.formError) {
             el.formError.textContent = msg;

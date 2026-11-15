@@ -13,59 +13,6 @@
     };
 
 
-    const parseLetterboxdRSS = (xmlText) => {
-      if (!xmlText || typeof xmlText !== 'string') return null;
-      if (!xmlText.includes('<item') && !xmlText.includes('<rss')) return null;
-
-      try {
-        const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
-        const items = Array.from(doc.querySelectorAll('item'));
-        if (!items || items.length === 0) return null;
-
-        const films = [];
-        items.forEach(item => {
-          const titleEl = item.querySelector('title');
-          const linkEl = item.querySelector('link');
-          const filmTitleEl = item.getElementsByTagName('letterboxd:filmTitle')[0] || item.querySelector('filmTitle');
-          const filmYearEl = item.getElementsByTagName('letterboxd:filmYear')[0] || item.querySelector('filmYear');
-
-          let rawTitle = titleEl ? titleEl.textContent.trim() : '';
-          let link = linkEl ? linkEl.textContent.trim() : '';
-          let title = filmTitleEl ? filmTitleEl.textContent.trim() : '';
-          let year = filmYearEl ? parseInt(filmYearEl.textContent.trim(), 10) : null;
-
-          if (!year && rawTitle) {
-            const m = rawTitle.match(/\((19\d\d|20\d\d)\)/);
-            if (m) year = parseInt(m[1], 10);
-          }
-
-          if (!title && rawTitle) {
-            title = rawTitle.replace(/\s*\((19\d\d|20\d\d)\)\s*$/, '').trim();
-          }
-
-          let slug = '';
-          if (link) {
-            const m = link.match(/\/film\/([^\/]+)/);
-            if (m) slug = m[1];
-          }
-
-          if (title) {
-            films.push({
-              title,
-              year,
-              slug,
-              filmId: slug || normalizeTitle(title)
-            });
-          }
-        });
-
-        return films.length > 0 ? films : null;
-      } catch (e) {
-        console.warn('[Letterboxd RSS Parse Error]', e);
-        return null;
-      }
-    };
-
     const isGenuineWatchlistPage = (rawHtml, targetUser) => {
       if (!rawHtml) return false;
       const html = unwrapProxyResponse(rawHtml);
@@ -508,4 +455,4 @@
       }
       return best;
     }
-    const PROXY_LABELS = ['own-vercel', 'corsproxy.io', 'codetabs', 'allorigins'];
+    const PROXY_LABELS = ['own-vercel', 'codetabs', 'allorigins'];
