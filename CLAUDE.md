@@ -11,7 +11,12 @@ Letterboxd pages (letterboxd.com only).
   (inline `onclick=` handlers in the HTML rely on this). Keep that in mind when moving code.
 - `src/css/tailwind.css` + `tailwind.config.cjs` – Tailwind v3 input/config.
 - `app.js`, `styles.css` – **generated**, never edit by hand.
-- `service-worker.js` – bump `CACHE_NAME` whenever shipped files change.
+- `service-worker.js` – retired: it only unregisters itself for browsers that installed it
+  from an older version. Keep it deployed, don't add to it, and don't register a new one.
+- `api/proxy.js` – only allows `letterboxd.com/<user>/watchlist/page/<n>/` and caches
+  pages at the edge for 2 minutes. If the app needs other Letterboxd pages, widen
+  `WATCHLIST_PAGE_PATH` deliberately.
+- `og-image.png` – link preview image (1200×630) referenced by the `og:`/`twitter:` meta tags.
 
 ## Build
 After changing anything in `src/` or Tailwind classes in `index.html`:

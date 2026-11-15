@@ -1232,18 +1232,31 @@
     let trailerPlayer = null;
     let isTrailerPaused = false;
 
-    function ensureYouTubeApi(callback) {
+    // YouTube's player script is loaded the first time a trailer is opened, not on page
+    // load, so visitors who never watch a trailer never contact YouTube.
+    function ensureYouTubeApi(callback, onFail) {
       if (window.YT && window.YT.Player) {
         callback();
         return;
       }
+      if (!document.getElementById('youtubeIframeApi')) {
+        const script = document.createElement('script');
+        script.id = 'youtubeIframeApi';
+        script.src = 'https://www.youtube.com/iframe_api';
+        script.async = true;
+        document.head.appendChild(script);
+      }
       const check = setInterval(() => {
         if (window.YT && window.YT.Player) {
           clearInterval(check);
+          clearTimeout(giveUp);
           callback();
         }
       }, 50);
-      setTimeout(() => clearInterval(check), 4000);
+      const giveUp = setTimeout(() => {
+        clearInterval(check);
+        if (typeof onFail === 'function') onFail();
+      }, 10000);
     }
 
     document.addEventListener('keydown', (e) => {
@@ -5747,6 +5760,26 @@
         container.classList.remove('translate-y-8', 'opacity-0');
       });
 
+      // Shown when the video can't be embedded, or YouTube's player script didn't load.
+      const showTrailerFallback = () => {
+        const modalWrapper = document.getElementById('trailerIframeWrapper');
+        if (!modalWrapper) return;
+        modalWrapper.innerHTML = `
+          <div class="w-full h-full flex flex-col items-center justify-center bg-black/90 p-6 text-center rounded-2xl gap-3">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl">
+              🎬
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-white font-extrabold text-sm sm:text-base">Trailer can't play here</span>
+              <span class="text-gray-400 text-xs sm:text-sm max-w-sm">YouTube didn't load, or the uploader doesn't allow this video to play outside YouTube.</span>
+            </div>
+            <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg active:scale-95">
+              <span>Watch on YouTube</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+          </div>`;
+      };
+
       ensureYouTubeApi(() => {
         try {
           trailerPlayer = new YT.Player('trailerPlayerDiv', {
@@ -5773,31 +5806,14 @@
                   try { iframe.contentWindow.focus(); } catch (e) { logIgnored('openTrailerModal', e); }
                 }
               },
-              onError: () => {
-                const modalWrapper = document.getElementById('trailerIframeWrapper');
-                if (modalWrapper) {
-                  modalWrapper.innerHTML = `
-                    <div class="w-full h-full flex flex-col items-center justify-center bg-black/90 p-6 text-center rounded-2xl gap-3">
-                      <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl">
-                        🎬
-                      </div>
-                      <div class="flex flex-col gap-1">
-                        <span class="text-white font-extrabold text-sm sm:text-base">Trailer playback restricted in player</span>
-                        <span class="text-gray-400 text-xs sm:text-sm max-w-sm">This video is geoblocked or disallowed from third-party embedded players by the uploader.</span>
-                      </div>
-                      <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg active:scale-95">
-                        <span>Watch on YouTube</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                      </a>
-                    </div>`;
-                }
-              }
+              onError: showTrailerFallback
             }
           });
         } catch (err) {
           console.warn('[YT Player Embed]', err);
+          showTrailerFallback();
         }
-      });
+      }, showTrailerFallback);
 
       const closeHandler = () => closeTrailerModal();
       backdrop.onclick = closeHandler;
@@ -7106,11 +7122,12 @@
 
     const fetchWatchlist = async (targetUser, labelPrefix) => {
       if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
-      const cacheBust = Date.now();
+      // No cache-busting query on these URLs: our proxy drops it anyway and caches pages for
+      // two minutes, so repeat scans don't hit Letterboxd again.
 
       // There is no RSS step: Letterboxd has no public watchlist feed (the URL is behind a
       // Cloudflare challenge), so trying it only made every scan fail through all proxies first.
-      const htmlTarget = `https://letterboxd.com/${targetUser}/watchlist/page/1/?_=${cacheBust}`;
+      const htmlTarget = `https://letterboxd.com/${targetUser}/watchlist/page/1/`;
       const page1Html = await raceProxies(htmlTarget, (txt) => {
         if (!txt) return false;
         if (txt.includes('Page not found') || txt.includes('404 Not Found')) return true; // Let downstream handle user not found
@@ -7145,7 +7162,7 @@
 
       const fetchSinglePage = async (page) => {
         if (page === 1) return page1Html;
-        const target = `https://letterboxd.com/${targetUser}/watchlist/page/${page}/?_=${cacheBust}`;
+        const target = `https://letterboxd.com/${targetUser}/watchlist/page/${page}/`;
         const txt = await raceProxies(target, (txt) => {
           return txt && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser);
         }, 5000);

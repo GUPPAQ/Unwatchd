@@ -58,11 +58,12 @@
 
     const fetchWatchlist = async (targetUser, labelPrefix) => {
       if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
-      const cacheBust = Date.now();
+      // No cache-busting query on these URLs: our proxy drops it anyway and caches pages for
+      // two minutes, so repeat scans don't hit Letterboxd again.
 
       // There is no RSS step: Letterboxd has no public watchlist feed (the URL is behind a
       // Cloudflare challenge), so trying it only made every scan fail through all proxies first.
-      const htmlTarget = `https://letterboxd.com/${targetUser}/watchlist/page/1/?_=${cacheBust}`;
+      const htmlTarget = `https://letterboxd.com/${targetUser}/watchlist/page/1/`;
       const page1Html = await raceProxies(htmlTarget, (txt) => {
         if (!txt) return false;
         if (txt.includes('Page not found') || txt.includes('404 Not Found')) return true; // Let downstream handle user not found
@@ -97,7 +98,7 @@
 
       const fetchSinglePage = async (page) => {
         if (page === 1) return page1Html;
-        const target = `https://letterboxd.com/${targetUser}/watchlist/page/${page}/?_=${cacheBust}`;
+        const target = `https://letterboxd.com/${targetUser}/watchlist/page/${page}/`;
         const txt = await raceProxies(target, (txt) => {
           return txt && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser);
         }, 5000);
