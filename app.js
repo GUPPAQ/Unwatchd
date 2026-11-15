@@ -391,7 +391,7 @@
     let currentRegion = localStorage.getItem('ps_region') || detectDefaultRegion();
     let vpnModeEnabled = localStorage.getItem('ps_vpn_mode') === 'true';
     const encodeTitle = (title) => encodeURIComponent(title);
-    const MAX_WATCHLIST_PAGES = 100; const BATCH_SIZE = 30; const TMDB_REQUEST_DELAY_MS = 0;
+    const MAX_WATCHLIST_PAGES = 100; const LETTERBOXD_PAGE_SIZE = 28; const BATCH_SIZE = 30; const TMDB_REQUEST_DELAY_MS = 0;
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const REGION_META = { SE: { name: 'Sweden', flag: '🇸🇪' }, US: { name: 'United States', flag: '🇺🇸' }, GB: { name: 'United Kingdom', flag: '🇬🇧' }, CA: { name: 'Canada', flag: '🇨🇦' }, AU: { name: 'Australia', flag: '🇦🇺' }, IE: { name: 'Ireland', flag: '🇮🇪' }, NZ: { name: 'New Zealand', flag: '🇳🇿' }, DE: { name: 'Germany', flag: '🇩🇪' }, FR: { name: 'France', flag: '🇫🇷' }, IT: { name: 'Italy', flag: '🇮🇹' }, ES: { name: 'Spain', flag: '🇪🇸' }, NL: { name: 'Netherlands', flag: '🇳🇱' }, PL: { name: 'Poland', flag: '🇵🇱' }, BR: { name: 'Brazil', flag: '🇧🇷' }, MX: { name: 'Mexico', flag: '🇲🇽' }, IN: { name: 'India', flag: '🇮🇳' }, JP: { name: 'Japan', flag: '🇯🇵' }, KR: { name: 'South Korea', flag: '🇰🇷' }, NO: { name: 'Norway', flag: '🇳🇴' }, DK: { name: 'Denmark', flag: '🇩🇰' }, FI: { name: 'Finland', flag: '🇫🇮' } };
     if (REGION_META.NO) REGION_META.NO.flag = '🇳🇴'; // Safe fallback
@@ -1370,7 +1370,7 @@
     }
     if (el.clearSearchBtn) { el.clearSearchBtn.addEventListener('click', () => { clearQuickSearchInput(); if (el.quickSearchInput) el.quickSearchInput.focus(); }); }
     if (el.usernameInput) { el.usernameInput.addEventListener('input', (e) => { localStorage.setItem('ps_username', e.target.value); toggleClearSyncBtn(); }); }
-    if (el.clearSyncBtn) { el.clearSyncBtn.addEventListener('click', () => { if (isScanning) return; if (el.usernameInput) el.usernameInput.value = ''; localStorage.setItem('ps_username', ''); clearScanStorage(); isFriendMatchActive = false; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.formError) el.formError.classList.add('hidden'); if (el.progressSection) el.progressSection.classList.add('hidden'); if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.usernameInput) el.usernameInput.focus(); scannedMovies = []; }); }
+    if (el.clearSyncBtn) { el.clearSyncBtn.addEventListener('click', () => { if (isScanning) return; if (el.usernameInput) el.usernameInput.value = ''; localStorage.setItem('ps_username', ''); clearScanStorage(); isFriendMatchActive = false; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.formError) el.formError.classList.add('hidden'); document.getElementById('scanNotice')?.classList.add('hidden'); if (el.progressSection) el.progressSection.classList.add('hidden'); if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.usernameInput) el.usernameInput.focus(); scannedMovies = []; }); }
 
     let pendingSelectedIds = new Set();
 
@@ -7137,6 +7137,10 @@
           if (!isNaN(pNum) && pNum > totalPages) totalPages = pNum;
         });
       } catch (e) { console.warn('[Letterboxd Total Pages Parse]', e); }
+      // Cross-check against the film count, so a pagination markup change can't silently
+      // shrink the scan to page 1.
+      if (reportedEntries) totalPages = Math.max(totalPages, Math.ceil(reportedEntries / LETTERBOXD_PAGE_SIZE));
+      const pagesBeyondCap = Math.max(0, totalPages - MAX_WATCHLIST_PAGES);
       totalPages = Math.min(MAX_WATCHLIST_PAGES, totalPages);
 
       const fetchSinglePage = async (page) => {
@@ -7148,24 +7152,41 @@
         return txt === LETTERBOXD_NOT_FOUND ? null : txt;
       };
 
-      const pagesToFetch = [];
-      for (let p = 2; p <= totalPages; p++) pagesToFetch.push(p);
-
-      const rawPageResults = [page1Html];
+      // Pages are stored by page number so retried pages keep their place in watchlist order.
+      const pageHtmlByNumber = new Map([[1, page1Html]]);
       const PARALLEL_PAGE_BATCH = 5;
 
-      for (let i = 0; i < pagesToFetch.length; i += PARALLEL_PAGE_BATCH) {
-        if (cancelRequested) break;
-        const chunk = pagesToFetch.slice(i, i + PARALLEL_PAGE_BATCH);
-        if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Pages ${chunk[0]}-${chunk[chunk.length - 1]} of ${totalPages})...`;
-        const chunkHtmls = await Promise.all(chunk.map(p => fetchSinglePage(p)));
-        let anySuccess = false;
-        chunkHtmls.forEach(html => {
-          if (html) { rawPageResults.push(html); anySuccess = true; }
-        });
-        if (!anySuccess && chunk[0] > 1) break;
-        await new Promise(r => setTimeout(r, 100));
+      // Fetches the given pages in batches. Stops early if a whole batch fails (the proxies
+      // are probably down, so hammering on would only add timeouts). Returns pages not fetched.
+      const fetchPages = async (pages, retrying) => {
+        const failed = [];
+        for (let i = 0; i < pages.length; i += PARALLEL_PAGE_BATCH) {
+          if (cancelRequested) return [];
+          const chunk = pages.slice(i, i + PARALLEL_PAGE_BATCH);
+          if (el.progressLabel) el.progressLabel.textContent = retrying
+            ? `${labelPrefix} (Retrying ${pages.length} page${pages.length === 1 ? '' : 's'})...`
+            : `${labelPrefix} (Pages ${chunk[0]}-${chunk[chunk.length - 1]} of ${totalPages})...`;
+          const chunkHtmls = await Promise.all(chunk.map(p => fetchSinglePage(p)));
+          chunkHtmls.forEach((html, k) => {
+            if (html) pageHtmlByNumber.set(chunk[k], html); else failed.push(chunk[k]);
+          });
+          if (chunkHtmls.every(html => !html)) return failed.concat(pages.slice(i + PARALLEL_PAGE_BATCH));
+          await new Promise(r => setTimeout(r, 100));
+        }
+        return failed;
+      };
+
+      const pagesToFetch = [];
+      for (let p = 2; p <= totalPages; p++) pagesToFetch.push(p);
+      let missingPages = await fetchPages(pagesToFetch, false);
+      if (missingPages.length && !cancelRequested) {
+        console.warn(`[fetchWatchlist] ${missingPages.length} page(s) failed for ${targetUser}, retrying once:`, missingPages);
+        missingPages = await fetchPages(missingPages, true);
       }
+      if (missingPages.length && !cancelRequested) {
+        console.error(`[fetchWatchlist] Gave up on ${missingPages.length} of ${totalPages} page(s) for ${targetUser}:`, missingPages);
+      }
+      const rawPageResults = [...pageHtmlByNumber.keys()].sort((a, b) => a - b).map(p => pageHtmlByNumber.get(p));
 
       const extracted = [];
       for (let pageIdx = 0; pageIdx < rawPageResults.length; pageIdx++) {
@@ -7320,7 +7341,26 @@
         console.error(`[fetchWatchlist] Parsed 0 films for ${targetUser}; Letterboxd reported ${reportedEntries ?? 'unknown'} entries`);
         throw new Error(`PARSE_FAILURE:${targetUser}`);
       }
-      return deduped;
+      return { films: deduped, reportedEntries, totalPages, missingPages: missingPages.length, pagesBeyondCap };
+    };
+    // Builds the warning shown when a scan finished without every watchlist page.
+    // `who` is "your" or "name's".
+    const describeIncompleteScan = (who, scan) => {
+      const notes = [];
+      if (scan.missingPages) {
+        const pages = `${scan.missingPages} of ${scan.totalPages} page${scan.totalPages === 1 ? '' : 's'}`;
+        notes.push(`Letterboxd didn't send ${pages} of ${who} watchlist, so up to ${scan.missingPages * LETTERBOXD_PAGE_SIZE} films are missing. Scan again to try for the rest.`);
+      }
+      if (scan.pagesBeyondCap) {
+        notes.push(`Only the first ${(MAX_WATCHLIST_PAGES * LETTERBOXD_PAGE_SIZE).toLocaleString()} films of ${who} watchlist were scanned.`);
+      }
+      return notes;
+    };
+    const setScanNotice = (notes) => {
+      const box = document.getElementById('scanNotice');
+      if (!box) return;
+      box.textContent = notes.join(' ');
+      box.classList.toggle('hidden', notes.length === 0);
     };
     function resetUI() {
       isScanning = false; cancelRequested = false;
@@ -7337,7 +7377,7 @@
         if (browserEl && !browserEl.classList.contains('hidden')) {
           saveBrowser();
         }
-        if (el.formError) el.formError.classList.add('hidden'); if (el.usernameInput) localStorage.setItem('ps_username', el.usernameInput.value); if (el.friendInput) localStorage.setItem('ps_friend_username', el.friendInput.value);
+        if (el.formError) el.formError.classList.add('hidden'); setScanNotice([]); if (el.usernameInput) localStorage.setItem('ps_username', el.usernameInput.value); if (el.friendInput) localStorage.setItem('ps_friend_username', el.friendInput.value);
         const normalizeLetterboxdUser = (v) => {
           let u = (v || '').trim().toLowerCase();
           const m = u.match(/letterboxd\.com\/([^/?#\s]+)/); // accept a pasted profile link
@@ -7359,15 +7399,19 @@
         if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';
         try {
           if (el.progressSection) el.progressSection.classList.remove('hidden'); if (el.progressBar) el.progressBar.style.width = `0%`; if (el.progressPercent) el.progressPercent.textContent = '0%';
-          const myTitles = await fetchWatchlist(username, 'Pinging your servers');
+          const myScan = await fetchWatchlist(username, 'Pinging your servers');
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
+          const myTitles = myScan.films;
           if (myTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${username}`);
+          const incompleteNotes = describeIncompleteScan('your', myScan);
           let titlesToProcess = myTitles;
           if (friendName) {
             if (el.progressBar) el.progressBar.style.width = `10%`; if (el.progressPercent) el.progressPercent.textContent = '10%';
-            const friendTitles = await fetchWatchlist(friendName, 'Pinging friend servers');
+            const friendScan = await fetchWatchlist(friendName, 'Pinging friend servers');
             if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
+            const friendTitles = friendScan.films;
             if (friendTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${friendName}`);
+            incompleteNotes.push(...describeIncompleteScan(`${friendName}'s`, friendScan));
             const friendKeys = new Set(friendTitles.map(getFilmKey)); titlesToProcess = myTitles.filter(t => friendKeys.has(getFilmKey(t))); if (titlesToProcess.length === 0) { throw new Error('NO MATCHES: You and your friend have no movies in common!'); }
           }
           for (let i = 0; i < titlesToProcess.length; i += BATCH_SIZE) {
@@ -7472,6 +7516,7 @@
               updateStats();
             } catch (err) { console.warn('[Post-Scan Render]', err); }
             resetUI();
+            setScanNotice(incompleteNotes);
             syncWatchlistImdbRatings(scannedMovies);
           }, 600);
         } catch (err) {
