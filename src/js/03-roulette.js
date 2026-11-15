@@ -268,7 +268,7 @@
     }
     if (el.clearSearchBtn) { el.clearSearchBtn.addEventListener('click', () => { clearQuickSearchInput(); if (el.quickSearchInput) el.quickSearchInput.focus(); }); }
     if (el.usernameInput) { el.usernameInput.addEventListener('input', (e) => { localStorage.setItem('ps_username', e.target.value); toggleClearSyncBtn(); }); }
-    if (el.clearSyncBtn) { el.clearSyncBtn.addEventListener('click', () => { if (isScanning) return; if (el.usernameInput) el.usernameInput.value = ''; localStorage.setItem('ps_username', ''); clearScanStorage(); isFriendMatchActive = false; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.formError) el.formError.classList.add('hidden'); if (el.progressSection) el.progressSection.classList.add('hidden'); if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.usernameInput) el.usernameInput.focus(); scannedMovies = []; }); }
+    if (el.clearSyncBtn) { el.clearSyncBtn.addEventListener('click', () => { if (isScanning) return; if (el.usernameInput) el.usernameInput.value = ''; localStorage.setItem('ps_username', ''); clearScanStorage(); isFriendMatchActive = false; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.formError) el.formError.classList.add('hidden'); document.getElementById('scanNotice')?.classList.add('hidden'); if (el.progressSection) el.progressSection.classList.add('hidden'); if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.usernameInput) el.usernameInput.focus(); scannedMovies = []; }); }
 
     let pendingSelectedIds = new Set();
 

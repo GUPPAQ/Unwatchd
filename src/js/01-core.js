@@ -390,7 +390,7 @@
     let currentRegion = localStorage.getItem('ps_region') || detectDefaultRegion();
     let vpnModeEnabled = localStorage.getItem('ps_vpn_mode') === 'true';
     const encodeTitle = (title) => encodeURIComponent(title);
-    const MAX_WATCHLIST_PAGES = 100; const BATCH_SIZE = 30; const TMDB_REQUEST_DELAY_MS = 0;
+    const MAX_WATCHLIST_PAGES = 100; const LETTERBOXD_PAGE_SIZE = 28; const BATCH_SIZE = 30; const TMDB_REQUEST_DELAY_MS = 0;
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const REGION_META = { SE: { name: 'Sweden', flag: '🇸🇪' }, US: { name: 'United States', flag: '🇺🇸' }, GB: { name: 'United Kingdom', flag: '🇬🇧' }, CA: { name: 'Canada', flag: '🇨🇦' }, AU: { name: 'Australia', flag: '🇦🇺' }, IE: { name: 'Ireland', flag: '🇮🇪' }, NZ: { name: 'New Zealand', flag: '🇳🇿' }, DE: { name: 'Germany', flag: '🇩🇪' }, FR: { name: 'France', flag: '🇫🇷' }, IT: { name: 'Italy', flag: '🇮🇹' }, ES: { name: 'Spain', flag: '🇪🇸' }, NL: { name: 'Netherlands', flag: '🇳🇱' }, PL: { name: 'Poland', flag: '🇵🇱' }, BR: { name: 'Brazil', flag: '🇧🇷' }, MX: { name: 'Mexico', flag: '🇲🇽' }, IN: { name: 'India', flag: '🇮🇳' }, JP: { name: 'Japan', flag: '🇯🇵' }, KR: { name: 'South Korea', flag: '🇰🇷' }, NO: { name: 'Norway', flag: '🇳🇴' }, DK: { name: 'Denmark', flag: '🇩🇰' }, FI: { name: 'Finland', flag: '🇫🇮' } };
     if (REGION_META.NO) REGION_META.NO.flag = '🇳🇴'; // Safe fallback
