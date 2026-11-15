@@ -6,8 +6,10 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname;
+// fileURLToPath (not URL.pathname) so this also works on Windows.
+const root = fileURLToPath(new URL('..', import.meta.url));
 const srcDir = join(root, 'src/js');
 const files = readdirSync(srcDir).filter(f => f.endsWith('.js')).sort();
 
@@ -16,8 +18,10 @@ const body = files.map(f => readFileSync(join(srcDir, f), 'utf8')).join('');
 writeFileSync(join(root, 'app.js'), header + body);
 console.log(`app.js: ${files.length} files, ${body.length} bytes`);
 
+// Run Tailwind's CLI with this same node binary: node_modules/.bin/tailwindcss is a shell
+// script that Windows can't execute directly.
 execFileSync(
-  join(root, 'node_modules/.bin/tailwindcss'),
-  ['-c', join(root, 'tailwind.config.cjs'), '-i', join(root, 'src/css/tailwind.css'), '-o', join(root, 'styles.css'), '--minify'],
+  process.execPath,
+  [join(root, 'node_modules/tailwindcss/lib/cli.js'), '-c', join(root, 'tailwind.config.cjs'), '-i', join(root, 'src/css/tailwind.css'), '-o', join(root, 'styles.css'), '--minify'],
   { stdio: 'inherit' }
 );
