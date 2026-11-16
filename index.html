@@ -35,11 +35,27 @@
   <meta name="twitter:image" content="https://www.unwatchd.online/og-image.png">
   <link rel="preconnect" href="https://api.themoviedb.org" crossorigin>
   <link rel="preconnect" href="https://image.tmdb.org">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
-    rel="stylesheet" />
+  <link rel="preload" href="/fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>
+    /* Outfit is served from this site, not from Google Fonts, so loading the page doesn't send visitors' IP addresses to Google. */
+    @font-face {
+      font-family: 'Outfit';
+      font-style: normal;
+      font-weight: 300 900;
+      font-display: swap;
+      src: url(/fonts/outfit-latin-ext.woff2) format('woff2');
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    @font-face {
+      font-family: 'Outfit';
+      font-style: normal;
+      font-weight: 300 900;
+      font-display: swap;
+      src: url(/fonts/outfit-latin.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
     :root {
       --bg-base: #020617;
       --panel-bg: rgba(15, 23, 42, 0.6);
@@ -2855,7 +2871,7 @@
             src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
             alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
         <p class="text-[10px] sm:text-[11px] text-gray-400 font-medium text-center sm:text-left whitespace-nowrap">
-          This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</p>
+          This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>. <a href="/privacy.html" class="underline hover:text-white">Privacy</a></p>
       </div>
     </footer>
   </div>
@@ -2968,7 +2984,7 @@
                 alt="TMDB Logo" class="h-3 sm:h-3.5">
             </a>
             <p class="text-[10px] sm:text-[11px] text-gray-400 font-medium text-center sm:text-left sm:whitespace-nowrap">
-              This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.
+              This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>. <a href="/privacy.html" class="underline hover:text-white">Privacy</a>
             </p>
           </div>
         </div>

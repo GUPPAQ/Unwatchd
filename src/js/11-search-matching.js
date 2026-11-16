@@ -1,21 +1,8 @@
-    const unwrapProxyResponse = (text) => {
-      if (!text || typeof text !== 'string') return '';
-      const trimmed = text.trim();
-      if (trimmed.startsWith('{') && trimmed.includes('"contents"')) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          return parsed.contents || text;
-        } catch (e) {
-          return text;
-        }
-      }
-      return text;
-    };
 
 
     const isGenuineWatchlistPage = (rawHtml, targetUser) => {
       if (!rawHtml) return false;
-      const html = unwrapProxyResponse(rawHtml);
+      const html = rawHtml;
       if (!html || typeof html !== 'string') return false;
       const lower = html.toLowerCase();
       if (lower.includes('page not found') || lower.includes('404 not found')) return false;
@@ -532,4 +519,3 @@
       }
       return best;
     }
-    const PROXY_LABELS = ['own-vercel', 'codetabs', 'allorigins'];
