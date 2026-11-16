@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy | Unwatchd</title>
+  <meta name="description" content="What Unwatchd does with your data: no accounts, no cookies, and what your browser contacts.">
+  <link rel="icon" href="./icons/favicon.ico" sizes="any">
+  <style>
+    @font-face {
+      font-family: 'Outfit';
+      font-weight: 300 900;
+      font-display: swap;
+      src: url(/fonts/outfit-latin.woff2) format('woff2');
+    }
+
+    body {
+      margin: 0;
+      background: #020617;
+      color: #cbd5e1;
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 2.2rem;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin: 24px 0 8px;
+    }
+
+    h2 {
+      color: #fff;
+      font-size: 1.2rem;
+      margin: 36px 0 8px;
+    }
+
+    a {
+      color: #93c5fd;
+    }
+
+    a:hover {
+      color: #bfdbfe;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .muted {
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <a href="/">&larr; Back to Unwatchd</a>
+    <h1>Privacy</h1>
+    <p class="muted">Last updated 16 November 2026</p>
+
+    <p>Unwatchd has no accounts, sets no cookies and shows no ads. It is a personal, non-commercial project. This page explains what happens with your data when you use it.</p>
+
+    <h2>What stays in your browser</h2>
+    <p>Your Letterboxd username, the streaming services and region you pick, your last scan and some cached film data are saved in your own browser's storage, so the site remembers them next time. They are not sent to us for storage. Clearing this site's data in your browser removes all of it.</p>
+
+    <h2>What is sent, and to whom</h2>
+    <ul>
+      <li><strong>Our server (hosted by Vercel).</strong> When you scan, the Letterboxd username you entered is sent to our server, which fetches that public watchlist from Letterboxd and passes it back. Watchlist pages are cached for up to two minutes. Vercel, as the host, processes technical request data such as your IP address.</li>
+      <li><strong>TMDB.</strong> Your browser asks The Movie Database directly for film details, posters and streaming availability.</li>
+      <li><strong>Cinemeta (Stremio).</strong> Your browser asks this service directly for IMDb ratings.</li>
+      <li><strong>logo.dev.</strong> Your browser may load a streaming service's logo from here when we don't have our own copy.</li>
+      <li><strong>YouTube.</strong> Only when you open a trailer, the player is loaded from YouTube.</li>
+      <li><strong>Vercel Web Analytics.</strong> Counts page views without cookies and without identifying you.</li>
+    </ul>
+    <p>Each of these services sees your IP address when your browser contacts it, as with any website, and handles it under its own privacy policy.</p>
+
+    <h2>Your rights</h2>
+    <p>We keep no profile of you, so there is nothing for us to export or delete: your data is in your browser, under your control. If you have a question or a request under the GDPR, contact us and we will help.</p>
+
+    <h2>Contact</h2>
+    <p>Open an issue at <a href="https://github.com/GUPPAQ/Unwatchd/issues" rel="noopener">github.com/GUPPAQ/Unwatchd</a>.</p>
+
+    <h2>Credits</h2>
+    <p class="muted">Unwatchd is not affiliated with or endorsed by Letterboxd, TMDB, JustWatch, IMDb or any streaming service. This product uses the TMDB API but is not endorsed or certified by TMDB. Streaming availability data is provided by JustWatch.</p>
+  </main>
+</body>
+
+</html>

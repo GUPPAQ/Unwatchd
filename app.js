@@ -397,13 +397,6 @@
     if (REGION_META.NO) REGION_META.NO.flag = '🇳🇴'; // Safe fallback
     const GENRE_MAP = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western' };
     function openStreamingService(webUrl, appUrl = null) { if (!isMobile || !appUrl || appUrl === 'null') { window.open(webUrl, "_blank"); return; } window.location.href = appUrl; setTimeout(() => { window.open(webUrl, "_blank"); }, 1200); }
-    // Index 0 must stay our own proxy: raceProxies() trusts its status codes (404 = no such user).
-    // corsproxy.io was removed - it now answers 401 to every request without an API key.
-    const CORS_PROXIES = [
-      (url) => `/api/proxy?url=${encodeURIComponent(url)}`,
-      (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
-      (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
-    ];
     const TMDB_PROVIDER_CACHE_KEY = (region) => `ps_providers_${region}_v13`;
     const TMDB_PROVIDER_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -6660,24 +6653,11 @@
         }
       });
     }
-    const unwrapProxyResponse = (text) => {
-      if (!text || typeof text !== 'string') return '';
-      const trimmed = text.trim();
-      if (trimmed.startsWith('{') && trimmed.includes('"contents"')) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          return parsed.contents || text;
-        } catch (e) {
-          return text;
-        }
-      }
-      return text;
-    };
 
 
     const isGenuineWatchlistPage = (rawHtml, targetUser) => {
       if (!rawHtml) return false;
-      const html = unwrapProxyResponse(rawHtml);
+      const html = rawHtml;
       if (!html || typeof html !== 'string') return false;
       const lower = html.toLowerCase();
       if (lower.includes('page not found') || lower.includes('404 not found')) return false;
@@ -7194,62 +7174,30 @@
       }
       return best;
     }
-    const PROXY_LABELS = ['own-vercel', 'codetabs', 'allorigins'];
-    // Own Vercel proxy first. Only if it fails do we fall back to the public CORS
-    // proxies (raced against each other, losers aborted), so usernames normally
-    // never leave our own infrastructure and we don't hit several services per page.
-    //
-    // Returns the page text, LETTERBOXD_NOT_FOUND when our own proxy got a real 404 from
-    // Letterboxd (the user doesn't exist - no point asking the public proxies), or null when
-    // no proxy could fetch the page at all.
+    // Fetches a Letterboxd page through our own proxy (/api/proxy), and nowhere else:
+    // usernames never go to third-party services, and no third party can hand us a page.
+    // Returns the page text, LETTERBOXD_NOT_FOUND when Letterboxd answered 404 (no such
+    // user), or null when the page couldn't be fetched or doesn't look like the right page.
     const LETTERBOXD_NOT_FOUND = '__LETTERBOXD_404__';
-    const raceProxies = async (targetUrl, validatorFn, timeoutMs = 6000) => {
-      const tryProxy = async (idx, sharedSignal = null) => {
-        const label = PROXY_LABELS[idx] || `proxy-${idx}`;
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
-        if (sharedSignal) sharedSignal.addEventListener('abort', () => controller.abort(), { once: true });
-        try {
-          const res = await fetch(CORS_PROXIES[idx](targetUrl), { cache: 'no-store', signal: controller.signal });
-          if (idx === 0 && res.status === 404) {
-            const notFound = new Error('Letterboxd returned 404');
-            notFound.letterboxdNotFound = true;
-            throw notFound;
-          }
-          if (!res.ok) {
-            console.warn(`[Proxy: ${label}] HTTP ${res.status} for ${targetUrl}`);
-            throw new Error(`HTTP ${res.status}`);
-          }
-          const txt = unwrapProxyResponse(await res.text());
-          if (validatorFn(txt)) return txt;
-          console.warn(`[Proxy: ${label}] Invalid content for ${targetUrl}, length=${txt ? txt.length : 0}`);
-          throw new Error('Invalid content');
-        } catch (e) {
-          if (e.name === 'AbortError' && !sharedSignal?.aborted) {
-            console.warn(`[Proxy: ${label}] TIMEOUT after ${timeoutMs}ms for ${targetUrl}`);
-          }
-          throw e;
-        } finally {
-          clearTimeout(timer);
+    const fetchLetterboxdPage = async (targetUrl, validatorFn, timeoutMs = 6000) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(`/api/proxy?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store', signal: controller.signal });
+        if (res.status === 404) return LETTERBOXD_NOT_FOUND;
+        if (!res.ok) {
+          console.warn(`[Letterboxd proxy] HTTP ${res.status} for ${targetUrl}`);
+          return null;
         }
-      };
-
-      try {
-        return await tryProxy(0);
+        const txt = await res.text();
+        if (validatorFn(txt)) return txt;
+        console.warn(`[Letterboxd proxy] Unexpected content for ${targetUrl}, length=${txt ? txt.length : 0}`);
+        return null;
       } catch (e) {
-        if (e.letterboxdNotFound) return LETTERBOXD_NOT_FOUND;
-        /* otherwise fall through to public proxies */
-      }
-
-      const shared = new AbortController();
-      try {
-        const fallbacks = CORS_PROXIES.slice(1).map((_, k) => tryProxy(k + 1, shared.signal));
-        return await Promise.any(fallbacks);
-      } catch (err) {
-        console.error(`[raceProxies] All proxies failed for ${targetUrl}`, err.errors || err);
+        console.warn(`[Letterboxd proxy] ${e.name === 'AbortError' ? `Timed out after ${timeoutMs}ms` : 'Request failed'} for ${targetUrl}`, e);
         return null;
       } finally {
-        shared.abort();
+        clearTimeout(timer);
       }
     };
 
@@ -7261,7 +7209,7 @@
       // There is no RSS step: Letterboxd has no public watchlist feed (the URL is behind a
       // Cloudflare challenge), so trying it only made every scan fail through all proxies first.
       const htmlTarget = `https://letterboxd.com/${targetUser}/watchlist/page/1/`;
-      const page1Html = await raceProxies(htmlTarget, (txt) => {
+      const page1Html = await fetchLetterboxdPage(htmlTarget, (txt) => {
         if (!txt) return false;
         if (txt.includes('Page not found') || txt.includes('404 Not Found')) return true; // Let downstream handle user not found
         return isGenuineWatchlistPage(txt, targetUser);
@@ -7296,7 +7244,7 @@
       const fetchSinglePage = async (page) => {
         if (page === 1) return page1Html;
         const target = `https://letterboxd.com/${targetUser}/watchlist/page/${page}/`;
-        const txt = await raceProxies(target, (txt) => {
+        const txt = await fetchLetterboxdPage(target, (txt) => {
           return txt && !txt.includes('Just a moment...') && isGenuineWatchlistPage(txt, targetUser);
         }, 5000);
         return txt === LETTERBOXD_NOT_FOUND ? null : txt;
