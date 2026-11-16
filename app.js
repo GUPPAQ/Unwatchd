@@ -6311,6 +6311,22 @@
         }
       }
 
+      // Where it's available, as small service logos along the bottom of the poster.
+      // `subtext` is "Netflix, Max" (or "Netflix · 🇺🇸 VPN" for a VPN unlock).
+      const serviceNames = (movieObj.subtext || '').split(' · ')[0].split(', ').map(s => s.trim()).filter(s => s && s !== 'Not streaming in region');
+      if (serviceNames.length > 0) {
+        const logos = serviceNames.slice(0, 3).map(name => {
+          const src = getProviderLogoUrl(name);
+          return src ? `<img src="${escapeHTML(src)}" alt="${escapeHTML(name)}" loading="lazy" onerror="this.remove()">` : '';
+        }).join('');
+        if (logos) {
+          const row = document.createElement('div');
+          row.className = 'poster-services';
+          row.innerHTML = logos + (serviceNames.length > 3 ? `<span class="poster-services-more">+${serviceNames.length - 3}</span>` : '');
+          a.appendChild(row);
+        }
+      }
+
       if (movieObj.vpnInfo) {
         const vpnBadge = document.createElement('div');
         vpnBadge.className = 'poster-corner-badge poster-vpn-badge';
@@ -9526,6 +9542,7 @@
       if (!scannedMovies.length || pool.length === 0) {
         card.classList.add('hidden');
         currentTonightPick = null;
+        setAmbientBackdrop(null);
         return;
       }
       let pick = pool.find(m => movieKeyOf(m) === tonightPickKey);
@@ -9537,12 +9554,54 @@
       card.classList.remove('hidden');
     }
 
+    // A soft, blurred wash of the pick's artwork behind the top of the page. Uses the
+    // smallest backdrop size: it is blurred beyond recognition anyway.
+    function setAmbientBackdrop(backdropUrl) {
+      const layer = document.getElementById('ambientBackdrop');
+      if (!layer) return;
+      const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
+      if (!backdropUrl || !resultsVisible) { layer.classList.remove('is-on'); return; }
+      layer.style.backgroundImage = `url("${backdropUrl.replace('/w1280/', '/w300/')}")`;
+      layer.classList.add('is-on');
+    }
+
+    // The film's own title logo (the artwork streaming apps show), when TMDB has one.
+    var tonightPickLogoCache = new Map();
+    async function loadTonightPickLogo(m) {
+      const key = movieKeyOf(m);
+      if (tonightPickLogoCache.has(key)) return tonightPickLogoCache.get(key);
+      let url = null;
+      try {
+        const type = m.mediaType === 'tv' ? 'tv' : 'movie';
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/${type}/${m.id}/images?api_key=${TMDB_API_KEY}&include_image_language=en`);
+        const data = await res.json();
+        const logos = (data.logos || []).filter(l => l.file_path && !l.file_path.endsWith('.svg'));
+        logos.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0) || (b.width || 0) - (a.width || 0));
+        if (logos[0]) url = `https://image.tmdb.org/t/p/w500${logos[0].file_path}`;
+      } catch (e) { logIgnored('loadTonightPickLogo', e); }
+      tonightPickLogoCache.set(key, url);
+      return url;
+    }
+
     function fillTonightPick(m, poolSize) {
       currentTonightPick = m;
+      const card = document.getElementById('tonightPick');
       const img = document.getElementById('tonightPickBackdrop');
       if (img) {
         const src = m.backdrop || m.poster || '';
         if (src) { img.src = src; img.classList.remove('hidden'); } else { img.removeAttribute('src'); img.classList.add('hidden'); }
+      }
+      setAmbientBackdrop(m.backdrop || null);
+
+      const logo = document.getElementById('tonightPickLogo');
+      if (logo && card) {
+        logo.classList.add('hidden'); logo.removeAttribute('src'); card.classList.remove('has-logo');
+        loadTonightPickLogo(m).then((url) => {
+          if (!url || currentTonightPick !== m) return; // a newer pick replaced this one meanwhile
+          logo.onload = () => { if (currentTonightPick === m) { logo.classList.remove('hidden'); card.classList.add('has-logo'); } };
+          logo.alt = m.title || '';
+          logo.src = url;
+        });
       }
       const title = document.getElementById('tonightPickTitle');
       if (title) title.textContent = m.title || '';
@@ -9604,7 +9663,17 @@
       if (others.length === 0) return;
       const pick = others[Math.floor(Math.random() * others.length)];
       tonightPickKey = movieKeyOf(pick);
-      fillTonightPick(pick, pool.length);
+      // Fade the artwork out, swap, and fade back in once the new image has loaded.
+      const card = document.getElementById('tonightPick');
+      const img = document.getElementById('tonightPickBackdrop');
+      if (!card || !img) { fillTonightPick(pick, pool.length); return; }
+      card.classList.add('is-swapping');
+      setTimeout(() => {
+        const reveal = () => card.classList.remove('is-swapping');
+        img.onload = reveal; img.onerror = reveal;
+        setTimeout(reveal, 1200); // never stay faded if the image is slow
+        fillTonightPick(pick, pool.length);
+      }, 180);
     }
 
     async function playTonightPickTrailer() {
@@ -9632,6 +9701,7 @@
       const bar = document.getElementById('scanCompactBar');
       if (!full || !bar) return;
       const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
+      setAmbientBackdrop(resultsVisible && currentTonightPick ? (currentTonightPick.backdrop || null) : null);
       const compact = resultsVisible && scannedMovies.length > 0 && !scanPanelExpanded && !isScanning;
       full.classList.toggle('hidden', compact);
       bar.classList.toggle('hidden', !compact);
