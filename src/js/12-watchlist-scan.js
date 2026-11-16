@@ -367,12 +367,18 @@
             incompleteNotes.push(...describeIncompleteScan(`${friendName}'s`, friendScan));
             const friendKeys = new Set(friendTitles.map(getFilmKey)); titlesToProcess = myTitles.filter(t => friendKeys.has(getFilmKey(t))); if (titlesToProcess.length === 0) { throw new Error('You and your friend don\'t have any films in common on your watchlists.'); }
           }
-          for (let i = 0; i < titlesToProcess.length; i += BATCH_SIZE) {
-            if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
-            const batch = titlesToProcess.slice(i, i + BATCH_SIZE); const pct = 15 + ((i / titlesToProcess.length) * 85);
-            if (el.progressLabel) el.progressLabel.textContent = `Finding where your films stream (${i + 1} of ${titlesToProcess.length})…`; if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%';
-            if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
-            await Promise.all(batch.map(async (qObj) => {
+          titlesToProcess.forEach((t, idx) => { t.extractedIndex = idx; }); // watchlist order, used to order the saved scan
+          // Films are resolved by a rolling pool of workers: when one film finishes, that worker
+          // takes the next. (They used to go in groups of 30 that each waited for their slowest
+          // request, so one slow TMDB answer held up 29 finished films.)
+          const totalFilms = titlesToProcess.length;
+          let nextFilmIndex = 0; let filmsDone = 0;
+          const showScanProgress = () => {
+            const pct = 15 + ((filmsDone / totalFilms) * 85);
+            if (el.progressLabel) el.progressLabel.textContent = `Finding where your films stream (${Math.min(filmsDone + 1, totalFilms)} of ${totalFilms})…`; if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%';
+          };
+          showScanProgress();
+          const processFilm = async (qObj) => {
               if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
               try {
                 const best = await findBestMediaMatch(qObj);
@@ -389,13 +395,13 @@
                   }
                 }
                 const provResults = pData['watch/providers']?.results || pData.results || {};
-                const filterAndDeduplicateProvidersScan = (list, isRentBuy = false) => {
+                const filterAndDeduplicateProvidersScan = (list, isRentBuy, region) => {
                   if (!list || !Array.isArray(list)) return [];
                   const map = new Map();
                   for (const item of list) {
-                    const canon = getCanonicalProvider(item, isRentBuy);
+                    const canon = getCanonicalProvider(item, isRentBuy, region);
                     if (canon && !map.has(canon.provider_id)) {
-                      map.set(canon.provider_id, canon);
+                      map.set(canon.provider_id, slimProviderForStorage(canon));
                     }
                   }
                   return [...map.values()];
@@ -404,11 +410,14 @@
                 const optimizedProviders = {};
                 if (provResults) {
                   for (const region in provResults) {
+                    // Keep only regions the app can show (the region picker and VPN mode both
+                    // go by REGION_META). TMDB returns about 60 per film.
+                    if (!REGION_META[region]) continue;
                     optimizedProviders[region] = {};
                     if (provResults[region].link) optimizedProviders[region].link = provResults[region].link;
-                    if (provResults[region].flatrate) optimizedProviders[region].flatrate = filterAndDeduplicateProvidersScan(provResults[region].flatrate, false);
-                    if (provResults[region].rent) optimizedProviders[region].rent = filterAndDeduplicateProvidersScan(provResults[region].rent, true);
-                    if (provResults[region].buy) optimizedProviders[region].buy = filterAndDeduplicateProvidersScan(provResults[region].buy, true);
+                    if (provResults[region].flatrate) optimizedProviders[region].flatrate = filterAndDeduplicateProvidersScan(provResults[region].flatrate, false, region);
+                    if (provResults[region].rent) optimizedProviders[region].rent = filterAndDeduplicateProvidersScan(provResults[region].rent, true, region);
+                    if (provResults[region].buy) optimizedProviders[region].buy = filterAndDeduplicateProvidersScan(provResults[region].buy, true, region);
                   }
                 }
                 const bestTitle = getResultTitle(best);
@@ -439,8 +448,16 @@
                   registerSlug(filmSlug, best.id, mediaType === 'tv' ? 'series' : 'film');
                 }
               } catch (e) { console.warn('[TMDB Watch Provider Scan Fetch]', e); }
-            })); await new Promise(r => setTimeout(r, TMDB_REQUEST_DELAY_MS));
-          }
+          };
+          const scanWorker = async () => {
+            while (nextFilmIndex < totalFilms) {
+              if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
+              await processFilm(titlesToProcess[nextFilmIndex++]);
+              filmsDone++;
+              if (myScanSessionId === activeScanSessionId && !cancelRequested) showScanProgress();
+            }
+          };
+          await Promise.all(Array.from({ length: Math.min(SCAN_CONCURRENCY, totalFilms) }, scanWorker));
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
           if (el.progressLabel) el.progressLabel.textContent = 'Almost done…'; if (el.progressBar) el.progressBar.style.width = '100%'; if (el.progressPercent) el.progressPercent.textContent = '100%';
           isFriendMatchActive = friendName !== ''; localStorage.setItem('ps_is_friend_match_active', isFriendMatchActive);

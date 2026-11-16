@@ -67,21 +67,12 @@
       }, 300);
     }
 
+    // movieToImdbIdMap is loaded from localStorage at startup and is the only writer, so a miss
+    // here is a real miss. (This used to re-parse the whole stored map on every miss, and it is
+    // called for every film on every filter, sort and render.)
     function getStoredImdbId(mediaType, movieId) {
       if (!movieId) return null;
-      const key = `${mediaType || 'movie'}_${movieId}`;
-      if (movieToImdbIdMap.has(key)) return movieToImdbIdMap.get(key);
-      try {
-        const stored = localStorage.getItem('unwatchd_movie_imdb_ids');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed[key]) {
-            movieToImdbIdMap.set(key, parsed[key]);
-            return parsed[key];
-          }
-        }
-      } catch (e) { logIgnored('getStoredImdbId', e); }
-      return null;
+      return movieToImdbIdMap.get(`${mediaType || 'movie'}_${movieId}`) || null;
     }
 
     function getStoredImdbRating(imdbId) {
@@ -105,15 +96,30 @@
           }
         }
       });
+      // IndexedDB is the home of the saved scan. Resolve only once the write has committed.
+      let savedToDb = false;
       try {
         const db = await openDB();
         if (db) {
-          const tx = db.transaction(STORE_NAME, 'readwrite');
-          const store = tx.objectStore(STORE_NAME);
-          store.put({ movies, isFriendMatch, timestamp: Date.now() }, 'last_scan');
+          savedToDb = await new Promise((resolve) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).put({ movies, isFriendMatch, timestamp: Date.now() }, 'last_scan');
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+            tx.onabort = () => resolve(false);
+          });
         }
       } catch (err) { console.warn('IndexedDB save error:', err); }
 
+      if (savedToDb) {
+        // No second copy in localStorage: it used to take up to 13 MB of the ~5-10 MB the
+        // browser allows there, which starved the other caches and blocked the page while
+        // it was written. Remove the copy older versions left behind.
+        try { localStorage.removeItem('ps_last_scan'); } catch (e) { logIgnored('saveScanToStorage cleanup', e); }
+        return;
+      }
+
+      // IndexedDB unavailable (some private modes): fall back to localStorage.
       try {
         localStorage.setItem('ps_last_scan', JSON.stringify(movies));
       } catch (err) {
@@ -196,6 +202,7 @@
         scannedMovies = scanData.movies;
         assignUniqueScannedSlugs(scannedMovies);
         scannedMovies.forEach(m => {
+          m.allProviders = slimAllProvidersForStorage(m.allProviders); // shrinks scans saved by older versions
           const key = `${m.mediaType || 'movie'}_${m.id}`;
           if (!m.imdbId) {
             const mapped = movieToImdbIdMap.get(key) || movieDetailsCache.get(key)?.external_ids?.imdb_id;
@@ -638,7 +645,7 @@
           }
         });
         if (anyUpdatedFromCache) {
-          if ((window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterSort === 'rating_desc')) {
+          if ((window.homeFilterRating && window.homeFilterRating !== 'all') || (homeFilterSort === 'rating_desc')) {
             debouncedApplyFilters();
           }
         }
@@ -714,7 +721,7 @@
         if (anyNewSynced) {
           saveScanToStorage(movies, isFriendMatchActive);
           updateStats();
-          if ((window.homeFilterRating && window.homeFilterRating !== 'all') || (window.homeFilterSort === 'rating_desc')) {
+          if ((window.homeFilterRating && window.homeFilterRating !== 'all') || (homeFilterSort === 'rating_desc')) {
             debouncedApplyFilters();
           }
         }

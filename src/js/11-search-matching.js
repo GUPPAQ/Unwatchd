@@ -42,6 +42,43 @@
     function getResultOriginalTitle(r) { return r.original_title || r.original_name || ''; }
     function getResultDate(r) { return r.release_date || r.first_air_date || null; }
 
+    const byVotesThenPopularity = (a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0);
+    function getResultYear(r) {
+      const d = getResultDate(r);
+      const y = d ? parseInt(d.slice(0, 4), 10) : NaN;
+      return isNaN(y) ? null : y;
+    }
+    function isExactTitleMatch(r, qNorm) {
+      return normalizeTitle(getResultTitle(r)) === qNorm || normalizeTitle(getResultOriginalTitle(r)) === qNorm;
+    }
+
+    // How watchlist films are matched to TMDB entries. The rules were tuned against 505 real
+    // watchlist films whose true TMDB ids were read from Letterboxd's own film pages:
+    //  - Letterboxd takes titles from TMDB, so the title (or original title) matches exactly.
+    //    Every correct match in the sample did; "similar title" guesses only produced wrong films.
+    //  - Letterboxd's year is the film's earliest release anywhere (festivals included), while
+    //    TMDB's date is the main release. So TMDB's year is the same (91%) or one later (9%),
+    //    never earlier. A same-titled film from the year before is a different film.
+    //  - Letterboxd is a film site: a film beats a TV show of the same title.
+    //  - No year on Letterboxd means an unreleased film, which has no date on TMDB either.
+    //    A dated namesake is a different film.
+    // When nothing fits, the answer is "not found" rather than a popular film with the same name.
+    const FAST_MATCH_MIN_VOTES = 25;
+
+    // Best of `list` whose year is the Letterboxd year or the one after. The exact year wins
+    // unless a next-year candidate is clearly the better-known film (3x the votes): festival
+    // films often share a title with an obscure film from the festival year.
+    function pickForLetterboxdYear(list, qYear) {
+      let best = null, bestScore = -1;
+      for (const r of list) {
+        const y = getResultYear(r);
+        if (y !== qYear && y !== qYear + 1) continue;
+        const score = ((r.vote_count || 0) + 1) / (y === qYear ? 1 : 3);
+        if (score > bestScore || (score === bestScore && (r.popularity || 0) > (best.popularity || 0))) { best = r; bestScore = score; }
+      }
+      return best;
+    }
+
     function findBestTmdbMatch(queryObj, results) {
       if (!results || results.length === 0) return null;
       const qNorm = normalizeTitle(queryObj.title);
@@ -51,47 +88,34 @@
         if (sm) qYear = parseInt(sm[1]);
       }
       if (!qNorm) return null;
-      const nonPersonResults = results.filter(r => r.__mediaType !== 'person');
-      const moviesOnly = nonPersonResults.filter(r => r.__mediaType === 'movie');
-      const candidateList = (queryObj.type === 'movie' && moviesOnly.length > 0) ? moviesOnly : (nonPersonResults.length > 0 ? nonPersonResults : results);
+      const films = results.filter(r => r.__mediaType === 'movie');
+      const shows = results.filter(r => r.__mediaType === 'tv');
 
-      const exactMatches = candidateList.filter(r => {
-        const t = normalizeTitle(getResultTitle(r));
-        const orig = normalizeTitle(getResultOriginalTitle(r));
-        return t === qNorm || orig === qNorm;
-      });
-
-      if (exactMatches.length > 0) {
+      for (const group of [films, shows]) {
+        const exact = group.filter(r => isExactTitleMatch(r, qNorm));
+        if (exact.length === 0) continue;
         if (qYear) {
-          const exactYearMatches = exactMatches.filter(r => {
-            const d = getResultDate(r);
-            return d && Math.abs(parseInt(d.split('-')[0]) - qYear) <= 1;
-          });
-          if (exactYearMatches.length > 0) {
-            return exactYearMatches.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0];
-          }
+          const inWindow = pickForLetterboxdYear(exact, qYear);
+          if (inWindow) return inWindow;
+        } else {
+          const undated = exact.filter(r => getResultYear(r) === null);
+          if (undated.length > 0) return undated.sort(byVotesThenPopularity)[0];
         }
-        return [...exactMatches].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0];
       }
 
+      // Last resort, only with a year to anchor on: TMDB may have retitled the film since
+      // Letterboxd last synced (say, a subtitle was added). Accept a title that contains the
+      // whole query, or the reverse, as complete words - and only for titles of two or more
+      // words, since a single word like "Beau" turns up inside too many unrelated titles.
       if (qYear) {
-        const yearCandidates = candidateList.filter(r => {
-          const d = getResultDate(r);
-          return d && Math.abs(parseInt(d.split('-')[0]) - qYear) <= 1;
+        const containsWords = (long, short) => short.includes(' ') && ` ${long} `.includes(` ${short} `);
+        const similar = films.filter(r => {
+          const t = normalizeTitle(getResultTitle(r));
+          return t && (containsWords(t, qNorm) || containsWords(qNorm, t));
         });
-        if (yearCandidates.length > 0) {
-          return yearCandidates.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0];
-        }
+        return pickForLetterboxdYear(similar, qYear);
       }
-
-      const qWords = new Set(qNorm.split(' ').filter(w => w.length > 2));
-      const filtered = candidateList.filter(r => {
-        const t = normalizeTitle(getResultTitle(r));
-        return [...qWords].some(w => t.includes(w));
-      }).sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0));
-
-      if (filtered.length > 0) return filtered[0];
-      return [...candidateList].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0) || (b.popularity || 0) - (a.popularity || 0))[0] || null;
+      return null;
     }
 
     const personCreditsCache = new Map();
@@ -369,20 +393,24 @@
         return searchBothMedia(titleQuery);
       }
     }
+    // One TMDB title search (film or TV), optionally limited to a release year.
+    async function searchMedia(mediaType, titleQuery, year) {
+      const isTv = mediaType === 'tv';
+      const yearParam = year ? `&${isTv ? 'first_air_date_year' : 'primary_release_year'}=${encodeURIComponent(year)}` : '';
+      const url = `https://api.themoviedb.org/3/search/${isTv ? 'tv' : 'movie'}?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}${yearParam}`;
+      const data = await tmdbFetch(url).then(r => r.json()).catch((e) => { console.warn(`[TMDB Search ${isTv ? 'TV' : 'Movie'} Catch]`, e); return {}; });
+      return (data.results || []).map(r => ({ ...r, __mediaType: isTv ? 'tv' : 'movie' }));
+    }
     async function searchBothMedia(titleQuery, year) {
-      const yearParamMovie = year ? `&primary_release_year=${encodeURIComponent(year)}` : '';
-      const yearParamTv = year ? `&first_air_date_year=${encodeURIComponent(year)}` : '';
-      const movieUrl = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}${yearParamMovie}`;
-      const tvUrl = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&include_adult=false&query=${encodeURIComponent(titleQuery)}${yearParamTv}`;
-      const [movieRes, tvRes] = await Promise.all([
-        tmdbFetch(movieUrl).then(r => r.json()).catch((e) => { console.warn('[TMDB Search Movie Catch]', e); return {}; }),
-        tmdbFetch(tvUrl).then(r => r.json()).catch((e) => { console.warn('[TMDB Search TV Catch]', e); return {}; })
-      ]);
-      const movieResults = (movieRes.results || []).map(r => ({ ...r, __mediaType: 'movie' }));
-      const tvResults = (tvRes.results || []).map(r => ({ ...r, __mediaType: 'tv' }));
+      const [movieResults, tvResults] = await Promise.all([searchMedia('movie', titleQuery, year), searchMedia('tv', titleQuery, year)]);
       return [...movieResults, ...tvResults];
     }
-    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v13'; // bumped: extraction now reads title/year/slug from the LazyPoster wrapper, not the empty inner placeholder
+
+    // Remembers which TMDB entry each watchlist film resolved to, so repeat scans skip the
+    // searches. v14: matching rules changed (exact year first, films before TV, undated for
+    // unreleased films) and entries are stored slimmed down.
+    const TMDB_MATCH_CACHE_KEY = 'ps_tmdb_matches_v14';
+    try { localStorage.removeItem('ps_tmdb_matches_v13'); } catch (e) { logIgnored('TMDB match cache cleanup', e); }
     window.clearTmdbCache = function () {
       try {
         localStorage.removeItem(TMDB_MATCH_CACHE_KEY);
@@ -398,12 +426,29 @@
       if (stored) tmdbMatchCache = new Map(JSON.parse(stored));
     } catch (e) { console.warn('[TMDB Match Cache Read]', e); }
 
+    // Only the fields the scan reads from a match (no plot text etc.), to keep the cache small.
+    function slimTmdbMatch(r) {
+      const slim = { id: r.id, __mediaType: r.__mediaType };
+      for (const field of ['title', 'name', 'original_title', 'original_name', 'release_date', 'first_air_date', 'poster_path', 'backdrop_path', 'vote_average', 'vote_count', 'popularity', 'genre_ids', 'original_language']) {
+        if (r[field] !== undefined && r[field] !== null && r[field] !== '') slim[field] = r[field];
+      }
+      return slim;
+    }
+
+    // Writing is debounced: a scan resolves hundreds of films, and serialising the whole
+    // cache after each one froze the page for longer and longer as the cache grew.
+    let saveTmdbMatchCacheTimer = null;
     function saveTmdbMatchCache() {
-      // If we blow the localStorage quota (this does happen in practice - full TMDB result
-      // objects for ~1500 titles add up), don't just drop the write silently: progressively
-      // keep fewer of the most-recent entries until it fits, so the cache still helps on the
-      // next scan instead of being empty (and re-hitting the TMDB API for everything) every time.
-      const sizes = [1500, 750, 350, 150, 50];
+      if (saveTmdbMatchCacheTimer) return;
+      saveTmdbMatchCacheTimer = setTimeout(() => {
+        saveTmdbMatchCacheTimer = null;
+        writeTmdbMatchCache();
+      }, 1500);
+    }
+    function writeTmdbMatchCache() {
+      // If the localStorage quota is exceeded, keep fewer of the most recent entries rather
+      // than dropping the write, so the cache still helps on the next scan.
+      const sizes = [3000, 1500, 750, 350, 150, 50];
       for (const size of sizes) {
         try {
           const entries = Array.from(tmdbMatchCache.entries()).slice(-size);
@@ -413,6 +458,26 @@
           if (size === sizes[sizes.length - 1]) console.warn('[TMDB Match Cache Write] giving up, quota still exceeded at minimum size', e);
         }
       }
+    }
+
+    // A festival film can reach its main release years after its premiere ("Neo Tokyo"
+    // premiered in 1987 and was released in 1989). Letterboxd dates a film by its premiere, so
+    // for same-titled films dated two or three years later, ask TMDB for the earliest release
+    // anywhere and accept the film if that falls in the Letterboxd year.
+    async function findLateReleaseMatch(results, qNorm, qYear) {
+      const late = results
+        .filter(r => r.__mediaType === 'movie' && isExactTitleMatch(r, qNorm))
+        .filter(r => { const y = getResultYear(r); return y !== null && y > qYear + 1 && y <= qYear + 3; })
+        .sort(byVotesThenPopularity)
+        .slice(0, 3);
+      for (const r of late) {
+        try {
+          const data = await tmdbFetch(`https://api.themoviedb.org/3/movie/${r.id}/release_dates?api_key=${TMDB_API_KEY}`).then(res => res.json());
+          const earliest = (data.results || []).flatMap(c => c.release_dates || []).map(d => d.release_date).filter(Boolean).sort()[0];
+          if (earliest && parseInt(earliest.slice(0, 4), 10) === qYear) return r;
+        } catch (e) { logIgnored('findLateReleaseMatch', e); }
+      }
+      return null;
     }
 
     async function findBestMediaMatch(qObj) {
@@ -425,32 +490,44 @@
         const sm = qObj.slug.match(/-(\d{4})$/);
         if (sm) qYear = parseInt(sm[1]);
       }
-      let combined = await searchBothMedia(qObj.title);
-      // When we know the release year (from Letterboxd), also run a year-scoped search and merge
-      // it in. TMDB's plain title search ranks results by relevance/popularity, so an obscure
-      // exact-title match (e.g. the 1997 cult film "Nowhere") can end up buried behind a far more
-      // popular same-titled result (e.g. the 2023 Netflix film "Nowhere") and never surface. Scoping
-      // the query by year makes TMDB itself resolve the ambiguity instead of relying purely on
-      // whatever happened to come back from an unscoped text search.
-      if (qYear) {
-        const yearScoped = await searchBothMedia(qObj.title, qYear);
-        if (yearScoped.length > 0) combined = dedupeMediaResults([...yearScoped, ...combined]);
-      }
-      if (combined.length === 0 && /\b\d{4}\b/.test(qObj.title)) {
-        const noYearLike = qObj.title.replace(/\b\d{4}\b/g, ' ').replace(/\s+/g, ' ').trim();
-        if (noYearLike && noYearLike.length >= 3) {
-          combined = await searchBothMedia(noYearLike);
+      const qNorm = normalizeTitle(qObj.title);
+      let best = null;
+      let combined = [];
+      if (qYear && qNorm) {
+        // Step 1: one film search limited to the Letterboxd year. A reasonably well-known film
+        // with exactly this title settles it - the common case, at one request per film.
+        const sameYear = await searchMedia('movie', qObj.title, qYear);
+        const top = pickForLetterboxdYear(sameYear.filter(r => isExactTitleMatch(r, qNorm)), qYear);
+        if (top && (top.vote_count || 0) >= FAST_MATCH_MIN_VOTES) {
+          best = top;
+        } else {
+          // Step 2: also look one year later (see the notes above findBestTmdbMatch).
+          const nextYear = await searchMedia('movie', qObj.title, qYear + 1);
+          best = pickForLetterboxdYear([...sameYear, ...nextYear].filter(r => isExactTitleMatch(r, qNorm)), qYear);
+          if (!best) {
+            // Step 3: no film with this title in either year. Widen to TV and to searches
+            // without a year, and let findBestTmdbMatch judge everything.
+            const [scopedShows, films, shows] = await Promise.all([
+              searchMedia('tv', qObj.title, qYear), searchMedia('movie', qObj.title), searchMedia('tv', qObj.title)
+            ]);
+            combined = dedupeMediaResults([...sameYear, ...nextYear, ...scopedShows, ...films, ...shows]);
+          }
         }
+      } else {
+        combined = await searchBothMedia(qObj.title);
       }
-      if (combined.length === 0 && qObj.title.includes(',')) {
-        const shortTitle = qObj.title.split(',')[0].trim();
-        if (shortTitle && shortTitle.length >= 3) {
-          combined = await searchBothMedia(shortTitle);
+      if (!best) {
+        if (combined.length === 0 && /\b\d{4}\b/.test(qObj.title)) {
+          const noYearLike = qObj.title.replace(/\b\d{4}\b/g, ' ').replace(/\s+/g, ' ').trim();
+          if (noYearLike && noYearLike.length >= 3) {
+            combined = await searchBothMedia(noYearLike);
+          }
         }
+        best = findBestTmdbMatch(qObj, combined);
+        if (!best && qYear && qNorm) best = await findLateReleaseMatch(combined, qNorm, qYear);
       }
-      const best = findBestTmdbMatch(qObj, combined);
       if (best) {
-        tmdbMatchCache.set(key, best);
+        tmdbMatchCache.set(key, slimTmdbMatch(best));
         saveTmdbMatchCache();
       }
       return best;
