@@ -311,13 +311,17 @@
       'hulu': ['US']
     };
 
-    function getCanonicalProvider(p, isRentBuy = false) {
+    // `region` is the region the provider entry belongs to. It defaults to the region being
+    // viewed, but a scan stores every region's providers at once and must pass each one:
+    // otherwise a scan made in Sweden strips BBC iPlayer out of the UK data (and so on), and
+    // those films look unavailable after switching region.
+    function getCanonicalProvider(p, isRentBuy = false, region = currentRegion) {
       if (!p || !p.provider_name) return null;
       const norm = cleanNormalize(p.provider_name);
       if (norm.includes('googleplay') || norm === 'googleplaymovies' || norm === 'youtube' || norm === 'microsoftstore') return null;
       if (!NORMALIZED_WHITELIST.includes(norm)) return null;
 
-      if (Object.prototype.hasOwnProperty.call(REGION_ONLY_SERVICES, norm) && Array.isArray(REGION_ONLY_SERVICES[norm]) && !REGION_ONLY_SERVICES[norm].includes(currentRegion)) {
+      if (Object.prototype.hasOwnProperty.call(REGION_ONLY_SERVICES, norm) && Array.isArray(REGION_ONLY_SERVICES[norm]) && !REGION_ONLY_SERVICES[norm].includes(region)) {
         return null;
       }
 
@@ -334,6 +338,33 @@
       const logoPath = local || tmdbLogo || logoDev;
 
       return { provider_name: cleanName, provider_id: p.provider_id, logoPath, logo_path: p.logo_path };
+    }
+
+    // What a saved scan keeps per provider. The icon URL (`logoPath`) is left out: it is
+    // worked out again from the name and `logo_path` wherever providers are drawn.
+    function slimProviderForStorage(p) {
+      const slim = { provider_name: p.provider_name, provider_id: p.provider_id };
+      if (p.logo_path) slim.logo_path = p.logo_path;
+      return slim;
+    }
+
+    // Trims a film's saved providers to the regions the app can show and to slim entries.
+    // Scans saved by older versions kept every TMDB region (about 60) with full icon URLs,
+    // which made a 500-film scan about 13 MB.
+    function slimAllProvidersForStorage(allProviders) {
+      if (!allProviders || typeof allProviders !== 'object') return allProviders;
+      const out = {};
+      for (const region of Object.keys(allProviders)) {
+        if (!REGION_META[region] || !allProviders[region]) continue;
+        const src = allProviders[region];
+        const dst = {};
+        if (src.link) dst.link = src.link;
+        for (const kind of ['flatrate', 'rent', 'buy']) {
+          if (Array.isArray(src[kind])) dst[kind] = src[kind].filter(p => p && p.provider_name).map(slimProviderForStorage);
+        }
+        out[region] = dst;
+      }
+      return out;
     }
 
     function getProviderPriority(p) {
@@ -487,7 +518,12 @@
       return KNOWN_DEEPLINKS[key] || null;
     }
     let scannedMovies = [];
-    let selectedServiceIds = new Set((JSON.parse(localStorage.getItem('ps_services') || '[]')).map(id => Number(id)).filter(id => !isNaN(id) && id > 0));
+    let selectedServiceIds = new Set();
+    try {
+      // Guarded: this runs while the page boots, and a corrupt saved value would otherwise stop every script after it.
+      const savedServiceIds = JSON.parse(localStorage.getItem('ps_services') || '[]');
+      if (Array.isArray(savedServiceIds)) selectedServiceIds = new Set(savedServiceIds.map(id => Number(id)).filter(id => !isNaN(id) && id > 0));
+    } catch (e) { console.warn('[Selected Services Read]', e); }
     let cachedSelectedProviders = [];
     try { cachedSelectedProviders = JSON.parse(localStorage.getItem('ps_selected_providers') || '[]'); } catch (e) { console.warn('[Selected Providers Cache Read]', e); cachedSelectedProviders = []; }
     let currentProviders = [];

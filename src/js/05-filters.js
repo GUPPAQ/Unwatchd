@@ -725,7 +725,8 @@
       }
     }
 
-    if (el.filterSearch) { el.filterSearch.addEventListener('input', (e) => { if (el.clearResultsBtn) el.clearResultsBtn.classList.toggle('hidden', e.target.value.trim().length === 0); currentPage = 1; applyFiltersAndRender(); }); }
+    // Debounced: filtering re-sorts the whole watchlist and rebuilds up to 96 poster cards, which is too much to do on every keystroke on a phone.
+    if (el.filterSearch) { el.filterSearch.addEventListener('input', (e) => { if (el.clearResultsBtn) el.clearResultsBtn.classList.toggle('hidden', e.target.value.trim().length === 0); currentPage = 1; debouncedApplyFilters(); }); }
     if (el.clearResultsBtn) { el.clearResultsBtn.addEventListener('click', () => { if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden'); currentPage = 1; applyFiltersAndRender(); if (el.filterSearch) el.filterSearch.focus(); }); }
     function updateSearchPlaceholders() {
       const isMobile = window.innerWidth < 640;
@@ -819,18 +820,30 @@
     const DB_VERSION = 1;
     const STORE_NAME = 'scans';
 
+    // One shared connection, opened on first use (this used to open a new one on every call
+    // and never close it). A failed open is not remembered, so the next call tries again.
+    let dbPromise = null;
     function openDB() {
-      return new Promise((resolve) => {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve) => {
         if (!window.indexedDB) return resolve(null);
-        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        let req;
+        try { req = indexedDB.open(DB_NAME, DB_VERSION); } catch (e) { return resolve(null); }
         req.onupgradeneeded = (e) => {
           const db = e.target.result;
           if (!db.objectStoreNames.contains(STORE_NAME)) {
             db.createObjectStore(STORE_NAME);
           }
         };
-        req.onsuccess = () => resolve(req.result);
+        req.onsuccess = () => {
+          const db = req.result;
+          db.onversionchange = () => { db.close(); dbPromise = null; };
+          db.onclose = () => { dbPromise = null; };
+          resolve(db);
+        };
         req.onerror = () => resolve(null);
-      });
+        req.onblocked = () => resolve(null);
+      }).then((db) => { if (!db) dbPromise = null; return db; });
+      return dbPromise;
     }
 

@@ -26,6 +26,15 @@ After changing anything in `src/` or Tailwind classes in `index.html`:
 
 Commit the regenerated `app.js` and `styles.css` together with the source change.
 
+## Scan data
+- Film matching (`findBestMediaMatch` in `src/js/11-search-matching.js`) follows rules measured
+  against real data; the comment above `findBestTmdbMatch` explains them. After changing it,
+  run `node scripts/match-accuracy.mjs` and compare with the numbers it printed before.
+- The saved scan lives in IndexedDB only (`saveScanToStorage`). Per film it keeps providers for
+  the regions in `REGION_META`, as slim entries (`slimProviderForStorage`).
+- `getCanonicalProvider(p, isRentBuy, region)`: pass the region the provider data belongs to
+  whenever it isn't the region being viewed (the scan stores all regions at once).
+
 ## Conventions
 - Only IMDb ratings are shown (fetched via Cinemeta, cached 14 days). TMDB vote averages
   are used internally for ranking only.
