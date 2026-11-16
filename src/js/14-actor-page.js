@@ -481,14 +481,14 @@
           // Update Role dropdown button label, icon, and popover state
           const roleLabelEl = document.getElementById('actorRoleLabel');
           const roleIcons = {
-            'Actor': '🎭',
-            'Director': '🎬',
-            'Writer': '✍️',
-            'Producer': '💼',
-            'Composer': '🎵'
+            'Actor': '',
+            'Director': '',
+            'Writer': '',
+            'Producer': '',
+            'Composer': ''
           };
           const activeRole = activeRoleHint || 'Actor';
-          const activeIcon = roleIcons[activeRole] || '🎬';
+          const activeIcon = roleIcons[activeRole] || '';
           if (roleLabelEl) {
             roleLabelEl.textContent = activeRole;
             const trigger = roleLabelEl.closest('.custom-filter-trigger');

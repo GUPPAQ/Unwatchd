@@ -35,6 +35,17 @@ Commit the regenerated `app.js` and `styles.css` together with the source change
 - `getCanonicalProvider(p, isRentBuy, region)`: pass the region the provider data belongs to
   whenever it isn't the region being viewed (the scan stores all regions at once).
 
+## Design rules
+New UI follows these, so screens added later still look like the same product. The
+"Shared style layer" block at the end of the `<style>` in `index.html` enforces most of them.
+- One accent colour: blue. (`indigo-*`/`purple-*` utilities are mapped to blue in `tailwind.config.cjs`.)
+- No emoji as icons. Use an inline SVG or nothing. Region flags and the VPN globe are the exception.
+- Buttons and links are sentence case ("Find what I can stream"), never all caps.
+- All-caps is only for small labels above content, 12px, letter-spacing 0.08em.
+- No text below 12px.
+- Corner radii: panels 24px, cards `rounded-2xl`, buttons and inputs `rounded-xl`.
+- Font: Outfit, served from `/fonts/`.
+
 ## Conventions
 - Only IMDb ratings are shown (fetched via Cinemeta, cached 14 days). TMDB vote averages
   are used internally for ranking only.

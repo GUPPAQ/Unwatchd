@@ -2123,10 +2123,7 @@
 
     .landing-title em {
       font-style: normal;
-      background: linear-gradient(100deg, #93c5fd 0%, #818cf8 60%, #c4b5fd 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      color: #60a5fa;
     }
 
     #resultsHeadline {
@@ -2243,7 +2240,7 @@
       gap: 0.5rem;
       font-size: 0.75rem;
       font-weight: 700;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: #bfdbfe;
     }
@@ -2434,6 +2431,52 @@
       .pick-hero-art img {
         transition: none;
       }
+    }
+
+    /* ── Shared style layer ─────────────────────────────────────────────────────
+       The app's markup grew piece by piece, each with its own sizes and casing. These
+       rules sit on top and make every screen follow the same few decisions.
+       (styles.css loads after this block, so selectors here are deliberately a notch
+       more specific than a single Tailwind utility class.) */
+
+    /* Type: nothing smaller than 12px. */
+    [class*="text-[9px]"][class]:not(.poster-rating-tag),
+    [class*="text-[10px]"][class],
+    [class*="text-[11px]"][class] {
+      font-size: 0.75rem;
+    }
+
+    /* Small all-caps labels all share one letter-spacing. */
+    .tracking-widest[class],
+    .tracking-wider[class] {
+      letter-spacing: 0.08em;
+    }
+
+    /* Anything you can press reads as a normal phrase, not SHOUTED COMMANDS. */
+    button.uppercase,
+    a.uppercase,
+    button .uppercase,
+    a .uppercase {
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    button.uppercase,
+    a.uppercase {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    /* Three corner radii: panels 24px, cards 16px (rounded-2xl), controls 12px (rounded-xl). */
+    .glass-panel[class],
+    .pick-hero {
+      border-radius: 24px;
+    }
+
+    /* Filter options used to lead with an emoji; the slot is hidden when empty. */
+    .custom-filter-item span.text-sm:empty,
+    .custom-filter-trigger span.text-sm:empty {
+      display: none;
     }
   </style>
   <link rel="stylesheet" href="./styles.css">
@@ -2831,25 +2874,25 @@
         class="hidden glass-panel rounded-2xl p-3 sm:p-4 mb-6 animate-fade text-xs font-bold uppercase tracking-widest text-gray-400">
         <div
           class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all">
-          <span class="text-base sm:text-lg">🎬</span>
+          <span class="text-base sm:text-lg"></span>
           <span class="text-gray-400">Total:</span>
           <span id="stat-total" class="text-white font-extrabold">0</span>
         </div>
         <div
           class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all min-w-0">
-          <span class="text-base sm:text-lg shrink-0">🍿</span>
+          <span class="text-base sm:text-lg shrink-0"></span>
           <span class="text-gray-400 shrink-0">Genre:</span>
           <span id="stat-genre" class="text-white font-extrabold truncate">-</span>
         </div>
         <div
           class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all">
-          <span class="text-base sm:text-lg">🕰</span>
+          <span class="text-base sm:text-lg"></span>
           <span class="text-gray-400">Decade:</span>
           <span id="stat-decade" class="text-white font-extrabold">-</span>
         </div>
         <div
           class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all">
-          <span class="text-base sm:text-lg">⭐</span>
+          <span class="text-base sm:text-lg"></span>
           <span class="text-gray-400">Rating:</span>
           <span id="stat-avg" class="text-white font-extrabold">-</span>
         </div>
@@ -3084,7 +3127,7 @@
 
       <!-- Empty State -->
       <div id="rouletteEmptyState" class="hidden flex-col items-center justify-center text-center p-6 gap-2">
-        <span class="text-3xl opacity-60 mb-1">🎲</span>
+        <span class="text-3xl opacity-60 mb-1"></span>
         <span class="font-bold uppercase tracking-widest text-sm text-gray-400">No movies available</span>
         <span class="text-xs text-gray-500 font-medium">Sync your Letterboxd watchlist to use Roulette.</span>
       </div>

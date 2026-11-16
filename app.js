@@ -1731,22 +1731,22 @@
     // Bespoke Glassmorphism Custom Filter Engine (Home & Actor)
     // -------------------------------------------------------------
     const GENRE_ICON_MAP = {
-      'Action': '💥', 'Adventure': '🗺️', 'Animation': '🎨', 'Comedy': '😂', 'Crime': '🕵️',
-      'Documentary': '📹', 'Drama': '🎭', 'Family': '👨‍👩‍👧‍👦', 'Fantasy': '🧙', 'History': '📜',
-      'Horror': '👻', 'Music': '🎵', 'Mystery': '🔍', 'Romance': '❤️', 'Science Fiction': '🚀',
-      'TV Movie': '📺', 'Thriller': '😱', 'War': '⚔️', 'Western': '🤠'
+      'Action': '', 'Adventure': '', 'Animation': '', 'Comedy': '', 'Crime': '',
+      'Documentary': '', 'Drama': '', 'Family': '', 'Fantasy': '', 'History': '',
+      'Horror': '', 'Music': '', 'Mystery': '', 'Romance': '', 'Science Fiction': '',
+      'TV Movie': '', 'Thriller': '', 'War': '', 'Western': ''
     };
 
     const DECADE_ICON_MAP = {
-      'all': '📅', '2020': '✨', '2010': '📼', '2000': '💿', '1990': '🕹️',
-      '1980': '📻', '1970': '🎞️', '1960': '📽️', '1950': '🎙️', 'older': '🕰️',
-      '2020s': '✨', '2010s': '📼', '2000s': '💿', '1990s': '🕹️', '1980s': '📻',
-      '1970s': '🎞️', '1960s': '📽️', '1950s': '🎙️'
+      'all': '', '2020': '', '2010': '', '2000': '', '1990': '',
+      '1980': '', '1970': '', '1960': '', '1950': '', 'older': '',
+      '2020s': '', '2010s': '', '2000s': '', '1990s': '', '1980s': '',
+      '1970s': '', '1960s': '', '1950s': ''
     };
 
     const SORT_ICON_MAP = {
-      'year_desc': '⏳', 'year_asc': '🕰️', 'popularity': '🔥',
-      'rating_desc': '⭐', 'az': '🔤', 'za': '🔤'
+      'year_desc': '', 'year_asc': '', 'popularity': '',
+      'rating_desc': '', 'az': '', 'za': ''
     };
 
     // Home Filter State
@@ -1968,12 +1968,12 @@
         const cur = isHome ? homeFilterSort : actorFilterSort;
         const defaultSort = isHome ? 'year_desc' : 'popularity';
         const options = [
-          { value: 'year_desc', label: 'Newest First', icon: '⏳' },
-          { value: 'year_asc', label: 'Oldest First', icon: '🕰️' },
-          { value: 'popularity', label: 'Popular', icon: '🔥' },
-          { value: 'rating_desc', label: 'Highest Rated', icon: '⭐' },
-          { value: 'az', label: 'A-Z', icon: '🔤' },
-          { value: 'za', label: 'Z-A', icon: '🔤' }
+          { value: 'year_desc', label: 'Newest First', icon: '' },
+          { value: 'year_asc', label: 'Oldest First', icon: '' },
+          { value: 'popularity', label: 'Popular', icon: '' },
+          { value: 'rating_desc', label: 'Highest Rated', icon: '' },
+          { value: 'az', label: 'A-Z', icon: '' },
+          { value: 'za', label: 'Z-A', icon: '' }
         ];
         const selected = options.find(o => o.value === cur) || options.find(o => o.value === defaultSort) || options[0];
         const isCustom = cur !== defaultSort;
@@ -2011,7 +2011,7 @@
         const isCustom = !isAll;
 
         const provList = [];
-        provList.push({ id: 'all', name: isHome ? 'All My Services' : 'All Services', icon: '🍿' });
+        provList.push({ id: 'all', name: isHome ? 'All My Services' : 'All Services', icon: '' });
         if (vpnModeEnabled) {
           provList.push({ id: 'vpn', name: 'VPN Available 🌐', icon: '🌐' });
         }
@@ -2043,7 +2043,7 @@
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">🍿</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -2056,8 +2056,8 @@
               ${provList.map(p => {
           const isSelected = p.id === 'all' ? isAll : curSet.has(p.id);
           const logoHtml = p.logo
-            ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'>📺</span>'" />`
-            : `<span class="text-sm shrink-0">${p.icon || '📺'}</span>`;
+            ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'></span>'" />`
+            : `<span class="text-sm shrink-0">${p.icon || ''}</span>`;
           return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'provider', '${escapeHTML(p.id)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
@@ -2105,7 +2105,7 @@
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">🎭</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -2117,7 +2117,7 @@
               </div>
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">🎭</span>
+                  <span class="text-sm shrink-0"></span>
                   <span class="truncate">All Genres</span>
                 </div>
                 <div class="custom-filter-checkbox">
@@ -2126,7 +2126,7 @@
               </button>
               ${genreNames.map(g => {
           const isSelected = !isAll && curSet.has(g);
-          const icon = GENRE_ICON_MAP[g] || '🎬';
+          const icon = GENRE_ICON_MAP[g] || '';
           return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', '${escapeHTML(g)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
@@ -2150,15 +2150,15 @@
         const isCustom = !isAll;
 
         const decadeOptions = [
-          { value: '2020', label: '2020s', icon: '✨' },
-          { value: '2010', label: '2010s', icon: '📼' },
-          { value: '2000', label: '2000s', icon: '💿' },
-          { value: '1990', label: '1990s', icon: '🕹️' },
-          { value: '1980', label: '1980s', icon: '📻' },
-          { value: '1970', label: '1970s', icon: '🎞️' },
-          { value: '1960', label: '1960s', icon: '📽️' },
-          { value: '1950', label: '1950s', icon: '🎙️' },
-          { value: 'older', label: 'Older (< 1950)', icon: '🕰️' }
+          { value: '2020', label: '2020s', icon: '' },
+          { value: '2010', label: '2010s', icon: '' },
+          { value: '2000', label: '2000s', icon: '' },
+          { value: '1990', label: '1990s', icon: '' },
+          { value: '1980', label: '1980s', icon: '' },
+          { value: '1970', label: '1970s', icon: '' },
+          { value: '1960', label: '1960s', icon: '' },
+          { value: '1950', label: '1950s', icon: '' },
+          { value: 'older', label: 'Older (< 1950)', icon: '' }
         ];
 
         let previewText = 'All Decades';
@@ -2174,7 +2174,7 @@
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">📅</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -2186,7 +2186,7 @@
               </div>
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'decade', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">📅</span>
+                  <span class="text-sm shrink-0"></span>
                   <span class="truncate">All Decades</span>
                 </div>
                 <div class="custom-filter-checkbox">
@@ -2216,12 +2216,12 @@
         const cur = isHome ? homeFilterRating : actorFilterRating;
         const isCustom = cur && cur !== 'all';
         const ratingOptions = [
-          { value: 'all', label: 'Any Rating', icon: '🌟' },
-          { value: '6', label: 'IMDb 6.0+', icon: '⭐' },
-          { value: '7', label: 'IMDb 7.0+', icon: '⭐' },
-          { value: '8', label: 'IMDb 8.0+', icon: '⭐' },
-          { value: '8.5', label: 'IMDb 8.5+', icon: '⭐' },
-          { value: '9', label: 'IMDb 9.0+', icon: '🏆' }
+          { value: 'all', label: 'Any Rating', icon: '' },
+          { value: '6', label: 'IMDb 6.0+', icon: '' },
+          { value: '7', label: 'IMDb 7.0+', icon: '' },
+          { value: '8', label: 'IMDb 8.0+', icon: '' },
+          { value: '8.5', label: 'IMDb 8.5+', icon: '' },
+          { value: '9', label: 'IMDb 9.0+', icon: '' }
         ];
         const selected = ratingOptions.find(r => r.value === cur) || ratingOptions[0];
 
@@ -2256,10 +2256,10 @@
         const cur = isHome ? homeFilterRuntime : actorFilterRuntime;
         const isCustom = cur && cur !== 'all';
         const runtimeOptions = [
-          { value: 'all', label: 'Any Length', icon: '⏱️' },
-          { value: 'short', label: 'Short (< 90 min)', icon: '⚡' },
-          { value: 'medium', label: 'Medium (90 - 120 min)', icon: '⏳' },
-          { value: 'long', label: 'Long (> 120 min)', icon: '🎬' }
+          { value: 'all', label: 'Any Length', icon: '' },
+          { value: 'short', label: 'Short (< 90 min)', icon: '' },
+          { value: 'medium', label: 'Medium (90 - 120 min)', icon: '' },
+          { value: 'long', label: 'Long (> 120 min)', icon: '' }
         ];
         const selected = runtimeOptions.find(r => r.value === cur) || runtimeOptions[0];
 
@@ -4639,7 +4639,7 @@
       if (!hasAny) {
         const fallbackMsg = (data && data.rentBuyCount > 0) ? 'Only available to rent or buy' : 'Not available to stream';
         html = `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1">📺</span>
+          <span class="text-3xl opacity-60 mb-1"></span>
           <span class="font-bold uppercase tracking-widest text-sm text-gray-400">${fallbackMsg}</span>
           <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No streaming options found in this region.</span>
         </div>`;
@@ -4675,7 +4675,7 @@
       const html = data.rentBuyCount > 0
         ? `<div class="space-y-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.rbLinksHtml}</div>${(data.hasVpnLinks || data.rbLinksHtml?.includes('via VPN*')) ? `<p class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center pt-2">*Some streaming services may detect or restrict VPN connections</p>` : ''}</div>`
         : `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1">🛒</span>
+          <span class="text-3xl opacity-60 mb-1"></span>
           <span class="font-bold uppercase tracking-widest text-sm text-gray-400">Not available to rent or buy</span>
           <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No digital purchase or rental options found in this region.</span>
         </div>`;
@@ -4706,28 +4706,28 @@
       const statsHtml = `
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <div class="insight-stat-card">
-            <span class="stat-icon">🎬</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Total Films</span>
               <span class="stat-value">${escapeHTML(total)}</span>
             </div>
           </div>
           <div class="insight-stat-card">
-            <span class="stat-icon">🍿</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Top Genre</span>
               <span class="stat-value">${escapeHTML(genre)}</span>
             </div>
           </div>
           <div class="insight-stat-card">
-            <span class="stat-icon">🕰</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Top Decade</span>
               <span class="stat-value">${escapeHTML(decade)}</span>
             </div>
           </div>
           <div class="insight-stat-card">
-            <span class="stat-icon">⭐</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Avg Rating</span>
               <span class="stat-value">${escapeHTML(avg)}</span>
@@ -5815,9 +5815,7 @@
         if (!modalWrapper) return;
         modalWrapper.innerHTML = `
           <div class="w-full h-full flex flex-col items-center justify-center bg-black/90 p-6 text-center rounded-2xl gap-3">
-            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl">
-              🎬
-            </div>
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl"><svg class="w-6 h-6 text-red-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></div>
             <div class="flex flex-col gap-1">
               <span class="text-white font-extrabold text-sm sm:text-base">Trailer can't play here</span>
               <span class="text-gray-400 text-xs sm:text-sm max-w-sm">YouTube didn't load, or the uploader doesn't allow this video to play outside YouTube.</span>
@@ -6120,7 +6118,7 @@
       }
 
       if (list.length === 0) {
-        const emptyIcon = query ? '🔍' : '👥';
+        const emptyIcon = query ? '' : '';
         const emptyMsg = query ? 'No people match your search' : 'No cast or crew found';
         const emptySub = query ? 'Try searching for a different name or department.' : 'Nothing listed for this selection.';
         grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
@@ -6561,10 +6559,10 @@
     }
     function renderActiveGrid() {
       const container = el.activeGridContainer; if (!container) return; container.innerHTML = ''; const currentData = currentGroupedResults[activeTab] || [];
-      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const count = serviceTally[topService]; const countText = count === 1 ? '1 film' : `${count} films`; const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${countText}</strong> from your watchlist.</p></div><div class="text-3xl opacity-80">💡</div>`; container.appendChild(banner); } }
+      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const count = serviceTally[topService]; const countText = count === 1 ? '1 film' : `${count} films`; const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${countText}</strong> from your watchlist.</p></div><div class="text-3xl opacity-80"></div>`; container.appendChild(banner); } }
       if (currentData.length === 0) {
         const hasActiveFilter = (el.filterSearch && el.filterSearch.value.trim() !== '') || (el.filterGenre && el.filterGenre.value !== 'all') || (el.filterDecade && el.filterDecade.value !== 'all');
-        const emptyIcon = hasActiveFilter ? '🔍' : '🎬';
+        const emptyIcon = hasActiveFilter ? '' : '';
         const emptyMsg = hasActiveFilter ? 'No titles match your filters' : 'No films in this category';
         const emptySub = hasActiveFilter ? 'Try a different search, genre, or decade.' : 'Nothing landed here for your current selection.';
         container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[300px] text-gray-500 gap-2"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
@@ -6577,7 +6575,7 @@
     if (el.quickSearchInput) {
       el.quickSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => {
-          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60">🔍</span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
+          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60"></span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
             el.searchDropdown.innerHTML = '';
             results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 15).forEach(item => {
               const isPerson = item.__mediaType === 'person';
@@ -8023,7 +8021,7 @@
       let filmographyHtml = '';
       if (moviesToShow.length === 0) {
         const isFiltered = actorFilterQuery || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (actorFilterRating && actorFilterRating !== 'all') || (actorFilterRuntime && actorFilterRuntime !== 'all');
-        let emptyIcon = isFiltered ? '🔍' : (actorMediaTypeFilter === 'watchlist' ? '📋' : (actorMediaTypeFilter === 'tv' ? '📺' : '🎬'));
+        let emptyIcon = isFiltered ? '' : (actorMediaTypeFilter === 'watchlist' ? '' : (actorMediaTypeFilter === 'tv' ? '' : ''));
         let emptyMsg = 'No credits found';
         let emptySub = 'Nothing landed here for your current selection.';
         if (isFiltered) {
@@ -8139,13 +8137,13 @@
         </div>`;
 
       const roleIcons = {
-        'Actor': '🎭',
-        'Director': '🎬',
-        'Writer': '✍️',
-        'Producer': '💼',
-        'Composer': '🎵'
+        'Actor': '',
+        'Director': '',
+        'Writer': '',
+        'Producer': '',
+        'Composer': ''
       };
-      const activeRoleIcon = roleIcons[activeRole] || '🎭';
+      const activeRoleIcon = roleIcons[activeRole] || '';
 
       const roleSelectWrapper = availableRoles.length > 1 ? `
         <div class="custom-filter-dropdown-container shrink-0 min-w-[130px] sm:min-w-[145px] max-w-[185px]">
@@ -8160,7 +8158,7 @@
             ${availableRoles.map(r => `
               <button type="button" onclick="selectActorRole('${r}', event)" class="custom-filter-item ${r === activeRole ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">${roleIcons[r] || '🎬'}</span>
+                  <span class="text-sm shrink-0">${roleIcons[r] || ''}</span>
                   <span class="truncate font-bold text-xs uppercase tracking-wider">${r}</span>
                 </div>
                 <div class="custom-filter-radio">
@@ -9193,14 +9191,14 @@
           // Update Role dropdown button label, icon, and popover state
           const roleLabelEl = document.getElementById('actorRoleLabel');
           const roleIcons = {
-            'Actor': '🎭',
-            'Director': '🎬',
-            'Writer': '✍️',
-            'Producer': '💼',
-            'Composer': '🎵'
+            'Actor': '',
+            'Director': '',
+            'Writer': '',
+            'Producer': '',
+            'Composer': ''
           };
           const activeRole = activeRoleHint || 'Actor';
-          const activeIcon = roleIcons[activeRole] || '🎬';
+          const activeIcon = roleIcons[activeRole] || '';
           if (roleLabelEl) {
             roleLabelEl.textContent = activeRole;
             const trigger = roleLabelEl.closest('.custom-filter-trigger');

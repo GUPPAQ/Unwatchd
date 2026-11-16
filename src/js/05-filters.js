@@ -2,22 +2,22 @@
     // Bespoke Glassmorphism Custom Filter Engine (Home & Actor)
     // -------------------------------------------------------------
     const GENRE_ICON_MAP = {
-      'Action': '💥', 'Adventure': '🗺️', 'Animation': '🎨', 'Comedy': '😂', 'Crime': '🕵️',
-      'Documentary': '📹', 'Drama': '🎭', 'Family': '👨‍👩‍👧‍👦', 'Fantasy': '🧙', 'History': '📜',
-      'Horror': '👻', 'Music': '🎵', 'Mystery': '🔍', 'Romance': '❤️', 'Science Fiction': '🚀',
-      'TV Movie': '📺', 'Thriller': '😱', 'War': '⚔️', 'Western': '🤠'
+      'Action': '', 'Adventure': '', 'Animation': '', 'Comedy': '', 'Crime': '',
+      'Documentary': '', 'Drama': '', 'Family': '', 'Fantasy': '', 'History': '',
+      'Horror': '', 'Music': '', 'Mystery': '', 'Romance': '', 'Science Fiction': '',
+      'TV Movie': '', 'Thriller': '', 'War': '', 'Western': ''
     };
 
     const DECADE_ICON_MAP = {
-      'all': '📅', '2020': '✨', '2010': '📼', '2000': '💿', '1990': '🕹️',
-      '1980': '📻', '1970': '🎞️', '1960': '📽️', '1950': '🎙️', 'older': '🕰️',
-      '2020s': '✨', '2010s': '📼', '2000s': '💿', '1990s': '🕹️', '1980s': '📻',
-      '1970s': '🎞️', '1960s': '📽️', '1950s': '🎙️'
+      'all': '', '2020': '', '2010': '', '2000': '', '1990': '',
+      '1980': '', '1970': '', '1960': '', '1950': '', 'older': '',
+      '2020s': '', '2010s': '', '2000s': '', '1990s': '', '1980s': '',
+      '1970s': '', '1960s': '', '1950s': ''
     };
 
     const SORT_ICON_MAP = {
-      'year_desc': '⏳', 'year_asc': '🕰️', 'popularity': '🔥',
-      'rating_desc': '⭐', 'az': '🔤', 'za': '🔤'
+      'year_desc': '', 'year_asc': '', 'popularity': '',
+      'rating_desc': '', 'az': '', 'za': ''
     };
 
     // Home Filter State
@@ -239,12 +239,12 @@
         const cur = isHome ? homeFilterSort : actorFilterSort;
         const defaultSort = isHome ? 'year_desc' : 'popularity';
         const options = [
-          { value: 'year_desc', label: 'Newest First', icon: '⏳' },
-          { value: 'year_asc', label: 'Oldest First', icon: '🕰️' },
-          { value: 'popularity', label: 'Popular', icon: '🔥' },
-          { value: 'rating_desc', label: 'Highest Rated', icon: '⭐' },
-          { value: 'az', label: 'A-Z', icon: '🔤' },
-          { value: 'za', label: 'Z-A', icon: '🔤' }
+          { value: 'year_desc', label: 'Newest First', icon: '' },
+          { value: 'year_asc', label: 'Oldest First', icon: '' },
+          { value: 'popularity', label: 'Popular', icon: '' },
+          { value: 'rating_desc', label: 'Highest Rated', icon: '' },
+          { value: 'az', label: 'A-Z', icon: '' },
+          { value: 'za', label: 'Z-A', icon: '' }
         ];
         const selected = options.find(o => o.value === cur) || options.find(o => o.value === defaultSort) || options[0];
         const isCustom = cur !== defaultSort;
@@ -282,7 +282,7 @@
         const isCustom = !isAll;
 
         const provList = [];
-        provList.push({ id: 'all', name: isHome ? 'All My Services' : 'All Services', icon: '🍿' });
+        provList.push({ id: 'all', name: isHome ? 'All My Services' : 'All Services', icon: '' });
         if (vpnModeEnabled) {
           provList.push({ id: 'vpn', name: 'VPN Available 🌐', icon: '🌐' });
         }
@@ -314,7 +314,7 @@
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">🍿</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -327,8 +327,8 @@
               ${provList.map(p => {
           const isSelected = p.id === 'all' ? isAll : curSet.has(p.id);
           const logoHtml = p.logo
-            ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'>📺</span>'" />`
-            : `<span class="text-sm shrink-0">${p.icon || '📺'}</span>`;
+            ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'></span>'" />`
+            : `<span class="text-sm shrink-0">${p.icon || ''}</span>`;
           return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'provider', '${escapeHTML(p.id)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
@@ -376,7 +376,7 @@
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">🎭</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -388,7 +388,7 @@
               </div>
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">🎭</span>
+                  <span class="text-sm shrink-0"></span>
                   <span class="truncate">All Genres</span>
                 </div>
                 <div class="custom-filter-checkbox">
@@ -397,7 +397,7 @@
               </button>
               ${genreNames.map(g => {
           const isSelected = !isAll && curSet.has(g);
-          const icon = GENRE_ICON_MAP[g] || '🎬';
+          const icon = GENRE_ICON_MAP[g] || '';
           return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', '${escapeHTML(g)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
@@ -421,15 +421,15 @@
         const isCustom = !isAll;
 
         const decadeOptions = [
-          { value: '2020', label: '2020s', icon: '✨' },
-          { value: '2010', label: '2010s', icon: '📼' },
-          { value: '2000', label: '2000s', icon: '💿' },
-          { value: '1990', label: '1990s', icon: '🕹️' },
-          { value: '1980', label: '1980s', icon: '📻' },
-          { value: '1970', label: '1970s', icon: '🎞️' },
-          { value: '1960', label: '1960s', icon: '📽️' },
-          { value: '1950', label: '1950s', icon: '🎙️' },
-          { value: 'older', label: 'Older (< 1950)', icon: '🕰️' }
+          { value: '2020', label: '2020s', icon: '' },
+          { value: '2010', label: '2010s', icon: '' },
+          { value: '2000', label: '2000s', icon: '' },
+          { value: '1990', label: '1990s', icon: '' },
+          { value: '1980', label: '1980s', icon: '' },
+          { value: '1970', label: '1970s', icon: '' },
+          { value: '1960', label: '1960s', icon: '' },
+          { value: '1950', label: '1950s', icon: '' },
+          { value: 'older', label: 'Older (< 1950)', icon: '' }
         ];
 
         let previewText = 'All Decades';
@@ -445,7 +445,7 @@
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">📅</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -457,7 +457,7 @@
               </div>
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'decade', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">📅</span>
+                  <span class="text-sm shrink-0"></span>
                   <span class="truncate">All Decades</span>
                 </div>
                 <div class="custom-filter-checkbox">
@@ -487,12 +487,12 @@
         const cur = isHome ? homeFilterRating : actorFilterRating;
         const isCustom = cur && cur !== 'all';
         const ratingOptions = [
-          { value: 'all', label: 'Any Rating', icon: '🌟' },
-          { value: '6', label: 'IMDb 6.0+', icon: '⭐' },
-          { value: '7', label: 'IMDb 7.0+', icon: '⭐' },
-          { value: '8', label: 'IMDb 8.0+', icon: '⭐' },
-          { value: '8.5', label: 'IMDb 8.5+', icon: '⭐' },
-          { value: '9', label: 'IMDb 9.0+', icon: '🏆' }
+          { value: 'all', label: 'Any Rating', icon: '' },
+          { value: '6', label: 'IMDb 6.0+', icon: '' },
+          { value: '7', label: 'IMDb 7.0+', icon: '' },
+          { value: '8', label: 'IMDb 8.0+', icon: '' },
+          { value: '8.5', label: 'IMDb 8.5+', icon: '' },
+          { value: '9', label: 'IMDb 9.0+', icon: '' }
         ];
         const selected = ratingOptions.find(r => r.value === cur) || ratingOptions[0];
 
@@ -527,10 +527,10 @@
         const cur = isHome ? homeFilterRuntime : actorFilterRuntime;
         const isCustom = cur && cur !== 'all';
         const runtimeOptions = [
-          { value: 'all', label: 'Any Length', icon: '⏱️' },
-          { value: 'short', label: 'Short (< 90 min)', icon: '⚡' },
-          { value: 'medium', label: 'Medium (90 - 120 min)', icon: '⏳' },
-          { value: 'long', label: 'Long (> 120 min)', icon: '🎬' }
+          { value: 'all', label: 'Any Length', icon: '' },
+          { value: 'short', label: 'Short (< 90 min)', icon: '' },
+          { value: 'medium', label: 'Medium (90 - 120 min)', icon: '' },
+          { value: 'long', label: 'Long (> 120 min)', icon: '' }
         ];
         const selected = runtimeOptions.find(r => r.value === cur) || runtimeOptions[0];
 

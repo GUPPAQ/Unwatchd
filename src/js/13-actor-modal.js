@@ -337,7 +337,7 @@
       let filmographyHtml = '';
       if (moviesToShow.length === 0) {
         const isFiltered = actorFilterQuery || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (actorFilterRating && actorFilterRating !== 'all') || (actorFilterRuntime && actorFilterRuntime !== 'all');
-        let emptyIcon = isFiltered ? '🔍' : (actorMediaTypeFilter === 'watchlist' ? '📋' : (actorMediaTypeFilter === 'tv' ? '📺' : '🎬'));
+        let emptyIcon = isFiltered ? '' : (actorMediaTypeFilter === 'watchlist' ? '' : (actorMediaTypeFilter === 'tv' ? '' : ''));
         let emptyMsg = 'No credits found';
         let emptySub = 'Nothing landed here for your current selection.';
         if (isFiltered) {
@@ -453,13 +453,13 @@
         </div>`;
 
       const roleIcons = {
-        'Actor': '🎭',
-        'Director': '🎬',
-        'Writer': '✍️',
-        'Producer': '💼',
-        'Composer': '🎵'
+        'Actor': '',
+        'Director': '',
+        'Writer': '',
+        'Producer': '',
+        'Composer': ''
       };
-      const activeRoleIcon = roleIcons[activeRole] || '🎭';
+      const activeRoleIcon = roleIcons[activeRole] || '';
 
       const roleSelectWrapper = availableRoles.length > 1 ? `
         <div class="custom-filter-dropdown-container shrink-0 min-w-[130px] sm:min-w-[145px] max-w-[185px]">
@@ -474,7 +474,7 @@
             ${availableRoles.map(r => `
               <button type="button" onclick="selectActorRole('${r}', event)" class="custom-filter-item ${r === activeRole ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">${roleIcons[r] || '🎬'}</span>
+                  <span class="text-sm shrink-0">${roleIcons[r] || ''}</span>
                   <span class="truncate font-bold text-xs uppercase tracking-wider">${r}</span>
                 </div>
                 <div class="custom-filter-radio">

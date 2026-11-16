@@ -157,7 +157,7 @@
       if (!hasAny) {
         const fallbackMsg = (data && data.rentBuyCount > 0) ? 'Only available to rent or buy' : 'Not available to stream';
         html = `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1">📺</span>
+          <span class="text-3xl opacity-60 mb-1"></span>
           <span class="font-bold uppercase tracking-widest text-sm text-gray-400">${fallbackMsg}</span>
           <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No streaming options found in this region.</span>
         </div>`;
@@ -193,7 +193,7 @@
       const html = data.rentBuyCount > 0
         ? `<div class="space-y-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.rbLinksHtml}</div>${(data.hasVpnLinks || data.rbLinksHtml?.includes('via VPN*')) ? `<p class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center pt-2">*Some streaming services may detect or restrict VPN connections</p>` : ''}</div>`
         : `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1">🛒</span>
+          <span class="text-3xl opacity-60 mb-1"></span>
           <span class="font-bold uppercase tracking-widest text-sm text-gray-400">Not available to rent or buy</span>
           <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No digital purchase or rental options found in this region.</span>
         </div>`;
@@ -224,28 +224,28 @@
       const statsHtml = `
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <div class="insight-stat-card">
-            <span class="stat-icon">🎬</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Total Films</span>
               <span class="stat-value">${escapeHTML(total)}</span>
             </div>
           </div>
           <div class="insight-stat-card">
-            <span class="stat-icon">🍿</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Top Genre</span>
               <span class="stat-value">${escapeHTML(genre)}</span>
             </div>
           </div>
           <div class="insight-stat-card">
-            <span class="stat-icon">🕰</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Top Decade</span>
               <span class="stat-value">${escapeHTML(decade)}</span>
             </div>
           </div>
           <div class="insight-stat-card">
-            <span class="stat-icon">⭐</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Avg Rating</span>
               <span class="stat-value">${escapeHTML(avg)}</span>
