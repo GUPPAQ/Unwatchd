@@ -408,10 +408,25 @@
 
     let heroRevealTimeout = null;
     let heroVideoFailed = false;
+    // The trailer replaces the backdrop only once YouTube reports it actually playing. Revealing
+    // on the timer alone covered the backdrop with a black, spinning player whenever autoplay was
+    // blocked (power saving, data saver, some browsers) or the video was slow.
+    let heroVideoPlaying = false;
+    let heroRevealDue = false;
+    let heroRevealed = false;
+    function tryRevealHeroVideo() {
+      const iframeEl = document.getElementById('heroVideoIframe');
+      if (!heroRevealDue || !heroVideoPlaying || heroRevealed || heroVideoFailed || !iframeEl) return;
+      heroRevealed = true;
+      revealHeroVideo(iframeEl);
+    }
 
     window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
       heroVideoFailed = false;
+      heroVideoPlaying = false;
+      heroRevealDue = false;
+      heroRevealed = false;
       fitHeroVideoCover(iframeEl);
       setTimeout(() => fitHeroVideoCover(iframeEl), 600);
       try {
@@ -423,9 +438,8 @@
       if (heroRevealTimeout) clearTimeout(heroRevealTimeout);
       // Wait the full 6.6s delay before revealing the video (as long as no error occurred)
       heroRevealTimeout = setTimeout(() => {
-        if (!heroVideoFailed) {
-          revealHeroVideo(iframeEl);
-        }
+        heroRevealDue = true;
+        tryRevealHeroVideo();
       }, 6600);
     };
 
@@ -485,6 +499,8 @@
         const state = data.event === 'onStateChange' ? data.info : data.info.playerState;
         if (state === 1) {
           isTrailerPaused = false;
+          heroVideoPlaying = true;
+          tryRevealHeroVideo();
         } else if (state === 2 || state === 0) {
           isTrailerPaused = true;
         }

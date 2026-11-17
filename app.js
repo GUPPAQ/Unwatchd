@@ -1839,10 +1839,10 @@
         const cur = isHome ? homeFilterSort : actorFilterSort;
         const defaultSort = isHome ? 'year_desc' : 'popularity';
         const options = [
-          { value: 'year_desc', label: 'Newest First', icon: '' },
-          { value: 'year_asc', label: 'Oldest First', icon: '' },
+          { value: 'year_desc', label: 'Newest first', icon: '' },
+          { value: 'year_asc', label: 'Oldest first', icon: '' },
           { value: 'popularity', label: 'Popular', icon: '' },
-          { value: 'rating_desc', label: 'Highest Rated', icon: '' },
+          { value: 'rating_desc', label: 'Highest rated', icon: '' },
           { value: 'az', label: 'A-Z', icon: '' },
           { value: 'za', label: 'Z-A', icon: '' }
         ];
@@ -1850,7 +1850,7 @@
         const isCustom = cur !== defaultSort;
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort By</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort by</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -1882,7 +1882,7 @@
         const isCustom = !isAll;
 
         const provList = [];
-        provList.push({ id: 'all', name: isHome ? 'All My Services' : 'All Services', icon: '' });
+        provList.push({ id: 'all', name: isHome ? 'All my services' : 'All services', icon: '' });
         if (vpnModeEnabled) {
           provList.push({ id: 'vpn', name: 'VPN Available 🌐', icon: '🌐' });
         }
@@ -1901,7 +1901,7 @@
           otherAvail.forEach(cp => provList.push({ id: cp.name, name: cp.name, logo: getProviderLogoUrl(cp.name) }));
         }
 
-        let previewText = isHome ? 'All My Services' : 'All Services';
+        let previewText = isHome ? 'All my services' : 'All services';
         if (!isAll) {
           const arr = Array.from(curSet).map(id => id === 'vpn' ? 'VPN Available' : id);
           if (arr.length === 1) previewText = arr[0];
@@ -1910,7 +1910,7 @@
         }
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming Platform</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming service</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -1921,7 +1921,7 @@
             </button>
             <div id="${popoverId}" class="custom-filter-popover hidden space-y-1">
               <div class="flex items-center justify-between px-2 py-1.5 border-b border-white/10 mb-1 text-[10px] font-extrabold uppercase tracking-wider text-gray-400">
-                <span>Streaming Services</span>
+                <span>Streaming services</span>
                 <button type="button" onclick="onCustomFilterBulk('${scope}', 'provider', 'clear', event)" class="text-blue-400 hover:text-blue-300 font-bold">Reset</button>
               </div>
               ${provList.map(p => {
@@ -1963,7 +1963,7 @@
           genreNames = (window.currentActorAvailableGenres && window.currentActorAvailableGenres.length > 0) ? window.currentActorAvailableGenres : Object.values(GENRE_MAP).filter((v, i, a) => a.indexOf(v) === i).sort();
         }
 
-        let previewText = 'All Genres';
+        let previewText = 'All genres';
         if (!isAll) {
           const arr = Array.from(curSet);
           if (arr.length === 1) previewText = arr[0];
@@ -1989,7 +1989,7 @@
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
                   <span class="text-sm shrink-0"></span>
-                  <span class="truncate">All Genres</span>
+                  <span class="truncate">All genres</span>
                 </div>
                 <div class="custom-filter-checkbox">
                   ${isAll ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
@@ -2032,7 +2032,7 @@
           { value: 'older', label: 'Older (< 1950)', icon: '' }
         ];
 
-        let previewText = 'All Decades';
+        let previewText = 'All decades';
         if (!isAll) {
           const arr = Array.from(curSet).map(d => d === 'older' ? 'Older' : `${d}s`);
           if (arr.length === 1) previewText = arr[0];
@@ -2041,7 +2041,7 @@
         }
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release Period</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release period</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -2058,7 +2058,7 @@
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'decade', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
                   <span class="text-sm shrink-0"></span>
-                  <span class="truncate">All Decades</span>
+                  <span class="truncate">All decades</span>
                 </div>
                 <div class="custom-filter-checkbox">
                   ${isAll ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
@@ -2087,7 +2087,7 @@
         const cur = isHome ? homeFilterRating : actorFilterRating;
         const isCustom = cur && cur !== 'all';
         const ratingOptions = [
-          { value: 'all', label: 'Any Rating', icon: '' },
+          { value: 'all', label: 'Any rating', icon: '' },
           { value: '6', label: 'IMDb 6.0+', icon: '' },
           { value: '7', label: 'IMDb 7.0+', icon: '' },
           { value: '8', label: 'IMDb 8.0+', icon: '' },
@@ -2097,7 +2097,7 @@
         const selected = ratingOptions.find(r => r.value === cur) || ratingOptions[0];
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum IMDb Rating</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum IMDb rating</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -2127,7 +2127,7 @@
         const cur = isHome ? homeFilterRuntime : actorFilterRuntime;
         const isCustom = cur && cur !== 'all';
         const runtimeOptions = [
-          { value: 'all', label: 'Any Length', icon: '' },
+          { value: 'all', label: 'Any length', icon: '' },
           { value: 'short', label: 'Short (< 90 min)', icon: '' },
           { value: 'medium', label: 'Medium (90 - 120 min)', icon: '' },
           { value: 'long', label: 'Long (> 120 min)', icon: '' }
@@ -2135,7 +2135,7 @@
         const selected = runtimeOptions.find(r => r.value === cur) || runtimeOptions[0];
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film Length</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film length</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -4071,7 +4071,7 @@
 
         chips += seeAllChip;
 
-        castCrewHtml = `<div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Cast &amp; Crew</h3></div><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-1, event)" aria-label="Scroll cast left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(1, event)" aria-label="Scroll cast right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button><div id="castCrewTrack" class="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-0 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${chips}</div></div></div>`;
+        castCrewHtml = `<div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Cast and crew</h3></div><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-1, event)" aria-label="Scroll cast left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(1, event)" aria-label="Scroll cast right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button><div id="castCrewTrack" class="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-0 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${chips}</div></div></div>`;
       }
       const bestTrailer = getBestTrailer(details);
       const isMobileDevice = isMobile || (typeof window !== 'undefined' && window.innerWidth < 640);
@@ -4081,7 +4081,7 @@
       const socialBtnClass = `${actionBtnClass} grayscale hover:grayscale-0`;
       const trailerBtnClass = "flex items-center justify-center gap-2 sm:gap-2.5 liquid-glass px-4 py-2.5 sm:px-5 sm:py-3.5 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-white w-full sm:w-auto sm:min-w-[150px] whitespace-nowrap shadow-md cursor-pointer active:scale-95";
       
-      const watchNowHeaderHtml = `<div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div>`;
+      const watchNowHeaderHtml = `<div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch now</h3></div>`;
 
       const hasMovieHistory = isModal ? watchlistModalHistoryStack.length > 0 : quickSearchHistoryStack.length > 0;
       const movieBackBtn = hasMovieHistory ? `<button id="movieBackBtn" type="button" onclick="navGoBack()" aria-label="Go back" class="pointer-events-auto mt-[max(1rem,calc(env(safe-area-inset-top,0px)+0.5rem))] ml-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
@@ -4245,7 +4245,7 @@
         const similarScrollBtns = hasSimilarScroll
           ? `<button id="similarPrevBtn" type="button" onclick="scrollSimilarTrack(-1, event)" aria-label="Scroll similar films left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/similar:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="similarNextBtn" type="button" onclick="scrollSimilarTrack(1, event)" aria-label="Scroll similar films right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/similar:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button>`
           : '';
-        similarHtml = `<div class="space-y-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">More Like This</h3><div class="relative group/similar">${similarScrollBtns}<div id="similarMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${recCards}</div></div></div>`;
+        similarHtml = `<div class="space-y-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">More like this</h3><div class="relative group/similar">${similarScrollBtns}<div id="similarMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${recCards}</div></div></div>`;
       }
 
       const initialMuteParam = isHeroVideoMuted ? 1 : 0;
@@ -4339,7 +4339,7 @@
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
       const modalMobilePoster = getTextlessPosterUrl(details, movieObj.poster);
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0a0a0b] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] bg-gradient-to-t from-[#0a0a0b] from-0% via-[#0a0a0b] via-15% via-[#0a0a0b]/80 via-40% via-[#0a0a0b]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-7 sm:gap-9 bg-[#0a0a0b] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-white font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div>${overviewHtml}</div><div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div><div id="modalWatchOptionsBox" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5">${renderMovieWatchOptionsBox(movieObj, details, false, true)}</div></div>${castCrewHtml}${relatedHtml}${similarHtml}</div><div class="bg-[#0a0a0b] p-5 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div><p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p></div></div>`;
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0a0a0b] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] bg-gradient-to-t from-[#0a0a0b] from-0% via-[#0a0a0b] via-15% via-[#0a0a0b]/80 via-40% via-[#0a0a0b]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-7 sm:gap-9 bg-[#0a0a0b] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-white font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div>${overviewHtml}</div><div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch now</h3></div><div id="modalWatchOptionsBox" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5">${renderMovieWatchOptionsBox(movieObj, details, false, true)}</div></div>${castCrewHtml}${relatedHtml}${similarHtml}</div><div class="bg-[#0a0a0b] p-5 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div><p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p></div></div>`;
     }
 
     function getShortText(text, limit = 195) {
@@ -4759,10 +4759,25 @@
 
     let heroRevealTimeout = null;
     let heroVideoFailed = false;
+    // The trailer replaces the backdrop only once YouTube reports it actually playing. Revealing
+    // on the timer alone covered the backdrop with a black, spinning player whenever autoplay was
+    // blocked (power saving, data saver, some browsers) or the video was slow.
+    let heroVideoPlaying = false;
+    let heroRevealDue = false;
+    let heroRevealed = false;
+    function tryRevealHeroVideo() {
+      const iframeEl = document.getElementById('heroVideoIframe');
+      if (!heroRevealDue || !heroVideoPlaying || heroRevealed || heroVideoFailed || !iframeEl) return;
+      heroRevealed = true;
+      revealHeroVideo(iframeEl);
+    }
 
     window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
       heroVideoFailed = false;
+      heroVideoPlaying = false;
+      heroRevealDue = false;
+      heroRevealed = false;
       fitHeroVideoCover(iframeEl);
       setTimeout(() => fitHeroVideoCover(iframeEl), 600);
       try {
@@ -4774,9 +4789,8 @@
       if (heroRevealTimeout) clearTimeout(heroRevealTimeout);
       // Wait the full 6.6s delay before revealing the video (as long as no error occurred)
       heroRevealTimeout = setTimeout(() => {
-        if (!heroVideoFailed) {
-          revealHeroVideo(iframeEl);
-        }
+        heroRevealDue = true;
+        tryRevealHeroVideo();
       }, 6600);
     };
 
@@ -4836,6 +4850,8 @@
         const state = data.event === 'onStateChange' ? data.info : data.info.playerState;
         if (state === 1) {
           isTrailerPaused = false;
+          heroVideoPlaying = true;
+          tryRevealHeroVideo();
         } else if (state === 2 || state === 0) {
           isTrailerPaused = true;
         }
@@ -7925,8 +7941,8 @@
       window.currentActorAvailableGenres = availableActorGenres;
 
       // Sort label map
-      const sortLabels = { year_desc: 'Newest First', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest Rated', rating_asc: 'Lowest Rated', year_asc: 'Oldest First' };
-      const currentSortLabel = sortLabels[actorFilterSort] || 'Newest First';
+      const sortLabels = { year_desc: 'Newest first', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest rated', rating_asc: 'Lowest rated', year_asc: 'Oldest first' };
+      const currentSortLabel = sortLabels[actorFilterSort] || 'Newest first';
 
       // Letterboxd slug
       const lbSlug = person.name ? person.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '';
@@ -8229,16 +8245,16 @@
     let modalActiveActorRoleHint = '';
 
     const ACTOR_SORT_OPTIONS = [
-      { value: 'year_desc', label: 'Newest First' },
-      { value: 'year_asc', label: 'Oldest First' },
+      { value: 'year_desc', label: 'Newest first' },
+      { value: 'year_asc', label: 'Oldest first' },
       { value: 'popularity', label: 'Popular' },
-      { value: 'rating_desc', label: 'Highest Rated' },
+      { value: 'rating_desc', label: 'Highest rated' },
       { value: 'az', label: 'A-Z' },
       { value: 'za', label: 'Z-A' }
     ];
 
     const ACTOR_DECADE_OPTIONS = [
-      { value: 'all', label: 'All Decades' },
+      { value: 'all', label: 'All decades' },
       { value: '2020s', label: '2020s' },
       { value: '2010s', label: '2010s' },
       { value: '2000s', label: '2000s' },

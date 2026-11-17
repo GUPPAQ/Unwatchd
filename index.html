@@ -2815,11 +2815,41 @@
       background: var(--faint);
     }
 
-    /* On phones the service chips below already name the services. */
+    /* On phones the service chips below already name the services, and the links get their own line. */
     @media (max-width: 639px) {
       .context-services {
         display: none;
       }
+
+      .context > span:first-child {
+        flex-basis: 100%;
+      }
+
+      .context > .context-dot:nth-child(2) {
+        display: none;
+      }
+    }
+
+    /* The top bar's VPN switch is the only one; the copy in the results tools only repeated it. */
+    #vpnToggleBtnInline {
+      display: none !important;
+    }
+
+    /* Filter field labels: sentence case like every other label, not tracked capitals. */
+    .custom-filter-dropdown-container > label.uppercase[class] {
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    /* Film page "Watch now" box: the one raised surface, not a tinted gradient. */
+    .watch-options-box[class] {
+      background-image: none;
+      background-color: var(--surface);
+      border-color: var(--line);
+      box-shadow: none;
     }
 
     #scanCompactFriendBtn.hidden,

@@ -239,10 +239,10 @@
         const cur = isHome ? homeFilterSort : actorFilterSort;
         const defaultSort = isHome ? 'year_desc' : 'popularity';
         const options = [
-          { value: 'year_desc', label: 'Newest First', icon: '' },
-          { value: 'year_asc', label: 'Oldest First', icon: '' },
+          { value: 'year_desc', label: 'Newest first', icon: '' },
+          { value: 'year_asc', label: 'Oldest first', icon: '' },
           { value: 'popularity', label: 'Popular', icon: '' },
-          { value: 'rating_desc', label: 'Highest Rated', icon: '' },
+          { value: 'rating_desc', label: 'Highest rated', icon: '' },
           { value: 'az', label: 'A-Z', icon: '' },
           { value: 'za', label: 'Z-A', icon: '' }
         ];
@@ -250,7 +250,7 @@
         const isCustom = cur !== defaultSort;
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort By</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort by</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -282,7 +282,7 @@
         const isCustom = !isAll;
 
         const provList = [];
-        provList.push({ id: 'all', name: isHome ? 'All My Services' : 'All Services', icon: '' });
+        provList.push({ id: 'all', name: isHome ? 'All my services' : 'All services', icon: '' });
         if (vpnModeEnabled) {
           provList.push({ id: 'vpn', name: 'VPN Available 🌐', icon: '🌐' });
         }
@@ -301,7 +301,7 @@
           otherAvail.forEach(cp => provList.push({ id: cp.name, name: cp.name, logo: getProviderLogoUrl(cp.name) }));
         }
 
-        let previewText = isHome ? 'All My Services' : 'All Services';
+        let previewText = isHome ? 'All my services' : 'All services';
         if (!isAll) {
           const arr = Array.from(curSet).map(id => id === 'vpn' ? 'VPN Available' : id);
           if (arr.length === 1) previewText = arr[0];
@@ -310,7 +310,7 @@
         }
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming Platform</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming service</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -321,7 +321,7 @@
             </button>
             <div id="${popoverId}" class="custom-filter-popover hidden space-y-1">
               <div class="flex items-center justify-between px-2 py-1.5 border-b border-white/10 mb-1 text-[10px] font-extrabold uppercase tracking-wider text-gray-400">
-                <span>Streaming Services</span>
+                <span>Streaming services</span>
                 <button type="button" onclick="onCustomFilterBulk('${scope}', 'provider', 'clear', event)" class="text-blue-400 hover:text-blue-300 font-bold">Reset</button>
               </div>
               ${provList.map(p => {
@@ -363,7 +363,7 @@
           genreNames = (window.currentActorAvailableGenres && window.currentActorAvailableGenres.length > 0) ? window.currentActorAvailableGenres : Object.values(GENRE_MAP).filter((v, i, a) => a.indexOf(v) === i).sort();
         }
 
-        let previewText = 'All Genres';
+        let previewText = 'All genres';
         if (!isAll) {
           const arr = Array.from(curSet);
           if (arr.length === 1) previewText = arr[0];
@@ -389,7 +389,7 @@
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
                   <span class="text-sm shrink-0"></span>
-                  <span class="truncate">All Genres</span>
+                  <span class="truncate">All genres</span>
                 </div>
                 <div class="custom-filter-checkbox">
                   ${isAll ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
@@ -432,7 +432,7 @@
           { value: 'older', label: 'Older (< 1950)', icon: '' }
         ];
 
-        let previewText = 'All Decades';
+        let previewText = 'All decades';
         if (!isAll) {
           const arr = Array.from(curSet).map(d => d === 'older' ? 'Older' : `${d}s`);
           if (arr.length === 1) previewText = arr[0];
@@ -441,7 +441,7 @@
         }
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release Period</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release period</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -458,7 +458,7 @@
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'decade', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
                   <span class="text-sm shrink-0"></span>
-                  <span class="truncate">All Decades</span>
+                  <span class="truncate">All decades</span>
                 </div>
                 <div class="custom-filter-checkbox">
                   ${isAll ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
@@ -487,7 +487,7 @@
         const cur = isHome ? homeFilterRating : actorFilterRating;
         const isCustom = cur && cur !== 'all';
         const ratingOptions = [
-          { value: 'all', label: 'Any Rating', icon: '' },
+          { value: 'all', label: 'Any rating', icon: '' },
           { value: '6', label: 'IMDb 6.0+', icon: '' },
           { value: '7', label: 'IMDb 7.0+', icon: '' },
           { value: '8', label: 'IMDb 8.0+', icon: '' },
@@ -497,7 +497,7 @@
         const selected = ratingOptions.find(r => r.value === cur) || ratingOptions[0];
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum IMDb Rating</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum IMDb rating</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -527,7 +527,7 @@
         const cur = isHome ? homeFilterRuntime : actorFilterRuntime;
         const isCustom = cur && cur !== 'all';
         const runtimeOptions = [
-          { value: 'all', label: 'Any Length', icon: '' },
+          { value: 'all', label: 'Any length', icon: '' },
           { value: 'short', label: 'Short (< 90 min)', icon: '' },
           { value: 'medium', label: 'Medium (90 - 120 min)', icon: '' },
           { value: 'long', label: 'Long (> 120 min)', icon: '' }
@@ -535,7 +535,7 @@
         const selected = runtimeOptions.find(r => r.value === cur) || runtimeOptions[0];
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film Length</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film length</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">

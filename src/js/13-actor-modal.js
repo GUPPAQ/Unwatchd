@@ -429,8 +429,8 @@
       window.currentActorAvailableGenres = availableActorGenres;
 
       // Sort label map
-      const sortLabels = { year_desc: 'Newest First', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest Rated', rating_asc: 'Lowest Rated', year_asc: 'Oldest First' };
-      const currentSortLabel = sortLabels[actorFilterSort] || 'Newest First';
+      const sortLabels = { year_desc: 'Newest first', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest rated', rating_asc: 'Lowest rated', year_asc: 'Oldest first' };
+      const currentSortLabel = sortLabels[actorFilterSort] || 'Newest first';
 
       // Letterboxd slug
       const lbSlug = person.name ? person.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '';
@@ -733,16 +733,16 @@
     let modalActiveActorRoleHint = '';
 
     const ACTOR_SORT_OPTIONS = [
-      { value: 'year_desc', label: 'Newest First' },
-      { value: 'year_asc', label: 'Oldest First' },
+      { value: 'year_desc', label: 'Newest first' },
+      { value: 'year_asc', label: 'Oldest first' },
       { value: 'popularity', label: 'Popular' },
-      { value: 'rating_desc', label: 'Highest Rated' },
+      { value: 'rating_desc', label: 'Highest rated' },
       { value: 'az', label: 'A-Z' },
       { value: 'za', label: 'Z-A' }
     ];
 
     const ACTOR_DECADE_OPTIONS = [
-      { value: 'all', label: 'All Decades' },
+      { value: 'all', label: 'All decades' },
       { value: '2020s', label: '2020s' },
       { value: '2010s', label: '2010s' },
       { value: '2000s', label: '2000s' },
