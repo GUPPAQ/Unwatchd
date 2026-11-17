@@ -25,7 +25,9 @@
       }
     };
 
-    const fetchWatchlist = async (targetUser, labelPrefix) => {
+    // Reading pages fills the first stretch of the progress bar ([from, to] percent).
+    const setScanProgress = (pct) => { if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%'; };
+    const fetchWatchlist = async (targetUser, labelPrefix, range = [0, 15]) => {
       if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix}…`;
       // No cache-busting query on these URLs: our proxy drops it anyway and caches pages for
       // two minutes, so repeat scans don't hit Letterboxd again.
@@ -86,12 +88,13 @@
           if (cancelRequested) return [];
           const chunk = pages.slice(i, i + PARALLEL_PAGE_BATCH);
           if (el.progressLabel) el.progressLabel.textContent = retrying
-            ? `${labelPrefix} (Retrying ${pages.length} page${pages.length === 1 ? '' : 's'})...`
-            : `${labelPrefix} (Pages ${chunk[0]}-${chunk[chunk.length - 1]} of ${totalPages})...`;
+            ? `${labelPrefix}, trying ${pages.length} page${pages.length === 1 ? '' : 's'} again…`
+            : `${labelPrefix}, page ${chunk[chunk.length - 1]} of ${totalPages}…`;
           const chunkHtmls = await Promise.all(chunk.map(p => fetchSinglePage(p)));
           chunkHtmls.forEach((html, k) => {
             if (html) pageHtmlByNumber.set(chunk[k], html); else failed.push(chunk[k]);
           });
+          if (!retrying) setScanProgress(range[0] + (range[1] - range[0]) * Math.min(1, chunk[chunk.length - 1] / totalPages));
           if (chunkHtmls.every(html => !html)) return failed.concat(pages.slice(i + PARALLEL_PAGE_BATCH));
           await new Promise(r => setTimeout(r, 100));
         }
@@ -320,15 +323,14 @@
         if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';
         try {
           if (el.progressSection) el.progressSection.classList.remove('hidden'); if (el.progressBar) el.progressBar.style.width = `0%`; if (el.progressPercent) el.progressPercent.textContent = '0%';
-          const myScan = await fetchWatchlist(username, 'Reading your watchlist');
+          const myScan = await fetchWatchlist(username, 'Reading your watchlist', friendName ? [0, 8] : [0, 15]);
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
           const myTitles = myScan.films;
           if (myTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${username}`);
           const incompleteNotes = describeIncompleteScan('your', myScan);
           let titlesToProcess = myTitles;
           if (friendName) {
-            if (el.progressBar) el.progressBar.style.width = `10%`; if (el.progressPercent) el.progressPercent.textContent = '10%';
-            const friendScan = await fetchWatchlist(friendName, 'Reading your friend\'s watchlist');
+            const friendScan = await fetchWatchlist(friendName, 'Reading your friend\'s watchlist', [8, 15]);
             if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
             const friendTitles = friendScan.films;
             if (friendTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${friendName}`);

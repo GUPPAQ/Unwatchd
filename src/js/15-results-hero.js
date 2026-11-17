@@ -361,6 +361,8 @@
 
     (() => {
       const on = (id, fn) => { const node = document.getElementById(id); if (node) node.addEventListener('click', fn); };
+      const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+      document.querySelectorAll('.kbd-shortcut').forEach(k => { k.textContent = isMac ? '⌘K' : 'Ctrl K'; });
       on('searchToggleBtn', () => {
         const bar = document.getElementById('quickSearchBar');
         if (bar && bar.classList.contains('hidden')) openQuickSearch(); else closeQuickSearch();

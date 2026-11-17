@@ -1007,8 +1007,8 @@
       // Fix: Refresh the service browser if it's currently open
       const browser = document.getElementById('serviceBrowser');
       if (browser && !browser.classList.contains('hidden')) {
-        const availableIds = new Set(currentProviders.map(p => p.id));
-        pendingSelectedIds = new Set([...pendingSelectedIds].filter(id => availableIds.has(id)));
+        const name = document.getElementById('serviceBrowserRegion');
+        if (name) name.textContent = REGION_META[currentRegion]?.name || currentRegion;
         renderBrowserGrid();
         updateBrowserSaveBtn();
       }
@@ -1309,24 +1309,31 @@
       return `<span class="svc-stack">${shown.map(p => `<span class="svc-stack-logo">${createTileImgHTML(p)}</span>`).join('')}</span>${more > 0 ? `<span class="svc-stack-more">+${more}</span>` : ''}`;
     }
 
-    // One option in the picker: the logo, its name underneath, and a check when it's on.
+    // One service in the panel: a chip with its logo and name (the same shape as the service
+    // chips over the results). Tapping it applies at once; the bar's logo stack follows.
+    var servicesChangedWhileOpen = false;
     function createBrowserTile(provider) {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'svc-option';
       const setState = () => {
-        const on = pendingSelectedIds.has(provider.id);
+        const on = selectedServiceIds.has(provider.id);
         btn.classList.toggle('selected', on);
         btn.setAttribute('aria-pressed', String(on));
       };
-      btn.innerHTML = `<span class="svc-option-logo">${createTileImgHTML(provider)}<span class="svc-option-check" aria-hidden="true"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span></span><span class="svc-option-name">${escapeHTML(provider.name)}</span>`;
+      btn.innerHTML = `<span class="svc-option-logo">${createTileImgHTML(provider)}</span><span class="svc-option-name">${escapeHTML(provider.name)}</span><svg class="svc-option-check" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"></path></svg>`;
       setState();
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (pendingSelectedIds.has(provider.id)) pendingSelectedIds.delete(provider.id);
-        else pendingSelectedIds.add(provider.id);
+        if (selectedServiceIds.has(provider.id)) selectedServiceIds.delete(provider.id);
+        else selectedServiceIds.add(provider.id);
+        try { localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds])); } catch (err) { logIgnored('save services', err); }
+        saveSelectedProviderData();
+        servicesChangedWhileOpen = true;
         setState();
+        renderSelectedView();
         updateBrowserSaveBtn();
+        if (selectedServiceIds.size > 0 && el.formError && /streaming service/.test(el.formError.textContent)) el.formError.classList.add('hidden');
       });
       return btn;
     }
@@ -1443,117 +1450,71 @@
       if (!grid) return;
       grid.innerHTML = '';
 
-      let list = [...currentProviders].sort((a, b) => {
-        const aSel = pendingSelectedIds.has(a.id) ? 0 : 1;
-        const bSel = pendingSelectedIds.has(b.id) ? 0 : 1;
-        if (aSel !== bSel) return aSel - bSel;
-        return (a.priority || 100) - (b.priority || 100);
-      });
-
-      list.forEach(provider => {
-        grid.appendChild(createBrowserTile(provider));
-      });
+      // A stable order (by how common the service is), so nothing jumps while you pick.
+      [...currentProviders]
+        .sort((a, b) => (a.priority || 100) - (b.priority || 100))
+        .forEach(provider => grid.appendChild(createBrowserTile(provider)));
     }
 
-    // The footer counts what's picked so far; "Done" saves, and a scan needs at least one.
     function updateBrowserSaveBtn() {
-      const n = pendingSelectedIds.size;
+      const n = selectedServiceIds.size;
       const count = document.getElementById('serviceBrowserCount');
       if (count) count.textContent = n === 0 ? 'None picked yet' : `${n} picked`;
-      const saveBtn = document.getElementById('serviceBrowserSave');
-      if (saveBtn) saveBtn.disabled = n === 0;
     }
 
-    // Desktop: a popover under the bar, growing out of the "Streaming on" pill.
-    // Phones: a bottom sheet (16-motion.js adds the slide and the drag-to-close).
-    function placeServiceBrowser() {
+    // The panel unfolds out of the bar (desktop: hanging under it at full width; phones: inside
+    // the card, under the "Streaming on" row). The open/closed height is a CSS transition, so a
+    // quick second tap reverses it from wherever it is.
+    function isServiceBrowserOpen() {
       const browser = document.getElementById('serviceBrowser');
-      const pill = document.getElementById('servicePill');
-      const bar = document.querySelector('.ask-bar');
-      if (browser) { browser.style.top = ''; browser.style.left = ''; browser.style.maxHeight = ''; browser.style.transformOrigin = ''; }
-      if (!browser || !pill || !bar || window.matchMedia('(max-width: 719px)').matches) { updateServiceGridFade(); return; }
-      const ask = bar.parentElement.getBoundingClientRect();
-      const b = bar.getBoundingClientRect();
-      const p = pill.getBoundingClientRect();
-      const width = browser.offsetWidth;
-      // Centred under the pill, kept inside the bar's span and the window.
-      let left = p.left + p.width / 2 - width / 2;
-      left = Math.min(left, b.right - width, window.innerWidth - 16 - width);
-      left = Math.max(left, b.left, 16);
-      // Below the bar when it fits, above when there's more room there; else below, scrolling inside.
-      const gap = 10, margin = 16;
-      const below = window.innerHeight - b.bottom - gap - margin;
-      const above = b.top - gap - margin - 72; // keep clear of the top bar
-      const height = browser.offsetHeight;
-      const up = height > below && above > below;
-      const room = up ? above : below;
-      if (height > room) browser.style.maxHeight = `${Math.max(260, Math.floor(room))}px`;
-      const h = Math.min(height, Math.max(260, room));
-      browser.style.left = `${Math.round(left - ask.left)}px`;
-      browser.style.top = `${Math.round((up ? b.top - gap - h : b.bottom + gap) - ask.top)}px`;
-      browser.style.transformOrigin = `${Math.round(p.left + p.width / 2 - left)}px ${up ? '100%' : '0'}`;
-      updateServiceGridFade();
+      return !!(browser && !browser.classList.contains('hidden'));
     }
 
-    function updateServiceGridFade() {
-      const grid = document.getElementById('serviceAllGrid');
-      if (grid) grid.classList.toggle('more-below', grid.scrollTop + grid.clientHeight < grid.scrollHeight - 4);
-    }
-    document.getElementById('serviceAllGrid')?.addEventListener('scroll', updateServiceGridFade, { passive: true });
-
-    function openBrowser() {
+    function openBrowser(focusFirst) {
       if (isScanning) return;
-      pendingSelectedIds = new Set(selectedServiceIds);
       const browser = document.getElementById('serviceBrowser');
-      const backdrop = document.getElementById('serviceBackdrop');
       const region = document.getElementById('serviceBrowserRegion');
       if (region) region.textContent = REGION_META[currentRegion]?.name || currentRegion;
+      servicesChangedWhileOpen = false;
       renderBrowserGrid();
       updateBrowserSaveBtn();
-      if (backdrop) backdrop.classList.remove('hidden');
-      if (browser) browser.classList.remove('hidden');
-      placeServiceBrowser();
+      if (browser) { browser.classList.remove('hidden'); browser.removeAttribute('inert'); }
+      document.querySelector('.ask-bar')?.classList.add('is-open');
       document.getElementById('servicePill')?.setAttribute('aria-expanded', 'true');
-      document.body.classList.add('svc-picker-open');
-      (browser?.querySelector('.svc-option') || browser)?.focus({ preventScroll: true });
+      if (focusFirst) browser?.querySelector('.svc-option')?.focus({ preventScroll: true });
     }
 
     function closeBrowser() {
       const browser = document.getElementById('serviceBrowser');
-      const backdrop = document.getElementById('serviceBackdrop');
-      const wasOpen = browser && !browser.classList.contains('hidden');
-      if (browser) browser.classList.add('hidden');
-      if (backdrop) backdrop.classList.add('hidden');
-      document.body.classList.remove('svc-picker-open');
+      if (!isServiceBrowserOpen()) return;
+      const hadFocus = document.activeElement && browser.contains(document.activeElement);
+      browser.classList.add('hidden');
+      browser.setAttribute('inert', '');
+      document.querySelector('.ask-bar')?.classList.remove('is-open');
       const pill = document.getElementById('servicePill');
-      if (pill) { pill.setAttribute('aria-expanded', 'false'); if (wasOpen && document.activeElement && browser.contains(document.activeElement)) pill.focus({ preventScroll: true }); }
+      if (pill) { pill.setAttribute('aria-expanded', 'false'); if (hadFocus) pill.focus({ preventScroll: true }); }
       renderSelectedView();
+      // Picks apply as you tap; the results (if any) catch up once, when the panel closes.
+      if (servicesChangedWhileOpen && scannedMovies.length > 0) applyFiltersAndRender();
+      servicesChangedWhileOpen = false;
     }
 
-    function saveBrowser() {
-      selectedServiceIds = new Set(pendingSelectedIds);
-      localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds]));
-      saveSelectedProviderData();
-      closeBrowser();
-      if (selectedServiceIds.size > 0 && el.formError && /streaming service/.test(el.formError.textContent)) el.formError.classList.add('hidden');
-      if (scannedMovies.length > 0) applyFiltersAndRender();
-    }
+    // Kept for callers from before picks applied instantly (starting a scan, changing region).
+    function saveBrowser() { closeBrowser(); }
 
-    // Wired through arrow functions so 16-motion.js can wrap open/close with its animations.
-    document.getElementById('servicePill')?.addEventListener('click', () => {
-      const browser = document.getElementById('serviceBrowser');
-      if (browser && !browser.classList.contains('hidden')) closeBrowser(); else openBrowser();
+    document.getElementById('serviceBrowser')?.setAttribute('inert', '');
+    document.getElementById('servicePill')?.addEventListener('click', (e) => {
+      if (isServiceBrowserOpen()) closeBrowser(); else openBrowser(e.detail === 0); // keyboard: focus the first service
     });
-    document.getElementById('serviceBackdrop')?.addEventListener('click', () => closeBrowser());
-    document.getElementById('serviceBrowserCancel')?.addEventListener('click', () => closeBrowser());
-    document.getElementById('serviceBrowserSave')?.addEventListener('click', () => saveBrowser());
+    document.getElementById('serviceBrowserSave')?.addEventListener('click', () => closeBrowser());
     document.addEventListener('keydown', (e) => {
-      const browser = document.getElementById('serviceBrowser');
-      if (e.key === 'Escape' && browser && !browser.classList.contains('hidden')) { e.stopPropagation(); closeBrowser(); }
+      if (e.key === 'Escape' && isServiceBrowserOpen()) closeBrowser();
     });
-    window.addEventListener('resize', () => {
-      const browser = document.getElementById('serviceBrowser');
-      if (browser && !browser.classList.contains('hidden')) placeServiceBrowser();
+    // A tap anywhere outside the bar folds it away again.
+    document.addEventListener('pointerdown', (e) => {
+      if (!isServiceBrowserOpen()) return;
+      const bar = document.querySelector('.ask-bar');
+      if (bar && !bar.contains(e.target)) closeBrowser();
     });
 
     // ----- END INLINE SERVICE SELECTOR LOGIC -----
@@ -7051,7 +7012,9 @@
       }
     };
 
-    const fetchWatchlist = async (targetUser, labelPrefix) => {
+    // Reading pages fills the first stretch of the progress bar ([from, to] percent).
+    const setScanProgress = (pct) => { if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%'; };
+    const fetchWatchlist = async (targetUser, labelPrefix, range = [0, 15]) => {
       if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix}…`;
       // No cache-busting query on these URLs: our proxy drops it anyway and caches pages for
       // two minutes, so repeat scans don't hit Letterboxd again.
@@ -7112,12 +7075,13 @@
           if (cancelRequested) return [];
           const chunk = pages.slice(i, i + PARALLEL_PAGE_BATCH);
           if (el.progressLabel) el.progressLabel.textContent = retrying
-            ? `${labelPrefix} (Retrying ${pages.length} page${pages.length === 1 ? '' : 's'})...`
-            : `${labelPrefix} (Pages ${chunk[0]}-${chunk[chunk.length - 1]} of ${totalPages})...`;
+            ? `${labelPrefix}, trying ${pages.length} page${pages.length === 1 ? '' : 's'} again…`
+            : `${labelPrefix}, page ${chunk[chunk.length - 1]} of ${totalPages}…`;
           const chunkHtmls = await Promise.all(chunk.map(p => fetchSinglePage(p)));
           chunkHtmls.forEach((html, k) => {
             if (html) pageHtmlByNumber.set(chunk[k], html); else failed.push(chunk[k]);
           });
+          if (!retrying) setScanProgress(range[0] + (range[1] - range[0]) * Math.min(1, chunk[chunk.length - 1] / totalPages));
           if (chunkHtmls.every(html => !html)) return failed.concat(pages.slice(i + PARALLEL_PAGE_BATCH));
           await new Promise(r => setTimeout(r, 100));
         }
@@ -7346,15 +7310,14 @@
         if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';
         try {
           if (el.progressSection) el.progressSection.classList.remove('hidden'); if (el.progressBar) el.progressBar.style.width = `0%`; if (el.progressPercent) el.progressPercent.textContent = '0%';
-          const myScan = await fetchWatchlist(username, 'Reading your watchlist');
+          const myScan = await fetchWatchlist(username, 'Reading your watchlist', friendName ? [0, 8] : [0, 15]);
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
           const myTitles = myScan.films;
           if (myTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${username}`);
           const incompleteNotes = describeIncompleteScan('your', myScan);
           let titlesToProcess = myTitles;
           if (friendName) {
-            if (el.progressBar) el.progressBar.style.width = `10%`; if (el.progressPercent) el.progressPercent.textContent = '10%';
-            const friendScan = await fetchWatchlist(friendName, 'Reading your friend\'s watchlist');
+            const friendScan = await fetchWatchlist(friendName, 'Reading your friend\'s watchlist', [8, 15]);
             if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
             const friendTitles = friendScan.films;
             if (friendTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${friendName}`);
@@ -9597,6 +9560,8 @@
 
     (() => {
       const on = (id, fn) => { const node = document.getElementById(id); if (node) node.addEventListener('click', fn); };
+      const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+      document.querySelectorAll('.kbd-shortcut').forEach(k => { k.textContent = isMac ? '⌘K' : 'Ctrl K'; });
       on('searchToggleBtn', () => {
         const bar = document.getElementById('quickSearchBar');
         if (bar && bar.classList.contains('hidden')) openQuickSearch(); else closeQuickSearch();
@@ -9669,7 +9634,7 @@
       return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
     }
 
-    // ── Bottom sheets (phones): the filter panel and the service picker ─────
+    // ── Bottom sheets (phones): the filter panel ────────────────────────────
     // A sheet slides up on open, slides back down on close (same path), and can be
     // dragged down by its top area, grabbed mid-animation, and flicked closed.
     // `isActive()` says whether the panel is currently showing as a sheet; `grabZone`
@@ -9779,36 +9744,6 @@
       }
     });
     ({ open: openHomeFilterDropdown, close: closeHomeFilterDropdown } = sheetState.wrap(openHomeFilterDropdown, closeHomeFilterDropdown, false));
-
-    // The service picker is a sheet on phones; on wider screens it's a popover that grows out of
-    // its pill (CSS) and shrinks back into it on close.
-    var serviceSheet = createSheet({
-      menuId: 'serviceBrowser',
-      backdropId: 'serviceBackdrop',
-      grabZone: '.sheet-handle, .service-browser-head',
-      isActive: () => {
-        const b = document.getElementById('serviceBrowser');
-        return !!(b && !b.classList.contains('hidden') && window.matchMedia('(max-width: 719px)').matches);
-      }
-    });
-    (() => {
-      const sheet = serviceSheet.wrap(openBrowser, closeBrowser, true);
-      let popOut = null;
-      openBrowser = function () {
-        if (popOut) { clearTimeout(popOut); popOut = null; }
-        document.getElementById('serviceBrowser')?.classList.remove('pop-out');
-        sheet.open();
-      };
-      closeBrowser = function () {
-        const b = document.getElementById('serviceBrowser');
-        const open = b && !b.classList.contains('hidden');
-        if (!open || serviceSheet.closing) { sheet.close(); return; }
-        if (window.matchMedia('(max-width: 719px)').matches || prefersReducedMotion.matches) { sheet.close(); return; }
-        if (popOut) return;
-        b.classList.add('pop-out');
-        popOut = setTimeout(() => { popOut = null; b.classList.remove('pop-out'); sheet.close(); }, 140);
-      };
-    })();
 
     // ── Popovers grow out of the button that opened them ────────────────────
     const toggleCustomFilterMenuInstant = toggleCustomFilterMenu;

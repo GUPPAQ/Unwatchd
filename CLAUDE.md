@@ -49,12 +49,15 @@ Tokens and components live in the "FILM-NIGHT WORLD" block at the end of the `<s
   case, never all caps. No small labels above headings.
 - No emoji as icons. Inline SVG or nothing. Region flags are the exception.
 - Landing: the whole scan form is one bar (`.ask-bar`: username, optional friend, "Streaming on"
-  pill, button) that stacks into a card on phones. The pill opens the service picker as a popover
-  from the pill (a sheet on phones). "Change" on the results puts `body.landing-mode` on, which
-  hides the results until "Back to your results". The poster wall drifts (CSS), still for reduced motion.
+  pill, button) that stacks into a card on phones. The pill slides a drawer of service chips out
+  from under the bar (inside the card on phones); picks apply as you tap. While scanning, the bar
+  itself shows the progress. "Change" on the results puts `body.landing-mode` on, which hides the
+  results until "Back to your results". The poster wall drifts (CSS), still for reduced motion.
+- Top bar: a visible search field (Ctrl/⌘K) and the region. The VPN switch lives in the results
+  tools and the film page's watch box, where it has an effect.
 - Motion (`src/js/16-motion.js`): feedback on press (`:active`), springs via `springTo()` for
-  anything you can touch, interruptible from the current position, the phone sheets (filters,
-  services; both via `createSheet()`) drag and flick closed. Respect `prefers-reduced-motion` (instant or fade instead of slide).
+  anything you can touch, interruptible from the current position, the phone filter sheet
+  (`createSheet()`) drags and flicks closed. Respect `prefers-reduced-motion` (instant or fade instead of slide).
 
 ## Conventions
 - Only IMDb ratings are shown (fetched via Cinemeta, cached 14 days). TMDB vote averages

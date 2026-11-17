@@ -50,7 +50,7 @@
       return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
     }
 
-    // ── Bottom sheets (phones): the filter panel and the service picker ─────
+    // ── Bottom sheets (phones): the filter panel ────────────────────────────
     // A sheet slides up on open, slides back down on close (same path), and can be
     // dragged down by its top area, grabbed mid-animation, and flicked closed.
     // `isActive()` says whether the panel is currently showing as a sheet; `grabZone`
@@ -160,36 +160,6 @@
       }
     });
     ({ open: openHomeFilterDropdown, close: closeHomeFilterDropdown } = sheetState.wrap(openHomeFilterDropdown, closeHomeFilterDropdown, false));
-
-    // The service picker is a sheet on phones; on wider screens it's a popover that grows out of
-    // its pill (CSS) and shrinks back into it on close.
-    var serviceSheet = createSheet({
-      menuId: 'serviceBrowser',
-      backdropId: 'serviceBackdrop',
-      grabZone: '.sheet-handle, .service-browser-head',
-      isActive: () => {
-        const b = document.getElementById('serviceBrowser');
-        return !!(b && !b.classList.contains('hidden') && window.matchMedia('(max-width: 719px)').matches);
-      }
-    });
-    (() => {
-      const sheet = serviceSheet.wrap(openBrowser, closeBrowser, true);
-      let popOut = null;
-      openBrowser = function () {
-        if (popOut) { clearTimeout(popOut); popOut = null; }
-        document.getElementById('serviceBrowser')?.classList.remove('pop-out');
-        sheet.open();
-      };
-      closeBrowser = function () {
-        const b = document.getElementById('serviceBrowser');
-        const open = b && !b.classList.contains('hidden');
-        if (!open || serviceSheet.closing) { sheet.close(); return; }
-        if (window.matchMedia('(max-width: 719px)').matches || prefersReducedMotion.matches) { sheet.close(); return; }
-        if (popOut) return;
-        b.classList.add('pop-out');
-        popOut = setTimeout(() => { popOut = null; b.classList.remove('pop-out'); sheet.close(); }, 140);
-      };
-    })();
 
     // ── Popovers grow out of the button that opened them ────────────────────
     const toggleCustomFilterMenuInstant = toggleCustomFilterMenu;

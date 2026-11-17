@@ -2668,21 +2668,52 @@
       margin-top: 4px;
     }
 
+    /* The bar's surface is drawn by ::before, so the service drawer (z-index -1) can slide out
+       from underneath it while staying inside the bar's own stacking context. */
     .ask-bar {
+      position: relative;
+      isolation: isolate;
       width: 100%;
       display: flex;
       align-items: center;
       height: 76px;
       padding: 6px;
-      border-radius: 999px;
+      border-radius: 38px;
+    }
+
+    .ask-bar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      border-radius: inherit;
       background: var(--surface);
       border: 1px solid var(--line);
       box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.9);
       transition: border-color 0.15s;
+      pointer-events: none;
     }
 
-    .ask-bar:focus-within {
+    .ask-bar:focus-within::before {
       border-color: var(--line-strong);
+    }
+
+    .ask-bar {
+      z-index: 5;
+    }
+
+    .ask-bar > .ask-seg,
+    .ask-bar > #startButton {
+      position: relative;
+      z-index: 1;
+    }
+
+    .ask-prefix {
+      flex: none;
+      margin-right: -8px;
+      color: var(--faint);
+      font-size: 17px;
+      white-space: nowrap;
     }
 
     .ask-seg {
@@ -2701,7 +2732,7 @@
     }
 
     .ask-seg-user {
-      flex-grow: 1.2;
+      flex-grow: 1.5;
     }
 
     .ask-seg-services {
@@ -2900,6 +2931,26 @@
       line-height: 1.45;
     }
 
+    /* The drawer hangs over whatever sits under the bar, so that steps aside while it's out. */
+    .ask > .form-error,
+    .ask > .landing-back {
+      transition: opacity 0.2s;
+    }
+
+    .ask:has(.ask-bar.is-open) > .form-error,
+    .ask:has(.ask-bar.is-open) > .landing-back {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @media (max-width: 719px) {
+      .ask:has(.ask-bar.is-open) > .form-error,
+      .ask:has(.ask-bar.is-open) > .landing-back {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+
     .landing-back svg {
       width: 16px;
       height: 16px;
@@ -2960,141 +3011,132 @@
       }
     }
 
-    /* ── The service picker: a popover from its pill; a bottom sheet on phones ── */
-    .svc-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 140;
+    /* ── Services: a drawer that slides out from under the bar ──
+       Desktop: it hangs beneath the pill, tucked in from the rounded ends, its top hidden behind
+       the bar. Phones: it opens inside the card, under the "Streaming on" row. The height runs on a
+       grid-rows transition, which reverses from wherever it is if you tap again. */
+    .svc-panel,
+    .svc-panel.hidden {
+      display: grid;
     }
 
-    .svc-backdrop.hidden,
-    .service-browser.hidden {
-      display: none;
-    }
-
-    .service-browser {
+    .svc-panel {
       position: absolute;
-      z-index: 150;
-      width: 540px;
-      max-width: calc(100vw - 32px);
+      left: 30px;
+      right: 30px;
+      top: calc(100% - 38px);
+      z-index: -1;
+      grid-template-rows: 1fr;
+      transition: grid-template-rows 0.34s var(--ease-out), visibility 0s;
+    }
+
+    .svc-panel.hidden {
+      grid-template-rows: 0fr;
+      visibility: hidden;
+      transition: grid-template-rows 0.26s cubic-bezier(0.4, 0, 0.6, 1), visibility 0s 0.26s;
+    }
+
+    .svc-panel-clip {
+      min-height: 0;
+      overflow: hidden;
+      border-radius: 0 0 26px 26px;
+    }
+
+    .svc-panel-body {
       display: flex;
       flex-direction: column;
-      gap: 18px;
-      padding: 24px;
-      border-radius: 22px;
-      background: var(--surface);
+      gap: 16px;
+      padding: 56px 22px 18px;
       border: 1px solid var(--line);
-      box-shadow: 0 36px 90px -24px rgba(0, 0, 0, 0.95);
-      outline: none;
-      animation: pop-in 0.22s var(--ease-out);
+      border-top: 0;
+      border-radius: 0 0 26px 26px;
+      background: var(--surface);
+      box-shadow: 0 34px 70px -28px rgba(0, 0, 0, 0.95);
+      transition: opacity 0.24s ease-out, transform 0.34s var(--ease-out);
     }
 
-    /* Closing shrinks it back toward the pill it came from. */
-    .service-browser.pop-out {
-      animation: pop-out 0.14s ease-in forwards;
-      pointer-events: none;
+    .svc-panel.hidden .svc-panel-body {
+      opacity: 0;
+      transform: translate3d(0, -14px, 0);
+      transition-duration: 0.18s, 0.26s;
     }
 
-    @keyframes pop-out {
-      to {
-        opacity: 0;
-        transform: scale(0.95);
-      }
+    .svc-panel-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
     }
 
-    .service-browser .sheet-handle {
-      display: none;
-    }
-
-    .service-browser-title {
+    .svc-panel-title {
       margin: 0;
-      font-family: var(--serif);
-      font-weight: 400;
-      font-size: 1.75rem;
-      line-height: 1.05;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 500;
     }
 
-    .service-browser-sub {
-      margin: 6px 0 0;
+    .svc-panel-count {
+      flex: none;
       color: var(--muted);
-      font-size: 15px;
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
     }
 
-    .service-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 4px;
-      min-height: 0;
-      max-height: min(360px, 52vh);
-      overflow-y: auto;
-      margin: 0 -6px;
-      padding: 2px;
+    .svc-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .svc-option {
-      display: flex;
-      flex-direction: column;
+      display: inline-flex;
       align-items: center;
-      gap: 9px;
-      min-width: 0;
-      padding: 12px 4px 10px;
-      border: 0;
-      border-radius: 16px;
+      gap: 10px;
+      height: 44px;
+      padding: 0 16px 0 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
       background: transparent;
       color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
       cursor: pointer;
-      transition: background-color 0.15s, color 0.15s;
+      transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.12s ease-out;
     }
 
     .svc-option-logo {
-      position: relative;
-      width: 56px;
-      height: 56px;
-      transition: transform 0.12s ease-out, opacity 0.2s, filter 0.2s;
+      width: 32px;
+      height: 32px;
+      flex: none;
+      overflow: hidden;
+      border-radius: 9px;
       opacity: 0.45;
-      filter: saturate(0.3);
+      filter: saturate(0.2);
+      transition: opacity 0.2s, filter 0.2s;
     }
 
     .svc-option-logo img,
-    .svc-option-logo > div:not(.svc-option-check) {
+    .svc-option-logo > div {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 14px !important;
+      border-radius: 0 !important;
     }
 
     .svc-option-check {
-      position: absolute;
-      right: -5px;
-      bottom: -5px;
-      width: 22px;
-      height: 22px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #fff;
-      box-shadow: 0 0 0 3px var(--surface);
-      transform: scale(0);
-      transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .svc-option-check svg {
-      width: 13px;
-      height: 13px;
-    }
-
-    .svc-option-name {
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 13px;
-      font-weight: 500;
-      line-height: 1.2;
+      width: 0;
+      height: 16px;
+      margin-left: -10px;
+      flex: none;
+      color: var(--accent);
+      opacity: 0;
+      transition: width 0.2s var(--ease-out), margin 0.2s var(--ease-out), opacity 0.15s;
     }
 
     .svc-option.selected {
+      border-color: var(--line-strong);
+      background: var(--surface-2);
       color: var(--text);
     }
 
@@ -3104,104 +3146,90 @@
     }
 
     .svc-option.selected .svc-option-check {
-      transform: scale(1);
+      width: 16px;
+      margin-left: -2px;
+      opacity: 1;
     }
 
     @media (hover: hover) and (pointer: fine) {
       .svc-option:hover {
-        background: var(--surface-2);
+        border-color: var(--line-strong);
         color: var(--text);
       }
 
       .svc-option:not(.selected):hover .svc-option-logo {
-        opacity: 0.8;
+        opacity: 0.75;
       }
     }
 
-    .svc-option:active .svc-option-logo {
-      transform: scale(0.92);
+    .svc-option:active {
+      transform: scale(0.96);
       transition-duration: 0.06s;
     }
 
-    .service-browser-head,
-    .service-browser-actions {
-      flex: none;
-    }
-
-    /* When the window is short and the options scroll, the cut edge fades to say so. */
-    .service-grid.more-below {
-      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
-      mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
-    }
-
-    .service-browser-actions {
+    .svc-panel-foot {
       display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-top: 16px;
-      border-top: 1px solid var(--line);
+      justify-content: flex-end;
     }
 
-    .service-browser-count {
-      margin-right: auto;
-      color: var(--muted);
-      font-size: 14px;
-      font-variant-numeric: tabular-nums;
+    .svc-panel-foot .btn {
+      height: 40px;
+      padding: 0 20px;
     }
 
     @media (max-width: 719px) {
-      .svc-backdrop {
-        background: rgba(0, 0, 0, 0.6);
+      .svc-panel {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        z-index: 1;
       }
 
-      .service-browser {
-        position: fixed;
-        top: auto !important;
-        left: 0 !important;
-        right: 0;
-        bottom: 0;
-        width: auto;
-        max-width: none;
-        max-height: 88svh;
-        padding: 10px 20px calc(18px + env(safe-area-inset-bottom));
-        border-radius: 24px 24px 0 0;
-        border-bottom: 0;
-        animation: none;
-        will-change: transform;
+      .svc-panel-clip {
+        border-radius: 0;
       }
 
-      .service-browser .sheet-handle {
-        display: block;
-        box-sizing: content-box;
-        padding: 6px 40px 10px;
-        background-clip: content-box;
-        cursor: grab;
+      .svc-panel-body {
+        gap: 14px;
+        padding: 6px 12px 14px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
       }
 
-      .service-browser .sheet-handle,
-      .service-browser-head {
-        touch-action: none;
+      .svc-panel-title {
+        font-size: 15px;
       }
 
-      .service-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        max-height: none;
-        min-height: 0;
-        flex: 1;
+      .svc-option {
+        height: 40px;
+        padding-right: 14px;
+        font-size: 14px;
       }
 
-      body.svc-picker-open {
-        overflow: hidden;
+      .svc-option-logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+      }
+
+      .svc-panel-foot {
+        display: none;
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .service-browser {
-        animation: fadeInSimple 0.2s ease-out;
+      .svc-panel,
+      .svc-panel.hidden,
+      .svc-panel-body,
+      .svc-panel.hidden .svc-panel-body {
+        transition: none;
       }
 
-      .svc-option-check {
-        transition: none;
+      .svc-panel.hidden .svc-panel-body {
+        transform: none;
       }
     }
 
@@ -3210,56 +3238,138 @@
       display: none !important;
     }
 
-    .scan-progress {
-      width: 100%;
-      max-width: 640px;
+    /* ── Scanning: the bar itself becomes the progress bar ── */
+    .ask-progress {
+      position: absolute;
+      inset: 1px;
+      z-index: 4;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      align-items: center;
+      gap: 16px;
+      padding: 0 6px 0 28px;
+      overflow: hidden;
+      border-radius: inherit;
+      background: var(--surface);
+      animation: fadeInSimple 0.25s ease-out;
     }
 
-    .scan-progress.hidden {
+    .ask-progress.hidden {
       display: none;
     }
 
-    .scan-progress-head {
+    .ask-progress-fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      background: rgba(255, 90, 54, 0.13);
+      box-shadow: inset -2px 0 0 var(--accent);
+      transition: width 0.6s var(--ease-out);
+      pointer-events: none;
+    }
+
+    /* A soft glow breathing at the leading edge: still working, even between updates. */
+    .ask-progress-fill::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 72px;
+      background: linear-gradient(to left, rgba(255, 90, 54, 0.28), rgba(255, 90, 54, 0));
+      animation: progress-breathe 1.8s ease-in-out infinite;
+    }
+
+    @keyframes progress-breathe {
+      50% {
+        opacity: 0.25;
+      }
+    }
+
+    .ask-progress-text {
+      position: relative;
+      flex: 1;
+      min-width: 0;
       display: flex;
       align-items: baseline;
-      justify-content: space-between;
       gap: 16px;
     }
 
-    .scan-progress-label {
-      margin: 0;
-      font-size: 16px;
-      color: var(--text);
-    }
-
-    .scan-progress-pct {
+    .ask-progress-pct {
+      flex: none;
+      min-width: 2.6ch;
       margin: 0;
       font-family: var(--serif);
-      font-size: 2rem;
+      font-size: 2.2rem;
       line-height: 1;
       color: var(--accent);
+      font-variant-numeric: tabular-nums;
     }
 
-    .scan-progress-track {
-      height: 2px;
-      background: var(--line);
+    .ask-progress-label {
+      margin: 0;
       overflow: hidden;
+      color: var(--text);
+      font-size: 15px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .scan-progress .load-fill[id] {
-      height: 100%;
-      background: var(--accent);
-      box-shadow: none;
-      transition: width 0.4s var(--ease-out);
+    .ask-progress-stop[class] {
+      position: relative;
+      flex: none;
+      height: 62px;
+      padding: 0 28px;
     }
 
-    .scan-progress-stop {
-      align-self: flex-start;
-      color: var(--muted);
-      font-weight: 500;
+    /* The posters behind lean in a little while it works. */
+    .poster-wall {
+      transition: opacity 0.8s ease;
+    }
+
+    .landing:has(.ask-progress:not(.hidden)) .poster-wall {
+      opacity: 0.72;
+    }
+
+    @media (max-width: 767px) {
+      .landing:has(.ask-progress:not(.hidden)) .poster-wall {
+        opacity: 0.32;
+      }
+    }
+
+    @media (max-width: 719px) {
+      .ask-progress {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        gap: 18px;
+        padding: 22px;
+      }
+
+      .ask-progress-text {
+        flex: none;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .ask-progress-pct {
+        font-size: 3.2rem;
+      }
+
+      .ask-progress-label {
+        white-space: normal;
+        line-height: 1.4;
+      }
+
+      .ask-progress-stop[class] {
+        height: 52px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ask-progress-fill::after {
+        animation: none;
+      }
     }
 
     /* ── Results ── */
@@ -3315,9 +3425,33 @@
       font-size: 14px;
     }
 
-    /* Tonight's pick: the plain title waits (invisible) while we look for the film's title logo. */
+    /* Tonight's pick: the plain title waits (invisible) while we look for the film's title logo,
+       then whichever arrives fades up into place. Hiding is instant, so the old film's title
+       never lingers. */
+    .pick-title {
+      transition: opacity 0.45s ease-out;
+    }
+
     .pick.logo-pending .pick-title {
-      visibility: hidden;
+      opacity: 0;
+      transition: none;
+    }
+
+    .pick-logo:not(.hidden) {
+      animation: pick-logo-in 0.6s var(--ease-out) both;
+    }
+
+    @keyframes pick-logo-in {
+      from {
+        opacity: 0;
+        transform: translate3d(0, 8px, 0) scale(0.985);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pick-logo:not(.hidden) {
+        animation: fadeInSimple 0.4s ease-out both;
+      }
     }
 
     /* On phones the service chips below already name the services, and the links get their own line. */
@@ -3475,9 +3609,106 @@
       font-optical-sizing: auto;
     }
 
-    /* The top bar's VPN switch is the only one; the copy in the results tools only repeated it. */
-    #vpnToggleBtnInline {
-      display: none !important;
+    /* The VPN switch lives with the results it changes (and in a film's watch box), not in the top bar. */
+    #vpnToggleBtnInline[class] {
+      height: 44px;
+      padding: 0 16px;
+      border: 1px solid var(--line) !important;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    #vpnToggleBtnInline.vpn-active[class] {
+      border-color: rgba(255, 90, 54, 0.45) !important;
+      color: var(--text) !important;
+    }
+
+    /* Search sits in the top bar as a field you can see, not a hidden icon. */
+    .search-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: clamp(250px, 22vw, 340px);
+      height: 42px;
+      margin-right: 8px;
+      padding: 0 6px 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, transform 0.12s ease-out;
+    }
+
+    .search-trigger svg {
+      width: 16px;
+      height: 16px;
+      flex: none;
+    }
+
+    .search-trigger-text {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .search-trigger-kbd {
+      flex: none;
+      padding: 3px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--faint);
+      font-size: 12px;
+    }
+
+    .search-trigger[aria-expanded="true"] {
+      border-color: var(--line-strong);
+      color: var(--text);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .search-trigger:hover {
+        border-color: var(--line-strong);
+        color: var(--text);
+      }
+    }
+
+    @media not ((hover: hover) and (pointer: fine)) {
+      .search-trigger-kbd {
+        display: none;
+      }
+    }
+
+    .search-trigger:active {
+      transform: scale(0.98);
+      transition-duration: 0.06s;
+    }
+
+    @media (max-width: 639px) {
+      .search-trigger {
+        width: 44px;
+        height: 44px;
+        margin-right: 0;
+        padding: 0;
+        justify-content: center;
+        border-color: transparent;
+        background: transparent;
+      }
+
+      .search-trigger svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .search-trigger-text,
+      .search-trigger-kbd {
+        display: none;
+      }
     }
 
     /* Filter field labels: sentence case like every other label, not tracked capitals. */
@@ -4282,12 +4513,10 @@
     <header class="topbar">
       <a href="/" class="brand" aria-label="Unwatchd home"><img src="./icons/icon-512-transparent.png" alt="" width="26" height="26">Unwatchd</a>
       <div class="topbar-actions">
-        <button id="searchToggleBtn" type="button" class="ghost-btn" aria-label="Search films, shows and people" aria-expanded="false" aria-controls="quickSearchBar">
+        <button id="searchToggleBtn" type="button" class="search-trigger" aria-label="Search films, shows and people" aria-expanded="false" aria-controls="quickSearchBar">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
-          <span class="hide-narrow">Search</span>
-        </button>
-        <button id="vpnToggleBtn" type="button" class="ghost-btn" title="Also show films you could unlock by switching your VPN to another region">
-          VPN <span id="vpnToggleDot" class="toggle-dot"></span>
+          <span class="search-trigger-text">Search any film or person</span>
+          <span class="search-trigger-kbd kbd-shortcut" aria-hidden="true">Ctrl K</span>
         </button>
         <div class="relative inline-block custom-filter-dropdown-container">
           <div id="regionContainer" class="relative">
@@ -4305,7 +4534,7 @@
       <div class="quick-search-field">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
         <input id="quickSearchInput" aria-label="Search films, TV shows and people" type="text" autocomplete="off" spellcheck="false" placeholder="Any film, show or person">
-        <span class="kbd-hint">⌘K</span>
+        <span class="kbd-hint kbd-shortcut">Ctrl K</span>
         <button id="clearSearchBtn" type="button" aria-label="Clear search" class="hidden icon-btn">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
@@ -4323,13 +4552,15 @@
           <h1 class="display">What can you watch <em>tonight?</em></h1>
           <p class="lede">Enter your Letterboxd username and we'll check your whole watchlist against the streaming services you already pay for.</p>
 
-          <!-- One bar: who (you, and optionally a friend), which services, go. Stacks into a card on phones. -->
+          <!-- One bar: who (you, and optionally a friend), which services, go. Stacks into a card on phones.
+               The service list unfolds out of the bar; while scanning, the bar itself shows the progress. -->
           <div class="ask">
             <div class="ask-bar">
               <label class="ask-seg ask-seg-user">
-                <span class="ask-seg-label">Letterboxd username</span>
+                <span class="ask-seg-label">Your watchlist</span>
                 <span class="ask-seg-value">
-                  <input id="usernameInput" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="yourname">
+                  <span class="ask-prefix" aria-hidden="true">letterboxd.com/</span>
+                  <input id="usernameInput" aria-label="Your Letterboxd username" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="username">
                   <button id="clearSyncBtn" type="button" aria-label="Clear username and results" class="hidden icon-btn">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                   </button>
@@ -4338,51 +4569,50 @@
               <label id="friendInputWrapper" class="ask-seg ask-seg-friend">
                 <span class="ask-seg-label">Compare with</span>
                 <span class="ask-seg-value">
-                  <input id="friendInput" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="A friend, optional">
+                  <input id="friendInput" aria-label="A friend's Letterboxd username (optional)" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="A friend, optional">
                   <button id="removeFriendBtn" type="button" aria-label="Remove friend" class="hidden icon-btn">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                   </button>
                 </span>
               </label>
               <div id="serviceSelectionWrapper" class="ask-seg ask-seg-services">
-                <button id="servicePill" type="button" class="ask-seg-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="serviceBrowser">
+                <button id="servicePill" type="button" class="ask-seg-btn" aria-expanded="false" aria-controls="serviceBrowser">
                   <span class="ask-seg-label">Streaming on</span>
                   <span id="serviceSummary" class="ask-seg-value svc-summary">Choose services</span>
                   <svg class="ask-seg-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"></path></svg>
                 </button>
               </div>
+              <div id="serviceBrowser" class="svc-panel hidden" role="group" aria-labelledby="serviceBrowserTitle">
+                <div class="svc-panel-clip">
+                  <div class="svc-panel-body">
+                    <div class="svc-panel-head">
+                      <p id="serviceBrowserTitle" class="svc-panel-title">Which do you pay for in <span id="serviceBrowserRegion"></span>?</p>
+                      <span id="serviceBrowserCount" class="svc-panel-count"></span>
+                    </div>
+                    <div id="serviceAllGrid" class="svc-options"></div>
+                    <div class="svc-panel-foot">
+                      <button id="serviceBrowserSave" type="button" class="btn btn-quiet">Done</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <button id="startButton" type="button" class="btn btn-primary btn-lg">Find my films</button>
+
+              <div id="progressSection" class="ask-progress hidden" aria-live="polite">
+                <div id="progressBar" class="ask-progress-fill" style="width:0%"></div>
+                <div class="ask-progress-text">
+                  <p id="progressPercent" class="ask-progress-pct">0%</p>
+                  <p id="progressLabel" class="ask-progress-label">Starting…</p>
+                </div>
+                <button id="stopButton" type="button" class="btn btn-quiet ask-progress-stop">Stop</button>
+              </div>
             </div>
             <p id="formError" role="alert" class="form-error hidden"></p>
             <button id="landingBackBtn" type="button" class="btn btn-quiet landing-back hidden">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"></path></svg>
               Back to your results
             </button>
-
-            <div id="serviceBackdrop" class="svc-backdrop hidden"></div>
-            <div id="serviceBrowser" class="service-browser hidden" role="dialog" aria-modal="true" aria-labelledby="serviceBrowserTitle">
-              <div class="sheet-handle" aria-hidden="true"></div>
-              <div class="service-browser-head">
-                <h2 id="serviceBrowserTitle" class="service-browser-title">Your streaming services</h2>
-                <p class="service-browser-sub">Pick the ones you pay for in <span id="serviceBrowserRegion"></span>.</p>
-              </div>
-              <div id="serviceAllGrid" class="service-grid"></div>
-              <div class="service-browser-actions">
-                <span id="serviceBrowserCount" class="service-browser-count"></span>
-                <button id="serviceBrowserCancel" type="button" class="btn btn-quiet">Cancel</button>
-                <button id="serviceBrowserSave" type="button" class="btn btn-primary">Done</button>
-              </div>
-            </div>
           </div>
-
-          <section id="progressSection" class="scan-progress hidden" aria-live="polite">
-            <div class="scan-progress-head">
-              <p id="progressLabel" class="scan-progress-label">Starting…</p>
-              <p id="progressPercent" class="scan-progress-pct">0%</p>
-            </div>
-            <div class="scan-progress-track"><div id="progressBar" class="load-fill" style="width:0%"></div></div>
-            <button id="stopButton" type="button" class="link-btn scan-progress-stop">Stop scanning</button>
-          </section>
         </div>
       </section>
 
@@ -4445,7 +4675,7 @@
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M7 12h10M10 17h4"></path></svg>
                 <span class="hide-narrow">Filters</span>
               </button>
-              <button id="vpnToggleBtnInline" type="button" class="ghost-btn" title="Also show films you could unlock with a VPN">
+              <button id="vpnToggleBtnInline" type="button" class="ghost-btn" title="Also show films you could unlock by switching your VPN to another region">
                 VPN <span id="vpnToggleDotInline" class="toggle-dot"></span>
               </button>
             </div>

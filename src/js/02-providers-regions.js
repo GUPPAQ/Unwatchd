@@ -605,8 +605,8 @@
       // Fix: Refresh the service browser if it's currently open
       const browser = document.getElementById('serviceBrowser');
       if (browser && !browser.classList.contains('hidden')) {
-        const availableIds = new Set(currentProviders.map(p => p.id));
-        pendingSelectedIds = new Set([...pendingSelectedIds].filter(id => availableIds.has(id)));
+        const name = document.getElementById('serviceBrowserRegion');
+        if (name) name.textContent = REGION_META[currentRegion]?.name || currentRegion;
         renderBrowserGrid();
         updateBrowserSaveBtn();
       }
