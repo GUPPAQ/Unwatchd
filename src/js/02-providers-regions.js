@@ -567,10 +567,7 @@
       friendInputWrapper: document.getElementById('friendInputWrapper'),
       friendInput: document.getElementById('friendInput'),
       toggleFriendBtn: document.getElementById('toggleFriendBtn'),
-      removeFriendBtn: document.getElementById('removeFriendBtn'),
-      rouletteBtn: document.getElementById('rouletteBtn'),
-      statsBtn: document.getElementById('statsBtn'),
-      statsBar: document.getElementById('statsBar')
+      removeFriendBtn: document.getElementById('removeFriendBtn')
     };
 
     const savedRegion = localStorage.getItem('ps_region');
@@ -655,11 +652,11 @@
         if (!btn) return;
         if (vpnModeEnabled) {
           btn.classList.add('vpn-active'); btn.classList.remove('text-gray-500', 'text-gray-400');
-          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-blue-400'); dot.classList.remove('shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-blue-400'); dot.classList.remove('shadow-[0_0_6px_rgba(255,122,92,0.8)]'); }
         } else {
           btn.classList.remove('vpn-active');
           if (btn.id === 'vpnToggleBtn') btn.classList.add('text-gray-500'); else btn.classList.add('text-gray-400');
-          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-blue-400', 'shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-blue-400', 'shadow-[0_0_6px_rgba(255,122,92,0.8)]'); }
         }
       });
       // Also update any inline Watch Now VPN toggle buttons currently visible

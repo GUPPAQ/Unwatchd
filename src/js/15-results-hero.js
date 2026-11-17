@@ -45,17 +45,19 @@
 
       const whose = isFriendMatchActive ? `the ${filmsCount(total)} you both want to see` : `your ${filmsCount(total)}`;
       if (streaming > 0) {
-        headline.innerHTML = `<span class="text-blue-400">${streaming.toLocaleString()}</span> of ${whose} ${streaming === 1 ? 'is' : 'are'} streaming on your services right now.`;
+        headline.innerHTML = `<em>${streaming.toLocaleString()}</em> of ${whose} ${streaming === 1 ? 'is' : 'are'} yours to watch tonight.`;
       } else {
-        headline.textContent = `None of ${whose} are streaming on your services right now.`;
+        headline.textContent = `None of ${whose} are on your services tonight.`;
       }
+      renderServiceChips(perService, streaming);
 
       const rentbuy = all.rentbuy.length;
       const other = all.other.length;
       const parts = [];
       if (streaming > 0) {
-        // With one service the breakdown just repeats the headline ("Disney+ 24"), so skip it.
-        if (Object.keys(perService).length > 1) parts.push(`${breakdown}.`);
+        // The per-service counts live on the service chips; here only when there are no chips.
+        const chipsShown = currentProviders.filter(cp => selectedServiceIds.has(cp.id) && perService[cp.name] > 0).length >= 2;
+        if (!chipsShown && Object.keys(perService).length > 1) parts.push(`${breakdown}.`);
         if (rentbuy > 0) parts.push(`${rentbuy.toLocaleString()} more can be rented or bought.`);
       } else {
         if (rentbuy > 0) parts.push(`${filmsCount(rentbuy)} can be rented or bought.`);
@@ -76,7 +78,6 @@
       if (!scannedMovies.length || pool.length === 0) {
         card.classList.add('hidden');
         currentTonightPick = null;
-        setAmbientBackdrop(null);
         return;
       }
       let pick = pool.find(m => movieKeyOf(m) === tonightPickKey);
@@ -86,17 +87,6 @@
       }
       fillTonightPick(pick, pool.length);
       card.classList.remove('hidden');
-    }
-
-    // A soft, blurred wash of the pick's artwork behind the top of the page. Uses the
-    // smallest backdrop size: it is blurred beyond recognition anyway.
-    function setAmbientBackdrop(backdropUrl) {
-      const layer = document.getElementById('ambientBackdrop');
-      if (!layer) return;
-      const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
-      if (!backdropUrl || !resultsVisible) { layer.classList.remove('is-on'); return; }
-      layer.style.backgroundImage = `url("${backdropUrl.replace('/w1280/', '/w300/')}")`;
-      layer.classList.add('is-on');
     }
 
     // The film's own title logo (the artwork streaming apps show), when TMDB has one.
@@ -125,7 +115,6 @@
         const src = m.backdrop || m.poster || '';
         if (src) { img.src = src; img.classList.remove('hidden'); } else { img.removeAttribute('src'); img.classList.add('hidden'); }
       }
-      setAmbientBackdrop(m.backdrop || null);
 
       const logo = document.getElementById('tonightPickLogo');
       if (logo && card) {
@@ -149,7 +138,7 @@
       const rating = getCachedRating(m);
       if (rating) meta.push(`IMDb ${rating}`);
       const metaEl = document.getElementById('tonightPickMeta');
-      if (metaEl) metaEl.textContent = meta.join(' · ');
+      if (metaEl) metaEl.textContent = ["Tonight's pick", ...meta].join(' · ');
 
       // Which of the viewer's services has it: a local one first, otherwise the VPN region.
       const local = (m.regionData?.flatrate || []).filter(buildSubscribedMatcher());
@@ -235,7 +224,6 @@
       const bar = document.getElementById('scanCompactBar');
       if (!full || !bar) return;
       const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
-      setAmbientBackdrop(resultsVisible && currentTonightPick ? (currentTonightPick.backdrop || null) : null);
       const compact = resultsVisible && scannedMovies.length > 0 && !scanPanelExpanded && !isScanning;
       full.classList.toggle('hidden', compact);
       bar.classList.toggle('hidden', !compact);
@@ -254,6 +242,60 @@
       if (friendBtn) friendBtn.classList.toggle('hidden', isFriendMatchActive);
     }
 
+    // One chip per selected service with films on it, plus "All". A chip narrows the grid
+    // (and Tonight's pick) to that service, through the same provider filter the Filters panel sets.
+    function renderServiceChips(perService, streamingTotal) {
+      const box = document.getElementById('serviceChips');
+      if (!box) return;
+      const services = currentProviders.filter(cp => selectedServiceIds.has(cp.id) && perService[cp.name] > 0);
+      if (services.length < 2) { box.innerHTML = ''; box.classList.add('hidden'); return; }
+      const only = (!homeFilterProviders.has('all') && homeFilterProviders.size === 1) ? [...homeFilterProviders][0] : null;
+      const chip = (name, count, logo) => `<button type="button" class="svc-chip" data-service="${escapeHTML(name)}" aria-pressed="${(only === name) || (!only && !name)}">${logo ? `<img src="${escapeHTML(logo)}" alt="" onerror="this.remove()">` : ''}<span class="svc-chip-name">${name ? escapeHTML(name) : 'All'}</span><span class="svc-chip-count">${count.toLocaleString()}</span></button>`;
+      box.innerHTML = chip('', streamingTotal, null) + services.sort((a, b) => perService[b.name] - perService[a.name]).map(cp => chip(cp.name, perService[cp.name], getProviderLogoUrl(cp.name))).join('');
+      box.classList.remove('hidden');
+    }
+
+    function selectServiceChip(name) {
+      homeFilterProviders = name ? new Set([name]) : new Set(['all']);
+      tonightPickKey = null; // a new service gets its own pick
+      currentPage = 1;
+      if (activeTab !== 'stream') setHomeTab('stream');
+      renderAllCustomFilters('home');
+      applyFiltersAndRender();
+    }
+
+    // Quick search lives behind the Search button in the top bar (and ⌘K / Ctrl+K).
+    function openQuickSearch() {
+      const bar = document.getElementById('quickSearchBar');
+      const btn = document.getElementById('searchToggleBtn');
+      if (!bar) return;
+      bar.classList.remove('hidden');
+      if (btn) btn.setAttribute('aria-expanded', 'true');
+      if (el.quickSearchInput) el.quickSearchInput.focus();
+    }
+    function closeQuickSearch() {
+      const bar = document.getElementById('quickSearchBar');
+      const btn = document.getElementById('searchToggleBtn');
+      if (!bar || (el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden'))) return;
+      bar.classList.add('hidden');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+
+    // The landing's poster wall: the visitor's own watchlist when we have it, otherwise
+    // this week's most talked-about films.
+    async function fillPosterWall() {
+      const wall = document.getElementById('posterWall');
+      if (!wall || wall.childElementCount) return;
+      let posters = scannedMovies.filter(m => m.poster).slice(0, 16).map(m => m.poster.replace('/w500/', '/w342/'));
+      if (posters.length < 12) {
+        try {
+          const data = await tmdbFetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}`).then(r => r.json());
+          posters = (data.results || []).filter(f => f.poster_path).slice(0, 16).map(f => `https://image.tmdb.org/t/p/w342${f.poster_path}`);
+        } catch (e) { logIgnored('fillPosterWall', e); return; }
+      }
+      wall.innerHTML = posters.map(src => `<img src="${src}" alt="" loading="lazy" decoding="async">`).join('');
+    }
+
     function expandScanPanel() {
       scanPanelExpanded = true;
       updateScanPanelMode();
@@ -263,6 +305,13 @@
 
     (() => {
       const on = (id, fn) => { const node = document.getElementById(id); if (node) node.addEventListener('click', fn); };
+      on('searchToggleBtn', () => {
+        const bar = document.getElementById('quickSearchBar');
+        if (bar && bar.classList.contains('hidden')) openQuickSearch(); else closeQuickSearch();
+      });
+      const chips = document.getElementById('serviceChips');
+      if (chips) chips.addEventListener('click', (e) => { const b = e.target.closest('.svc-chip'); if (b) selectServiceChip(b.dataset.service || null); });
+      setTimeout(fillPosterWall, 400); // after the saved scan (if any) has had a chance to load
       on('tonightPickAnother', showAnotherTonightPick);
       on('tonightPickTrailer', playTonightPickTrailer);
       on('tonightPickArt', () => { if (currentTonightPick) openMoviePage(currentTonightPick, true); });

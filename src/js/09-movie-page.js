@@ -411,7 +411,7 @@
           if (details && details.belongs_to_collection && details.belongs_to_collection.id) {
             collectionData = await getCollectionDetails(details.belongs_to_collection.id);
           }
-          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup', false, collectionData)}</div>`;
+          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0a0a0b] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup', false, collectionData)}</div>`;
           const closeBtn = document.getElementById('closeModalBtn');
           if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; window.currentActiveMovieObj = null; };
           const backBtn = document.getElementById('movieBackBtn');
@@ -757,7 +757,7 @@
 
       const createBtn = (text, disabled, page, isActive = false) => {
         if (isActive) {
-          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]">${text}</button>`;
         } else if (disabled && text !== '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
         } else if (text === '...') {
@@ -830,7 +830,7 @@
       if (bannerArtEl) {
         bannerArtEl.innerHTML = backdrop
           ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">`
-          : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0b1121]"></div>`;
+          : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0a0a0b]"></div>`;
       }
 
       const titleContainer = document.getElementById('allCastModalTitleContainer');
@@ -986,7 +986,7 @@
         const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
 
         return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'closeAllCastModal(); openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-full shrink-0 group/person cursor-pointer select-none relative">
-          <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+          <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(255,90,54,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
             <div class="w-full h-full rounded-full overflow-hidden">
               ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
             </div>

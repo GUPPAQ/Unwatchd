@@ -65,23 +65,20 @@
       const safeTitle = escapeHTML(movieObj.title);
       const safeSubtext = escapeHTML(movieObj.subtext);
       const wrapper = document.createElement('div');
-      wrapper.className = `tilt-card animate-fade h-full cursor-pointer z-10 hover:z-30 relative`;
-      wrapper.style.animationDelay = `${delayIndex * 0.02}s`;
+      wrapper.className = 'poster-card';
+      wrapper.style.setProperty('--i', Math.min(delayIndex, 24));
       const a = document.createElement('a');
       a.href = movieObj.url;
       a.dataset.movieCardId = movieObj.id;
       a.addEventListener('click', (e) => { e.preventDefault(); openMoviePage(movieObj, true); });
-      a.className = 'tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full';
+      a.className = 'poster-card-art';
       const innerClip = document.createElement('div');
-      innerClip.className = 'absolute inset-0 rounded-2xl overflow-hidden pointer-events-none';
+      innerClip.className = 'poster-card-clip';
       if (movieObj.poster) {
-        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
+        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="" loading="lazy" decoding="async">`;
       } else {
-        innerClip.innerHTML = `<div class="absolute inset-0 flex items-center justify-center p-4 text-center font-bold text-gray-500 text-xs">${safeTitle}</div>`;
+        innerClip.innerHTML = `<div class="poster-card-fallback">${safeTitle}</div>`;
       }
-      const glare = document.createElement('div');
-      glare.className = 'glare';
-      innerClip.appendChild(glare);
       a.appendChild(innerClip);
 
       const badgeHtml = renderPosterRatingBadgeHtml(movieObj);
@@ -119,13 +116,16 @@
         a.appendChild(vpnBadge);
       }
 
-      a.title = safeTitle;
+      a.setAttribute('aria-label', movieObj.title || 'Film');
       wrapper.appendChild(a);
-      apply3DTilt(wrapper);
+      const year = (movieObj.releaseDate || '').slice(0, 4);
+      const caption = document.createElement('div');
+      caption.className = 'poster-card-caption';
+      caption.innerHTML = `<span class="poster-card-title">${safeTitle}</span>${year ? `<span class="poster-card-year">${year}</span>` : ''}`;
+      wrapper.appendChild(caption);
       return wrapper;
     }
-    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
-    function updateStats() { if (scannedMovies.length === 0) { if (el.statsBar) el.statsBar.classList.add('hidden'); return; } document.getElementById('stat-total').textContent = scannedMovies.length; let genreCounts = {}; let decadeCounts = {}; let totalRating = 0; let ratedCount = 0; scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genreCounts[GENRE_MAP[id]] = (genreCounts[GENRE_MAP[id]] || 0) + 1; }); if (m.releaseDate) { const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10; if (!isNaN(dec)) decadeCounts[dec] = (decadeCounts[dec] || 0) + 1; } const rVal = getCachedRating(m); if (rVal) { const r = parseFloat(rVal); if (!isNaN(r) && r > 0) { totalRating += r; ratedCount++; } } }); const topG = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a])[0] || '-'; const topD = Object.keys(decadeCounts).sort((a, b) => decadeCounts[b] - decadeCounts[a])[0]; const avg = ratedCount ? (totalRating / ratedCount).toFixed(1) : '-'; document.getElementById('stat-genre').textContent = topG; document.getElementById('stat-decade').innerHTML = topD ? `${topD}S` : '-'; const avgEl = document.getElementById('stat-avg'); if (avgEl) avgEl.textContent = avg; }
+    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
     function populateFilterDropdowns() {
       renderAllCustomFilters('home');
     }
@@ -465,7 +465,7 @@
             el.formError.classList.remove('hidden');
           }
           if (el.resultsSection) el.resultsSection.classList.add('hidden');
-          if (el.statsBar) el.statsBar.classList.add('hidden');
+         
           resetUI();
         }
       });

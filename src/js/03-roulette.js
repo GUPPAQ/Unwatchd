@@ -1,132 +1,9 @@
-    // =========================================================================
-    // WATCHLIST ROULETTE (Simple & Elegant Random Picker)
-    // =========================================================================
-    let isRouletteSpinning = false;
-    let rouletteSpinGeneration = 0;
-
-    function openRouletteModal() {
-      const modal = document.getElementById('rouletteModal');
-      const content = document.getElementById('rouletteModalContent');
-      if (!modal || !content) return;
-
-      modal.classList.remove('hidden', 'popup-overlay-out');
-      modal.classList.add('flex');
-
-      requestAnimationFrame(() => {
-        modal.classList.add('popup-overlay-in');
-        content.classList.remove('popup-animate-out');
-        content.classList.add('popup-animate-in');
-      });
-
-      spinRoulette(true);
-    }
-
-    function closeRouletteModal() {
-      const modal = document.getElementById('rouletteModal');
-      const content = document.getElementById('rouletteModalContent');
-      if (!modal) return;
-
-      isRouletteSpinning = false;
-      rouletteSpinGeneration++;
-
-      if (content) {
-        content.classList.remove('popup-animate-in');
-        content.classList.add('popup-animate-out');
-      }
-      modal.classList.remove('popup-overlay-in');
-      modal.classList.add('popup-overlay-out');
-
-      setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex', 'popup-overlay-out');
-        if (content) content.classList.remove('popup-animate-out');
-      }, 220);
-    }
-
-    async function spinRoulette(isInitial = false) {
-      if (isRouletteSpinning) return;
-      isRouletteSpinning = true;
-      rouletteSpinGeneration++;
-      const myGeneration = rouletteSpinGeneration;
-
-      const cardContainer = document.getElementById('rouletteCardContainer');
-      const emptyState = document.getElementById('rouletteEmptyState');
-      const posterWrapper = document.getElementById('roulettePosterWrapper');
-      const posterImg = document.getElementById('roulettePosterImg');
-      const viewBtn = document.getElementById('rouletteViewBtn');
-      const respinBtn = document.getElementById('rouletteRespinBtn');
-      const respinSvg = document.getElementById('rouletteRespinSvg');
-
-      if (respinBtn) respinBtn.disabled = true;
-      if (respinSvg) respinSvg.classList.add('roulette-spin-active');
-
-      let candidatePool = currentGroupedResults[activeTab] || [];
-      if (!candidatePool || candidatePool.length === 0) {
-        candidatePool = currentGroupedResults.stream.length > 0 ? currentGroupedResults.stream : scannedMovies;
-      }
-
-      if (!candidatePool || candidatePool.length === 0) {
-        if (cardContainer) cardContainer.classList.add('hidden');
-        if (emptyState) {
-          emptyState.classList.remove('hidden');
-          emptyState.classList.add('flex');
-        }
-        isRouletteSpinning = false;
-        if (respinBtn) respinBtn.disabled = false;
-        if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
-        return;
-      }
-
-      if (emptyState) {
-        emptyState.classList.add('hidden');
-        emptyState.classList.remove('flex');
-      }
-      if (cardContainer) cardContainer.classList.remove('hidden');
-
-      // Subtle quick shuffle transition
-      if (!isInitial && cardContainer) {
-        cardContainer.style.opacity = '0.35';
-        cardContainer.style.transform = 'scale(0.97)';
-        await new Promise(r => setTimeout(r, 150));
-      }
-
-      if (myGeneration !== rouletteSpinGeneration) return;
-
-      const winnerMovie = candidatePool[Math.floor(Math.random() * candidatePool.length)];
-
-      if (posterImg) {
-        posterImg.src = winnerMovie.poster || '';
-        posterImg.alt = winnerMovie.title || 'Movie Poster';
-      }
-
-      const openFn = () => {
-        closeRouletteModal();
-        openMoviePage(winnerMovie, true);
-      };
-
-      if (posterWrapper) posterWrapper.onclick = openFn;
-      if (viewBtn) {
-        viewBtn.disabled = false;
-        viewBtn.onclick = openFn;
-      }
-
-      if (cardContainer) {
-        cardContainer.style.opacity = '1';
-        cardContainer.style.transform = 'scale(1)';
-      }
-
-      if (respinBtn) respinBtn.disabled = false;
-      if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
-      isRouletteSpinning = false;
-    }
-
+    // The old roulette modal is gone: "Another pick" on Tonight's pick (15-results-hero.js) does its job.
     const savedUsername = localStorage.getItem('ps_username'); if (savedUsername && el.usernameInput) el.usernameInput.value = savedUsername;
     const savedFriend = localStorage.getItem('ps_friend_username'); if (savedFriend && el.friendInput) { el.friendInput.value = savedFriend; if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); }
     if (el.toggleFriendBtn) { el.toggleFriendBtn.addEventListener('click', () => { if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.friendInput) el.friendInput.focus(); }); }
-    if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if (el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if (el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } if (isFriendMatchActive) { if (el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies = []; clearScanStorage(); isFriendMatchActive = false; if (el.activeGridContainer) el.activeGridContainer.innerHTML = ''; if (el.statsBar) el.statsBar.classList.add('hidden'); if (el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
+    if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if (el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if (el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } if (isFriendMatchActive) { if (el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies = []; clearScanStorage(); isFriendMatchActive = false; if (el.activeGridContainer) el.activeGridContainer.innerHTML = ''; if (el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
     if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
-    if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { closeHomeFilterDropdown(); if (scannedMovies.length > 0) { openInsightsPopup(); } el.statsBtn.blur(); }); }
-    if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { closeHomeFilterDropdown(); openRouletteModal(); el.rouletteBtn.blur(); }); }
     let trailerPlayer = null;
     let isTrailerPaused = false;
 
@@ -158,7 +35,7 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if (el.quickSearchInput) el.quickSearchInput.focus(); }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openQuickSearch(); }
       const trailerModal = document.getElementById('trailerModal');
       const trailerModalOpen = trailerModal && !trailerModal.classList.contains('hidden');
       if (trailerModalOpen) {
@@ -237,11 +114,8 @@
       }
       const allCastModal = document.getElementById('allCastModal');
       const allCastModalOpen = allCastModal && !allCastModal.classList.contains('hidden');
-      const rouletteModal = document.getElementById('rouletteModal');
-      const rouletteModalOpen = rouletteModal && !rouletteModal.classList.contains('hidden');
       const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); const isModalOpen = !!modal && !modal.classList.contains('hidden');
       if (e.key === 'Escape') {
-        if (rouletteModalOpen) { closeRouletteModal(); return; }
         if (allCastModalOpen) { closeAllCastModal(); return; }
         if (actorModalOpen) { closeActorModal(); return; }
         if (el.searchDropdown) el.searchDropdown.classList.add('hidden');

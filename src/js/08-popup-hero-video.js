@@ -1,5 +1,4 @@
-    // ---- Generic popup (Insights, full description text, etc.) ----
-    let statsBarOriginalParent = null;
+    // ---- Generic popup (full description text, etc.) ----
     function closeGenericPopup() {
       const overlay = document.getElementById('genericPopupOverlay');
       const content = document.getElementById('genericPopupContent');
@@ -18,14 +17,6 @@
         overlay.classList.remove('flex', 'popup-overlay-out');
         if (content) content.classList.remove('popup-animate-out');
 
-        const bar = document.getElementById('statsBar');
-        if (bar && statsBarOriginalParent) {
-          statsBarOriginalParent.appendChild(bar);
-          statsBarOriginalParent = null;
-          bar.classList.add('hidden');
-          bar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3');
-          if (el.statsBtn) el.statsBtn.classList.remove('vpn-active');
-        }
       }, 220);
     }
     function handleSpotifyMarqueeEnter(cardEl) {
@@ -166,7 +157,7 @@
           ${hasUser ? `
             <div>
               <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(255,90,54,0.8)]"></span>
                 Your Subscriptions
               </h4>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.userFlatrateLinksHtml}</div>
@@ -209,53 +200,6 @@
       body.scrollTop = 0;
     }
 
-    function openInsightsPopup() {
-      const bar = document.getElementById('statsBar');
-      const body = document.getElementById('genericPopupBody');
-      if (!bar || !body) return;
-      statsBarOriginalParent = bar.parentElement;
-
-      // Read current stat values
-      const total = document.getElementById('stat-total')?.textContent || '0';
-      const genre = document.getElementById('stat-genre')?.textContent || '-';
-      const decade = document.getElementById('stat-decade')?.textContent || '-';
-      const avg = document.getElementById('stat-avg')?.textContent || '-';
-
-      const statsHtml = `
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div class="insight-stat-card">
-            <span class="stat-icon"></span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Total Films</span>
-              <span class="stat-value">${escapeHTML(total)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon"></span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Top Genre</span>
-              <span class="stat-value">${escapeHTML(genre)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon"></span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Top Decade</span>
-              <span class="stat-value">${escapeHTML(decade)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon"></span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Avg Rating</span>
-              <span class="stat-value">${escapeHTML(avg)}</span>
-            </div>
-          </div>
-        </div>`;
-
-      if (el.statsBtn) el.statsBtn.classList.add('vpn-active');
-      openCustomPopup('Watchlist Insights', statsHtml, 'Analytics');
-    }
     // 2-line-clamped hero description with a "More" link that opens the full text in the popup
     // above, instead of expanding inline (used on the full-page movie/actor hero).
     let heroOverviewCounter = 0;

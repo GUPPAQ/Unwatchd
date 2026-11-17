@@ -316,7 +316,7 @@
         if (username === friendName) { if (el.formError) { el.formError.textContent = 'That\'s your own username. Enter a friend\'s to compare.'; el.formError.classList.remove('hidden'); } return; }
         const myScanSessionId = ++activeScanSessionId; scanPanelExpanded = false; tonightPickKey = null;
         isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('pointer-events-none', 'opacity-50'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); document.querySelectorAll('.service-btn').forEach(b => b.classList.add('locked')); if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
-        scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.statsBar) el.statsBar.classList.add('hidden');
+        scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden');
         if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden');
         if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';
         try {
@@ -452,7 +452,6 @@
             try {
               populateFilterDropdowns();
               applyFiltersAndRender();
-              updateStats();
             } catch (err) { console.warn('[Post-Scan Render]', err); }
             resetUI();
             setScanNotice(incompleteNotes);

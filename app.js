@@ -969,10 +969,7 @@
       friendInputWrapper: document.getElementById('friendInputWrapper'),
       friendInput: document.getElementById('friendInput'),
       toggleFriendBtn: document.getElementById('toggleFriendBtn'),
-      removeFriendBtn: document.getElementById('removeFriendBtn'),
-      rouletteBtn: document.getElementById('rouletteBtn'),
-      statsBtn: document.getElementById('statsBtn'),
-      statsBar: document.getElementById('statsBar')
+      removeFriendBtn: document.getElementById('removeFriendBtn')
     };
 
     const savedRegion = localStorage.getItem('ps_region');
@@ -1057,11 +1054,11 @@
         if (!btn) return;
         if (vpnModeEnabled) {
           btn.classList.add('vpn-active'); btn.classList.remove('text-gray-500', 'text-gray-400');
-          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-blue-400'); dot.classList.remove('shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-blue-400'); dot.classList.remove('shadow-[0_0_6px_rgba(255,122,92,0.8)]'); }
         } else {
           btn.classList.remove('vpn-active');
           if (btn.id === 'vpnToggleBtn') btn.classList.add('text-gray-500'); else btn.classList.add('text-gray-400');
-          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-blue-400', 'shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-blue-400', 'shadow-[0_0_6px_rgba(255,122,92,0.8)]'); }
         }
       });
       // Also update any inline Watch Now VPN toggle buttons currently visible
@@ -1129,135 +1126,12 @@
       } catch (e) { logIgnored('refreshMovieVpnView', e); }
     }
 
-    // =========================================================================
-    // WATCHLIST ROULETTE (Simple & Elegant Random Picker)
-    // =========================================================================
-    let isRouletteSpinning = false;
-    let rouletteSpinGeneration = 0;
-
-    function openRouletteModal() {
-      const modal = document.getElementById('rouletteModal');
-      const content = document.getElementById('rouletteModalContent');
-      if (!modal || !content) return;
-
-      modal.classList.remove('hidden', 'popup-overlay-out');
-      modal.classList.add('flex');
-
-      requestAnimationFrame(() => {
-        modal.classList.add('popup-overlay-in');
-        content.classList.remove('popup-animate-out');
-        content.classList.add('popup-animate-in');
-      });
-
-      spinRoulette(true);
-    }
-
-    function closeRouletteModal() {
-      const modal = document.getElementById('rouletteModal');
-      const content = document.getElementById('rouletteModalContent');
-      if (!modal) return;
-
-      isRouletteSpinning = false;
-      rouletteSpinGeneration++;
-
-      if (content) {
-        content.classList.remove('popup-animate-in');
-        content.classList.add('popup-animate-out');
-      }
-      modal.classList.remove('popup-overlay-in');
-      modal.classList.add('popup-overlay-out');
-
-      setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex', 'popup-overlay-out');
-        if (content) content.classList.remove('popup-animate-out');
-      }, 220);
-    }
-
-    async function spinRoulette(isInitial = false) {
-      if (isRouletteSpinning) return;
-      isRouletteSpinning = true;
-      rouletteSpinGeneration++;
-      const myGeneration = rouletteSpinGeneration;
-
-      const cardContainer = document.getElementById('rouletteCardContainer');
-      const emptyState = document.getElementById('rouletteEmptyState');
-      const posterWrapper = document.getElementById('roulettePosterWrapper');
-      const posterImg = document.getElementById('roulettePosterImg');
-      const viewBtn = document.getElementById('rouletteViewBtn');
-      const respinBtn = document.getElementById('rouletteRespinBtn');
-      const respinSvg = document.getElementById('rouletteRespinSvg');
-
-      if (respinBtn) respinBtn.disabled = true;
-      if (respinSvg) respinSvg.classList.add('roulette-spin-active');
-
-      let candidatePool = currentGroupedResults[activeTab] || [];
-      if (!candidatePool || candidatePool.length === 0) {
-        candidatePool = currentGroupedResults.stream.length > 0 ? currentGroupedResults.stream : scannedMovies;
-      }
-
-      if (!candidatePool || candidatePool.length === 0) {
-        if (cardContainer) cardContainer.classList.add('hidden');
-        if (emptyState) {
-          emptyState.classList.remove('hidden');
-          emptyState.classList.add('flex');
-        }
-        isRouletteSpinning = false;
-        if (respinBtn) respinBtn.disabled = false;
-        if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
-        return;
-      }
-
-      if (emptyState) {
-        emptyState.classList.add('hidden');
-        emptyState.classList.remove('flex');
-      }
-      if (cardContainer) cardContainer.classList.remove('hidden');
-
-      // Subtle quick shuffle transition
-      if (!isInitial && cardContainer) {
-        cardContainer.style.opacity = '0.35';
-        cardContainer.style.transform = 'scale(0.97)';
-        await new Promise(r => setTimeout(r, 150));
-      }
-
-      if (myGeneration !== rouletteSpinGeneration) return;
-
-      const winnerMovie = candidatePool[Math.floor(Math.random() * candidatePool.length)];
-
-      if (posterImg) {
-        posterImg.src = winnerMovie.poster || '';
-        posterImg.alt = winnerMovie.title || 'Movie Poster';
-      }
-
-      const openFn = () => {
-        closeRouletteModal();
-        openMoviePage(winnerMovie, true);
-      };
-
-      if (posterWrapper) posterWrapper.onclick = openFn;
-      if (viewBtn) {
-        viewBtn.disabled = false;
-        viewBtn.onclick = openFn;
-      }
-
-      if (cardContainer) {
-        cardContainer.style.opacity = '1';
-        cardContainer.style.transform = 'scale(1)';
-      }
-
-      if (respinBtn) respinBtn.disabled = false;
-      if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
-      isRouletteSpinning = false;
-    }
-
+    // The old roulette modal is gone: "Another pick" on Tonight's pick (15-results-hero.js) does its job.
     const savedUsername = localStorage.getItem('ps_username'); if (savedUsername && el.usernameInput) el.usernameInput.value = savedUsername;
     const savedFriend = localStorage.getItem('ps_friend_username'); if (savedFriend && el.friendInput) { el.friendInput.value = savedFriend; if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); }
     if (el.toggleFriendBtn) { el.toggleFriendBtn.addEventListener('click', () => { if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.friendInput) el.friendInput.focus(); }); }
-    if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if (el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if (el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } if (isFriendMatchActive) { if (el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies = []; clearScanStorage(); isFriendMatchActive = false; if (el.activeGridContainer) el.activeGridContainer.innerHTML = ''; if (el.statsBar) el.statsBar.classList.add('hidden'); if (el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
+    if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if (el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if (el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } if (isFriendMatchActive) { if (el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies = []; clearScanStorage(); isFriendMatchActive = false; if (el.activeGridContainer) el.activeGridContainer.innerHTML = ''; if (el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
     if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
-    if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { closeHomeFilterDropdown(); if (scannedMovies.length > 0) { openInsightsPopup(); } el.statsBtn.blur(); }); }
-    if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { closeHomeFilterDropdown(); openRouletteModal(); el.rouletteBtn.blur(); }); }
     let trailerPlayer = null;
     let isTrailerPaused = false;
 
@@ -1289,7 +1163,7 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if (el.quickSearchInput) el.quickSearchInput.focus(); }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openQuickSearch(); }
       const trailerModal = document.getElementById('trailerModal');
       const trailerModalOpen = trailerModal && !trailerModal.classList.contains('hidden');
       if (trailerModalOpen) {
@@ -1368,11 +1242,8 @@
       }
       const allCastModal = document.getElementById('allCastModal');
       const allCastModalOpen = allCastModal && !allCastModal.classList.contains('hidden');
-      const rouletteModal = document.getElementById('rouletteModal');
-      const rouletteModalOpen = rouletteModal && !rouletteModal.classList.contains('hidden');
       const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); const isModalOpen = !!modal && !modal.classList.contains('hidden');
       if (e.key === 'Escape') {
-        if (rouletteModalOpen) { closeRouletteModal(); return; }
         if (allCastModalOpen) { closeAllCastModal(); return; }
         if (actorModalOpen) { closeActorModal(); return; }
         if (el.searchDropdown) el.searchDropdown.classList.add('hidden');
@@ -2490,7 +2361,7 @@
         });
       }
     });
-    [el.statsBtn, el.rouletteBtn, el.vpnToggleBtnInline].forEach(btn => {
+    [el.vpnToggleBtnInline].forEach(btn => {
       if (btn) {
         btn.addEventListener('click', (e) => {
           try { e.currentTarget.blur(); } catch (err) { console.warn('[Button Element Blur]', err); }
@@ -2801,7 +2672,6 @@
         const renderCachedGallery = () => {
           try {
             populateFilterDropdowns();
-            updateStats();
             applyFiltersAndRender();
             if (el.resultsSection) el.resultsSection.classList.remove('hidden');
             toggleClearSyncBtn();
@@ -3298,7 +3168,6 @@
 
         if (anyNewSynced) {
           saveScanToStorage(movies, isFriendMatchActive);
-          updateStats();
           if ((window.homeFilterRating && window.homeFilterRating !== 'all') || (homeFilterSort === 'rating_desc')) {
             debouncedApplyFilters();
           }
@@ -4176,7 +4045,7 @@
           const pRole = escapeHTML(p._role);
           const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
           return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint); }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 shrink-0 group/person cursor-pointer select-none relative">
-            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(255,90,54,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
               <div class="w-full h-full rounded-full overflow-hidden">
                 ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
               </div>
@@ -4327,7 +4196,7 @@
                 <div class="glare"></div>
               </div>
               ${ratingBadgeHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#0a0a0b]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         }).join('');
@@ -4368,7 +4237,7 @@
                 <div class="glare"></div>
               </div>
               ${ratingBadgeHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#0a0a0b]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         }).join('');
@@ -4392,10 +4261,10 @@
         const heroPosterUrl = getTextlessPosterUrl(details, movieObj.poster);
         const heroBannerSectionHtml = hasHero
           ? `<div class="relative w-full hero-mobile-aspect">
-              <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">
+              <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0a0a0b] clip-mask">
                 ${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-landscape-block w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}
                 ${heroPosterUrl ? `<img src="${heroPosterUrl}" alt="${safeTitle} poster" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : `<div class="hero-portrait-block w-full h-full bg-gray-900"></div>`}
-                ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] lg:h-[70%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] via-15% via-[#0b1121]/80 via-40% via-[#0b1121]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div>
+                ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] lg:h-[70%] bg-gradient-to-t from-[#0a0a0b] from-0% via-[#0a0a0b] via-15% via-[#0a0a0b]/80 via-40% via-[#0a0a0b]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div>
               </div>
               <!-- Content overlay: sits directly over the bottom of the poster/backdrop on all screens -->
               <div class="absolute inset-x-0 bottom-0 z-30 pointer-events-none pb-5 sm:pb-10 lg:pb-12">
@@ -4419,7 +4288,7 @@
                 </div>
               </div>
             </div>`
-          : `<div class="relative w-full pt-24 pb-8 sm:pb-12 bg-gradient-to-b from-[#111827] via-[#0f172a] to-[#0b1121] border-b border-white/5">
+          : `<div class="relative w-full pt-24 pb-8 sm:pb-12 bg-gradient-to-b from-[#151517] via-[#151517] to-[#0a0a0b] border-b border-white/5">
               <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
                 <div class="w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl min-w-0 flex flex-col items-center lg:items-start mx-auto lg:mx-0">
                   ${pageTitleHeaderHtml}
@@ -4470,7 +4339,7 @@
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
       const modalMobilePoster = getTextlessPosterUrl(details, movieObj.poster);
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] via-15% via-[#0b1121]/80 via-40% via-[#0b1121]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-7 sm:gap-9 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-white font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div>${overviewHtml}</div><div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div><div id="modalWatchOptionsBox" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5">${renderMovieWatchOptionsBox(movieObj, details, false, true)}</div></div>${castCrewHtml}${relatedHtml}${similarHtml}</div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div><p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p></div></div>`;
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0a0a0b] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] bg-gradient-to-t from-[#0a0a0b] from-0% via-[#0a0a0b] via-15% via-[#0a0a0b]/80 via-40% via-[#0a0a0b]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-7 sm:gap-9 bg-[#0a0a0b] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-white font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div>${overviewHtml}</div><div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div><div id="modalWatchOptionsBox" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5">${renderMovieWatchOptionsBox(movieObj, details, false, true)}</div></div>${castCrewHtml}${relatedHtml}${similarHtml}</div><div class="bg-[#0a0a0b] p-5 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div><p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p></div></div>`;
     }
 
     function getShortText(text, limit = 195) {
@@ -4480,8 +4349,7 @@
       return lastSpace > 90 ? sub.slice(0, lastSpace) : sub;
     }
 
-    // ---- Generic popup (Insights, full description text, etc.) ----
-    let statsBarOriginalParent = null;
+    // ---- Generic popup (full description text, etc.) ----
     function closeGenericPopup() {
       const overlay = document.getElementById('genericPopupOverlay');
       const content = document.getElementById('genericPopupContent');
@@ -4500,14 +4368,6 @@
         overlay.classList.remove('flex', 'popup-overlay-out');
         if (content) content.classList.remove('popup-animate-out');
 
-        const bar = document.getElementById('statsBar');
-        if (bar && statsBarOriginalParent) {
-          statsBarOriginalParent.appendChild(bar);
-          statsBarOriginalParent = null;
-          bar.classList.add('hidden');
-          bar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3');
-          if (el.statsBtn) el.statsBtn.classList.remove('vpn-active');
-        }
       }, 220);
     }
     function handleSpotifyMarqueeEnter(cardEl) {
@@ -4648,7 +4508,7 @@
           ${hasUser ? `
             <div>
               <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(255,90,54,0.8)]"></span>
                 Your Subscriptions
               </h4>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.userFlatrateLinksHtml}</div>
@@ -4691,53 +4551,6 @@
       body.scrollTop = 0;
     }
 
-    function openInsightsPopup() {
-      const bar = document.getElementById('statsBar');
-      const body = document.getElementById('genericPopupBody');
-      if (!bar || !body) return;
-      statsBarOriginalParent = bar.parentElement;
-
-      // Read current stat values
-      const total = document.getElementById('stat-total')?.textContent || '0';
-      const genre = document.getElementById('stat-genre')?.textContent || '-';
-      const decade = document.getElementById('stat-decade')?.textContent || '-';
-      const avg = document.getElementById('stat-avg')?.textContent || '-';
-
-      const statsHtml = `
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div class="insight-stat-card">
-            <span class="stat-icon"></span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Total Films</span>
-              <span class="stat-value">${escapeHTML(total)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon"></span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Top Genre</span>
-              <span class="stat-value">${escapeHTML(genre)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon"></span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Top Decade</span>
-              <span class="stat-value">${escapeHTML(decade)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon"></span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Avg Rating</span>
-              <span class="stat-value">${escapeHTML(avg)}</span>
-            </div>
-          </div>
-        </div>`;
-
-      if (el.statsBtn) el.statsBtn.classList.add('vpn-active');
-      openCustomPopup('Watchlist Insights', statsHtml, 'Analytics');
-    }
     // 2-line-clamped hero description with a "More" link that opens the full text in the popup
     // above, instead of expanding inline (used on the full-page movie/actor hero).
     let heroOverviewCounter = 0;
@@ -5563,7 +5376,7 @@
           if (details && details.belongs_to_collection && details.belongs_to_collection.id) {
             collectionData = await getCollectionDetails(details.belongs_to_collection.id);
           }
-          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup', false, collectionData)}</div>`;
+          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0a0a0b] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup', false, collectionData)}</div>`;
           const closeBtn = document.getElementById('closeModalBtn');
           if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; window.currentActiveMovieObj = null; };
           const backBtn = document.getElementById('movieBackBtn');
@@ -5909,7 +5722,7 @@
 
       const createBtn = (text, disabled, page, isActive = false) => {
         if (isActive) {
-          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]">${text}</button>`;
         } else if (disabled && text !== '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
         } else if (text === '...') {
@@ -5982,7 +5795,7 @@
       if (bannerArtEl) {
         bannerArtEl.innerHTML = backdrop
           ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">`
-          : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0b1121]"></div>`;
+          : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0a0a0b]"></div>`;
       }
 
       const titleContainer = document.getElementById('allCastModalTitleContainer');
@@ -6138,7 +5951,7 @@
         const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
 
         return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'closeAllCastModal(); openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-full shrink-0 group/person cursor-pointer select-none relative">
-          <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
+          <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(255,90,54,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
             <div class="w-full h-full rounded-full overflow-hidden">
               ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
             </div>
@@ -6272,23 +6085,20 @@
       const safeTitle = escapeHTML(movieObj.title);
       const safeSubtext = escapeHTML(movieObj.subtext);
       const wrapper = document.createElement('div');
-      wrapper.className = `tilt-card animate-fade h-full cursor-pointer z-10 hover:z-30 relative`;
-      wrapper.style.animationDelay = `${delayIndex * 0.02}s`;
+      wrapper.className = 'poster-card';
+      wrapper.style.setProperty('--i', Math.min(delayIndex, 24));
       const a = document.createElement('a');
       a.href = movieObj.url;
       a.dataset.movieCardId = movieObj.id;
       a.addEventListener('click', (e) => { e.preventDefault(); openMoviePage(movieObj, true); });
-      a.className = 'tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full';
+      a.className = 'poster-card-art';
       const innerClip = document.createElement('div');
-      innerClip.className = 'absolute inset-0 rounded-2xl overflow-hidden pointer-events-none';
+      innerClip.className = 'poster-card-clip';
       if (movieObj.poster) {
-        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
+        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="" loading="lazy" decoding="async">`;
       } else {
-        innerClip.innerHTML = `<div class="absolute inset-0 flex items-center justify-center p-4 text-center font-bold text-gray-500 text-xs">${safeTitle}</div>`;
+        innerClip.innerHTML = `<div class="poster-card-fallback">${safeTitle}</div>`;
       }
-      const glare = document.createElement('div');
-      glare.className = 'glare';
-      innerClip.appendChild(glare);
       a.appendChild(innerClip);
 
       const badgeHtml = renderPosterRatingBadgeHtml(movieObj);
@@ -6326,13 +6136,16 @@
         a.appendChild(vpnBadge);
       }
 
-      a.title = safeTitle;
+      a.setAttribute('aria-label', movieObj.title || 'Film');
       wrapper.appendChild(a);
-      apply3DTilt(wrapper);
+      const year = (movieObj.releaseDate || '').slice(0, 4);
+      const caption = document.createElement('div');
+      caption.className = 'poster-card-caption';
+      caption.innerHTML = `<span class="poster-card-title">${safeTitle}</span>${year ? `<span class="poster-card-year">${year}</span>` : ''}`;
+      wrapper.appendChild(caption);
       return wrapper;
     }
-    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
-    function updateStats() { if (scannedMovies.length === 0) { if (el.statsBar) el.statsBar.classList.add('hidden'); return; } document.getElementById('stat-total').textContent = scannedMovies.length; let genreCounts = {}; let decadeCounts = {}; let totalRating = 0; let ratedCount = 0; scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genreCounts[GENRE_MAP[id]] = (genreCounts[GENRE_MAP[id]] || 0) + 1; }); if (m.releaseDate) { const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10; if (!isNaN(dec)) decadeCounts[dec] = (decadeCounts[dec] || 0) + 1; } const rVal = getCachedRating(m); if (rVal) { const r = parseFloat(rVal); if (!isNaN(r) && r > 0) { totalRating += r; ratedCount++; } } }); const topG = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a])[0] || '-'; const topD = Object.keys(decadeCounts).sort((a, b) => decadeCounts[b] - decadeCounts[a])[0]; const avg = ratedCount ? (totalRating / ratedCount).toFixed(1) : '-'; document.getElementById('stat-genre').textContent = topG; document.getElementById('stat-decade').innerHTML = topD ? `${topD}S` : '-'; const avgEl = document.getElementById('stat-avg'); if (avgEl) avgEl.textContent = avg; }
+    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
     function populateFilterDropdowns() {
       renderAllCustomFilters('home');
     }
@@ -6672,7 +6485,7 @@
             el.formError.classList.remove('hidden');
           }
           if (el.resultsSection) el.resultsSection.classList.add('hidden');
-          if (el.statsBar) el.statsBar.classList.add('hidden');
+         
           resetUI();
         }
       });
@@ -7516,7 +7329,7 @@
         if (username === friendName) { if (el.formError) { el.formError.textContent = 'That\'s your own username. Enter a friend\'s to compare.'; el.formError.classList.remove('hidden'); } return; }
         const myScanSessionId = ++activeScanSessionId; scanPanelExpanded = false; tonightPickKey = null;
         isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('pointer-events-none', 'opacity-50'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); document.querySelectorAll('.service-btn').forEach(b => b.classList.add('locked')); if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
-        scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.statsBar) el.statsBar.classList.add('hidden');
+        scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden');
         if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden');
         if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';
         try {
@@ -7652,7 +7465,6 @@
             try {
               populateFilterDropdowns();
               applyFiltersAndRender();
-              updateStats();
             } catch (err) { console.warn('[Post-Scan Render]', err); }
             resetUI();
             setScanNotice(incompleteNotes);
@@ -7966,7 +7778,7 @@
 
       const createBtn = (text, disabled, page, isActive = false) => {
         if (isActive) {
-          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]">${text}</button>`;
         } else if (disabled && text !== '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
         } else if (text === '...') {
@@ -8059,7 +7871,7 @@
                 <div class="glare"></div>
               </div>
               ${actorRatingHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
+              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#0a0a0b]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
             </div>
           </div>`;
         });
@@ -8368,9 +8180,9 @@
             <button type="button" onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
           </nav>
           <div class="relative w-full h-[52dvh] min-h-[380px] sm:h-[74dvh] sm:min-h-[420px] actor-hero-container">
-            <div id="actorPageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">
-              ${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}
-              <div class="absolute inset-x-0 bottom-0 h-[65%] sm:h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] sm:via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div>
+            <div id="actorPageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0a0a0b] clip-mask">
+              ${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0a0a0b]/80 to-[#0a0a0b]"></div>`}
+              <div class="absolute inset-x-0 bottom-0 h-[65%] sm:h-[56%] bg-gradient-to-t from-[#0a0a0b] from-0% via-[#0a0a0b] sm:via-[#0a0a0b]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div>
             </div>
             <div class="absolute inset-0 z-30 flex flex-col justify-end pointer-events-none pb-6 sm:pb-14 2xl:pb-16 actor-hero-content">
               <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 flex flex-col gap-3 sm:gap-4">
@@ -8406,7 +8218,7 @@
             </div>
           </div>`;
       }
-      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div></div></div>`;
+      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0a0a0b]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0a0a0b]/80 to-[#0a0a0b]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0a0a0b] via-[#0a0a0b]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0a0a0b] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0a0a0b] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div></div></div>`;
     }
 
     let currentActorId = null;
@@ -9233,7 +9045,7 @@
       }
 
       if (isInline) {
-        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
+        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0a0a0b] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
         const closeBtn = document.getElementById('closeActorModalBtn');
         if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; currentActorId = null; };
         const backBtnRefresh = document.getElementById('backToMovieBtn');
@@ -9457,17 +9269,19 @@
 
       const whose = isFriendMatchActive ? `the ${filmsCount(total)} you both want to see` : `your ${filmsCount(total)}`;
       if (streaming > 0) {
-        headline.innerHTML = `<span class="text-blue-400">${streaming.toLocaleString()}</span> of ${whose} ${streaming === 1 ? 'is' : 'are'} streaming on your services right now.`;
+        headline.innerHTML = `<em>${streaming.toLocaleString()}</em> of ${whose} ${streaming === 1 ? 'is' : 'are'} yours to watch tonight.`;
       } else {
-        headline.textContent = `None of ${whose} are streaming on your services right now.`;
+        headline.textContent = `None of ${whose} are on your services tonight.`;
       }
+      renderServiceChips(perService, streaming);
 
       const rentbuy = all.rentbuy.length;
       const other = all.other.length;
       const parts = [];
       if (streaming > 0) {
-        // With one service the breakdown just repeats the headline ("Disney+ 24"), so skip it.
-        if (Object.keys(perService).length > 1) parts.push(`${breakdown}.`);
+        // The per-service counts live on the service chips; here only when there are no chips.
+        const chipsShown = currentProviders.filter(cp => selectedServiceIds.has(cp.id) && perService[cp.name] > 0).length >= 2;
+        if (!chipsShown && Object.keys(perService).length > 1) parts.push(`${breakdown}.`);
         if (rentbuy > 0) parts.push(`${rentbuy.toLocaleString()} more can be rented or bought.`);
       } else {
         if (rentbuy > 0) parts.push(`${filmsCount(rentbuy)} can be rented or bought.`);
@@ -9488,7 +9302,6 @@
       if (!scannedMovies.length || pool.length === 0) {
         card.classList.add('hidden');
         currentTonightPick = null;
-        setAmbientBackdrop(null);
         return;
       }
       let pick = pool.find(m => movieKeyOf(m) === tonightPickKey);
@@ -9498,17 +9311,6 @@
       }
       fillTonightPick(pick, pool.length);
       card.classList.remove('hidden');
-    }
-
-    // A soft, blurred wash of the pick's artwork behind the top of the page. Uses the
-    // smallest backdrop size: it is blurred beyond recognition anyway.
-    function setAmbientBackdrop(backdropUrl) {
-      const layer = document.getElementById('ambientBackdrop');
-      if (!layer) return;
-      const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
-      if (!backdropUrl || !resultsVisible) { layer.classList.remove('is-on'); return; }
-      layer.style.backgroundImage = `url("${backdropUrl.replace('/w1280/', '/w300/')}")`;
-      layer.classList.add('is-on');
     }
 
     // The film's own title logo (the artwork streaming apps show), when TMDB has one.
@@ -9537,7 +9339,6 @@
         const src = m.backdrop || m.poster || '';
         if (src) { img.src = src; img.classList.remove('hidden'); } else { img.removeAttribute('src'); img.classList.add('hidden'); }
       }
-      setAmbientBackdrop(m.backdrop || null);
 
       const logo = document.getElementById('tonightPickLogo');
       if (logo && card) {
@@ -9561,7 +9362,7 @@
       const rating = getCachedRating(m);
       if (rating) meta.push(`IMDb ${rating}`);
       const metaEl = document.getElementById('tonightPickMeta');
-      if (metaEl) metaEl.textContent = meta.join(' · ');
+      if (metaEl) metaEl.textContent = ["Tonight's pick", ...meta].join(' · ');
 
       // Which of the viewer's services has it: a local one first, otherwise the VPN region.
       const local = (m.regionData?.flatrate || []).filter(buildSubscribedMatcher());
@@ -9647,7 +9448,6 @@
       const bar = document.getElementById('scanCompactBar');
       if (!full || !bar) return;
       const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
-      setAmbientBackdrop(resultsVisible && currentTonightPick ? (currentTonightPick.backdrop || null) : null);
       const compact = resultsVisible && scannedMovies.length > 0 && !scanPanelExpanded && !isScanning;
       full.classList.toggle('hidden', compact);
       bar.classList.toggle('hidden', !compact);
@@ -9666,6 +9466,60 @@
       if (friendBtn) friendBtn.classList.toggle('hidden', isFriendMatchActive);
     }
 
+    // One chip per selected service with films on it, plus "All". A chip narrows the grid
+    // (and Tonight's pick) to that service, through the same provider filter the Filters panel sets.
+    function renderServiceChips(perService, streamingTotal) {
+      const box = document.getElementById('serviceChips');
+      if (!box) return;
+      const services = currentProviders.filter(cp => selectedServiceIds.has(cp.id) && perService[cp.name] > 0);
+      if (services.length < 2) { box.innerHTML = ''; box.classList.add('hidden'); return; }
+      const only = (!homeFilterProviders.has('all') && homeFilterProviders.size === 1) ? [...homeFilterProviders][0] : null;
+      const chip = (name, count, logo) => `<button type="button" class="svc-chip" data-service="${escapeHTML(name)}" aria-pressed="${(only === name) || (!only && !name)}">${logo ? `<img src="${escapeHTML(logo)}" alt="" onerror="this.remove()">` : ''}<span class="svc-chip-name">${name ? escapeHTML(name) : 'All'}</span><span class="svc-chip-count">${count.toLocaleString()}</span></button>`;
+      box.innerHTML = chip('', streamingTotal, null) + services.sort((a, b) => perService[b.name] - perService[a.name]).map(cp => chip(cp.name, perService[cp.name], getProviderLogoUrl(cp.name))).join('');
+      box.classList.remove('hidden');
+    }
+
+    function selectServiceChip(name) {
+      homeFilterProviders = name ? new Set([name]) : new Set(['all']);
+      tonightPickKey = null; // a new service gets its own pick
+      currentPage = 1;
+      if (activeTab !== 'stream') setHomeTab('stream');
+      renderAllCustomFilters('home');
+      applyFiltersAndRender();
+    }
+
+    // Quick search lives behind the Search button in the top bar (and ⌘K / Ctrl+K).
+    function openQuickSearch() {
+      const bar = document.getElementById('quickSearchBar');
+      const btn = document.getElementById('searchToggleBtn');
+      if (!bar) return;
+      bar.classList.remove('hidden');
+      if (btn) btn.setAttribute('aria-expanded', 'true');
+      if (el.quickSearchInput) el.quickSearchInput.focus();
+    }
+    function closeQuickSearch() {
+      const bar = document.getElementById('quickSearchBar');
+      const btn = document.getElementById('searchToggleBtn');
+      if (!bar || (el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden'))) return;
+      bar.classList.add('hidden');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+
+    // The landing's poster wall: the visitor's own watchlist when we have it, otherwise
+    // this week's most talked-about films.
+    async function fillPosterWall() {
+      const wall = document.getElementById('posterWall');
+      if (!wall || wall.childElementCount) return;
+      let posters = scannedMovies.filter(m => m.poster).slice(0, 16).map(m => m.poster.replace('/w500/', '/w342/'));
+      if (posters.length < 12) {
+        try {
+          const data = await tmdbFetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}`).then(r => r.json());
+          posters = (data.results || []).filter(f => f.poster_path).slice(0, 16).map(f => `https://image.tmdb.org/t/p/w342${f.poster_path}`);
+        } catch (e) { logIgnored('fillPosterWall', e); return; }
+      }
+      wall.innerHTML = posters.map(src => `<img src="${src}" alt="" loading="lazy" decoding="async">`).join('');
+    }
+
     function expandScanPanel() {
       scanPanelExpanded = true;
       updateScanPanelMode();
@@ -9675,6 +9529,13 @@
 
     (() => {
       const on = (id, fn) => { const node = document.getElementById(id); if (node) node.addEventListener('click', fn); };
+      on('searchToggleBtn', () => {
+        const bar = document.getElementById('quickSearchBar');
+        if (bar && bar.classList.contains('hidden')) openQuickSearch(); else closeQuickSearch();
+      });
+      const chips = document.getElementById('serviceChips');
+      if (chips) chips.addEventListener('click', (e) => { const b = e.target.closest('.svc-chip'); if (b) selectServiceChip(b.dataset.service || null); });
+      setTimeout(fillPosterWall, 400); // after the saved scan (if any) has had a chance to load
       on('tonightPickAnother', showAnotherTonightPick);
       on('tonightPickTrailer', playTonightPickTrailer);
       on('tonightPickArt', () => { if (currentTonightPick) openMoviePage(currentTonightPick, true); });

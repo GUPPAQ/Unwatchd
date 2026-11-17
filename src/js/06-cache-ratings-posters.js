@@ -223,7 +223,6 @@
         const renderCachedGallery = () => {
           try {
             populateFilterDropdowns();
-            updateStats();
             applyFiltersAndRender();
             if (el.resultsSection) el.resultsSection.classList.remove('hidden');
             toggleClearSyncBtn();
@@ -720,7 +719,6 @@
 
         if (anyNewSynced) {
           saveScanToStorage(movies, isFriendMatchActive);
-          updateStats();
           if ((window.homeFilterRating && window.homeFilterRating !== 'all') || (homeFilterSort === 'rating_desc')) {
             debouncedApplyFilters();
           }

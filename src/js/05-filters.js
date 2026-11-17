@@ -761,7 +761,7 @@
         });
       }
     });
-    [el.statsBtn, el.rouletteBtn, el.vpnToggleBtnInline].forEach(btn => {
+    [el.vpnToggleBtnInline].forEach(btn => {
       if (btn) {
         btn.addEventListener('click', (e) => {
           try { e.currentTarget.blur(); } catch (err) { console.warn('[Button Element Blur]', err); }

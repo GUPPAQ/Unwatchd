@@ -523,7 +523,7 @@
       }
 
       if (isInline) {
-        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
+        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0a0a0b] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
         const closeBtn = document.getElementById('closeActorModalBtn');
         if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; currentActorId = null; };
         const backBtnRefresh = document.getElementById('backToMovieBtn');
