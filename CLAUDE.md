@@ -36,15 +36,21 @@ Commit the regenerated `app.js` and `styles.css` together with the source change
   whenever it isn't the region being viewed (the scan stores all regions at once).
 
 ## Design rules
-New UI follows these, so screens added later still look like the same product. The
-"Shared style layer" block at the end of the `<style>` in `index.html` enforces most of them.
-- One accent colour: blue. (`indigo-*`/`purple-*` utilities are mapped to blue in `tailwind.config.cjs`.)
-- No emoji as icons. Use an inline SVG or nothing. Region flags and the VPN globe are the exception.
-- Buttons and links are sentence case ("Find what I can stream"), never all caps.
-- All-caps is only for small labels above content, 12px, letter-spacing 0.08em.
-- No text below 12px.
-- Corner radii: panels 24px, cards `rounded-2xl`, buttons and inputs `rounded-xl`.
-- Font: Outfit, served from `/fonts/`.
+The "film-night" design: the films carry the colour, the interface is near-black and type.
+Tokens and components live in the "FILM-NIGHT WORLD" block at the end of the `<style>` in
+`index.html`; product brief in `PRODUCT.md`, direction in `.impeccable/surfaces/index-html.md`.
+- Colours: ground `#0a0a0b`, raised surface `#151517`, hairlines `rgba(255,255,255,.11)`, text
+  `#f4f0e8`, muted `#a5a097`. One accent, ember `#ff5a36`. `tailwind.config.cjs` maps Tailwind's
+  blue/indigo/purple/sky to ember and gray/slate/zinc/neutral to the warm ink scale, so stock
+  utility classes in generated markup stay in palette. No navy, no glass, no gradients as decoration.
+- Type: Instrument Serif for display lines and titles, Outfit for everything else; both served
+  from `/fonts/`. No text below 12px.
+- Buttons are pills (`.btn`, `.btn-primary`, `.btn-quiet`, `.ghost-btn`, `.link-btn`), sentence
+  case, never all caps. No small labels above headings.
+- No emoji as icons. Inline SVG or nothing. Region flags are the exception.
+- Motion (`src/js/16-motion.js`): feedback on press (`:active`), springs via `springTo()` for
+  anything you can touch, interruptible from the current position, the phone filter sheet drags
+  and flicks closed. Respect `prefers-reduced-motion` (instant or fade instead of slide).
 
 ## Conventions
 - Only IMDb ratings are shown (fetched via Cinemeta, cached 14 days). TMDB vote averages

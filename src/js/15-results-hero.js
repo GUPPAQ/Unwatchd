@@ -186,17 +186,34 @@
       if (others.length === 0) return;
       const pick = others[Math.floor(Math.random() * others.length)];
       tonightPickKey = movieKeyOf(pick);
-      // Fade the artwork out, swap, and fade back in once the new image has loaded.
-      const card = document.getElementById('tonightPick');
+      // Start loading the next film's still at once; when it's ready (or after a short wait),
+      // swap title, details and image in the same frame and fade the old still out on top.
+      // Tapping again before it lands just retargets to the newer pick.
       const img = document.getElementById('tonightPickBackdrop');
-      if (!card || !img) { fillTonightPick(pick, pool.length); return; }
-      card.classList.add('is-swapping');
-      setTimeout(() => {
-        const reveal = () => card.classList.remove('is-swapping');
-        img.onload = reveal; img.onerror = reveal;
-        setTimeout(reveal, 1200); // never stay faded if the image is slow
+      const art = document.getElementById('tonightPickArt');
+      if (!img || !art) { fillTonightPick(pick, pool.length); return; }
+      const swapId = (showAnotherTonightPick.swapId || 0) + 1;
+      showAnotherTonightPick.swapId = swapId;
+      let swapped = false;
+      const swap = () => {
+        if (swapped || showAnotherTonightPick.swapId !== swapId) return;
+        swapped = true;
+        art.querySelectorAll('.pick-ghost').forEach(g => g.remove());
+        if (img.getAttribute('src') && !prefersReducedMotion.matches) {
+          const ghost = img.cloneNode(false);
+          ghost.removeAttribute('id'); ghost.className = 'pick-ghost'; ghost.alt = '';
+          art.appendChild(ghost);
+          requestAnimationFrame(() => requestAnimationFrame(() => { ghost.style.opacity = '0'; }));
+          setTimeout(() => ghost.remove(), 500);
+        }
         fillTonightPick(pick, pool.length);
-      }, 180);
+      };
+      const src = pick.backdrop || pick.poster;
+      if (!src) { swap(); return; }
+      const preload = new Image();
+      preload.onload = swap; preload.onerror = swap;
+      preload.src = src;
+      setTimeout(swap, 700); // a slow image never holds the new pick back for long
     }
 
     async function playTonightPickTrailer() {

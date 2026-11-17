@@ -2830,6 +2830,146 @@
       }
     }
 
+    /* ── Motion and response (see src/js/16-motion.js) ──
+       Feedback on press, not release; no grey tap flash; no double-tap zoom delay. */
+    a,
+    button,
+    [role="tab"],
+    label.ask-field,
+    .poster-card-art {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .svc-chip,
+    .ghost-btn,
+    .icon-btn,
+    .quick-search-go,
+    .tabs .tab-btn[class],
+    .poster-card-art,
+    .pick-art,
+    .custom-filter-trigger[class],
+    .custom-filter-item[class] {
+      transition-property: transform, background-color, border-color, color, opacity, box-shadow;
+      transition-duration: 0.12s;
+      transition-timing-function: ease-out;
+    }
+
+    .svc-chip:active,
+    .ghost-btn:active,
+    .icon-btn:active,
+    .quick-search-go:active,
+    .custom-filter-trigger[class]:active,
+    .custom-filter-item[class]:active {
+      transform: scale(0.96);
+      transition-duration: 0.06s;
+    }
+
+    .tabs .tab-btn[class]:active,
+    .link-btn:active {
+      opacity: 0.6;
+      transition-duration: 0.06s;
+    }
+
+    .poster-card-art:active {
+      transform: scale(0.97);
+      transition-duration: 0.08s;
+    }
+
+    /* The phone filter sheet is moved by a spring in JS, so the CSS slide is switched off;
+       its title row is the handle you drag it down by. */
+    @media (max-width: 639px) {
+      .filter-panel-responsive[class] {
+        animation: none !important;
+        will-change: transform;
+      }
+
+      .filter-panel-responsive .sheet-handle {
+        box-sizing: content-box;
+        padding: 6px 40px 10px;
+        background-clip: content-box;
+        cursor: grab;
+      }
+
+      .filter-panel-responsive .sheet-handle,
+      .filter-panel-responsive .filter-panel-head {
+        touch-action: none;
+      }
+    }
+
+    /* Popovers grow out of the button that opened them (origin set in JS). */
+    .custom-filter-popover.pop-in {
+      animation: pop-in 0.22s var(--ease-out);
+    }
+
+    @keyframes pop-in {
+      from {
+        opacity: 0;
+        transform: scale(0.94);
+      }
+    }
+
+    /* Tonight's pick crossfade: the outgoing still fades out over the incoming one. */
+    .pick-art .pick-ghost {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 22%;
+      pointer-events: none;
+      transition: opacity 0.4s ease-out;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .svc-chip:active,
+      .ghost-btn:active,
+      .icon-btn:active,
+      .quick-search-go:active,
+      .poster-card-art:active,
+      .custom-filter-trigger[class]:active,
+      .custom-filter-item[class]:active,
+      .btn:active:not(:disabled) {
+        transform: none;
+      }
+
+      .custom-filter-popover.pop-in {
+        animation: none;
+      }
+
+      .filter-panel-responsive[class] {
+        animation: fadeInSimple 0.2s ease-out !important;
+      }
+    }
+
+    /* Settings for less transparency or more contrast. */
+    @media (prefers-reduced-transparency: reduce) {
+      .btn-quiet {
+        background: var(--surface-2);
+        border-color: var(--line-strong);
+      }
+
+      .filter-backdrop-responsive[class] {
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+        background: rgba(0, 0, 0, 0.85) !important;
+      }
+    }
+
+    @media (prefers-contrast: more) {
+      :root {
+        --line: rgba(255, 255, 255, 0.32);
+        --line-strong: rgba(255, 255, 255, 0.6);
+        --muted: #cfcac1;
+      }
+    }
+
+    .display,
+    .pick-title,
+    .filter-panel-head h3 {
+      font-optical-sizing: auto;
+    }
+
     /* The top bar's VPN switch is the only one; the copy in the results tools only repeated it. */
     #vpnToggleBtnInline {
       display: none !important;
