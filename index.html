@@ -1838,86 +1838,6 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Sizing rules with uniform 35% touch peek effect:
-       - Movies: 2.35 on mobile, 3.35 on tablet, 4.35 on iPad landscape, 6 on desktop, 7 on 2xl, 8 on 4k */
-    #relatedMoviesTrack>.tilt-card,
-    #similarMoviesTrack>.tilt-card {
-      width: calc((100% - 2 * 1rem) / 2.35) !important;
-      flex-shrink: 0 !important;
-    }
-
-    @media (min-width: 640px) {
-      #relatedMoviesTrack>.tilt-card,
-      #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 3 * 1.25rem) / 3.35) !important;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      #relatedMoviesTrack>.tilt-card,
-      #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 4 * 1.25rem) / 4.35) !important;
-      }
-    }
-
-    @media (min-width: 1280px) {
-      #relatedMoviesTrack>.tilt-card,
-      #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 5 * 1.25rem) / 6) !important;
-      }
-    }
-
-    @media (min-width: 1536px) {
-      #relatedMoviesTrack>.tilt-card,
-      #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 6 * 1.5rem) / 7) !important;
-      }
-    }
-
-    @media (min-width: 2200px) {
-      #relatedMoviesTrack>.tilt-card,
-      #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 7 * 1.5rem) / 8) !important;
-      }
-    }
-
-    /* Cast Chip Sizing:
-       - Mobile: 3.35, Tablet: 4.35, iPad landscape: 4.35, Desktop: 6, 2xl: 7, 4k: 8 */
-    #castCrewTrack>.cast-chip-card {
-      width: calc((100% - 3 * 0.75rem) / 3.35) !important;
-      flex-shrink: 0 !important;
-    }
-
-    @media (min-width: 640px) {
-      #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 4 * 1rem) / 4.35) !important;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 4 * 1rem) / 4.35) !important;
-      }
-    }
-
-    @media (min-width: 1280px) {
-      #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 5 * 1rem) / 6) !important;
-      }
-    }
-
-    @media (min-width: 1536px) {
-      #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 6 * 1rem) / 7) !important;
-      }
-    }
-
-    @media (min-width: 2200px) {
-      #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 7 * 1rem) / 8) !important;
-      }
-    }
-
     /* Spotify-style marquee scrolling for actor and character names */
     .spotify-marquee-container {
       width: 100%;
@@ -2553,11 +2473,12 @@
     }
 
     /* ── Landing ── */
+    /* Top-anchored (not centred) so the bar can grow downwards without the page shifting up. */
     .landing {
       position: relative;
       min-height: calc(100svh - 72px - 96px);
       display: flex;
-      align-items: center;
+      align-items: flex-start;
     }
 
     /* Full window width behind the shell; only this layer clips, so the service picker can overflow. */
@@ -2653,7 +2574,7 @@
       display: flex;
       flex-direction: column;
       gap: 26px;
-      padding: 40px 0 72px;
+      padding: clamp(40px, calc(50svh - 330px), 260px) 0 72px;
     }
 
     /* ── The ask: one bar with who, which services, and go ── */
@@ -2668,17 +2589,34 @@
       margin-top: 4px;
     }
 
-    /* The bar's surface is drawn by ::before, so the service drawer (z-index -1) can slide out
-       from underneath it while staying inside the bar's own stacking context. */
+    /* The bar is a two-row grid: the pill's row, and the service list under it. Opening
+       "Streaming on" grows the pill itself downwards into a card; its surface is drawn by
+       ::before so it always covers both rows. */
     .ask-bar {
       position: relative;
       isolation: isolate;
       width: 100%;
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto auto;
+      grid-template-rows: 64px auto;
       align-items: center;
-      height: 76px;
       padding: 6px;
       border-radius: 38px;
+      transition: border-radius 0.3s var(--ease-out);
+    }
+
+    .ask-bar.is-open {
+      border-radius: 30px;
+    }
+
+    .ask-bar > .ask-seg {
+      height: 64px;
+      grid-row: 1;
+    }
+
+    .ask-bar > #startButton {
+      grid-row: 1;
+      grid-column: 4;
     }
 
     .ask-bar::before {
@@ -2931,26 +2869,6 @@
       line-height: 1.45;
     }
 
-    /* The drawer hangs over whatever sits under the bar, so that steps aside while it's out. */
-    .ask > .form-error,
-    .ask > .landing-back {
-      transition: opacity 0.2s;
-    }
-
-    .ask:has(.ask-bar.is-open) > .form-error,
-    .ask:has(.ask-bar.is-open) > .landing-back {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    @media (max-width: 719px) {
-      .ask:has(.ask-bar.is-open) > .form-error,
-      .ask:has(.ask-bar.is-open) > .landing-back {
-        opacity: 1;
-        pointer-events: auto;
-      }
-    }
-
     .landing-back svg {
       width: 16px;
       height: 16px;
@@ -2963,11 +2881,17 @@
         align-items: stretch;
       }
 
-      .ask-bar {
+      .ask-bar,
+      .ask-bar.is-open {
+        display: flex;
         flex-direction: column;
         align-items: stretch;
         height: auto;
         border-radius: 24px;
+      }
+
+      .ask-bar > .ask-seg {
+        height: 66px;
       }
 
       .ask-seg {
@@ -3011,23 +2935,22 @@
       }
     }
 
-    /* ── Services: a drawer that slides out from under the bar ──
-       Desktop: it hangs beneath the pill, tucked in from the rounded ends, its top hidden behind
-       the bar. Phones: it opens inside the card, under the "Streaming on" row. The height runs on a
-       grid-rows transition, which reverses from wherever it is if you tap again. */
+    /* ── Services: the pill's second row ──
+       Desktop: it spans the pill's full width under the fields. Phones: it opens inside the card,
+       under the "Streaming on" row. The height runs on a grid-rows transition, which reverses
+       from wherever it is if you tap again. */
     .svc-panel,
     .svc-panel.hidden {
       display: grid;
     }
 
     .svc-panel {
-      position: absolute;
-      left: 30px;
-      right: 30px;
-      top: calc(100% - 38px);
-      z-index: -1;
+      position: relative;
+      z-index: 1;
+      grid-column: 1 / -1;
+      grid-row: 2;
       grid-template-rows: 1fr;
-      transition: grid-template-rows 0.34s var(--ease-out), visibility 0s;
+      transition: grid-template-rows 0.38s var(--ease-out), visibility 0s;
     }
 
     .svc-panel.hidden {
@@ -3039,20 +2962,16 @@
     .svc-panel-clip {
       min-height: 0;
       overflow: hidden;
-      border-radius: 0 0 26px 26px;
     }
 
     .svc-panel-body {
       display: flex;
       flex-direction: column;
       gap: 16px;
-      padding: 56px 22px 18px;
-      border: 1px solid var(--line);
-      border-top: 0;
-      border-radius: 0 0 26px 26px;
-      background: var(--surface);
-      box-shadow: 0 34px 70px -28px rgba(0, 0, 0, 0.95);
-      transition: opacity 0.24s ease-out, transform 0.34s var(--ease-out);
+      margin: 6px 18px 0;
+      padding: 18px 0 12px;
+      border-top: 1px solid var(--line);
+      transition: opacity 0.24s ease-out, transform 0.38s var(--ease-out);
     }
 
     .svc-panel.hidden .svc-panel-body {
@@ -3178,25 +3097,11 @@
     }
 
     @media (max-width: 719px) {
-      .svc-panel {
-        position: relative;
-        top: auto;
-        left: auto;
-        right: auto;
-        z-index: 1;
-      }
-
-      .svc-panel-clip {
-        border-radius: 0;
-      }
-
       .svc-panel-body {
         gap: 14px;
+        margin: 0;
         padding: 6px 12px 14px;
         border: 0;
-        border-radius: 0;
-        background: transparent;
-        box-shadow: none;
       }
 
       .svc-panel-title {
@@ -3624,12 +3529,13 @@
       color: var(--text) !important;
     }
 
-    /* Search sits in the top bar as a field you can see, not a hidden icon. */
-    .search-trigger {
-      display: inline-flex;
+    /* Search is a real field in the top bar; suggestions drop down under it. */
+    .search-field {
+      position: relative;
+      display: flex;
       align-items: center;
       gap: 10px;
-      width: clamp(250px, 22vw, 340px);
+      width: clamp(260px, 24vw, 380px);
       height: 42px;
       margin-right: 8px;
       padding: 0 6px 0 16px;
@@ -3637,27 +3543,59 @@
       border-radius: 999px;
       background: var(--surface);
       color: var(--muted);
-      font-size: 14px;
-      cursor: pointer;
-      transition: border-color 0.15s, color 0.15s, transform 0.12s ease-out;
+      cursor: text;
+      transition: border-color 0.15s, width 0.3s var(--ease-out);
     }
 
-    .search-trigger svg {
+    .search-field:focus-within {
+      border-color: var(--line-strong);
+      color: var(--text);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .search-field:hover {
+        border-color: var(--line-strong);
+      }
+    }
+
+    .search-field > svg {
       width: 16px;
       height: 16px;
       flex: none;
     }
 
-    .search-trigger-text {
+    .search-field input {
       flex: 1;
       min-width: 0;
-      overflow: hidden;
-      text-align: left;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 15px;
     }
 
-    .search-trigger-kbd {
+    .search-field input::placeholder {
+      color: var(--muted);
+    }
+
+    .search-field input::-webkit-search-cancel-button {
+      display: none;
+    }
+
+    .search-field .icon-btn {
+      width: 30px;
+      height: 30px;
+      flex: none;
+    }
+
+    .search-field .icon-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .search-field-kbd {
       flex: none;
       padding: 3px 9px;
       border: 1px solid var(--line);
@@ -3666,48 +3604,139 @@
       font-size: 12px;
     }
 
-    .search-trigger[aria-expanded="true"] {
-      border-color: var(--line-strong);
-      color: var(--text);
-    }
-
-    @media (hover: hover) and (pointer: fine) {
-      .search-trigger:hover {
-        border-color: var(--line-strong);
-        color: var(--text);
-      }
+    /* The hint is for finding the field; once you're in it (or have typed), it steps aside. */
+    .search-field:focus-within .search-field-kbd,
+    .search-field:has(input:not(:placeholder-shown)) .search-field-kbd {
+      display: none;
     }
 
     @media not ((hover: hover) and (pointer: fine)) {
-      .search-trigger-kbd {
+      .search-field-kbd {
         display: none;
       }
     }
 
-    .search-trigger:active {
-      transform: scale(0.98);
-      transition-duration: 0.06s;
+    .search-field .search-dropdown {
+      top: calc(100% + 10px);
+      left: auto;
+      right: 0;
+      width: max(100%, 440px);
+      padding: 6px;
     }
 
+    .search-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .search-row:hover,
+    .search-row:focus-visible {
+      background: var(--surface-2);
+      outline: none;
+    }
+
+    .search-row-thumb {
+      width: 40px;
+      height: 60px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 7px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-family: var(--serif);
+      font-size: 20px;
+    }
+
+    .search-row-thumb.is-person {
+      width: 44px;
+      height: 44px;
+      margin: 8px 0;
+      border-radius: 50%;
+    }
+
+    .search-row-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .search-row-text {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .search-row-title {
+      overflow: hidden;
+      font-size: 15px;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .search-row-sub {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .search-empty {
+      margin: 0;
+      padding: 18px 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Phones: a compact pill; tapping in widens it over the whole top bar. */
     @media (max-width: 639px) {
-      .search-trigger {
-        width: 44px;
-        height: 44px;
-        margin-right: 0;
-        padding: 0;
-        justify-content: center;
-        border-color: transparent;
-        background: transparent;
+      .topbar-actions {
+        flex: 1;
+        min-width: 0;
+        justify-content: flex-end;
       }
 
-      .search-trigger svg {
-        width: 18px;
-        height: 18px;
+      .search-field {
+        width: auto;
+        flex: 1;
+        min-width: 0;
+        height: 40px;
+        margin: 0 6px 0 4px;
+        padding: 0 4px 0 12px;
+        gap: 8px;
       }
 
-      .search-trigger-text,
-      .search-trigger-kbd {
-        display: none;
+      .search-field input {
+        font-size: 16px;
+      }
+
+      .search-field:focus-within {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 16px;
+        z-index: 60;
+        margin: 0;
+      }
+
+      .search-field .search-dropdown {
+        position: fixed;
+        top: 68px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-height: calc(100svh - 84px);
       }
     }
 
@@ -4501,6 +4530,753 @@
         transition: none;
       }
     }
+
+    /* ── Full pages: film, person, cast and crew (shared pieces live in src/js/17-pages.js) ── */
+    .page-width {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 var(--pad);
+    }
+
+    @media (min-width: 1280px) {
+      .page-width {
+        max-width: 1760px;
+      }
+    }
+
+    @media (min-width: 1536px) {
+      .page-width {
+        max-width: 2160px;
+      }
+    }
+
+    @media (min-width: 2500px) {
+      .page-width {
+        max-width: 2400px;
+      }
+    }
+
+    /* Back and close: solid, quiet circles, the same on every page. */
+    .page-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 70;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .page-nav-btn {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: rgba(10, 10, 11, 0.72);
+      color: var(--text);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: background-color 0.15s, border-color 0.15s, transform 0.12s ease-out;
+    }
+
+    .page-nav-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .page-nav-btn:active {
+      transform: scale(0.94);
+      transition-duration: 0.06s;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .page-nav-btn:hover {
+        background: var(--surface-2);
+        border-color: var(--line-strong);
+      }
+    }
+
+    /* Section headings: a serif title, an optional count, an optional link on the right. */
+    .page-section {
+      min-width: 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+      line-height: 1.05;
+      color: var(--text);
+    }
+
+    .section-count {
+      color: var(--faint);
+      font-size: 15px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .section-head .link-btn {
+      margin-left: auto;
+      font-size: 15px;
+    }
+
+    /* Horizontal rails (cast, collections, more like this): no scrollbar, snap to cards. */
+    .rail-wrap {
+      position: relative;
+    }
+
+    .rail {
+      display: grid;
+      grid-auto-flow: column;
+      gap: 16px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+      cursor: grab;
+    }
+
+    .rail::-webkit-scrollbar {
+      display: none;
+    }
+
+    .rail > * {
+      scroll-snap-align: start;
+    }
+
+    .rail-people {
+      grid-auto-columns: clamp(118px, 13vw, 150px);
+    }
+
+    .rail-posters {
+      grid-auto-columns: clamp(132px, 14vw, 190px);
+    }
+
+    .rail-arrow {
+      position: absolute;
+      top: 38%;
+      z-index: 5;
+      width: 44px;
+      height: 44px;
+      display: none;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: rgba(10, 10, 11, 0.86);
+      color: var(--text);
+      cursor: pointer;
+      transform: translateY(-50%);
+    }
+
+    .rail-arrow svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .rail-arrow-prev {
+      left: -14px;
+    }
+
+    .rail-arrow-next {
+      right: -14px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .rail-wrap:hover .rail-arrow:not(.\!hidden) {
+        display: grid;
+      }
+    }
+
+    /* Person card: portrait, name, part. */
+    .person-card {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      animation: card-in 0.6s var(--ease-out) both;
+      animation-delay: calc(var(--i, 0) * 16ms);
+    }
+
+    .person-card-photo {
+      position: relative;
+      display: grid;
+      place-items: center;
+      aspect-ratio: 3 / 4;
+      margin-bottom: 8px;
+      overflow: hidden;
+      border-radius: 12px;
+      background: var(--surface);
+      transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+    }
+
+    .person-card-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    .person-card-initial,
+    .person-card-more-count {
+      font-family: var(--serif);
+      font-size: 2.4rem;
+      color: var(--muted);
+    }
+
+    .person-card-more .person-card-photo {
+      border: 1px solid var(--line);
+      background: transparent;
+    }
+
+    .person-card-name,
+    .person-card-role {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .person-card-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .person-card-role {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .person-card:hover .person-card-photo {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 34px -16px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.24);
+      }
+    }
+
+    .person-card:active .person-card-photo {
+      transform: scale(0.97);
+      transition-duration: 0.08s;
+    }
+
+    /* Poster cards outside the home grid: watchlist marker, the film you're on, role captions. */
+    .poster-wl-badge[class] {
+      left: 7px;
+      display: inline-flex;
+      align-items: center;
+      background: rgba(10, 10, 11, 0.86);
+      color: var(--accent-soft);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .poster-card.is-current .poster-card-art {
+      box-shadow: 0 0 0 2px var(--accent);
+      cursor: default;
+    }
+
+    .poster-card-caption.is-stacked {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 9px;
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .poster-card-caption.is-stacked .poster-card-title {
+      overflow: hidden;
+      color: var(--text);
+      font-weight: 500;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .poster-card-sub {
+      overflow: hidden;
+      color: var(--faint);
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .rail .poster-card-caption {
+      display: flex;
+    }
+
+    .grid-span-all {
+      grid-column: 1 / -1;
+    }
+
+    .page-empty {
+      grid-column: 1 / -1;
+      margin: 0;
+      padding: 48px 0;
+      color: var(--muted);
+      font-size: 16px;
+      text-align: center;
+    }
+
+    /* Footer on every page: plain outside links, then the attribution. */
+    .page-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 56px;
+      padding: 28px 0 40px;
+      border-top: 1px solid var(--line);
+    }
+
+    .page-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .page-link {
+      display: inline-flex;
+      align-items: center;
+      height: 38px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: none;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, transform 0.12s ease-out;
+    }
+
+    .page-link:active {
+      transform: scale(0.96);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .page-link:hover {
+        border-color: var(--line-strong);
+        color: var(--text);
+      }
+    }
+
+    .page-legal {
+      margin: 0;
+      color: var(--faint);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .page-legal a {
+      color: var(--muted);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* ── Film page tweaks: same nav, buttons, headings and type as the rest ── */
+    #moviePageView .hero-trailer-btn {
+      gap: 8px;
+    }
+
+    .hero-trailer-icon {
+      width: 14px;
+      height: 14px;
+      color: var(--accent);
+    }
+
+    @media (max-width: 1023px) {
+      #moviePageView .hero-actions {
+        justify-content: center;
+        width: 100%;
+      }
+    }
+
+    /* The IMDb rating reads as text in the details line, like everywhere else. */
+    #moviePageView .imdb-rating-badge > span:first-child {
+      padding: 0 !important;
+      background: none !important;
+      color: var(--muted) !important;
+      font-family: var(--sans) !important;
+      font-size: inherit !important;
+      font-weight: 500 !important;
+      letter-spacing: 0 !important;
+    }
+
+    #moviePageView .imdb-rating-num {
+      font-size: inherit !important;
+      font-weight: 600 !important;
+    }
+
+    #moviePageView .rail-people + *,
+    #moviePageView .page-section + .page-section {
+      margin-top: 0;
+    }
+
+    /* No text under 12px on the full pages (old utility classes asked for 9–11px). */
+    :is(#moviePageView, #actorPageView, #allCastModal) :is([class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[11px]"], [class*="text-[11.5px]"]) {
+      font-size: 12px !important;
+    }
+
+    .movie-page-vpn-footnote.hidden {
+      display: none;
+    }
+
+    /* ── Cast and crew page ── */
+    .cast-page > * {
+      flex-shrink: 0;
+    }
+
+    /* The tab bars stick just under the back and close buttons, not behind them. */
+    .cast-bar[class],
+    .person-bar[class] {
+      top: 64px;
+    }
+
+    @media (min-width: 640px) {
+      .cast-bar[class],
+      .person-bar[class] {
+        top: 72px;
+      }
+    }
+
+    .cast-hero {
+      position: relative;
+      padding: 132px 0 8px;
+      overflow: hidden;
+    }
+
+    .cast-hero-art {
+      position: absolute;
+      inset: 0;
+      opacity: 0.32;
+      -webkit-mask-image: linear-gradient(to bottom, #000 10%, transparent);
+      mask-image: linear-gradient(to bottom, #000 10%, transparent);
+    }
+
+    .cast-hero-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 25%;
+    }
+
+    .cast-hero-inner {
+      position: relative;
+    }
+
+    .cast-title {
+      margin: 0;
+    }
+
+    .cast-of {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .cast-film-link {
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--text);
+      font: inherit;
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: var(--line-strong);
+      text-underline-offset: 4px;
+      cursor: pointer;
+    }
+
+    .cast-film-link:hover {
+      text-decoration-color: var(--text);
+    }
+
+    .cast-bar[class] {
+      margin-top: 28px;
+    }
+
+    .cast-sections {
+      display: flex;
+      flex-direction: column;
+      gap: 44px;
+      padding-top: 8px;
+    }
+
+    .people-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+      gap: 26px 16px;
+    }
+
+    @media (min-width: 1100px) {
+      .people-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 30px 20px;
+      }
+    }
+
+    @media (max-width: 559px) {
+      .people-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px 10px;
+      }
+    }
+
+    .crew-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 4px 20px;
+    }
+
+    .crew-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 8px;
+      margin: 0 -8px;
+      border: 0;
+      border-radius: 12px;
+      background: none;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .crew-row:hover {
+        background: var(--surface);
+      }
+    }
+
+    .crew-row-photo {
+      width: 44px;
+      height: 44px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--muted);
+      font-family: var(--serif);
+      font-size: 20px;
+    }
+
+    .crew-row-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .crew-row-text {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .crew-row-name,
+    .crew-row-role {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .crew-row-name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .crew-row-role {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ── Person page ── */
+    .person-hero {
+      position: relative;
+      min-height: min(78svh, 760px);
+      display: flex;
+      align-items: flex-end;
+      padding: 120px 0 36px;
+      overflow: hidden;
+    }
+
+    .person-hero-art {
+      position: absolute;
+      inset: 0;
+    }
+
+    .person-hero-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 22%;
+      opacity: 0;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .person-hero-art img.is-loaded {
+      opacity: 0.62;
+    }
+
+    .person-hero-art::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, var(--bg) 8%, rgba(10, 10, 11, 0.7) 45%, rgba(10, 10, 11, 0.15));
+    }
+
+    .person-hero-inner {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      gap: clamp(20px, 3vw, 44px);
+    }
+
+    .person-hero-photo {
+      width: clamp(120px, 15vw, 230px);
+      flex: none;
+      display: grid;
+      place-items: center;
+      aspect-ratio: 2 / 3;
+      overflow: hidden;
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.95);
+      font-family: var(--serif);
+      font-size: 3rem;
+      color: var(--muted);
+    }
+
+    .person-hero-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .person-hero-text {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 60rem;
+    }
+
+    .person-name[class] {
+      margin: 0;
+      font-size: clamp(2.6rem, 7vw, 6rem);
+    }
+
+    .person-facts {
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .person-bio {
+      color: var(--text);
+    }
+
+    .person-body {
+      padding-top: 8px;
+    }
+
+    .person-films-head {
+      margin: 28px 0 0;
+    }
+
+    .person-bar[class] {
+      margin-top: 10px;
+    }
+
+    #actorFilterToggleBtn.has-filters,
+    #actorFilterToggleBtn.text-blue-400 {
+      color: var(--accent-soft);
+    }
+
+    .role-trigger[class] {
+      border-radius: 999px;
+      background: transparent;
+      font-size: 15px;
+    }
+
+    @media (max-width: 639px) {
+      .person-bar .results-tools {
+        flex: 1 1 100%;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .person-bar .filter-field {
+        max-width: none;
+        min-width: 0;
+      }
+
+      .person-bar .custom-filter-dropdown-container {
+        min-width: 0 !important;
+        max-width: 132px !important;
+        flex: 0 1 auto;
+      }
+
+      .person-hero {
+        min-height: 0;
+        padding-top: 96px;
+      }
+
+      .person-hero-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .person-hero-photo {
+        width: 120px;
+      }
+
+      .person-facts {
+        font-size: 15px;
+      }
+
+      .rail-people {
+        grid-auto-columns: 112px;
+      }
+
+      .rail-posters {
+        grid-auto-columns: 124px;
+      }
+
+      .cast-hero {
+        padding-top: 96px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .person-card {
+        animation: none;
+      }
+
+      .person-hero-art img {
+        transition: none;
+      }
+    }
   </style>
   <link rel="stylesheet" href="./styles.css">
   <!-- Vercel Web Analytics (page views & visitors, no cookies). Enable it under the project's Analytics tab on vercel.com. -->
@@ -4513,11 +5289,17 @@
     <header class="topbar">
       <a href="/" class="brand" aria-label="Unwatchd home"><img src="./icons/icon-512-transparent.png" alt="" width="26" height="26">Unwatchd</a>
       <div class="topbar-actions">
-        <button id="searchToggleBtn" type="button" class="search-trigger" aria-label="Search films, shows and people" aria-expanded="false" aria-controls="quickSearchBar">
+        <!-- The search field itself: type for suggestions, Enter opens the best match. -->
+        <div id="quickSearchBar" class="search-field" role="search">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
-          <span class="search-trigger-text">Search any film or person</span>
-          <span class="search-trigger-kbd kbd-shortcut" aria-hidden="true">Ctrl K</span>
-        </button>
+          <input id="quickSearchInput" aria-label="Search films, TV shows and people" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="Search any film or person">
+          <span class="search-field-kbd kbd-shortcut" aria-hidden="true">Ctrl K</span>
+          <button id="clearSearchBtn" type="button" aria-label="Clear search" class="hidden icon-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+          <button id="quickSearchBtn" type="button" class="sr-only" tabindex="-1">Search</button>
+          <div id="searchDropdown" class="search-dropdown hidden custom-scrollbar"></div>
+        </div>
         <div class="relative inline-block custom-filter-dropdown-container">
           <div id="regionContainer" class="relative">
             <button id="regionTriggerBtn" type="button" onclick="toggleCustomFilterMenu(this, 'regionPopover')" class="ghost-btn" aria-label="Region">
@@ -4530,19 +5312,7 @@
       </div>
     </header>
 
-    <section id="quickSearchBar" class="quick-search hidden" aria-label="Search">
-      <div class="quick-search-field">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
-        <input id="quickSearchInput" aria-label="Search films, TV shows and people" type="text" autocomplete="off" spellcheck="false" placeholder="Any film, show or person">
-        <span class="kbd-hint kbd-shortcut">Ctrl K</span>
-        <button id="clearSearchBtn" type="button" aria-label="Clear search" class="hidden icon-btn">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-        <button id="quickSearchBtn" type="button" class="quick-search-go">Search</button>
-      </div>
-      <div id="searchDropdown" class="search-dropdown hidden custom-scrollbar"></div>
-    </section>
-    <div id="quickSearchResult" class="mb-10 hidden relative z-10"></div>
+    <div id="quickSearchResult" class="hidden"></div>
 
     <main>
       <!-- Landing: the scan form (collapses into the context line once results show) -->
@@ -4734,100 +5504,52 @@
 
 
   <!-- ALL CAST & CREW FULL PAGE VIEW -->
-  <div id="allCastModal" class="fixed inset-0 z-[280] hidden flex-col bg-[#0a0a0b] overflow-y-auto overscroll-none">
-    <nav
-      class="movie-page-nav fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 lg:px-12 2xl:px-16 pointer-events-none">
-      <button
-        onclick="if(location.hash.includes('-cast') || location.hash.includes('/cast')){ history.back(); } else { closeAllCastModal(); }"
-        aria-label="Back"
-        class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
+  <!-- CAST AND CREW: everyone on a film, grouped the way credits are (09-movie-page.js renders it) -->
+  <div id="allCastModal" class="fixed inset-0 z-[280] hidden flex-col bg-[#0a0a0b] overflow-y-auto overscroll-none cast-page">
+    <nav class="movie-page-nav page-nav">
+      <button type="button" class="page-nav-btn" aria-label="Back"
+        onclick="if(location.hash.includes('-cast') || location.hash.includes('/cast')){ history.back(); } else { closeAllCastModal(); }">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"></path></svg>
       </button>
-      <button onclick="closeAllCastModal(); goHomeFromPage();" aria-label="Close"
-        class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
+      <button type="button" class="page-nav-btn" aria-label="Close" onclick="closeAllCastModal(); goHomeFromPage();">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </nav>
-    <div id="allCastBannerHero"
-      class="relative w-full h-[320px] sm:h-[400px] lg:h-[440px] shrink-0 overflow-hidden bg-[#0a0a0b] flex flex-col justify-end clip-mask">
-      <div id="allCastBannerArt" class="absolute inset-0"></div>
-      <div
-        class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0a0a0b] via-[#0a0a0b]/80 to-transparent pointer-events-none z-20">
-      </div>
 
-      <div
-        class="relative z-30 w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 pt-24 sm:pt-28 pb-6 sm:pb-8 flex flex-col gap-1.5 sm:gap-2 pointer-events-auto">
-        <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Full Cast &amp; Crew</span>
-        <div id="allCastModalTitleContainer" class="flex flex-col items-start min-w-0">
-          <h1 id="allCastModalTitle"
-            class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl 2xl:text-9xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">
-          </h1>
-        </div>
-        <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-400 drop-shadow-sm min-w-0">
+    <header class="cast-hero">
+      <div id="allCastBannerArt" class="cast-hero-art" aria-hidden="true"></div>
+      <div class="page-width cast-hero-inner">
+        <h1 class="display cast-title">Cast and crew</h1>
+        <p class="cast-of">
+          <button type="button" id="allCastFilmLink" class="cast-film-link"
+            onclick="if(location.hash.includes('-cast') || location.hash.includes('/cast')){ history.back(); } else { closeAllCastModal(); }"></button>
+          <span id="allCastModalSubtitle"></span>
         </p>
       </div>
-    </div>
+    </header>
 
-    <!-- MAIN CONTENT CONTAINER -->
-    <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 pt-4 pb-0 z-30 flex-1 flex flex-col">
-
-      <!-- Controls Row: Tabs on top (Row 1) & Search underneath (Row 2) on mobile/iPad portrait, side-by-side on desktop/iPad landscape -->
-      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 mb-6 animate-fade">
-        <!-- Search Input -->
-        <div
-          class="relative w-full lg:flex-1 flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px] order-2 lg:order-1">
-          <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none"
-            stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-          <input id="allCastSearchInput" aria-label="Search cast and crew" type="text" autocomplete="off" spellcheck="false"
-            placeholder="Search cast, crew, or character..." oninput="filterAllCastGrid()"
-            class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
-          <button id="allCastSearchClear" aria-label="Clear cast search" onclick="clearAllCastSearch()"
-            class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
+    <div class="page-width cast-body">
+      <div class="results-bar cast-bar">
+        <div id="allCastTabs" class="tabs" role="tablist" aria-label="Show">
+          <button type="button" id="allCastTabAll" class="tab-btn active" onclick="setAllCastTab('all')">Everyone <span id="allCastTabCountAll" class="tab-badge">0</span></button>
+          <button type="button" id="allCastTabCast" class="tab-btn" onclick="setAllCastTab('cast')">Cast <span id="allCastTabCountCast" class="tab-badge">0</span></button>
+          <button type="button" id="allCastTabCrew" class="tab-btn" onclick="setAllCastTab('crew')">Crew <span id="allCastTabCountCrew" class="tab-badge">0</span></button>
         </div>
-
-        <!-- Category Tabs -->
-        <div
-          class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full lg:w-auto h-[42px] shrink-0 order-1 lg:order-2">
-          <button id="allCastTabAll" onclick="setAllCastTab('all')" class="tab-btn active flex-1 lg:flex-none">All <span
-              id="allCastTabCountAll" class="tab-badge">0</span></button>
-          <button id="allCastTabCast" onclick="setAllCastTab('cast')" class="tab-btn flex-1 lg:flex-none">Cast <span
-              id="allCastTabCountCast" class="tab-badge">0</span></button>
-          <button id="allCastTabCrew" onclick="setAllCastTab('crew')" class="tab-btn flex-1 lg:flex-none">Crew <span
-              id="allCastTabCountCrew" class="tab-badge">0</span></button>
+        <div class="results-tools">
+          <label class="filter-field">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
+            <input id="allCastSearchInput" aria-label="Find a person or role" type="text" autocomplete="off" spellcheck="false" placeholder="Find a person or role" oninput="filterAllCastGrid()">
+            <button id="allCastSearchClear" type="button" aria-label="Clear" class="hidden icon-btn" onclick="clearAllCastSearch()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </label>
         </div>
       </div>
 
-      <!-- Cast & Crew Grid -->
-      <div id="allCastGrid"
-        class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">
-      </div>
+      <div id="allCastGrid" class="cast-sections"></div>
 
-      <!-- Footer with Top Separator & TMDB Disclaimer -->
-      <footer class="mt-6 sm:mt-7 pb-8 sm:pb-10 flex items-center justify-center animate-fade w-full">
-        <div class="w-full pt-6 border-t border-white/10 flex items-center justify-center">
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 max-w-lg mx-auto">
-            <a href="https://www.themoviedb.org/" target="_blank"
-              class="shrink-0 opacity-80 hover:opacity-100 transition-opacity">
-              <img
-                src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
-                alt="TMDB Logo" class="h-3 sm:h-3.5">
-            </a>
-            <p class="text-[10px] sm:text-[11px] text-gray-400 font-medium text-center sm:text-left sm:whitespace-nowrap">
-              This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>. <a href="/privacy.html" class="underline hover:text-white">Privacy</a>
-            </p>
-          </div>
-        </div>
+      <footer class="page-footer">
+        <p class="page-legal">This product uses the TMDB API but is not endorsed or certified by TMDB. Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>. <a href="/privacy.html">Privacy</a></p>
       </footer>
     </div>
   </div>

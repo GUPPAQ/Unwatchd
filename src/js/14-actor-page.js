@@ -225,6 +225,7 @@
         searchInput.addEventListener('input', (e) => {
           actorFilterQuery = e.target.value;
           actorCurrentPage = 1;
+          if (clearBtn) clearBtn.classList.toggle('hidden', !e.target.value);
           refreshActorFilmographyGrid();
         });
       }
@@ -232,6 +233,7 @@
         clearBtn.addEventListener('click', () => {
           actorFilterQuery = '';
           actorCurrentPage = 1;
+          clearBtn.classList.add('hidden');
           refreshActorFilmographyGrid();
           const inp = document.getElementById('actorFilmSearch');
           if (inp) { inp.value = ''; inp.focus(); }
@@ -369,7 +371,7 @@
         lastT = now;
       };
 
-      track.querySelectorAll('.tilt-card, .cast-chip-card').forEach(card => {
+      track.querySelectorAll('.tilt-card, .cast-chip-card, .poster-card').forEach(card => {
         card.addEventListener('click', (e) => {
           if (isDragging || (isCast && window.isCastDragging)) {
             e.preventDefault();
@@ -475,7 +477,7 @@
           }
           const totalCountEls = container.querySelectorAll('.actor-total-count');
           if (totalCountEls.length > 0 && counts) {
-            totalCountEls.forEach(el => { el.textContent = `(${counts.all} total)`; });
+            totalCountEls.forEach(el => { el.textContent = String(counts.all); });
           }
 
           // Update Role dropdown button label, icon, and popover state
@@ -490,7 +492,7 @@
           const activeRole = activeRoleHint || 'Actor';
           const activeIcon = roleIcons[activeRole] || '';
           if (roleLabelEl) {
-            roleLabelEl.textContent = activeRole;
+            roleLabelEl.textContent = `As ${activeRole.toLowerCase()}`;
             const trigger = roleLabelEl.closest('.custom-filter-trigger');
             if (trigger) {
               const iconSpan = trigger.querySelector('.text-sm');
@@ -501,7 +503,7 @@
           if (rolePopover) {
             rolePopover.querySelectorAll('.custom-filter-item').forEach(item => {
               const itemText = item.textContent || '';
-              const isSel = itemText.includes(activeRole);
+              const isSel = itemText.toLowerCase().includes(activeRole.toLowerCase());
               item.classList.toggle('selected', isSel);
               const radio = item.querySelector('.custom-filter-radio');
               if (radio) {

@@ -2288,12 +2288,12 @@
     if (el.clearResultsBtn) { el.clearResultsBtn.addEventListener('click', () => { if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden'); currentPage = 1; applyFiltersAndRender(); if (el.filterSearch) el.filterSearch.focus(); }); }
     function updateSearchPlaceholders() {
       const isMobile = window.innerWidth < 640;
-      const ph = isMobile ? 'Search...' : 'Filter by title...';
+      const ph = isMobile ? 'Filter' : 'Filter by title';
       if (el.filterSearch) el.filterSearch.placeholder = ph;
       const aSearch = document.getElementById('actorFilmSearch');
       if (aSearch) aSearch.placeholder = ph;
       const qSearch = document.getElementById('quickSearchInput');
-      if (qSearch) qSearch.placeholder = isMobile ? 'Search films, shows...' : 'Search films, TV shows, actors, directors...';
+      if (qSearch) qSearch.placeholder = isMobile ? 'Search' : 'Search any film or person';
     }
     updateSearchPlaceholders();
     window.addEventListener('resize', updateSearchPlaceholders);
@@ -3997,49 +3997,19 @@
       const totalCastCount = directors.length + allCast.length;
       let castCrewHtml = '';
       if (crewAndCast.length > 0) {
-        let chips = crewAndCast.map(p => {
-          const pImg = p.profile_path ? `https://image.tmdb.org/t/p/w185${p.profile_path}` : null;
-          const pName = escapeHTML(p.name);
-          const pRole = escapeHTML(p._role);
-          const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
-          return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint); }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 shrink-0 group/person cursor-pointer select-none relative">
-            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(255,90,54,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
-              <div class="w-full h-full rounded-full overflow-hidden">
-                ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
-              </div>
-            </div>
-            <div class="spotify-marquee-container w-full pointer-events-none">
-              <span class="spotify-marquee-text text-[13px] sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">${pName}</span>
-            </div>
-            ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-0.5"><span class="spotify-marquee-text text-[11.5px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
-          </div>`;
-        }).join('');
-
-        const seeAllChip = `<div onclick="if(!window.isCastDragging) openFullCastModal(${isPage ? 'true' : 'false'})" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 shrink-0 group/person cursor-pointer select-none relative">
-          <div class="glow-card w-full aspect-square rounded-full border border-white/10 shadow-lg bg-gray-800 shrink-0 relative flex items-center justify-center">
-            <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-          </div>
-          <div class="spotify-marquee-container w-full pointer-events-none">
-            <span class="spotify-marquee-text text-[13px] sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">View All</span>
-          </div>
-          <div class="spotify-marquee-container w-full pointer-events-none -mt-0.5">
-            <span class="spotify-marquee-text text-[11.5px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${totalCastCount} People</span>
-          </div>
-        </div>`;
-
-        chips += seeAllChip;
-
-        castCrewHtml = `<div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Cast and crew</h3></div><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-1, event)" aria-label="Scroll cast left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(1, event)" aria-label="Scroll cast right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button><div id="castCrewTrack" class="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-0 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${chips}</div></div></div>`;
-      }
-      const bestTrailer = getBestTrailer(details);
+        const chips = crewAndCast.map((p, i) => personCardHTML(p, { role: p._role, index: i })).join('')
+          + `<button type="button" class="person-card person-card-more cast-chip-card" onclick="if(!window.isCastDragging) openFullCastModal(${isPage ? 'true' : 'false'})"><span class="person-card-photo"><span class="person-card-more-count">${totalCastCount}</span></span><span class="person-card-name">Everyone</span><span class="person-card-role">Full cast and crew</span></button>`;
+        const arrow = (id, dir, label) => `<button id="${id}" type="button" onclick="scrollCastTrack(${dir}, event)" aria-label="${label}" class="rail-arrow rail-arrow-${dir < 0 ? 'prev' : 'next'}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="${dir < 0 ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'}"></path></svg></button>`;
+        castCrewHtml = `<section class="page-section"><div class="section-head"><h2 class="section-title">Cast and crew</h2><button type="button" class="link-btn" onclick="openFullCastModal(${isPage ? 'true' : 'false'})">See all ${totalCastCount}</button></div><div class="rail-wrap">${arrow('castPrevBtn', -1, 'Scroll cast left')}${arrow('castNextBtn', 1, 'Scroll cast right')}<div id="castCrewTrack" class="rail rail-people">${chips}</div></div></section>`;
+      }      const bestTrailer = getBestTrailer(details);
       const isMobileDevice = isMobile || (typeof window !== 'undefined' && window.innerWidth < 640);
       const heroTrailer = (!isMobileDevice && bestTrailer && bestTrailer.official && /trailer/i.test(bestTrailer.name || '')) ? bestTrailer : null;
       const btnClass = "w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 rounded-xl sm:rounded-2xl transition-all text-white shadow-sm shrink-0 cursor-pointer";
       const actionBtnClass = "w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-12 sm:h-12 rounded-[22.5%] overflow-hidden shadow-sm shrink-0 active:scale-95 hover:brightness-110 transition-all block cursor-pointer";
       const socialBtnClass = `${actionBtnClass} grayscale hover:grayscale-0`;
-      const trailerBtnClass = "flex items-center justify-center gap-2 sm:gap-2.5 liquid-glass px-4 py-2.5 sm:px-5 sm:py-3.5 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-white w-full sm:w-auto sm:min-w-[150px] whitespace-nowrap shadow-md cursor-pointer active:scale-95";
+      const trailerBtnClass = "btn btn-quiet hero-trailer-btn";
       
-      const watchNowHeaderHtml = `<div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch now</h3></div>`;
+      const watchNowHeaderHtml = `<div class="section-head"><h2 class="section-title">Watch now</h2></div>`;
 
       const hasMovieHistory = isModal ? watchlistModalHistoryStack.length > 0 : quickSearchHistoryStack.length > 0;
       const movieBackBtn = hasMovieHistory ? `<button id="movieBackBtn" type="button" onclick="navGoBack()" aria-label="Go back" class="pointer-events-auto mt-[max(1rem,calc(env(safe-area-inset-top,0px)+0.5rem))] ml-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
@@ -4079,8 +4049,8 @@
         `;
       }
       const trailerHeaderBtn = bestTrailer
-        ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${trailerBtnClass} cursor-pointer"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></button>`
-        : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${trailerBtnClass}"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></a>`;
+        ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${trailerBtnClass} cursor-pointer"><svg class="hero-trailer-icon" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span>Trailer</span></button>`
+        : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${trailerBtnClass}"><svg class="hero-trailer-icon" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span>Trailer</span></a>`;
       const pageTrailerBtnHtml = trailerHeaderBtn;
       const shareParam = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
       const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<svg class=\\'w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 text-green-400\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M5 13l4 4L19 7\\'/></svg>'; setTimeout(()=>t.innerHTML=old, 2000);" title="Copy Link" aria-label="Copy Link" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></button>`;
@@ -4089,6 +4059,14 @@
         ? '<div class="w-px h-5 sm:h-6 bg-white/10 my-auto shrink-0 mx-0.5 sm:mx-1"></div>'
         : '';
       const movieActionBtns = [...primaryFilmBtns, divider, shareBtn, socialsDrawerHtml].filter(Boolean);
+      const pageUrl = `${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}`;
+      const filmFooterLinks = [
+        { label: 'Letterboxd', href: `https://letterboxd.com/tmdb/${movieObj.id}` },
+        imdbId ? { label: 'IMDb', href: `https://www.imdb.com/title/${escapeHTML(imdbId)}/` } : null,
+        { label: 'TMDB', href: `https://www.themoviedb.org/${tmdbMediaType}/${movieObj.id}` },
+        ...socialsList.map(s => ({ label: s.name, href: s.url })),
+        { label: 'Copy link', onclick: `copyPageLink(this, '${pageUrl}')` }
+      ];
       const movieActionBtnsHtml = `<div class="flex items-center justify-center lg:justify-start gap-1.5 min-[360px]:gap-2 sm:gap-3 flex-nowrap w-full lg:w-auto overflow-x-auto max-w-full no-scrollbar">${movieActionBtns.join('')}</div>`;
 
       const overviewHtml = createExpandableTextHtml(overview, 'movieOverviewText');
@@ -4134,78 +4112,32 @@
         });
         const watchlistIds = new Set(scannedMovies.map(m => m.id));
         const collectionName = (collectionData && collectionData.name) || (details && details.belongs_to_collection && details.belongs_to_collection.name) || 'Related Movies, Series & Franchises';
-        const relatedCards = collectionParts.map((m) => {
-          const mTitle = escapeHTML(m.title || m.name || '');
-          const mMediaType = m.mediaType || m.media_type || (m.name && !m.title ? 'tv' : (movieObj.mediaType === 'tv' ? 'tv' : 'movie'));
-          m.mediaType = mMediaType;
-          const mPoster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : (m.poster || null);
-          const mDate = m.release_date || m.first_air_date || m.releaseDate || '';
-          const mYear = mDate ? mDate.split('-')[0] : '';
-          const isInWatchlist = watchlistIds.has(m.id);
-          const isCurrentMovie = m.id === movieObj.id;
-          const activeBorderClass = isCurrentMovie ? 'border border-blue-500' : 'border border-white/5';
-          const ratingBadgeHtml = isCurrentMovie
-            ? `<div class="poster-corner-badge absolute top-2.5 right-2.5 bg-blue-600/95 text-white font-extrabold text-[10px] uppercase tracking-wider">Viewing</div>`
-            : renderPosterRatingBadgeHtml(m);
-          return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 ${isCurrentMovie ? '' : 'sm:hover:scale-[1.03]'}" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isCurrentMovie ? '' : (isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`)}">
-            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 ${activeBorderClass} h-full" data-movie-card-id="${m.id}">
-              <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-                ${mPoster ? `<img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
-                <div class="glare"></div>
-              </div>
-              ${ratingBadgeHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#0a0a0b]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
-            </div>
-          </div>`;
-        }).join('');
-
-        const hasRelatedScroll = collectionParts.length > 5;
-        const relatedScrollBtns = hasRelatedScroll
-          ? `<button id="relatedPrevBtn" type="button" onclick="scrollRelatedTrack(-1, event)" aria-label="Scroll related films left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/related:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="relatedNextBtn" type="button" onclick="scrollRelatedTrack(1, event)" aria-label="Scroll related films right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/related:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button>`
-          : '';
-
         const isTvItem = movieObj.mediaType === 'tv';
-        const sectionTitle = isTvItem ? (collectionName.includes('Franchise') || collectionName.includes('Series') ? collectionName : `Related Movies, Series & Franchises`) : collectionName;
-        const countLabel = isTvItem ? (collectionParts.length === 1 ? 'Series' : 'Series') : (collectionParts.length === 1 ? 'Film' : 'Films');
-
-        relatedHtml = `<div class="space-y-3"><div class="flex items-center gap-2.5 flex-wrap"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400 flex items-center gap-2"><svg class="w-5 h-5 fill-current text-blue-400 shrink-0" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg><span>${escapeHTML(sectionTitle)}</span></h3><span class="hidden sm:inline-flex bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>${collectionParts.length} ${countLabel}</span></div><div class="relative group/related">${relatedScrollBtns}<div id="relatedMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${relatedCards}</div></div></div>`;
+        const relatedCards = collectionParts.map((m, i) => {
+          const mMediaType = m.mediaType || m.media_type || (m.name && !m.title ? 'tv' : (isTvItem ? 'tv' : 'movie'));
+          m.mediaType = mMediaType;
+          const open = isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`;
+          return posterCardHTML(m, { onclick: open, current: m.id === movieObj.id, index: i });
+        }).join('');
+        const arrow = (id, dir, fn, label) => `<button id="${id}" type="button" onclick="${fn}(${dir}, event)" aria-label="${label}" class="rail-arrow rail-arrow-${dir < 0 ? 'prev' : 'next'}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="${dir < 0 ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'}"></path></svg></button>`;
+        const sectionTitle = isTvItem && !/Franchise|Series/.test(collectionName) ? 'Related films and series' : collectionName;
+        const countLabel = isTvItem ? `${collectionParts.length} titles` : `${collectionParts.length} films`;
+        relatedHtml = `<section class="page-section"><div class="section-head"><h2 class="section-title">${escapeHTML(sectionTitle)}</h2><span class="section-count">${countLabel}</span></div><div class="rail-wrap">${arrow('relatedPrevBtn', -1, 'scrollRelatedTrack', 'Scroll left')}${arrow('relatedNextBtn', 1, 'scrollRelatedTrack', 'Scroll right')}<div id="relatedMoviesTrack" class="rail rail-posters">${relatedCards}</div></div></section>`;
       }
-
-
-
       // Filter out any movies that are already present in the Collection track from Similar Movies
       const collectionMovieIds = new Set(collectionParts.map(m => m.id));
       const recs = combinedRecs.filter(m => !collectionMovieIds.has(m.id)).slice(0, 28);
       let similarHtml = '';
       if (recs.length > 0) {
-        const watchlistIds = new Set(scannedMovies.map(m => m.id));
-        const recCards = recs.map((m, idx) => {
-          const mTitle = escapeHTML(m.title || m.name || '');
+        const recCards = recs.map((m, i) => {
           const mMediaType = m.mediaType || m.media_type || (m.name && !m.title ? 'tv' : (movieObj.mediaType === 'tv' ? 'tv' : 'movie'));
           m.mediaType = mMediaType;
-          const mPoster = `https://image.tmdb.org/t/p/w500${m.poster_path}`;
-          const mDate = m.release_date || m.first_air_date || '';
-          const mYear = mDate ? mDate.split('-')[0] : '';
-          const isInWatchlist = watchlistIds.has(m.id);
-          const ratingBadgeHtml = renderPosterRatingBadgeHtml(m);
-          return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 sm:hover:scale-[1.03]" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`}">
-            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full" data-movie-card-id="${m.id}">
-              <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-                <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">
-                <div class="glare"></div>
-              </div>
-              ${ratingBadgeHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#0a0a0b]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
-            </div>
-          </div>`;
+          const open = isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`;
+          return posterCardHTML(m, { onclick: open, index: i });
         }).join('');
-        const hasSimilarScroll = recs.length > 5;
-        const similarScrollBtns = hasSimilarScroll
-          ? `<button id="similarPrevBtn" type="button" onclick="scrollSimilarTrack(-1, event)" aria-label="Scroll similar films left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/similar:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="similarNextBtn" type="button" onclick="scrollSimilarTrack(1, event)" aria-label="Scroll similar films right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/similar:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button>`
-          : '';
-        similarHtml = `<div class="space-y-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">More like this</h3><div class="relative group/similar">${similarScrollBtns}<div id="similarMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${recCards}</div></div></div>`;
+        const arrow = (id, dir, label) => `<button id="${id}" type="button" onclick="scrollSimilarTrack(${dir}, event)" aria-label="${label}" class="rail-arrow rail-arrow-${dir < 0 ? 'prev' : 'next'}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="${dir < 0 ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'}"></path></svg></button>`;
+        similarHtml = `<section class="page-section"><div class="section-head"><h2 class="section-title">More like this</h2></div><div class="rail-wrap">${arrow('similarPrevBtn', -1, 'Scroll left')}${arrow('similarNextBtn', 1, 'Scroll right')}<div id="similarMoviesTrack" class="rail rail-posters">${recCards}</div></div></section>`;
       }
-
       const initialMuteParam = isHeroVideoMuted ? 1 : 0;
       const soundIconsInnerHtml = `<svg class="heroSoundIconMuted w-4 h-4 sm:w-5 sm:h-5 ${isHeroVideoMuted ? '' : 'hidden'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg><svg class="heroSoundIconUnmuted w-4 h-4 sm:w-5 sm:h-5 ${isHeroVideoMuted ? 'hidden' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>`;
       const soundBtnInlineHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn liquid-glass shrink-0 w-8 h-8 sm:w-12 sm:h-12 rounded-full sm:rounded-xl flex items-center justify-center active:scale-95 text-gray-300 hover:text-white transition-all cursor-pointer">${soundIconsInnerHtml}</button>` : '';
@@ -4239,7 +4171,7 @@
                     </div>
                     <div class="mt-1 w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
                   </div>
-                  <div class="hidden lg:flex items-center gap-2.5 sm:gap-3 pointer-events-auto shrink-0 mt-1 lg:mt-0">
+                  <div class="hero-actions flex items-center gap-2.5 sm:gap-3 pointer-events-auto shrink-0 mt-1 lg:mt-0">
                     ${pageTrailerBtnHtml}
                     ${soundBtnInlineHtml ? soundBtnInlineHtml.replace('sm:hidden', '') : ''}
                   </div>
@@ -4257,10 +4189,7 @@
               </div>
             </div>`;
 
-        return `<nav id="moviePageNav" class="movie-page-nav fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 lg:px-12 2xl:px-16 pointer-events-none">
-            <button type="button" onclick="closeMoviePage()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-            <button type="button" onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-          </nav>
+        return `${pageNavHTML('closeMoviePage()', 'goHomeFromPage()', 'moviePageNav')}
           ${heroBannerSectionHtml}
           <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 ${hasHero ? 'pt-0' : 'pt-8'} pb-0 flex flex-col gap-7 sm:gap-9 lg:gap-11">
             <div class="lg:hidden space-y-3">
@@ -4281,18 +4210,7 @@
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
             ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
           </div>
-          <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 mt-6 sm:mt-7 pb-8 sm:pb-10">
-            <div class="pt-6 border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              ${movieActionBtnsHtml}
-              <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
-                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5">
-                  <a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
-                  <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span>
-                </div>
-                <p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p>
-              </div>
-            </div>
-          </div>`;
+          <div class="page-width">${pageFooterHTML(filmFooterLinks, `<span id="moviePageVpnFootnote" class="movie-page-vpn-footnote ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}"> Some streaming services may detect or block VPN connections.</span>`)}</div>`;
       }
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
@@ -5763,31 +5681,14 @@
       if (searchInput) searchInput.value = '';
 
       const { movieTitle, backdrop, titleLogo, cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
-      const totalCount = directors.length + cast.length;
 
       const bannerArtEl = document.getElementById('allCastBannerArt');
-      if (bannerArtEl) {
-        bannerArtEl.innerHTML = backdrop
-          ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">`
-          : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0a0a0b]"></div>`;
-      }
-
-      const titleContainer = document.getElementById('allCastModalTitleContainer');
-      const titleEl = document.getElementById('allCastModalTitle');
+      if (bannerArtEl) bannerArtEl.innerHTML = backdrop ? `<img src="${backdrop}" alt="" decoding="async">` : '';
+      const filmLink = document.getElementById('allCastFilmLink');
+      if (filmLink) filmLink.textContent = movieTitle;
       const subEl = document.getElementById('allCastModalSubtitle');
-
-      if (titleContainer) {
-        if (titleLogo) {
-          titleContainer.innerHTML = `<img src="${titleLogo}" alt="${escapeHTML(movieTitle)}" loading="eager" decoding="async" class="titleLogoImg pageTitleImg max-h-20 min-[400px]:max-h-24 sm:max-h-36 max-w-[280px] min-[400px]:max-w-[340px] sm:max-w-[560px] object-contain mb-2 shrink-0 drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)]" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`;
-        } else {
-          titleContainer.innerHTML = `<h1 id="allCastModalTitle" class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${escapeHTML(movieTitle)}</h1>`;
-        }
-      } else if (titleEl) {
-        titleEl.textContent = movieTitle;
-      }
-
-      if (subEl) subEl.textContent = `${totalCount} actors, directors & crew members`;
-
+      const people = new Set([...directors, ...cast, ...crew].map(p => p.id)).size;
+      if (subEl) subEl.textContent = `· ${people.toLocaleString()} ${people === 1 ? 'person' : 'people'}`;
       updateAllCastTabsUI();
       renderAllCastGrid();
 
@@ -5843,7 +5744,7 @@
         if (countCrewEl) countCrewEl.textContent = countCrew;
         if (infoEl) {
           const currentCount = currentAllCastActiveTab === 'cast' ? countCast : (currentAllCastActiveTab === 'crew' ? countCrew : countAll);
-          infoEl.textContent = `${currentCount} Total`;
+          infoEl.textContent = String(currentCount);
         }
       }
     }
@@ -5870,75 +5771,71 @@
       renderAllCastGrid();
     }
 
+    // Credits grouped the way a film's credits read: who made it, who's in it, then the crew by
+    // department. Directors, writers and cast get portraits; the wider crew is a compact list.
+    const CAST_DEPT_ORDER = ['Directing', 'Writing', 'Cast', 'Directing team', 'Production', 'Camera', 'Editing', 'Sound', 'Art', 'Costume & Make-Up', 'Visual Effects', 'Lighting', 'Crew'];
+    const CAST_DEPT_NAMES = { 'Directing': 'Directed by', 'Writing': 'Written by', 'Cast': 'Cast', 'Directing team': 'Assistant directors and script', 'Production': 'Production', 'Camera': 'Camera', 'Editing': 'Editing', 'Sound': 'Sound and music', 'Art': 'Art and design', 'Costume & Make-Up': 'Costume and make-up', 'Visual Effects': 'Visual effects', 'Lighting': 'Lighting', 'Crew': 'Crew' };
+    function groupFullCredits() {
+      const { cast = [], crew = [], directors = [] } = window.currentMovieFullCredits || {};
+      const groups = new Map();
+      const add = (dept, person, role) => {
+        if (!groups.has(dept)) groups.set(dept, new Map());
+        const g = groups.get(dept);
+        const prev = g.get(person.id);
+        if (prev) { if (role && !prev.roles.includes(role)) prev.roles.push(role); return; }
+        g.set(person.id, { ...person, roles: role ? [role] : [] });
+      };
+      directors.forEach(d => add('Directing', d, d._role || d.job || 'Director'));
+      cast.forEach(c => add('Cast', c, c.character || ''));
+      // "Directed by" is the director(s) only; the rest of the directing department (assistant
+      // directors, script supervisor) gets its own list further down.
+      crew.forEach(c => {
+        let dept = CAST_DEPT_ORDER.includes(c.department) ? c.department : 'Crew';
+        if (dept === 'Directing' && c.job !== 'Director') dept = 'Directing team';
+        add(dept, c, c.job || '');
+      });
+      return CAST_DEPT_ORDER.filter(d => groups.has(d)).map(d => ({ dept: d, people: [...groups.get(d).values()] }));
+    }
+
     function renderAllCastGrid() {
       const grid = document.getElementById('allCastGrid');
       if (!grid || !window.currentMovieFullCredits) return;
-
-      const { cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
       const searchInput = document.getElementById('allCastSearchInput');
       const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
-      let list = [];
-      if (currentAllCastActiveTab === 'cast') {
-        list = cast.map(c => ({ ...c, _role: c.character || 'Cast' }));
-      } else if (currentAllCastActiveTab === 'crew') {
-        list = [...directors.map(d => ({ ...d, _role: 'Director' })), ...crew.map(c => ({ ...c, _role: c.job || 'Crew' }))];
-      } else {
-        const seenIds = new Set();
-        directors.forEach(d => { seenIds.add(d.id); list.push({ ...d, _role: 'Director' }); });
-        cast.forEach(c => {
-          if (!seenIds.has(c.id)) {
-            seenIds.add(c.id);
-            list.push({ ...c, _role: c.character || 'Actor' });
-          }
-        });
-        crew.forEach(cr => {
-          if (!seenIds.has(cr.id)) {
-            seenIds.add(cr.id);
-            list.push({ ...cr, _role: cr.job || 'Crew' });
-          }
-        });
-      }
+      let groups = groupFullCredits();
+      if (currentAllCastActiveTab === 'cast') groups = groups.filter(g => g.dept === 'Cast');
+      else if (currentAllCastActiveTab === 'crew') groups = groups.filter(g => g.dept !== 'Cast');
+
+      const roleText = (p) => p.roles.filter(Boolean).join(', ');
+      const portrait = (p, i) => personCardHTML(p, { role: roleText(p), index: i });
+      const row = (p) => {
+        const img = p.profile_path ? `https://image.tmdb.org/t/p/w92${p.profile_path}` : null;
+        const name = escapeHTML(p.name || 'Unknown');
+        return `<button type="button" class="crew-row" data-person-id="${p.id}" data-person-name="${name}" data-role-hint="Actor" onclick="openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)"><span class="crew-row-photo">${img ? `<img src="${img}" alt="" loading="lazy" decoding="async">` : name.charAt(0)}</span><span class="crew-row-text"><span class="crew-row-name">${name}</span><span class="crew-row-role">${escapeHTML(roleText(p))}</span></span></button>`;
+      };
 
       if (query) {
-        list = list.filter(p => (p.name || '').toLowerCase().includes(query) || (p._role || '').toLowerCase().includes(query));
-      }
-
-      if (list.length === 0) {
-        const emptyIcon = query ? '' : '';
-        const emptyMsg = query ? 'No people match your search' : 'No cast or crew found';
-        const emptySub = query ? 'Try searching for a different name or department.' : 'Nothing listed for this selection.';
-        grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
+        const seen = new Set();
+        const matches = [];
+        groups.forEach(g => g.people.forEach(p => {
+          if (seen.has(p.id)) return;
+          if ((p.name || '').toLowerCase().includes(query) || roleText(p).toLowerCase().includes(query)) { seen.add(p.id); matches.push(p); }
+        }));
+        grid.innerHTML = matches.length
+          ? `<section class="page-section"><div class="section-head"><h2 class="section-title">${matches.length === 1 ? '1 match' : `${matches.length} matches`}</h2></div><div class="people-grid">${matches.map(portrait).join('')}</div></section>`
+          : `<p class="page-empty">Nobody on this film matches “${escapeHTML(query)}”.</p>`;
         return;
       }
+      if (!groups.length) { grid.innerHTML = '<p class="page-empty">No credits listed for this yet.</p>'; return; }
 
-      const maxPage = Math.ceil(list.length / ALL_CAST_PER_PAGE);
-      if (allCastCurrentPage > maxPage) allCastCurrentPage = maxPage || 1;
-      const start = (allCastCurrentPage - 1) * ALL_CAST_PER_PAGE;
-      const pageItems = list.slice(start, start + ALL_CAST_PER_PAGE);
-
-      const isPage = currentAllCastMovieContext;
-      const cardsHtml = pageItems.map(p => {
-        const pImg = p.profile_path ? `https://image.tmdb.org/t/p/w185${p.profile_path}` : null;
-        const pName = escapeHTML(p.name || 'Unknown');
-        const pRole = escapeHTML(p._role || '');
-        const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
-
-        return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'closeAllCastModal(); openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-full shrink-0 group/person cursor-pointer select-none relative">
-          <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(255,90,54,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
-            <div class="w-full h-full rounded-full overflow-hidden">
-              ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
-            </div>
-          </div>
-          <div class="spotify-marquee-container w-full pointer-events-none text-center">
-            <span class="spotify-marquee-text text-xs sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">${pName}</span>
-          </div>
-          ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-0.5 text-center"><span class="spotify-marquee-text text-[11px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
-        </div>`;
+      grid.innerHTML = groups.map(g => {
+        const big = g.dept === 'Directing' || g.dept === 'Writing' || g.dept === 'Cast';
+        const body = big
+          ? `<div class="people-grid${g.dept === 'Cast' ? '' : ' people-grid-key'}">${g.people.map(portrait).join('')}</div>`
+          : `<div class="crew-list">${g.people.map(row).join('')}</div>`;
+        return `<section class="page-section cast-dept"><div class="section-head"><h2 class="section-title">${CAST_DEPT_NAMES[g.dept] || g.dept}</h2><span class="section-count">${g.people.length}</span></div>${body}</section>`;
       }).join('');
-
-      const pagHtml = renderAllCastPaginationHtml(allCastCurrentPage, maxPage);
-      grid.innerHTML = cardsHtml + pagHtml;
     }
     let touchStartX = 0; let touchStartY = 0; let touchEndX = 0; let touchEndY = 0; let isSwipingModal = false;
     const modalContentEl = document.getElementById('modalContent');
@@ -6362,7 +6259,7 @@
     if (el.quickSearchInput) {
       el.quickSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => {
-          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60"></span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
+          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<p class="search-empty">Nothing matches “${escapeHTML(query)}” yet. Keep typing, or try a person's name.</p>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
             el.searchDropdown.innerHTML = '';
             results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 15).forEach(item => {
               const isPerson = item.__mediaType === 'person';
@@ -6371,34 +6268,17 @@
               const year = date ? date.split('-')[0] : '';
               const imagePath = isPerson ? item.profile_path : item.poster_path;
               const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : '';
-              const row = document.createElement('div');
-              row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0';
+              const row = document.createElement('button');
+              row.type = 'button';
+              row.className = 'search-row';
               const safeTitle = escapeHTML(displayTitle);
-              let badgeLabel = '';
-              let badgeColor = '';
-              if (item.__mediaType === 'tv') {
-                badgeLabel = 'TV';
-                badgeColor = 'text-blue-400 border-blue-500/30';
-              } else if (item.__mediaType === 'person') {
-                const dept = item.known_for_department;
-                if (dept === 'Directing') badgeLabel = 'DIRECTOR';
-                else if (dept === 'Writing') badgeLabel = 'WRITER';
-                else if (dept === 'Production') badgeLabel = 'PRODUCER';
-                else if (dept === 'Sound') badgeLabel = 'COMPOSER';
-                else badgeLabel = 'ACTOR';
-                badgeColor = 'text-purple-400 border-purple-500/30';
-              } else {
-                badgeLabel = 'FILM';
-                badgeColor = 'text-gray-400 border-gray-500/30';
-              }
+              const dept = item.known_for_department;
+              const kind = item.__mediaType === 'tv' ? 'TV series'
+                : isPerson ? (dept === 'Directing' ? 'Director' : dept === 'Writing' ? 'Writer' : dept === 'Production' ? 'Producer' : dept === 'Sound' ? 'Composer' : 'Actor')
+                : 'Film';
               const searchImdbRating = isPerson ? null : getRatingInfo({ ...item }).rating;
-              const searchYear = (item.release_date || item.first_air_date || '').slice(0, 4);
-              const ratingOrYear = searchImdbRating ? `IMDb ${searchImdbRating}` : searchYear;
-              const ratingOrDept = item.matchedRole
-                ? `${item.matchedRole}${searchImdbRating ? ` • IMDb ${searchImdbRating}` : ''}`
-                : (isPerson ? (item.known_for_department || 'Person') : ratingOrYear);
-              const subtitleColor = item.matchedRole ? 'text-amber-400 font-extrabold' : 'text-blue-400';
-              row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="${subtitleColor} text-[10px]">${escapeHTML(ratingOrDept)}</span></div>`;
+              const sub = [item.matchedRole || kind, !isPerson && year ? year : null, searchImdbRating ? `IMDb ${searchImdbRating}` : null].filter(Boolean).join(' · ');
+              row.innerHTML = `<span class="search-row-thumb${isPerson ? ' is-person' : ''}">${poster ? `<img src="${poster}" alt="" loading="lazy" decoding="async">` : `<span>${safeTitle.charAt(0)}</span>`}</span><span class="search-row-text"><span class="search-row-title">${safeTitle}</span><span class="search-row-sub">${escapeHTML(sub)}</span></span>`;
               row.addEventListener('click', () => {
                 el.quickSearchInput.value = displayTitle;
                 el.searchDropdown.classList.add('hidden');
@@ -6428,12 +6308,13 @@
         if (!query) return;
         const results = await searchMultiMedia(query);
         if (results.length === 0) {
-          if (el.quickSearchResult) {
-            el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`;
-            el.quickSearchResult.classList.remove('hidden');
+          if (el.searchDropdown) {
+            el.searchDropdown.innerHTML = `<p class="search-empty">Nothing matches “${escapeHTML(query)}”. Try the original title, or a person's name.</p>`;
+            el.searchDropdown.classList.remove('hidden');
           }
           return;
         }
+        if (el.quickSearchInput) el.quickSearchInput.blur();
         results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query));
         const topResult = results[0];
         if (topResult.__mediaType === 'person') {
@@ -7791,7 +7672,7 @@
       const nextDisabled = currentPage === maxPage;
       btnsHtml += createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', nextDisabled, currentPage + 1);
 
-      return `<div class="col-span-full flex items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-6 pb-2 select-none">${btnsHtml}</div>`;
+      return `<div class="pagination grid-span-all">${btnsHtml}</div>`;
     }
 
     function buildActorFilmographyGridHtml(person, showWatchlistOnly, roleHint = '', isModal = true, isPage = false) {
@@ -7808,51 +7689,22 @@
       let filmographyHtml = '';
       if (moviesToShow.length === 0) {
         const isFiltered = actorFilterQuery || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (actorFilterRating && actorFilterRating !== 'all') || (actorFilterRuntime && actorFilterRuntime !== 'all');
-        let emptyIcon = isFiltered ? '' : (actorMediaTypeFilter === 'watchlist' ? '' : (actorMediaTypeFilter === 'tv' ? '' : ''));
-        let emptyMsg = 'No credits found';
-        let emptySub = 'Nothing landed here for your current selection.';
-        if (isFiltered) {
-          emptyMsg = 'No titles match your filters';
-          emptySub = 'Try a different search, genre, or decade.';
-        } else if (actorMediaTypeFilter === 'watchlist') {
-          emptyMsg = `No watchlist titles found`;
-          emptySub = `No titles from your scanned watchlist for this ${activeRole.toLowerCase()}.`;
-        } else if (actorMediaTypeFilter === 'movie') {
-          emptyMsg = `No films found`;
-          emptySub = `No feature films listed for this ${activeRole.toLowerCase()}.`;
-        } else if (actorMediaTypeFilter === 'tv') {
-          emptyMsg = `No series found`;
-          emptySub = `No television series listed for this ${activeRole.toLowerCase()}.`;
-        } else {
-          emptyMsg = `No credits found`;
-          emptySub = `No available credits for this ${activeRole.toLowerCase()}.`;
-        }
-        filmographyHtml = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
+        const what = { watchlist: 'from your watchlist', movie: 'films', tv: 'series' }[actorMediaTypeFilter] || 'credits';
+        const msg = isFiltered ? 'Nothing matches these filters. Try a different search, genre or decade.'
+          : actorMediaTypeFilter === 'watchlist' ? `Nothing ${what} for this ${activeRole.toLowerCase()} yet.`
+          : `No ${what} listed for this ${activeRole.toLowerCase()}.`;
+        filmographyHtml = `<p class="page-empty">${msg}</p>`;
       } else {
-        pageMovies.forEach((m, idx) => {
-          const mTitle = escapeHTML(m.title);
-          const mYear = m.release_date ? m.release_date.split('-')[0] : '';
-          const mPoster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null;
-          const mChar = m.character ? escapeHTML(m.character) : '';
-          const isInWatchlist = watchlistKeySet.has(`${m.mediaType || 'movie'}-${m.id}`);
-          const mediaBadge = m.mediaType === 'tv' ? ' · TV Series' : '';
-          const roleStr = isDirector ? 'Director' : (mChar ? mChar : '');
-          const subtext = `${mYear ? mYear : ''}${mediaBadge}${roleStr ? ' · ' + roleStr : ''}`;
-          const actorRatingHtml = renderPosterRatingBadgeHtml(m);
-          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '', '${m.mediaType || 'movie'}')` : `handleActorFilmClick(${m.id}, '', ${!isModal}, '${m.mediaType || 'movie'}')`}">
-            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 h-full" data-movie-card-id="${m.id}">
-              <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-                ${mPoster ? `<img src="${mPoster}" alt="${mTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
-                <div class="glare"></div>
-              </div>
-              ${actorRatingHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#0a0a0b]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
-            </div>
-          </div>`;
-        });
+        filmographyHtml = pageMovies.map((m, idx) => {
+          const type = m.mediaType || 'movie';
+          const year = m.release_date ? m.release_date.split('-')[0] : '';
+          const role = isDirector ? 'Director' : (m.character || '');
+          const sub = [year, type === 'tv' ? 'Series' : '', role].filter(Boolean).join(' · ');
+          const open = isPage ? `openMoviePageById(${m.id}, '', '${type}')` : `handleActorFilmClick(${m.id}, '', ${!isModal}, '${type}')`;
+          return posterCardHTML(m, { onclick: open, sub, index: idx, hideWatchlist: actorMediaTypeFilter === 'watchlist' });
+        }).join('');
         filmographyHtml += renderActorPaginationHtml(actorCurrentPage, maxActorPage);
       }
-
       return { filmographyHtml, allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles, counts };
     }
 
@@ -7915,14 +7767,8 @@
 
       const hasActiveActorFilters = (actorFilterSort !== 'popularity') || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
-      const mediaFilterTabsHtml = `
-        <div class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full items-center">
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="setActorTab('watchlist')"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="setActorTab('all')"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="setActorTab('movie')"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="setActorTab('tv')"><span>Series</span> <span class="tab-badge actor-tab-badge">${safeCounts.tv}</span></button>
-        </div>`;
-
+      const tab = (key, label, count) => `<button type="button" class="tab-btn actor-tab-btn ${actorMediaTypeFilter === key ? 'active' : ''}" onclick="setActorTab('${key}')">${label} <span class="tab-badge actor-tab-badge">${count}</span></button>`;
+      const mediaFilterTabsHtml = tab('watchlist', 'On your watchlist', safeCounts.watchlist) + tab('all', 'All', safeCounts.all) + tab('movie', 'Films', safeCounts.movie) + tab('tv', 'Series', safeCounts.tv);
       const roleIcons = {
         'Actor': '',
         'Director': '',
@@ -7934,10 +7780,10 @@
 
       const roleSelectWrapper = availableRoles.length > 1 ? `
         <div class="custom-filter-dropdown-container shrink-0 min-w-[130px] sm:min-w-[145px] max-w-[185px]">
-          <button type="button" onclick="toggleCustomFilterMenu(this, 'actorRolePopover')" class="custom-filter-trigger h-[42px] px-3">
+          <button type="button" onclick="toggleCustomFilterMenu(this, 'actorRolePopover')" class="custom-filter-trigger role-trigger h-[42px] px-4">
             <div class="flex items-center gap-2 truncate min-w-0">
               <span class="text-sm shrink-0">${activeRoleIcon}</span>
-              <span class="truncate font-bold text-xs uppercase tracking-wider text-white" id="actorRoleLabel">${activeRole}</span>
+              <span class="truncate" id="actorRoleLabel">As ${activeRole.toLowerCase()}</span>
             </div>
             <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
@@ -7946,7 +7792,7 @@
               <button type="button" onclick="selectActorRole('${r}', event)" class="custom-filter-item ${r === activeRole ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
                   <span class="text-sm shrink-0">${roleIcons[r] || ''}</span>
-                  <span class="truncate font-bold text-xs uppercase tracking-wider">${r}</span>
+                  <span class="truncate">As ${r.toLowerCase()}</span>
                 </div>
                 <div class="custom-filter-radio">
                   ${r === activeRole ? '<div class="custom-filter-radio-dot"></div>' : ''}
@@ -8073,66 +7919,34 @@
         : '';
 
       const desktopBackdropImg = knownForBackdrop || profileImg;
-      const filterPlaceholder = (typeof window !== 'undefined' && window.innerWidth < 640) ? 'Search...' : 'Filter by title...';
+      const filterPlaceholder = (typeof window !== 'undefined' && window.innerWidth < 640) ? 'Filter' : 'Filter by title';
 
       const actorControlsHtml = `
-        <div class="relative w-full z-50" id="actorControlsCard">
-          <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
-            <div id="actorCategoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
-              ${mediaFilterTabsHtml}
-            </div>
-            <div class="hidden lg:block w-px h-6 bg-white/15 shrink-0 my-auto"></div>
-            <div class="relative flex-1 min-w-0" id="actorControlsBarRow">
-              <div class="flex items-center gap-2 w-full">
-                <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
-                  <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                  <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="${filterPlaceholder}" value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors truncate">
-                  ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
-                </div>
-
-                <!-- Options / Filter Toggle Button for Actor -->
-                <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all active:scale-95 font-bold text-xs cursor-pointer">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-                  </svg>
-                </button>
-
-                ${roleSelectWrapper}
-              </div>
-            </div>
+        <div class="results-bar person-bar" id="actorControlsCard">
+          <div id="actorCategoriesBar" class="tabs" role="tablist" aria-label="Show">${mediaFilterTabsHtml}</div>
+          <div class="results-tools" id="actorControlsBarRow">
+            <label class="filter-field">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
+              <input id="actorFilmSearch" aria-label="Filter by title" type="text" autocomplete="off" spellcheck="false" placeholder="${filterPlaceholder}" value="${escapeHTML(actorFilterQuery)}">
+              <button id="actorFilmSearchClear" type="button" aria-label="Clear filter" class="icon-btn ${actorFilterQuery ? '' : 'hidden'}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </label>
+            <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" class="ghost-btn ${hasActiveActorFilters ? 'has-filters' : ''}" aria-label="Filters and sorting">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M7 12h10M10 17h4"></path></svg>
+              <span class="hide-narrow">Filters</span>
+            </button>
+            ${roleSelectWrapper}
           </div>
-
-          <!-- Actor Filter Backdrop (Mobile bottom sheet backdrop) -->
           <div id="actorFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeActorFilterDropdown()"></div>
-
-          <!-- Responsive Filter Panel for Actor (Spans full bar width on desktop, bottom sheet on mobile) -->
-          <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive space-y-4">
-            <!-- Mobile Drag Handle -->
-            <div class="w-10 h-1 rounded-full bg-white/20 mx-auto mb-2 sm:hidden pointer-events-none"></div>
-
-            <!-- Header -->
-            <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-              <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-                </svg>
-                <span class="text-xs font-bold uppercase tracking-widest text-white">Filters &amp; Sorting</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="resetActorFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
-                  Reset all
-                </button>
-                <button type="button" onclick="closeActorFilterDropdown()" aria-label="Close"
-                  class="sm:hidden w-8 h-8 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer shrink-0">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
+          <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive">
+            <div class="sheet-handle sm:hidden" aria-hidden="true"></div>
+            <div class="filter-panel-head">
+              <h3>Filters and sorting</h3>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="resetActorFilters()" class="link-btn">Reset all</button>
+                <button type="button" onclick="closeActorFilterDropdown()" aria-label="Close" class="icon-btn sm:hidden"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
               </div>
             </div>
-
-            <!-- Full-width multi-column grid on desktop! -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="actorFilterGridSlots">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4" id="actorFilterGridSlots">
               <div id="actorFilterSlot-sort" class="custom-filter-dropdown-container"></div>
               <div id="actorFilterSlot-provider" class="custom-filter-dropdown-container"></div>
               <div id="actorFilterSlot-genre" class="custom-filter-dropdown-container"></div>
@@ -8140,60 +7954,48 @@
               <div id="actorFilterSlot-rating" class="custom-filter-dropdown-container"></div>
               <div id="actorFilterSlot-runtime" class="custom-filter-dropdown-container"></div>
             </div>
-
-            <!-- Mobile Close / Apply Button -->
-            <button type="button" onclick="closeActorFilterDropdown()" class="w-full sm:hidden py-3 mt-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
-              Show Results
-            </button>
+            <button type="button" onclick="closeActorFilterDropdown()" class="btn btn-primary w-full sm:hidden">Show films</button>
           </div>
         </div>
       `;
 
       if (isPage) {
-        return `<nav id="actorPageNav" class="movie-page-nav fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 lg:px-12 2xl:px-16 pointer-events-none">
-            <button type="button" onclick="closeActorPage()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-            <button type="button" onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-          </nav>
-          <div class="relative w-full h-[52dvh] min-h-[380px] sm:h-[74dvh] sm:min-h-[420px] actor-hero-container">
-            <div id="actorPageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0a0a0b] clip-mask">
-              ${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0a0a0b]/80 to-[#0a0a0b]"></div>`}
-              <div class="absolute inset-x-0 bottom-0 h-[65%] sm:h-[56%] bg-gradient-to-t from-[#0a0a0b] from-0% via-[#0a0a0b] sm:via-[#0a0a0b]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div>
-            </div>
-            <div class="absolute inset-0 z-30 flex flex-col justify-end pointer-events-none pb-6 sm:pb-14 2xl:pb-16 actor-hero-content">
-              <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 flex flex-col gap-3 sm:gap-4">
-                <div class="flex flex-row items-center gap-4 sm:gap-8">
-                  ${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async" class="w-28 min-[400px]:w-32 sm:w-48 2xl:w-56 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 pointer-events-auto">` : `<div class="w-28 min-[400px]:w-32 sm:w-48 2xl:w-56 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 flex items-center justify-center text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 pointer-events-auto">${safeName.charAt(0)}</div>`}
-                  <div class="pointer-events-auto min-w-0 flex-1 flex flex-col justify-center gap-1 sm:gap-2">
-                    <h1 class="actor-hero-name text-2xl min-[400px]:text-3xl sm:text-7xl 2xl:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[1.08] sm:leading-[0.98]">${safeName}</h1>
-                    ${knownForTitle ? `<p class="actor-hero-known-for text-xs sm:text-base 2xl:text-lg font-medium text-gray-300 drop-shadow"><span class="text-blue-400 font-extrabold uppercase text-[10px] sm:text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>` : ''}
-                    <div class="mt-1 sm:mt-2 max-w-3xl 2xl:max-w-4xl">${bio ? createHeroOverviewHtml(bio, safeName) : ''}</div>
-                  </div>
-                </div>
+        // One plain line of facts instead of labels: what they do, when and where they were born, what they're known for.
+        const fmtDate = (d) => { try { return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return d; } };
+        const dept = { Acting: 'Actor', Directing: 'Director', Writing: 'Writer', Production: 'Producer', Sound: 'Composer' }[person.known_for_department] || activeRole;
+        const facts = [
+          dept,
+          birthday ? (deathday ? `${birthday.slice(0, 4)}–${deathday.slice(0, 4)}` : `Born ${fmtDate(birthday)}${birthplace ? ` in ${birthplace}` : ''}`) : (birthplace ? `From ${birthplace}` : ''),
+          knownForTitle ? `Known for ${escapeHTML(knownForTitle)}` : ''
+        ].filter(Boolean).join(' · ');
+        const personUrl = `${window.location.origin}${window.location.pathname}?actor=${tmdbId}`;
+        const personLinks = [
+          lbSlug ? { label: 'Letterboxd', href: `https://letterboxd.com/${isDirector ? 'director' : 'actor'}/${escapeHTML(lbSlug)}/` } : null,
+          imdbId ? { label: 'IMDb', href: `https://www.imdb.com/name/${escapeHTML(imdbId)}/` } : null,
+          { label: 'TMDB', href: `https://www.themoviedb.org/person/${tmdbId}` },
+          ...socialsList.map(s => ({ label: s.name, href: s.url })),
+          { label: 'Copy link', onclick: `copyPageLink(this, '${personUrl}')` }
+        ];
+        const filmsHeading = 'Films and series';
+        return `${pageNavHTML('closeActorPage()', 'goHomeFromPage()', 'actorPageNav')}
+          <header class="person-hero">
+            <div id="actorPageHeroArt" class="person-hero-art" aria-hidden="true">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="" loading="eager" decoding="async" onload="this.classList.add('is-loaded')">` : ''}</div>
+            <div class="page-width person-hero-inner">
+              <div class="person-hero-photo">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async">` : `<span>${safeName.charAt(0)}</span>`}</div>
+              <div class="person-hero-text">
+                <h1 class="display person-name actor-hero-name">${safeName}</h1>
+                ${facts ? `<p class="person-facts">${facts}</p>` : ''}
+                ${bio ? `<div class="person-bio">${createHeroOverviewHtml(bio, safeName)}</div>` : ''}
               </div>
             </div>
-          </div>
-          <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 pt-4 sm:pt-0 pb-0 flex flex-col gap-6 sm:gap-10">
-            <div>
-              <div class="flex flex-col gap-3 mb-4 relative z-40">
-                <h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>
-                ${actorControlsHtml}
-              </div>
-              <div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div>
-            </div>
-          </div>
-          <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 mt-6 sm:mt-7 pb-8 sm:pb-10">
-            <div class="pt-6 border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              ${actorActionBtnsHtml}
-              <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
-                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5">
-                  <a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
-                  <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span>
-                </div>
-              </div>
-            </div>
+          </header>
+          <div class="page-width person-body">
+            <div class="section-head person-films-head"><h2 class="section-title">${filmsHeading}</h2><span class="section-count actor-total-count">${safeCounts.all}</span></div>
+            ${actorControlsHtml}
+            <div id="actorFilmGrid" class="poster-grid">${filmographyHtml}</div>
+            ${pageFooterHTML(personLinks)}
           </div>`;
-      }
-      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0a0a0b]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0a0a0b]/80 to-[#0a0a0b]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0a0a0b] via-[#0a0a0b]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0a0a0b] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0a0a0b] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div></div></div>`;
+      }      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0a0a0b]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0a0a0b]/80 to-[#0a0a0b]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0a0a0b] via-[#0a0a0b]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0a0a0b] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0a0a0b] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div></div></div>`;
     }
 
     let currentActorId = null;
@@ -8722,6 +8524,7 @@
         searchInput.addEventListener('input', (e) => {
           actorFilterQuery = e.target.value;
           actorCurrentPage = 1;
+          if (clearBtn) clearBtn.classList.toggle('hidden', !e.target.value);
           refreshActorFilmographyGrid();
         });
       }
@@ -8729,6 +8532,7 @@
         clearBtn.addEventListener('click', () => {
           actorFilterQuery = '';
           actorCurrentPage = 1;
+          clearBtn.classList.add('hidden');
           refreshActorFilmographyGrid();
           const inp = document.getElementById('actorFilmSearch');
           if (inp) { inp.value = ''; inp.focus(); }
@@ -8866,7 +8670,7 @@
         lastT = now;
       };
 
-      track.querySelectorAll('.tilt-card, .cast-chip-card').forEach(card => {
+      track.querySelectorAll('.tilt-card, .cast-chip-card, .poster-card').forEach(card => {
         card.addEventListener('click', (e) => {
           if (isDragging || (isCast && window.isCastDragging)) {
             e.preventDefault();
@@ -8972,7 +8776,7 @@
           }
           const totalCountEls = container.querySelectorAll('.actor-total-count');
           if (totalCountEls.length > 0 && counts) {
-            totalCountEls.forEach(el => { el.textContent = `(${counts.all} total)`; });
+            totalCountEls.forEach(el => { el.textContent = String(counts.all); });
           }
 
           // Update Role dropdown button label, icon, and popover state
@@ -8987,7 +8791,7 @@
           const activeRole = activeRoleHint || 'Actor';
           const activeIcon = roleIcons[activeRole] || '';
           if (roleLabelEl) {
-            roleLabelEl.textContent = activeRole;
+            roleLabelEl.textContent = `As ${activeRole.toLowerCase()}`;
             const trigger = roleLabelEl.closest('.custom-filter-trigger');
             if (trigger) {
               const iconSpan = trigger.querySelector('.text-sm');
@@ -8998,7 +8802,7 @@
           if (rolePopover) {
             rolePopover.querySelectorAll('.custom-filter-item').forEach(item => {
               const itemText = item.textContent || '';
-              const isSel = itemText.includes(activeRole);
+              const isSel = itemText.toLowerCase().includes(activeRole.toLowerCase());
               item.classList.toggle('selected', isSel);
               const radio = item.querySelector('.custom-filter-radio');
               if (radio) {
@@ -9504,20 +9308,15 @@
     }
 
     // Quick search lives behind the Search button in the top bar (and ⌘K / Ctrl+K).
+    // Search is the field in the top bar; Ctrl/⌘K just puts you in it.
     function openQuickSearch() {
-      const bar = document.getElementById('quickSearchBar');
-      const btn = document.getElementById('searchToggleBtn');
-      if (!bar) return;
-      bar.classList.remove('hidden');
-      if (btn) btn.setAttribute('aria-expanded', 'true');
-      if (el.quickSearchInput) el.quickSearchInput.focus();
+      if (!el.quickSearchInput) return;
+      el.quickSearchInput.focus();
+      el.quickSearchInput.select();
     }
     function closeQuickSearch() {
-      const bar = document.getElementById('quickSearchBar');
-      const btn = document.getElementById('searchToggleBtn');
-      if (!bar || (el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden'))) return;
-      bar.classList.add('hidden');
-      if (btn) btn.setAttribute('aria-expanded', 'false');
+      if (el.searchDropdown) el.searchDropdown.classList.add('hidden');
+      if (el.quickSearchInput) el.quickSearchInput.blur();
     }
 
     // The landing's poster wall: the visitor's own watchlist when we have it, otherwise
@@ -9562,10 +9361,14 @@
       const on = (id, fn) => { const node = document.getElementById(id); if (node) node.addEventListener('click', fn); };
       const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
       document.querySelectorAll('.kbd-shortcut').forEach(k => { k.textContent = isMac ? '⌘K' : 'Ctrl K'; });
-      on('searchToggleBtn', () => {
-        const bar = document.getElementById('quickSearchBar');
-        if (bar && bar.classList.contains('hidden')) openQuickSearch(); else closeQuickSearch();
-      });
+      if (el.quickSearchInput) {
+        el.quickSearchInput.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeQuickSearch(); });
+        // Tapping the pill's icon or padding still puts you in the field.
+        document.getElementById('quickSearchBar')?.addEventListener('mousedown', (e) => {
+          if (e.target === el.quickSearchInput || e.target.closest('button, #searchDropdown')) return;
+          e.preventDefault(); el.quickSearchInput.focus();
+        });
+      }
       const chips = document.getElementById('serviceChips');
       if (chips) chips.addEventListener('click', (e) => { const b = e.target.closest('.svc-chip'); if (b) selectServiceChip(b.dataset.service || null); });
       setTimeout(fillPosterWall, 400); // after the saved scan (if any) has had a chance to load
@@ -9758,3 +9561,77 @@
 
     // iOS Safari only applies :active (our press feedback) when a touch listener exists.
     document.addEventListener('touchstart', () => {}, { passive: true });
+    // =========================================================================
+    // SHARED PAGE PIECES: the poster card, the person card, the page nav and footer.
+    // The home grid, film pages, person pages and the cast page all draw from these,
+    // so a film or a person looks the same wherever it appears.
+    // =========================================================================
+
+    // A poster card as HTML (same look as createMovieCard() in the home grid).
+    // `m` is a TMDB-style item ({ id, title|name, poster_path|poster, release_date|first_air_date }).
+    function posterCardHTML(m, { onclick = '', sub = '', current = false, index = 0, hideWatchlist = false } = {}) {
+      const title = m.title || m.name || '';
+      const safeTitle = escapeHTML(title);
+      const poster = m.poster_path ? `https://image.tmdb.org/t/p/w342${m.poster_path}` : (m.poster ? m.poster.replace('/w500/', '/w342/') : '');
+      const year = (m.release_date || m.first_air_date || m.releaseDate || '').slice(0, 4);
+      const mediaType = m.mediaType || m.media_type || 'movie';
+      const inWatchlist = scannedMovies.some(s => s.id === m.id && (s.mediaType || 'movie') === mediaType);
+      const badges = [
+        current ? '' : renderPosterRatingBadgeHtml(m),
+        inWatchlist && !current && !hideWatchlist ? '<span class="poster-corner-badge poster-wl-badge" title="On your watchlist">Watchlist</span>' : '',
+        current ? '<span class="poster-corner-badge poster-wl-badge">Viewing</span>' : ''
+      ].join('');
+      const caption = sub
+        ? `<div class="poster-card-caption is-stacked"><span class="poster-card-title">${safeTitle}</span><span class="poster-card-sub">${escapeHTML(sub)}</span></div>`
+        : `<div class="poster-card-caption"><span class="poster-card-title">${safeTitle}</span>${year ? `<span class="poster-card-year">${year}</span>` : ''}</div>`;
+      return `<div class="poster-card${current ? ' is-current' : ''}" style="--i:${Math.min(index, 24)}">
+        <a href="#" class="poster-card-art" aria-label="${safeTitle}${year ? ` (${year})` : ''}" data-movie-card-id="${m.id}" onclick="event.preventDefault();${current ? '' : onclick}">
+          <div class="poster-card-clip">${poster ? `<img src="${poster}" alt="" loading="lazy" decoding="async">` : `<div class="poster-card-fallback">${safeTitle}</div>`}</div>
+          ${badges}
+        </a>
+        ${caption}
+      </div>`;
+    }
+
+    // A person as a portrait card: photo, name, and their part (character or job).
+    // Keeps the cast-chip-card class so the cast rail's drag guard and the watch box sizing find it.
+    function personCardHTML(p, { role = '', onclick = '', index = 0 } = {}) {
+      const name = escapeHTML(p.name || 'Unknown');
+      const img = p.profile_path ? `https://image.tmdb.org/t/p/w185${p.profile_path}` : null;
+      const roleHint = /director|creator/i.test(role) ? 'Director' : 'Actor';
+      return `<button type="button" class="person-card cast-chip-card" style="--i:${Math.min(index, 24)}" data-person-id="${p.id}" data-person-name="${name}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging){${onclick || 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)'}}">
+        <span class="person-card-photo">${img ? `<img src="${img}" alt="" loading="lazy" decoding="async" draggable="false">` : `<span class="person-card-initial">${name.charAt(0)}</span>`}</span>
+        <span class="person-card-name">${name}</span>
+        ${role ? `<span class="person-card-role">${escapeHTML(role)}</span>` : ''}
+      </button>`;
+    }
+
+    // Back and close, the same on every full page.
+    function pageNavHTML(backOnclick, closeOnclick, id = '') {
+      const chevron = '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"></path></svg>';
+      const cross = '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>';
+      return `<nav ${id ? `id="${id}" ` : ''}class="movie-page-nav page-nav">
+        <button type="button" class="page-nav-btn" onclick="${backOnclick}" aria-label="Back">${chevron}</button>
+        <button type="button" class="page-nav-btn" onclick="${closeOnclick}" aria-label="Close">${cross}</button>
+      </nav>`;
+    }
+
+    // Outside links as plain text pills, then the attribution line (TMDB and JustWatch).
+    // `links` is [{ label, href }] or [{ label, onclick }].
+    function pageFooterHTML(links = [], extraNote = '') {
+      const items = links.filter(Boolean).map(l => l.href
+        ? `<a class="page-link" href="${l.href}" target="_blank" rel="noopener">${escapeHTML(l.label)}</a>`
+        : `<button type="button" class="page-link" onclick="${l.onclick}">${escapeHTML(l.label)}</button>`).join('');
+      return `<footer class="page-footer">
+        ${items ? `<div class="page-links">${items}</div>` : ''}
+        <p class="page-legal">This product uses the TMDB API but is not endorsed or certified by TMDB. Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>. <a href="/privacy.html">Privacy</a>${extraNote}</p>
+      </footer>`;
+    }
+
+    // "Copy link" for the footer: copies, then says so for a moment.
+    function copyPageLink(btn, url) {
+      try { navigator.clipboard.writeText(url); } catch (e) { logIgnored('copyPageLink', e); }
+      const old = btn.textContent;
+      btn.textContent = 'Link copied';
+      setTimeout(() => { btn.textContent = old; }, 1800);
+    }

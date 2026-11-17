@@ -305,20 +305,15 @@
     }
 
     // Quick search lives behind the Search button in the top bar (and ⌘K / Ctrl+K).
+    // Search is the field in the top bar; Ctrl/⌘K just puts you in it.
     function openQuickSearch() {
-      const bar = document.getElementById('quickSearchBar');
-      const btn = document.getElementById('searchToggleBtn');
-      if (!bar) return;
-      bar.classList.remove('hidden');
-      if (btn) btn.setAttribute('aria-expanded', 'true');
-      if (el.quickSearchInput) el.quickSearchInput.focus();
+      if (!el.quickSearchInput) return;
+      el.quickSearchInput.focus();
+      el.quickSearchInput.select();
     }
     function closeQuickSearch() {
-      const bar = document.getElementById('quickSearchBar');
-      const btn = document.getElementById('searchToggleBtn');
-      if (!bar || (el.quickSearchResult && !el.quickSearchResult.classList.contains('hidden'))) return;
-      bar.classList.add('hidden');
-      if (btn) btn.setAttribute('aria-expanded', 'false');
+      if (el.searchDropdown) el.searchDropdown.classList.add('hidden');
+      if (el.quickSearchInput) el.quickSearchInput.blur();
     }
 
     // The landing's poster wall: the visitor's own watchlist when we have it, otherwise
@@ -363,10 +358,14 @@
       const on = (id, fn) => { const node = document.getElementById(id); if (node) node.addEventListener('click', fn); };
       const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
       document.querySelectorAll('.kbd-shortcut').forEach(k => { k.textContent = isMac ? '⌘K' : 'Ctrl K'; });
-      on('searchToggleBtn', () => {
-        const bar = document.getElementById('quickSearchBar');
-        if (bar && bar.classList.contains('hidden')) openQuickSearch(); else closeQuickSearch();
-      });
+      if (el.quickSearchInput) {
+        el.quickSearchInput.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeQuickSearch(); });
+        // Tapping the pill's icon or padding still puts you in the field.
+        document.getElementById('quickSearchBar')?.addEventListener('mousedown', (e) => {
+          if (e.target === el.quickSearchInput || e.target.closest('button, #searchDropdown')) return;
+          e.preventDefault(); el.quickSearchInput.focus();
+        });
+      }
       const chips = document.getElementById('serviceChips');
       if (chips) chips.addEventListener('click', (e) => { const b = e.target.closest('.svc-chip'); if (b) selectServiceChip(b.dataset.service || null); });
       setTimeout(fillPosterWall, 400); // after the saved scan (if any) has had a chance to load

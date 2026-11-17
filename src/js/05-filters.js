@@ -730,12 +730,12 @@
     if (el.clearResultsBtn) { el.clearResultsBtn.addEventListener('click', () => { if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden'); currentPage = 1; applyFiltersAndRender(); if (el.filterSearch) el.filterSearch.focus(); }); }
     function updateSearchPlaceholders() {
       const isMobile = window.innerWidth < 640;
-      const ph = isMobile ? 'Search...' : 'Filter by title...';
+      const ph = isMobile ? 'Filter' : 'Filter by title';
       if (el.filterSearch) el.filterSearch.placeholder = ph;
       const aSearch = document.getElementById('actorFilmSearch');
       if (aSearch) aSearch.placeholder = ph;
       const qSearch = document.getElementById('quickSearchInput');
-      if (qSearch) qSearch.placeholder = isMobile ? 'Search films, shows...' : 'Search films, TV shows, actors, directors...';
+      if (qSearch) qSearch.placeholder = isMobile ? 'Search' : 'Search any film or person';
     }
     updateSearchPlaceholders();
     window.addEventListener('resize', updateSearchPlaceholders);

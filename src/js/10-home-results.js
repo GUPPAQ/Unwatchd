@@ -368,7 +368,7 @@
     if (el.quickSearchInput) {
       el.quickSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => {
-          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60"></span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
+          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<p class="search-empty">Nothing matches “${escapeHTML(query)}” yet. Keep typing, or try a person's name.</p>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
             el.searchDropdown.innerHTML = '';
             results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 15).forEach(item => {
               const isPerson = item.__mediaType === 'person';
@@ -377,34 +377,17 @@
               const year = date ? date.split('-')[0] : '';
               const imagePath = isPerson ? item.profile_path : item.poster_path;
               const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : '';
-              const row = document.createElement('div');
-              row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0';
+              const row = document.createElement('button');
+              row.type = 'button';
+              row.className = 'search-row';
               const safeTitle = escapeHTML(displayTitle);
-              let badgeLabel = '';
-              let badgeColor = '';
-              if (item.__mediaType === 'tv') {
-                badgeLabel = 'TV';
-                badgeColor = 'text-blue-400 border-blue-500/30';
-              } else if (item.__mediaType === 'person') {
-                const dept = item.known_for_department;
-                if (dept === 'Directing') badgeLabel = 'DIRECTOR';
-                else if (dept === 'Writing') badgeLabel = 'WRITER';
-                else if (dept === 'Production') badgeLabel = 'PRODUCER';
-                else if (dept === 'Sound') badgeLabel = 'COMPOSER';
-                else badgeLabel = 'ACTOR';
-                badgeColor = 'text-purple-400 border-purple-500/30';
-              } else {
-                badgeLabel = 'FILM';
-                badgeColor = 'text-gray-400 border-gray-500/30';
-              }
+              const dept = item.known_for_department;
+              const kind = item.__mediaType === 'tv' ? 'TV series'
+                : isPerson ? (dept === 'Directing' ? 'Director' : dept === 'Writing' ? 'Writer' : dept === 'Production' ? 'Producer' : dept === 'Sound' ? 'Composer' : 'Actor')
+                : 'Film';
               const searchImdbRating = isPerson ? null : getRatingInfo({ ...item }).rating;
-              const searchYear = (item.release_date || item.first_air_date || '').slice(0, 4);
-              const ratingOrYear = searchImdbRating ? `IMDb ${searchImdbRating}` : searchYear;
-              const ratingOrDept = item.matchedRole
-                ? `${item.matchedRole}${searchImdbRating ? ` • IMDb ${searchImdbRating}` : ''}`
-                : (isPerson ? (item.known_for_department || 'Person') : ratingOrYear);
-              const subtitleColor = item.matchedRole ? 'text-amber-400 font-extrabold' : 'text-blue-400';
-              row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="${subtitleColor} text-[10px]">${escapeHTML(ratingOrDept)}</span></div>`;
+              const sub = [item.matchedRole || kind, !isPerson && year ? year : null, searchImdbRating ? `IMDb ${searchImdbRating}` : null].filter(Boolean).join(' · ');
+              row.innerHTML = `<span class="search-row-thumb${isPerson ? ' is-person' : ''}">${poster ? `<img src="${poster}" alt="" loading="lazy" decoding="async">` : `<span>${safeTitle.charAt(0)}</span>`}</span><span class="search-row-text"><span class="search-row-title">${safeTitle}</span><span class="search-row-sub">${escapeHTML(sub)}</span></span>`;
               row.addEventListener('click', () => {
                 el.quickSearchInput.value = displayTitle;
                 el.searchDropdown.classList.add('hidden');
@@ -434,12 +417,13 @@
         if (!query) return;
         const results = await searchMultiMedia(query);
         if (results.length === 0) {
-          if (el.quickSearchResult) {
-            el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`;
-            el.quickSearchResult.classList.remove('hidden');
+          if (el.searchDropdown) {
+            el.searchDropdown.innerHTML = `<p class="search-empty">Nothing matches “${escapeHTML(query)}”. Try the original title, or a person's name.</p>`;
+            el.searchDropdown.classList.remove('hidden');
           }
           return;
         }
+        if (el.quickSearchInput) el.quickSearchInput.blur();
         results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query));
         const topResult = results[0];
         if (topResult.__mediaType === 'person') {

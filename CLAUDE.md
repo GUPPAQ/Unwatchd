@@ -49,11 +49,14 @@ Tokens and components live in the "FILM-NIGHT WORLD" block at the end of the `<s
   case, never all caps. No small labels above headings.
 - No emoji as icons. Inline SVG or nothing. Region flags are the exception.
 - Landing: the whole scan form is one bar (`.ask-bar`: username, optional friend, "Streaming on"
-  pill, button) that stacks into a card on phones. The pill slides a drawer of service chips out
-  from under the bar (inside the card on phones); picks apply as you tap. While scanning, the bar
+  pill, button) that stacks into a card on phones. "Streaming on" grows the bar itself downwards
+  into a card of service chips (a second grid row); picks apply as you tap. While scanning, the bar
   itself shows the progress. "Change" on the results puts `body.landing-mode` on, which hides the
   results until "Back to your results". The poster wall drifts (CSS), still for reduced motion.
-- Top bar: a visible search field (Ctrl/⌘K) and the region. The VPN switch lives in the results
+- Film, person and cast pages build from the shared pieces in `src/js/17-pages.js`
+  (`posterCardHTML`, `personCardHTML`, `pageNavHTML`, `pageFooterHTML`), so a film or a person looks
+  the same everywhere. Section headings are `.section-head` > `.section-title` (serif).
+- Top bar: the search field itself (Ctrl/⌘K focuses it) and the region. The VPN switch lives in the results
   tools and the film page's watch box, where it has an effect.
 - Motion (`src/js/16-motion.js`): feedback on press (`:active`), springs via `springTo()` for
   anything you can touch, interruptible from the current position, the phone filter sheet
