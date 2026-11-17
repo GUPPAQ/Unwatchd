@@ -2130,9 +2130,22 @@
       color-scheme: dark;
     }
 
-    @media (min-width: 768px) {
+    /* Same widths and side padding as the film, person and cast pages. */
+    @media (min-width: 640px) {
       :root {
-        --pad: 44px;
+        --pad: 32px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      :root {
+        --pad: 48px;
+      }
+    }
+
+    @media (min-width: 1536px) {
+      :root {
+        --pad: 64px;
       }
     }
 
@@ -2188,12 +2201,35 @@
     /* ── Shell ── */
     .app-shell {
       width: 100%;
-      max-width: 1440px;
+      max-width: 1400px;
       min-height: 100svh;
       margin: 0 auto;
       padding: env(safe-area-inset-top) var(--pad) env(safe-area-inset-bottom);
       display: flex;
       flex-direction: column;
+    }
+
+    @media (min-width: 1280px) {
+      .app-shell {
+        max-width: 1760px;
+      }
+    }
+
+    @media (min-width: 1536px) {
+      .app-shell {
+        max-width: 2160px;
+      }
+    }
+
+    @media (min-width: 2500px) {
+      .app-shell {
+        max-width: 2400px;
+      }
+    }
+
+    /* The landing's poster wall runs to the window edges, past the shell. */
+    body {
+      overflow-x: clip;
     }
 
     .app-shell > main {
@@ -2465,7 +2501,6 @@
     }
 
     .quick-search-field input::placeholder,
-    .ask-field input::placeholder,
     .filter-field input::placeholder {
       color: var(--faint);
     }
@@ -2523,38 +2558,67 @@
       min-height: calc(100svh - 72px - 96px);
       display: flex;
       align-items: center;
-      margin: 0 calc(var(--pad) * -1);
-      padding: 0 var(--pad);
-      overflow: hidden;
     }
 
+    /* Full window width behind the shell; only this layer clips, so the service picker can overflow. */
+    .landing-bg {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(50% - 50vw);
+      width: 100vw;
+      overflow: hidden;
+      pointer-events: none;
+      -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+      mask-image: linear-gradient(to bottom, #000 78%, transparent);
+    }
+
+    /* The poster wall: columns of film-strip that drift past, alternate ones the other way. */
     .poster-wall {
       position: absolute;
-      top: -10%;
-      right: -7%;
-      width: min(60vw, 880px);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
+      top: -14%;
+      right: -5vw;
+      width: min(62vw, 1180px);
+      height: 130%;
+      display: flex;
+      gap: 16px;
       transform: rotate(8deg);
       opacity: 0.5;
-      pointer-events: none;
-      -webkit-mask-image: linear-gradient(to left, #000 25%, transparent 92%);
-      mask-image: linear-gradient(to left, #000 25%, transparent 92%);
+      -webkit-mask-image: linear-gradient(to left, #000 30%, transparent 94%);
+      mask-image: linear-gradient(to left, #000 30%, transparent 94%);
+      animation: wall-in 1.4s var(--ease-out) both;
     }
 
-    .poster-wall img {
+    .wall-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .wall-track {
+      display: flex;
+      flex-direction: column;
+      animation: wall-drift var(--drift, 150s) linear infinite;
+      will-change: transform;
+    }
+
+    .wall-col:nth-child(even) .wall-track {
+      animation-direction: reverse;
+    }
+
+    .wall-track img {
       width: 100%;
       aspect-ratio: 2 / 3;
       object-fit: cover;
       border-radius: 10px;
+      margin-bottom: 16px;
       background: var(--surface);
-      animation: wall-in 1.2s var(--ease-out) both;
     }
 
-    .poster-wall img:nth-child(4n + 2),
-    .poster-wall img:nth-child(4n + 4) {
-      transform: translateY(46px);
+    /* Each track holds its posters twice, so moving it by half loops without a seam. */
+    @keyframes wall-drift {
+      to {
+        transform: translate3d(0, -50%, 0);
+      }
     }
 
     @keyframes wall-in {
@@ -2565,16 +2629,26 @@
 
     @media (max-width: 767px) {
       .poster-wall {
-        width: 128vw;
-        right: -34vw;
-        top: -6%;
+        width: 150vw;
+        right: -48vw;
+        top: -8%;
+        gap: 10px;
         opacity: 0.2;
+      }
+
+      .wall-track img {
+        margin-bottom: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .wall-track {
+        animation: none;
       }
     }
 
     .landing-inner {
       position: relative;
-      z-index: 1;
       width: 100%;
       display: flex;
       flex-direction: column;
@@ -2582,150 +2656,558 @@
       padding: 40px 0 72px;
     }
 
+    /* ── The ask: one bar with who, which services, and go ── */
     .ask {
+      position: relative;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      align-items: flex-start;
+      gap: 14px;
       width: 100%;
-      max-width: 640px;
+      max-width: 880px;
       margin-top: 4px;
     }
 
-    .ask-row {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    @media (min-width: 640px) {
-      .ask-row {
-        flex-direction: row;
-      }
-
-      .ask-row .ask-field {
-        flex: 1;
-      }
-    }
-
-    .ask-field {
+    .ask-bar {
+      width: 100%;
       display: flex;
       align-items: center;
-      height: 58px;
-      padding: 0 8px 0 22px;
+      height: 76px;
+      padding: 6px;
       border-radius: 999px;
       background: var(--surface);
       border: 1px solid var(--line);
-      font-size: 17px;
+      box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.9);
       transition: border-color 0.15s;
     }
 
-    .ask-field:focus-within {
-      border-color: var(--text);
+    .ask-bar:focus-within {
+      border-color: var(--line-strong);
     }
 
-    .ask-prefix {
-      flex: none;
+    .ask-seg {
+      position: relative;
+      flex: 1 1 0;
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+      padding: 0 24px;
+      border-radius: 999px;
+      cursor: text;
+      transition: background-color 0.15s;
+    }
+
+    .ask-seg-user {
+      flex-grow: 1.2;
+    }
+
+    .ask-seg-services {
+      flex: 0 0 auto;
+      padding: 0;
+    }
+
+    /* Hairline between segments; it steps aside for the one you're in or hovering. */
+    .ask-seg + .ask-seg::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 24%;
+      bottom: 24%;
+      width: 1px;
+      background: var(--line);
+      transition: opacity 0.15s;
+    }
+
+    .ask-seg:focus-within {
+      background: var(--surface-2);
+    }
+
+    .ask-seg:focus-within::before,
+    .ask-seg:focus-within + .ask-seg::before {
+      opacity: 0;
+    }
+
+    /* The pill gets focus back when the picker closes; only light it for keyboard focus. */
+    .ask-seg-services:focus-within:not(:has(:focus-visible)) {
+      background: transparent;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .ask-seg:hover {
+        background: var(--surface-2);
+      }
+
+      .ask-seg:hover::before,
+      .ask-seg:hover + .ask-seg::before {
+        opacity: 0;
+      }
+    }
+
+    /* The picker is open: its pill stays lit. */
+    .ask-seg:has([aria-expanded="true"]) {
+      background: var(--surface-2);
+    }
+
+    .ask-seg-label {
       color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.2;
       white-space: nowrap;
     }
 
-    .ask-field-friend .ask-prefix {
-      margin-right: 8px;
+    .ask-seg-value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      min-height: 28px;
     }
 
-    .ask-field input {
+    .ask-seg input {
       flex: 1;
       min-width: 0;
-      height: 100%;
+      height: 28px;
+      padding: 0;
       border: 0;
       outline: 0;
       background: transparent;
       color: var(--text);
+      font-size: 17px;
       font-weight: 600;
     }
 
-    .ask-field.hidden {
-      display: none;
+    .ask-seg input::placeholder {
+      color: var(--faint);
+      font-weight: 400;
+    }
+
+    .ask-seg .icon-btn {
+      flex: none;
+      width: 28px;
+      height: 28px;
+      margin-right: -8px;
+    }
+
+    .ask-seg .icon-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .ask-seg-btn {
+      position: relative;
+      height: 100%;
+      min-width: 190px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+      padding: 0 48px 0 24px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .ask-seg-btn:disabled {
+      cursor: default;
+      opacity: 0.55;
+    }
+
+    .ask-seg-chevron {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      margin-top: -8px;
+      color: var(--muted);
+      transition: transform 0.2s var(--ease-out);
+    }
+
+    .ask-seg-btn[aria-expanded="true"] .ask-seg-chevron {
+      transform: rotate(180deg);
     }
 
     #startButton {
-      height: 58px;
+      flex: none;
+      height: 62px;
+      margin-left: 6px;
+      padding: 0 30px;
+    }
+
+    /* Logo stacks (the pill above, and the context line over results). */
+    .svc-stack {
+      display: inline-flex;
+      align-items: center;
+      flex: none;
+    }
+
+    .svc-stack-logo {
+      width: 28px;
+      height: 28px;
+      flex: none;
+      overflow: hidden;
+      border-radius: 8px;
+      background: var(--surface-2);
+      box-shadow: 0 0 0 2px var(--surface);
+    }
+
+    .svc-stack-logo + .svc-stack-logo {
+      margin-left: -6px;
+    }
+
+    .svc-stack-logo img,
+    .svc-stack-logo > div {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 0 !important;
+    }
+
+    .svc-stack-more {
+      margin-left: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .svc-summary-name {
+      margin-left: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .svc-summary-empty {
+      color: var(--accent-soft);
+      font-size: 17px;
+      font-weight: 600;
     }
 
     .form-error {
-      margin: 0;
+      margin: 0 0 0 24px;
       color: #ffb4a3;
       font-size: 15px;
       line-height: 1.45;
     }
 
-    .ask-extras {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 14px 26px;
+    .landing-back svg {
+      width: 16px;
+      height: 16px;
+      margin-left: -4px;
     }
 
-    .services {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 12px;
+    /* Phones and narrow tablets: the bar stacks into a card, one row per question. */
+    @media (max-width: 719px) {
+      .ask {
+        align-items: stretch;
+      }
+
+      .ask-bar {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+        border-radius: 24px;
+      }
+
+      .ask-seg {
+        flex: none;
+        height: 66px;
+        padding: 0 18px;
+        border-radius: 18px;
+      }
+
+      .ask-seg-services {
+        padding: 0;
+      }
+
+      .ask-seg + .ask-seg::before {
+        left: 18px;
+        right: 18px;
+        top: 0;
+        bottom: auto;
+        width: auto;
+        height: 1px;
+      }
+
+      .ask-seg-btn {
+        width: 100%;
+        padding: 0 48px 0 18px;
+        border-radius: 18px;
+      }
+
+      #startButton {
+        width: 100%;
+        height: 56px;
+        margin: 6px 0 0;
+      }
+
+      .form-error {
+        margin-left: 4px;
+      }
+
+      .landing-back {
+        align-self: flex-start;
+      }
     }
 
-    .services-label {
-      color: var(--muted);
-      font-size: 15px;
+    /* ── The service picker: a popover from its pill; a bottom sheet on phones ── */
+    .svc-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 140;
     }
 
-    .service-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .service-row .service-btn {
-      width: 38px;
-      flex: none;
-    }
-
-    .service-row .service-btn svg {
-      width: 18px;
-      height: 18px;
+    .svc-backdrop.hidden,
+    .service-browser.hidden {
+      display: none;
     }
 
     .service-browser {
-      flex-basis: 100%;
+      position: absolute;
+      z-index: 150;
+      width: 540px;
+      max-width: calc(100vw - 32px);
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      padding: 20px;
-      border-radius: 18px;
+      gap: 18px;
+      padding: 24px;
+      border-radius: 22px;
       background: var(--surface);
       border: 1px solid var(--line);
+      box-shadow: 0 36px 90px -24px rgba(0, 0, 0, 0.95);
+      outline: none;
+      animation: pop-in 0.22s var(--ease-out);
     }
 
-    .service-browser.hidden {
+    /* Closing shrinks it back toward the pill it came from. */
+    .service-browser.pop-out {
+      animation: pop-out 0.14s ease-in forwards;
+      pointer-events: none;
+    }
+
+    @keyframes pop-out {
+      to {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+    }
+
+    .service-browser .sheet-handle {
       display: none;
     }
 
     .service-browser-title {
       margin: 0;
       font-family: var(--serif);
-      font-size: 1.6rem;
-      line-height: 1.1;
+      font-weight: 400;
+      font-size: 1.75rem;
+      line-height: 1.05;
+    }
+
+    .service-browser-sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 15px;
     }
 
     .service-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 4px;
+      min-height: 0;
+      max-height: min(360px, 52vh);
+      overflow-y: auto;
+      margin: 0 -6px;
+      padding: 2px;
+    }
+
+    .svc-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      padding: 12px 4px 10px;
+      border: 0;
+      border-radius: 16px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background-color 0.15s, color 0.15s;
+    }
+
+    .svc-option-logo {
+      position: relative;
+      width: 56px;
+      height: 56px;
+      transition: transform 0.12s ease-out, opacity 0.2s, filter 0.2s;
+      opacity: 0.45;
+      filter: saturate(0.3);
+    }
+
+    .svc-option-logo img,
+    .svc-option-logo > div:not(.svc-option-check) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 14px !important;
+    }
+
+    .svc-option-check {
+      position: absolute;
+      right: -5px;
+      bottom: -5px;
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 0 3px var(--surface);
+      transform: scale(0);
+      transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .svc-option-check svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .svc-option-name {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .svc-option.selected {
+      color: var(--text);
+    }
+
+    .svc-option.selected .svc-option-logo {
+      opacity: 1;
+      filter: none;
+    }
+
+    .svc-option.selected .svc-option-check {
+      transform: scale(1);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .svc-option:hover {
+        background: var(--surface-2);
+        color: var(--text);
+      }
+
+      .svc-option:not(.selected):hover .svc-option-logo {
+        opacity: 0.8;
+      }
+    }
+
+    .svc-option:active .svc-option-logo {
+      transform: scale(0.92);
+      transition-duration: 0.06s;
+    }
+
+    .service-browser-head,
+    .service-browser-actions {
+      flex: none;
+    }
+
+    /* When the window is short and the options scroll, the cut edge fades to say so. */
+    .service-grid.more-below {
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
     }
 
     .service-browser-actions {
       display: flex;
-      justify-content: flex-end;
+      align-items: center;
       gap: 10px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .service-browser-count {
+      margin-right: auto;
+      color: var(--muted);
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 719px) {
+      .svc-backdrop {
+        background: rgba(0, 0, 0, 0.6);
+      }
+
+      .service-browser {
+        position: fixed;
+        top: auto !important;
+        left: 0 !important;
+        right: 0;
+        bottom: 0;
+        width: auto;
+        max-width: none;
+        max-height: 88svh;
+        padding: 10px 20px calc(18px + env(safe-area-inset-bottom));
+        border-radius: 24px 24px 0 0;
+        border-bottom: 0;
+        animation: none;
+        will-change: transform;
+      }
+
+      .service-browser .sheet-handle {
+        display: block;
+        box-sizing: content-box;
+        padding: 6px 40px 10px;
+        background-clip: content-box;
+        cursor: grab;
+      }
+
+      .service-browser .sheet-handle,
+      .service-browser-head {
+        touch-action: none;
+      }
+
+      .service-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        max-height: none;
+        min-height: 0;
+        flex: 1;
+      }
+
+      body.svc-picker-open {
+        overflow: hidden;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .service-browser {
+        animation: fadeInSimple 0.2s ease-out;
+      }
+
+      .svc-option-check {
+        transition: none;
+      }
+    }
+
+    /* "Change" shows a clean start page; the results come back with "Back to your results". */
+    body.landing-mode #resultsSection {
+      display: none !important;
     }
 
     .scan-progress {
@@ -2815,6 +3297,29 @@
       background: var(--faint);
     }
 
+    @media (min-width: 640px) {
+      .context-services:not(.context-dot) {
+        display: inline-flex;
+        align-items: center;
+      }
+    }
+
+    .context .svc-stack-logo {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      box-shadow: 0 0 0 2px var(--bg);
+    }
+
+    .context .svc-stack-more {
+      font-size: 14px;
+    }
+
+    /* Tonight's pick: the plain title waits (invisible) while we look for the film's title logo. */
+    .pick.logo-pending .pick-title {
+      visibility: hidden;
+    }
+
     /* On phones the service chips below already name the services, and the links get their own line. */
     @media (max-width: 639px) {
       .context-services {
@@ -2835,7 +3340,7 @@
     a,
     button,
     [role="tab"],
-    label.ask-field,
+    label.ask-seg,
     .poster-card-art {
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
@@ -3813,30 +4318,61 @@
     <main>
       <!-- Landing: the scan form (collapses into the context line once results show) -->
       <section id="scanPanel" class="landing">
-        <div id="posterWall" class="poster-wall" aria-hidden="true"></div>
+        <div class="landing-bg" aria-hidden="true"><div id="posterWall" class="poster-wall"></div></div>
         <div class="landing-inner">
           <h1 class="display">What can you watch <em>tonight?</em></h1>
           <p class="lede">Enter your Letterboxd username and we'll check your whole watchlist against the streaming services you already pay for.</p>
 
+          <!-- One bar: who (you, and optionally a friend), which services, go. Stacks into a card on phones. -->
           <div class="ask">
-            <div class="ask-row">
-              <label class="ask-field">
-                <span class="ask-prefix">letterboxd.com/</span>
-                <input id="usernameInput" aria-label="Your Letterboxd username" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="username">
-                <button id="clearSyncBtn" type="button" aria-label="Clear username and results" class="hidden icon-btn">
-                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+            <div class="ask-bar">
+              <label class="ask-seg ask-seg-user">
+                <span class="ask-seg-label">Letterboxd username</span>
+                <span class="ask-seg-value">
+                  <input id="usernameInput" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="yourname">
+                  <button id="clearSyncBtn" type="button" aria-label="Clear username and results" class="hidden icon-btn">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </span>
               </label>
+              <label id="friendInputWrapper" class="ask-seg ask-seg-friend">
+                <span class="ask-seg-label">Compare with</span>
+                <span class="ask-seg-value">
+                  <input id="friendInput" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="A friend, optional">
+                  <button id="removeFriendBtn" type="button" aria-label="Remove friend" class="hidden icon-btn">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </span>
+              </label>
+              <div id="serviceSelectionWrapper" class="ask-seg ask-seg-services">
+                <button id="servicePill" type="button" class="ask-seg-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="serviceBrowser">
+                  <span class="ask-seg-label">Streaming on</span>
+                  <span id="serviceSummary" class="ask-seg-value svc-summary">Choose services</span>
+                  <svg class="ask-seg-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"></path></svg>
+                </button>
+              </div>
               <button id="startButton" type="button" class="btn btn-primary btn-lg">Find my films</button>
             </div>
-            <div id="friendInputWrapper" class="ask-field ask-field-friend hidden">
-              <span class="ask-prefix">and friend</span>
-              <input id="friendInput" aria-label="Friend's Letterboxd username" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="their username">
-              <button id="removeFriendBtn" type="button" aria-label="Remove friend" class="icon-btn">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
-            </div>
             <p id="formError" role="alert" class="form-error hidden"></p>
+            <button id="landingBackBtn" type="button" class="btn btn-quiet landing-back hidden">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"></path></svg>
+              Back to your results
+            </button>
+
+            <div id="serviceBackdrop" class="svc-backdrop hidden"></div>
+            <div id="serviceBrowser" class="service-browser hidden" role="dialog" aria-modal="true" aria-labelledby="serviceBrowserTitle">
+              <div class="sheet-handle" aria-hidden="true"></div>
+              <div class="service-browser-head">
+                <h2 id="serviceBrowserTitle" class="service-browser-title">Your streaming services</h2>
+                <p class="service-browser-sub">Pick the ones you pay for in <span id="serviceBrowserRegion"></span>.</p>
+              </div>
+              <div id="serviceAllGrid" class="service-grid"></div>
+              <div class="service-browser-actions">
+                <span id="serviceBrowserCount" class="service-browser-count"></span>
+                <button id="serviceBrowserCancel" type="button" class="btn btn-quiet">Cancel</button>
+                <button id="serviceBrowserSave" type="button" class="btn btn-primary">Done</button>
+              </div>
+            </div>
           </div>
 
           <section id="progressSection" class="scan-progress hidden" aria-live="polite">
@@ -3847,27 +4383,6 @@
             <div class="scan-progress-track"><div id="progressBar" class="load-fill" style="width:0%"></div></div>
             <button id="stopButton" type="button" class="link-btn scan-progress-stop">Stop scanning</button>
           </section>
-          <div class="ask-extras">
-            <!-- Services: the selected logos, an add tile, and the inline picker -->
-            <div id="serviceSelectionWrapper" class="services">
-              <span class="services-label">Your services</span>
-              <div id="serviceEmptyState">
-                <button id="serviceEmptyBtn" type="button" class="link-btn">Choose your services</button>
-              </div>
-              <div id="serviceSelectedContainer" class="hidden">
-                <div id="serviceSelectedGrid" class="service-row"></div>
-              </div>
-              <div id="serviceBrowser" class="service-browser hidden">
-                <p class="service-browser-title">Which services do you pay for?</p>
-                <div id="serviceAllGrid" class="service-grid"></div>
-                <div class="service-browser-actions">
-                  <button id="serviceBrowserCancel" type="button" class="btn btn-quiet">Cancel</button>
-                  <button id="serviceBrowserSave" type="button" class="btn btn-primary">Save</button>
-                </div>
-              </div>
-            </div>
-            <button id="toggleFriendBtn" type="button" class="link-btn">Compare with a friend</button>
-          </div>
         </div>
       </section>
 

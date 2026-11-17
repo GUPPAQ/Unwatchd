@@ -50,103 +50,145 @@
       return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
     }
 
-    // ── The filter bottom sheet (phones) ────────────────────────────────────
-    // It slides up on open, slides back down on close (same path), and can be
+    // ── Bottom sheets (phones): the filter panel and the service picker ─────
+    // A sheet slides up on open, slides back down on close (same path), and can be
     // dragged down by its top area, grabbed mid-animation, and flicked closed.
-    var sheetState = { y: 0, anim: null, closing: false };
-    const isSheetMode = () => {
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      return !!(menu && menu.parentElement === document.body && !menu.classList.contains('hidden'));
-    };
-    function setSheetY(y) {
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      const backdrop = document.getElementById('homeFilterBackdrop');
-      sheetState.y = y;
-      if (menu) menu.style.transform = `translate3d(0, ${y}px, 0)`;
-      if (backdrop && menu) backdrop.style.opacity = String(Math.max(0, Math.min(1, 1 - y / menu.offsetHeight)));
-    }
-    function clearSheetStyles() {
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      const backdrop = document.getElementById('homeFilterBackdrop');
-      if (menu) menu.style.transform = '';
-      if (backdrop) backdrop.style.opacity = '';
-      sheetState.y = 0;
-    }
-    function animateSheet(target, velocity, onDone) {
-      if (sheetState.anim) sheetState.anim.stop();
-      // Settling back after a drag is a momentum moment, so a touch of bounce; closing never overshoots.
-      const opts = target === 0 ? { response: 0.3, dampingRatio: 0.85, velocity } : { response: 0.3, dampingRatio: 1, velocity };
-      sheetState.anim = springTo(sheetState.y, target, opts, setSheetY, () => { sheetState.anim = null; if (onDone) onDone(); });
-    }
-
-    // Wrap the existing open/close so every way in and out (button, backdrop, "Show films") animates.
-    const openHomeFilterDropdownInstant = openHomeFilterDropdown;
-    const closeHomeFilterDropdownInstant = closeHomeFilterDropdown;
-    openHomeFilterDropdown = function () {
-      const wasMoving = !!sheetState.anim; // reopened while closing: reverse from where it is
-      sheetState.closing = false;
-      if (sheetState.anim) { sheetState.anim.stop(); sheetState.anim = null; }
-      if (!wasMoving) openHomeFilterDropdownInstant();
-      if (!isSheetMode() || prefersReducedMotion.matches) { clearSheetStyles(); return; }
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      setSheetY(wasMoving ? sheetState.y : menu.offsetHeight);
-      animateSheet(0, 0);
-    };
-    closeHomeFilterDropdown = function () {
-      if (!isSheetMode() || prefersReducedMotion.matches) { clearSheetStyles(); closeHomeFilterDropdownInstant(); return; }
-      if (sheetState.closing) return;
-      sheetState.closing = true;
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      animateSheet(menu.offsetHeight, sheetState.lastVelocity || 0, () => {
-        sheetState.closing = false; sheetState.lastVelocity = 0;
-        clearSheetStyles(); closeHomeFilterDropdownInstant();
-      });
-    };
-
-    (() => {
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      if (!menu) return;
-      let drag = null;
-      // Drag from the handle and the title row; the options below keep scrolling normally.
-      const isGrabZone = (target) => !!target.closest('.sheet-handle, .filter-panel-head') && !target.closest('button');
-      menu.addEventListener('pointerdown', (e) => {
-        if (!isSheetMode() || !isGrabZone(e.target) || e.button > 0) return;
-        if (sheetState.anim) { sheetState.anim.stop(); sheetState.anim = null; } // grab it mid-flight
-        sheetState.closing = false;
-        drag = { id: e.pointerId, startY: e.clientY, baseY: sheetState.y, active: false, history: [{ y: e.clientY, t: e.timeStamp }] };
-        try { menu.setPointerCapture(e.pointerId); } catch (err) { logIgnored('sheet pointer capture', err); }
-      });
-      menu.addEventListener('pointermove', (e) => {
-        if (!drag || e.pointerId !== drag.id) return;
-        const dy = e.clientY - drag.startY;
-        if (!drag.active && Math.abs(dy) < 8) return; // a little hysteresis before committing
-        drag.active = true;
-        drag.history.push({ y: e.clientY, t: e.timeStamp });
-        if (drag.history.length > 6) drag.history.shift();
-        const raw = drag.baseY + dy;
-        setSheetY(raw < 0 ? rubberband(raw, menu.offsetHeight) : raw);
-      });
-      const end = (e) => {
-        if (!drag || e.pointerId !== drag.id) return;
-        const d = drag; drag = null;
-        if (!d.active) return;
-        const first = d.history[0], lastPt = d.history[d.history.length - 1];
-        const dt = Math.max(1, lastPt.t - first.t);
-        const velocity = ((lastPt.y - first.y) / dt) * 1000; // px/s, positive = downwards
-        const projected = sheetState.y + projectMomentum(velocity);
-        const shouldClose = projected > menu.offsetHeight * 0.5;
-        if (prefersReducedMotion.matches) {
-          // No spring: settle at once (closing is already instant in this mode).
-          if (shouldClose) closeHomeFilterDropdown(); else clearSheetStyles();
-        } else if (shouldClose) {
-          sheetState.lastVelocity = velocity;
-          closeHomeFilterDropdown();
-        } else {
-          animateSheet(0, velocity);
-        }
+    // `isActive()` says whether the panel is currently showing as a sheet; `grabZone`
+    // is where a drag may start (the content below keeps scrolling normally).
+    function createSheet({ menuId, backdropId, isActive, grabZone }) {
+      const s = { y: 0, anim: null, closing: false, lastVelocity: 0, close: null };
+      const menu = () => document.getElementById(menuId);
+      const backdrop = () => document.getElementById(backdropId);
+      s.height = () => (menu() ? menu().offsetHeight : 0);
+      s.setY = (y) => {
+        const m = menu(), b = backdrop();
+        s.y = y;
+        if (m) m.style.transform = `translate3d(0, ${y}px, 0)`;
+        if (b && m) b.style.opacity = String(Math.max(0, Math.min(1, 1 - y / m.offsetHeight)));
       };
-      menu.addEventListener('pointerup', end);
-      menu.addEventListener('pointercancel', end);
+      s.clear = () => {
+        const m = menu(), b = backdrop();
+        if (m) m.style.transform = '';
+        if (b) b.style.opacity = '';
+        s.y = 0;
+      };
+      s.animate = (target, velocity, onDone) => {
+        if (s.anim) s.anim.stop();
+        // Settling back after a drag is a momentum moment, so a touch of bounce; closing never overshoots.
+        const opts = target === 0 ? { response: 0.3, dampingRatio: 0.85, velocity } : { response: 0.3, dampingRatio: 1, velocity };
+        s.anim = springTo(s.y, target, opts, s.setY, () => { s.anim = null; if (onDone) onDone(); });
+      };
+      // Wrap instant open/close functions so every way in and out animates.
+      // `reopenRuns`: call the open function again when reopened mid-close (it re-renders safely).
+      s.wrap = (openInstant, closeInstant, reopenRuns) => {
+        const open = function (...args) {
+          const wasMoving = !!s.anim; // reopened while closing: reverse from where it is
+          s.closing = false;
+          if (s.anim) { s.anim.stop(); s.anim = null; }
+          if (!wasMoving || reopenRuns) openInstant.apply(this, args);
+          if (!isActive() || prefersReducedMotion.matches) { s.clear(); return; }
+          s.setY(wasMoving ? s.y : s.height());
+          s.animate(0, 0);
+        };
+        const close = function (...args) {
+          if (!isActive() || prefersReducedMotion.matches) { s.clear(); closeInstant.apply(this, args); return; }
+          if (s.closing) return;
+          s.closing = true;
+          s.animate(s.height(), s.lastVelocity || 0, () => {
+            s.closing = false; s.lastVelocity = 0;
+            s.clear(); closeInstant.apply(this, args);
+          });
+        };
+        s.close = close;
+        return { open, close };
+      };
+      (() => {
+        const m = menu();
+        if (!m) return;
+        let drag = null;
+        const isGrabZone = (target) => !!target.closest(grabZone) && !target.closest('button');
+        m.addEventListener('pointerdown', (e) => {
+          if (!isActive() || !isGrabZone(e.target) || e.button > 0) return;
+          if (s.anim) { s.anim.stop(); s.anim = null; } // grab it mid-flight
+          s.closing = false;
+          drag = { id: e.pointerId, startY: e.clientY, baseY: s.y, active: false, history: [{ y: e.clientY, t: e.timeStamp }] };
+          try { m.setPointerCapture(e.pointerId); } catch (err) { logIgnored('sheet pointer capture', err); }
+        });
+        m.addEventListener('pointermove', (e) => {
+          if (!drag || e.pointerId !== drag.id) return;
+          const dy = e.clientY - drag.startY;
+          if (!drag.active && Math.abs(dy) < 8) return; // a little hysteresis before committing
+          drag.active = true;
+          drag.history.push({ y: e.clientY, t: e.timeStamp });
+          if (drag.history.length > 6) drag.history.shift();
+          const raw = drag.baseY + dy;
+          s.setY(raw < 0 ? rubberband(raw, m.offsetHeight) : raw);
+        });
+        const end = (e) => {
+          if (!drag || e.pointerId !== drag.id) return;
+          const d = drag; drag = null;
+          if (!d.active) return;
+          const first = d.history[0], lastPt = d.history[d.history.length - 1];
+          const dt = Math.max(1, lastPt.t - first.t);
+          const velocity = ((lastPt.y - first.y) / dt) * 1000; // px/s, positive = downwards
+          const projected = s.y + projectMomentum(velocity);
+          const shouldClose = projected > m.offsetHeight * 0.5;
+          if (prefersReducedMotion.matches) {
+            // No spring: settle at once (closing is already instant in this mode).
+            if (shouldClose && s.close) s.close(); else s.clear();
+          } else if (shouldClose && s.close) {
+            s.lastVelocity = velocity;
+            s.close();
+          } else {
+            s.animate(0, velocity);
+          }
+        };
+        m.addEventListener('pointerup', end);
+        m.addEventListener('pointercancel', end);
+      })();
+      return s;
+    }
+
+    // The filter panel is a sheet when it has been moved to <body> (phones).
+    var sheetState = createSheet({
+      menuId: 'homeFilterDropdownMenu',
+      backdropId: 'homeFilterBackdrop',
+      grabZone: '.sheet-handle, .filter-panel-head',
+      isActive: () => {
+        const menu = document.getElementById('homeFilterDropdownMenu');
+        return !!(menu && menu.parentElement === document.body && !menu.classList.contains('hidden'));
+      }
+    });
+    ({ open: openHomeFilterDropdown, close: closeHomeFilterDropdown } = sheetState.wrap(openHomeFilterDropdown, closeHomeFilterDropdown, false));
+
+    // The service picker is a sheet on phones; on wider screens it's a popover that grows out of
+    // its pill (CSS) and shrinks back into it on close.
+    var serviceSheet = createSheet({
+      menuId: 'serviceBrowser',
+      backdropId: 'serviceBackdrop',
+      grabZone: '.sheet-handle, .service-browser-head',
+      isActive: () => {
+        const b = document.getElementById('serviceBrowser');
+        return !!(b && !b.classList.contains('hidden') && window.matchMedia('(max-width: 719px)').matches);
+      }
+    });
+    (() => {
+      const sheet = serviceSheet.wrap(openBrowser, closeBrowser, true);
+      let popOut = null;
+      openBrowser = function () {
+        if (popOut) { clearTimeout(popOut); popOut = null; }
+        document.getElementById('serviceBrowser')?.classList.remove('pop-out');
+        sheet.open();
+      };
+      closeBrowser = function () {
+        const b = document.getElementById('serviceBrowser');
+        const open = b && !b.classList.contains('hidden');
+        if (!open || serviceSheet.closing) { sheet.close(); return; }
+        if (window.matchMedia('(max-width: 719px)').matches || prefersReducedMotion.matches) { sheet.close(); return; }
+        if (popOut) return;
+        b.classList.add('pop-out');
+        popOut = setTimeout(() => { popOut = null; b.classList.remove('pop-out'); sheet.close(); }, 140);
+      };
     })();
 
     // ── Popovers grow out of the button that opened them ────────────────────

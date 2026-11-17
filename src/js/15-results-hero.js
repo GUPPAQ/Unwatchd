@@ -116,12 +116,22 @@
         if (src) { img.src = src; img.classList.remove('hidden'); } else { img.removeAttribute('src'); img.classList.add('hidden'); }
       }
 
+      // Title artwork: the plain title stays invisible until we know whether there's a logo,
+      // so it never flashes up in text first. Re-renders of the same film leave it alone.
       const logo = document.getElementById('tonightPickLogo');
-      if (logo && card) {
+      const key = movieKeyOf(m);
+      if (logo && card && logo.dataset.key !== key) {
+        logo.dataset.key = key;
         logo.classList.add('hidden'); logo.removeAttribute('src'); card.classList.remove('has-logo');
+        const known = tonightPickLogoCache.has(key) && !tonightPickLogoCache.get(key);
+        card.classList.toggle('logo-pending', !known);
+        const settle = () => { if (currentTonightPick === m) card.classList.remove('logo-pending'); };
+        setTimeout(settle, 1500); // a slow lookup never hides the title for long
         loadTonightPickLogo(m).then((url) => {
-          if (!url || currentTonightPick !== m) return; // a newer pick replaced this one meanwhile
-          logo.onload = () => { if (currentTonightPick === m) { logo.classList.remove('hidden'); card.classList.add('has-logo'); } };
+          if (currentTonightPick !== m) return; // a newer pick replaced this one meanwhile
+          if (!url) { settle(); return; }
+          logo.onload = () => { if (currentTonightPick === m) { logo.classList.remove('hidden'); card.classList.add('has-logo'); settle(); } };
+          logo.onerror = settle;
           logo.alt = m.title || '';
           logo.src = url;
         });
@@ -208,12 +218,16 @@
         }
         fillTonightPick(pick, pool.length);
       };
-      const src = pick.backdrop || pick.poster;
-      if (!src) { swap(); return; }
-      const preload = new Image();
-      preload.onload = swap; preload.onerror = swap;
-      preload.src = src;
-      setTimeout(swap, 700); // a slow image never holds the new pick back for long
+      // Wait for the still and the title logo together, so both land in the same frame.
+      const loadImage = (url) => new Promise((resolve) => {
+        if (!url) { resolve(); return; }
+        const i = new Image(); i.onload = i.onerror = () => resolve(); i.src = url;
+      });
+      Promise.all([
+        loadImage(pick.backdrop || pick.poster),
+        loadTonightPickLogo(pick).then(loadImage)
+      ]).then(swap);
+      setTimeout(swap, 900); // a slow image never holds the new pick back for long
     }
 
     async function playTonightPickTrailer() {
@@ -241,19 +255,28 @@
       const bar = document.getElementById('scanCompactBar');
       if (!full || !bar) return;
       const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
-      const compact = resultsVisible && scannedMovies.length > 0 && !scanPanelExpanded && !isScanning;
+      const hasResults = resultsVisible && scannedMovies.length > 0 && !isScanning;
+      const compact = hasResults && !scanPanelExpanded;
       full.classList.toggle('hidden', compact);
       bar.classList.toggle('hidden', !compact);
+      // "Change" opens a clean start page: the results wait behind "Back to your results".
+      const landingMode = hasResults && scanPanelExpanded;
+      document.body.classList.toggle('landing-mode', landingMode);
+      const back = document.getElementById('landingBackBtn');
+      if (back) back.classList.toggle('hidden', !landingMode);
       if (!compact) return;
 
-      const user = ((el.usernameInput && el.usernameInput.value) || localStorage.getItem('ps_username') || '').trim();
-      const friend = isFriendMatchActive ? ((el.friendInput && el.friendInput.value) || '').trim() : '';
+      const user = (localStorage.getItem('ps_username') || (el.usernameInput && el.usernameInput.value) || '').trim();
+      const friend = isFriendMatchActive ? (localStorage.getItem('ps_friend_username') || '').trim() : '';
       const userEl = document.getElementById('scanCompactUser');
-      if (userEl) userEl.textContent = friend ? `${user} + ${friend}` : user;
+      if (userEl) userEl.textContent = friend ? `${user} and ${friend}` : user;
 
-      const names = currentProviders.filter(cp => selectedServiceIds.has(cp.id)).map(cp => cp.name);
       const servicesEl = document.getElementById('scanCompactServices');
-      if (servicesEl) servicesEl.textContent = names.length > 3 ? `${names.slice(0, 3).join(', ')} +${names.length - 3}` : names.join(', ');
+      if (servicesEl) {
+        const selected = getSelectedProviderList();
+        servicesEl.innerHTML = serviceStackHTML(selected, 5);
+        servicesEl.title = describeServices(selected);
+      }
 
       const friendBtn = document.getElementById('scanCompactFriendBtn');
       if (friendBtn) friendBtn.classList.toggle('hidden', isFriendMatchActive);
@@ -300,24 +323,40 @@
 
     // The landing's poster wall: the visitor's own watchlist when we have it, otherwise
     // this week's most talked-about films.
+    // Four columns that drift slowly (CSS), each holding its posters twice for a seamless loop;
+    // the speeds differ a little so the columns never line up.
     async function fillPosterWall() {
       const wall = document.getElementById('posterWall');
       if (!wall || wall.childElementCount) return;
-      let posters = scannedMovies.filter(m => m.poster).slice(0, 16).map(m => m.poster.replace('/w500/', '/w342/'));
-      if (posters.length < 12) {
+      const COLS = 4, PER_COL = 7;
+      let posters = scannedMovies.filter(m => m.poster).sort(() => Math.random() - 0.5).slice(0, COLS * PER_COL).map(m => m.poster.replace('/w500/', '/w342/'));
+      if (posters.length < 16) {
         try {
-          const data = await tmdbFetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}`).then(r => r.json());
-          posters = (data.results || []).filter(f => f.poster_path).slice(0, 16).map(f => `https://image.tmdb.org/t/p/w342${f.poster_path}`);
+          const pages = await Promise.all([1, 2].map(page => tmdbFetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}&page=${page}`).then(r => r.json())));
+          posters = pages.flatMap(d => d.results || []).filter(f => f.poster_path).slice(0, COLS * PER_COL).map(f => `https://image.tmdb.org/t/p/w342${f.poster_path}`);
         } catch (e) { logIgnored('fillPosterWall', e); return; }
       }
-      wall.innerHTML = posters.map(src => `<img src="${src}" alt="" loading="lazy" decoding="async">`).join('');
+      if (posters.length < COLS) return;
+      const perCol = Math.floor(posters.length / COLS);
+      const speeds = [170, 140, 190, 155];
+      wall.innerHTML = Array.from({ length: COLS }, (_, c) => {
+        const col = posters.slice(c * perCol, (c + 1) * perCol);
+        const imgs = col.map(src => `<img src="${src}" alt="" decoding="async">`).join('');
+        return `<div class="wall-col"><div class="wall-track" style="--drift:${speeds[c % speeds.length]}s;animation-delay:-${c * 23}s">${imgs}${imgs}</div></div>`;
+      }).join('');
     }
 
     function expandScanPanel() {
       scanPanelExpanded = true;
       updateScanPanelMode();
-      const full = document.getElementById('scanPanel');
-      if (full) full.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
+    }
+
+    function collapseScanPanel() {
+      scanPanelExpanded = false;
+      if (typeof closeBrowser === 'function') closeBrowser();
+      updateScanPanelMode();
+      window.scrollTo({ top: 0 });
     }
 
     (() => {
@@ -333,12 +372,8 @@
       on('tonightPickTrailer', playTonightPickTrailer);
       on('tonightPickArt', () => { if (currentTonightPick) openMoviePage(currentTonightPick, true); });
       on('scanCompactChangeBtn', () => { expandScanPanel(); if (el.usernameInput) el.usernameInput.focus({ preventScroll: true }); });
-      on('scanCompactFriendBtn', () => {
-        expandScanPanel();
-        const friendHidden = el.friendInputWrapper && el.friendInputWrapper.classList.contains('hidden');
-        if (friendHidden && el.toggleFriendBtn) el.toggleFriendBtn.click();
-        else if (el.friendInput) el.friendInput.focus({ preventScroll: true });
-      });
+      on('scanCompactFriendBtn', () => { expandScanPanel(); if (el.friendInput) el.friendInput.focus({ preventScroll: true }); });
+      on('landingBackBtn', collapseScanPanel);
       // Results are shown and hidden from many places (scan, restore, clear, friend removal...),
       // so follow the section itself rather than hooking each of them.
       if (el.resultsSection) {

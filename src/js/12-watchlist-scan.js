@@ -287,10 +287,10 @@
     function resetUI() {
       isScanning = false; cancelRequested = false;
       const startBtn = document.getElementById('startButton');
-      if (startBtn) { startBtn.disabled = false; startBtn.innerHTML = 'Find what I can stream'; }
+      if (startBtn) { startBtn.disabled = false; startBtn.innerHTML = 'Find my films'; }
       if (el.usernameInput) el.usernameInput.disabled = false; if (el.friendInput) el.friendInput.disabled = false; if (el.regionSelect) el.regionSelect.disabled = false; if (el.regionContainer) el.regionContainer.classList.remove('opacity-50', 'pointer-events-none');
-      if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('pointer-events-none', 'opacity-50'); document.querySelectorAll('.service-btn').forEach(b => b.classList.remove('locked'));
-      const friendWrapperVisible = el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden'); if (friendWrapperVisible) { if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); } else { if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); } toggleClearSyncBtn();
+      const pill = document.getElementById('servicePill'); if (pill) pill.disabled = false;
+      syncFriendClearBtn(); toggleClearSyncBtn();
     }
     if (el.startButton) {
       el.startButton.addEventListener('click', async () => {
@@ -309,13 +309,12 @@
         const isValidLetterboxdUser = (u) => /^[a-z0-9_]{1,40}$/.test(u);
         const username = normalizeLetterboxdUser(el.usernameInput ? el.usernameInput.value : ''); let friendName = normalizeLetterboxdUser(el.friendInput ? el.friendInput.value : '');
         if ((username && !isValidLetterboxdUser(username)) || (friendName && !isValidLetterboxdUser(friendName))) { if (el.formError) { el.formError.textContent = 'Letterboxd usernames only use letters, numbers and underscores.'; el.formError.classList.remove('hidden'); } return; }
-        if (el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden') && friendName === '') { if (el.removeFriendBtn) el.removeFriendBtn.click(); friendName = ''; }
         if (selectedServiceIds.size === 0) { if (el.formError) { el.formError.textContent = 'Pick at least one streaming service first.'; el.formError.classList.remove('hidden'); } return; }
         if (!username && friendName) { if (el.formError) { el.formError.textContent = 'Enter your own username too, to compare with a friend.'; el.formError.classList.remove('hidden'); } return; }
         if (!username) { if (el.formError) { el.formError.textContent = 'Enter your Letterboxd username.'; el.formError.classList.remove('hidden'); } return; }
         if (username === friendName) { if (el.formError) { el.formError.textContent = 'That\'s your own username. Enter a friend\'s to compare.'; el.formError.classList.remove('hidden'); } return; }
         const myScanSessionId = ++activeScanSessionId; scanPanelExpanded = false; tonightPickKey = null;
-        isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('pointer-events-none', 'opacity-50'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); document.querySelectorAll('.service-btn').forEach(b => b.classList.add('locked')); if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
+        isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); { const pill = document.getElementById('servicePill'); if (pill) pill.disabled = true; } if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
         scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden');
         if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden');
         if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';

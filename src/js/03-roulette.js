@@ -1,9 +1,12 @@
     // The old roulette modal is gone: "Another pick" on Tonight's pick (15-results-hero.js) does its job.
     const savedUsername = localStorage.getItem('ps_username'); if (savedUsername && el.usernameInput) el.usernameInput.value = savedUsername;
-    const savedFriend = localStorage.getItem('ps_friend_username'); if (savedFriend && el.friendInput) { el.friendInput.value = savedFriend; if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); }
-    if (el.toggleFriendBtn) { el.toggleFriendBtn.addEventListener('click', () => { if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.friendInput) el.friendInput.focus(); }); }
-    if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if (el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if (el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } if (isFriendMatchActive) { if (el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies = []; clearScanStorage(); isFriendMatchActive = false; if (el.activeGridContainer) el.activeGridContainer.innerHTML = ''; if (el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
-    if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
+    // The friend field is always there ("Compare with", optional); a name in it means a joint scan.
+    // Its clear button shows only while there's something to clear.
+    function syncFriendClearBtn() { if (el.removeFriendBtn && el.friendInput) el.removeFriendBtn.classList.toggle('hidden', !el.friendInput.value || isScanning); }
+    const savedFriend = localStorage.getItem('ps_friend_username'); if (savedFriend && el.friendInput) el.friendInput.value = savedFriend;
+    syncFriendClearBtn();
+    if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', (e) => { e.preventDefault(); if (el.friendInput) { el.friendInput.value = ''; el.friendInput.focus(); } localStorage.removeItem('ps_friend_username'); syncFriendClearBtn(); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } }); }
+    if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); syncFriendClearBtn(); }); }
     let trailerPlayer = null;
     let isTrailerPaused = false;
 

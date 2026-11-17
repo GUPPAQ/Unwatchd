@@ -539,7 +539,6 @@
       vpnToggleBtnInline: document.getElementById('vpnToggleBtnInline'),
       vpnToggleDotInline: document.getElementById('vpnToggleDotInline'),
       regionContainer: document.getElementById('regionContainer'),
-      serviceSelectedGrid: document.getElementById('serviceSelectedGrid'),
       usernameInput: document.getElementById('usernameInput'),
       clearSyncBtn: document.getElementById('clearSyncBtn'),
       startButton: document.getElementById('startButton'),
@@ -566,7 +565,6 @@
       paginationControls: document.getElementById('paginationControls'),
       friendInputWrapper: document.getElementById('friendInputWrapper'),
       friendInput: document.getElementById('friendInput'),
-      toggleFriendBtn: document.getElementById('toggleFriendBtn'),
       removeFriendBtn: document.getElementById('removeFriendBtn')
     };
 

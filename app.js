@@ -941,7 +941,6 @@
       vpnToggleBtnInline: document.getElementById('vpnToggleBtnInline'),
       vpnToggleDotInline: document.getElementById('vpnToggleDotInline'),
       regionContainer: document.getElementById('regionContainer'),
-      serviceSelectedGrid: document.getElementById('serviceSelectedGrid'),
       usernameInput: document.getElementById('usernameInput'),
       clearSyncBtn: document.getElementById('clearSyncBtn'),
       startButton: document.getElementById('startButton'),
@@ -968,7 +967,6 @@
       paginationControls: document.getElementById('paginationControls'),
       friendInputWrapper: document.getElementById('friendInputWrapper'),
       friendInput: document.getElementById('friendInput'),
-      toggleFriendBtn: document.getElementById('toggleFriendBtn'),
       removeFriendBtn: document.getElementById('removeFriendBtn')
     };
 
@@ -1128,10 +1126,13 @@
 
     // The old roulette modal is gone: "Another pick" on Tonight's pick (15-results-hero.js) does its job.
     const savedUsername = localStorage.getItem('ps_username'); if (savedUsername && el.usernameInput) el.usernameInput.value = savedUsername;
-    const savedFriend = localStorage.getItem('ps_friend_username'); if (savedFriend && el.friendInput) { el.friendInput.value = savedFriend; if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); }
-    if (el.toggleFriendBtn) { el.toggleFriendBtn.addEventListener('click', () => { if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.friendInput) el.friendInput.focus(); }); }
-    if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if (el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if (el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } if (isFriendMatchActive) { if (el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies = []; clearScanStorage(); isFriendMatchActive = false; if (el.activeGridContainer) el.activeGridContainer.innerHTML = ''; if (el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
-    if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
+    // The friend field is always there ("Compare with", optional); a name in it means a joint scan.
+    // Its clear button shows only while there's something to clear.
+    function syncFriendClearBtn() { if (el.removeFriendBtn && el.friendInput) el.removeFriendBtn.classList.toggle('hidden', !el.friendInput.value || isScanning); }
+    const savedFriend = localStorage.getItem('ps_friend_username'); if (savedFriend && el.friendInput) el.friendInput.value = savedFriend;
+    syncFriendClearBtn();
+    if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', (e) => { e.preventDefault(); if (el.friendInput) { el.friendInput.value = ''; el.friendInput.focus(); } localStorage.removeItem('ps_friend_username'); syncFriendClearBtn(); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } }); }
+    if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); syncFriendClearBtn(); }); }
     let trailerPlayer = null;
     let isTrailerPaused = false;
 
@@ -1299,56 +1300,32 @@
       return `<img src="${provider.logoPath}" alt="${escapeHTML(provider.name)}" loading="lazy" class="bg-gray-800" data-logodev="${escapeHTML(logoDev)}" data-tmdb="${escapeHTML(tmdb)}" onerror="const ld=this.dataset.logodev; const tm=this.dataset.tmdb; if(ld && this.src!==ld){this.src=ld;} else if(tm && this.src!==tm){this.src=tm;} else {this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400 rounded-[22.5%]\\'>${initials}</div>';}">`;
     }
 
-    // Fix: Rolled back to the original layout structure to prevent blurry CSS rendering and restore .png images
-    function createSelectedTile(provider) {
-      const btn = document.createElement('button');
-      btn.title = provider.name + ' - click to remove';
-      btn.className = 'service-btn service-tile selected shadow-md outline-none group';
-      const img = createTileImgHTML(provider);
-      const hoverOverlay = `<div class="hover-action-overlay"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></div>`;
-      btn.innerHTML = `<div class="logo-wrapper">${img}${hoverOverlay}</div>`;
-
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (isScanning) return;
-        selectedServiceIds.delete(provider.id);
-        localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds]));
-        saveSelectedProviderData();
-        toggleClearSyncBtn();
-        btn.remove();
-        if (selectedServiceIds.size === 0) renderSelectedView();
-        if (scannedMovies.length > 0) applyFiltersAndRender();
-      });
-      return btn;
+    // A small stack of overlapping service logos, used on the landing's "Streaming on" pill
+    // and in the results' context line. Shows up to `max` logos, then "+N".
+    function serviceStackHTML(providers, max = 4) {
+      if (!providers.length) return '';
+      const shown = providers.slice(0, max);
+      const more = providers.length - shown.length;
+      return `<span class="svc-stack">${shown.map(p => `<span class="svc-stack-logo">${createTileImgHTML(p)}</span>`).join('')}</span>${more > 0 ? `<span class="svc-stack-more">+${more}</span>` : ''}`;
     }
 
-    // Fix: Rolled back to original flat structure to guarantee clean resolution scaling
+    // One option in the picker: the logo, its name underneath, and a check when it's on.
     function createBrowserTile(provider) {
-      const isSelected = pendingSelectedIds.has(provider.id);
       const btn = document.createElement('button');
-      btn.title = provider.name;
-      btn.className = 'service-btn service-tile shadow-md outline-none group' + (isSelected ? ' selected' : ' service-unselected-fade');
-      const img = createTileImgHTML(provider);
-      const iconSvg = isSelected
-        ? `<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>`
-        : `<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>`;
-      const hoverOverlay = `<div class="hover-action-overlay"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">${iconSvg}</svg></div>`;
-      btn.innerHTML = `<div class="logo-wrapper">${img}${hoverOverlay}</div>`;
-
+      btn.type = 'button';
+      btn.className = 'svc-option';
+      const setState = () => {
+        const on = pendingSelectedIds.has(provider.id);
+        btn.classList.toggle('selected', on);
+        btn.setAttribute('aria-pressed', String(on));
+      };
+      btn.innerHTML = `<span class="svc-option-logo">${createTileImgHTML(provider)}<span class="svc-option-check" aria-hidden="true"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span></span><span class="svc-option-name">${escapeHTML(provider.name)}</span>`;
+      setState();
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const nowSelected = !pendingSelectedIds.has(provider.id);
-        if (nowSelected) {
-          pendingSelectedIds.add(provider.id);
-          btn.classList.add('selected');
-        } else {
-          pendingSelectedIds.delete(provider.id);
-          btn.classList.remove('selected');
-        }
-        const svgPath = btn.querySelector('.hover-action-overlay svg path');
-        if (svgPath) {
-          svgPath.setAttribute('d', nowSelected ? 'M6 18L18 6M6 6l12 12' : 'M12 4v16m8-8H4');
-        }
+        if (pendingSelectedIds.has(provider.id)) pendingSelectedIds.delete(provider.id);
+        else pendingSelectedIds.add(provider.id);
+        setState();
         updateBrowserSaveBtn();
       });
       return btn;
@@ -1426,59 +1403,38 @@
       };
     });
 
+    // The selected services, in priority order, from whatever provider data is loaded so far
+    // (this region's list, the cached selection, or the built-in canonical list).
+    function getSelectedProviderList() {
+      if (selectedServiceIds.size === 0) return [];
+      const source = currentProviders.length > 0
+        ? currentProviders
+        : (cachedSelectedProviders.length > 0 ? cachedSelectedProviders : STATIC_CANONICAL_PROVIDERS);
+      let selected = source.filter(p => selectedServiceIds.has(p.id)).sort((a, b) => (a.priority || 100) - (b.priority || 100));
+      if (selected.length === 0) selected = STATIC_CANONICAL_PROVIDERS.filter(p => selectedServiceIds.has(p.id));
+      return selected;
+    }
+
+    function describeServices(list) {
+      if (list.length === 0) return 'No services chosen';
+      const names = list.map(p => p.name);
+      return names.length <= 2 ? names.join(' and ') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+    }
+
+    // The "Streaming on" pill: a logo stack (or a name when there's just one).
     function renderSelectedView() {
-      const emptyState = document.getElementById('serviceEmptyState');
-      const selectedContainer = document.getElementById('serviceSelectedContainer');
-      const selectedGrid = document.getElementById('serviceSelectedGrid');
-      const browser = document.getElementById('serviceBrowser');
-
-      if (!selectedGrid || !emptyState || !selectedContainer) return;
-
-      if (browser && !browser.classList.contains('hidden')) {
-        emptyState.classList.add('hidden');
-        selectedContainer.classList.add('hidden');
-        return;
-      }
-
-      const hasSelected = selectedServiceIds.size > 0;
-
-      if (hasSelected) {
-        // Use currentProviders if loaded, otherwise fall back to cached or static canonical provider data
-        const sourceProviders = currentProviders.length > 0
-          ? currentProviders
-          : (cachedSelectedProviders.length > 0 ? cachedSelectedProviders : STATIC_CANONICAL_PROVIDERS);
-
-        let selected = sourceProviders.filter(p => selectedServiceIds.has(p.id)).sort((a, b) => (a.priority || 100) - (b.priority || 100));
-
-        if (selected.length === 0) {
-          selected = STATIC_CANONICAL_PROVIDERS.filter(p => selectedServiceIds.has(p.id));
-        }
-
-        if (selected.length === 0) {
-          emptyState.classList.remove('hidden');
-          selectedContainer.classList.add('hidden');
-        } else {
-          emptyState.classList.add('hidden');
-          selectedContainer.classList.remove('hidden');
-          selectedGrid.innerHTML = '';
-
-          selected.forEach(provider => {
-            selectedGrid.appendChild(createSelectedTile(provider));
-          });
-
-          // Append Add button at the end
-          const addBtn = document.createElement('button');
-          addBtn.className = 'service-btn service-tile outline-none group border-2 border-dashed border-white/20 hover:border-blue-500/50 rounded-[22.5%] transition-all flex items-center justify-center bg-white/5 hover:bg-blue-500/10';
-          addBtn.title = 'Add more services';
-          addBtn.innerHTML = `<svg class="w-8 h-8 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>`;
-          addBtn.addEventListener('click', () => { if (!isScanning) openBrowser(); });
-          selectedGrid.appendChild(addBtn);
-        }
-
+      const summary = document.getElementById('serviceSummary');
+      const pill = document.getElementById('servicePill');
+      if (!summary) return;
+      const selected = getSelectedProviderList();
+      if (selected.length === 0) {
+        summary.innerHTML = '<span class="svc-summary-empty">Choose services</span>';
+      } else if (selected.length === 1) {
+        summary.innerHTML = `${serviceStackHTML(selected)}<span class="svc-summary-name">${escapeHTML(selected[0].name)}</span>`;
       } else {
-        emptyState.classList.remove('hidden');
-        selectedContainer.classList.add('hidden');
+        summary.innerHTML = serviceStackHTML(selected);
       }
+      if (pill) pill.setAttribute('aria-label', `Streaming services: ${describeServices(selected)}. Change`);
       toggleClearSyncBtn();
     }
 
@@ -1499,33 +1455,78 @@
       });
     }
 
+    // The footer counts what's picked so far; "Done" saves, and a scan needs at least one.
     function updateBrowserSaveBtn() {
+      const n = pendingSelectedIds.size;
+      const count = document.getElementById('serviceBrowserCount');
+      if (count) count.textContent = n === 0 ? 'None picked yet' : `${n} picked`;
       const saveBtn = document.getElementById('serviceBrowserSave');
-      if (saveBtn) {
-        saveBtn.textContent = 'Save';
-      }
+      if (saveBtn) saveBtn.disabled = n === 0;
     }
 
-    function openBrowser() {
-      pendingSelectedIds = new Set(selectedServiceIds);
-      const emptyState = document.getElementById('serviceEmptyState');
-      const selectedContainer = document.getElementById('serviceSelectedContainer');
+    // Desktop: a popover under the bar, growing out of the "Streaming on" pill.
+    // Phones: a bottom sheet (16-motion.js adds the slide and the drag-to-close).
+    function placeServiceBrowser() {
       const browser = document.getElementById('serviceBrowser');
+      const pill = document.getElementById('servicePill');
+      const bar = document.querySelector('.ask-bar');
+      if (browser) { browser.style.top = ''; browser.style.left = ''; browser.style.maxHeight = ''; browser.style.transformOrigin = ''; }
+      if (!browser || !pill || !bar || window.matchMedia('(max-width: 719px)').matches) { updateServiceGridFade(); return; }
+      const ask = bar.parentElement.getBoundingClientRect();
+      const b = bar.getBoundingClientRect();
+      const p = pill.getBoundingClientRect();
+      const width = browser.offsetWidth;
+      // Centred under the pill, kept inside the bar's span and the window.
+      let left = p.left + p.width / 2 - width / 2;
+      left = Math.min(left, b.right - width, window.innerWidth - 16 - width);
+      left = Math.max(left, b.left, 16);
+      // Below the bar when it fits, above when there's more room there; else below, scrolling inside.
+      const gap = 10, margin = 16;
+      const below = window.innerHeight - b.bottom - gap - margin;
+      const above = b.top - gap - margin - 72; // keep clear of the top bar
+      const height = browser.offsetHeight;
+      const up = height > below && above > below;
+      const room = up ? above : below;
+      if (height > room) browser.style.maxHeight = `${Math.max(260, Math.floor(room))}px`;
+      const h = Math.min(height, Math.max(260, room));
+      browser.style.left = `${Math.round(left - ask.left)}px`;
+      browser.style.top = `${Math.round((up ? b.top - gap - h : b.bottom + gap) - ask.top)}px`;
+      browser.style.transformOrigin = `${Math.round(p.left + p.width / 2 - left)}px ${up ? '100%' : '0'}`;
+      updateServiceGridFade();
+    }
 
-      if (emptyState) emptyState.classList.add('hidden');
-      if (selectedContainer) selectedContainer.classList.add('hidden');
+    function updateServiceGridFade() {
+      const grid = document.getElementById('serviceAllGrid');
+      if (grid) grid.classList.toggle('more-below', grid.scrollTop + grid.clientHeight < grid.scrollHeight - 4);
+    }
+    document.getElementById('serviceAllGrid')?.addEventListener('scroll', updateServiceGridFade, { passive: true });
 
-      if (browser) {
-        browser.classList.remove('hidden');
-      }
-
+    function openBrowser() {
+      if (isScanning) return;
+      pendingSelectedIds = new Set(selectedServiceIds);
+      const browser = document.getElementById('serviceBrowser');
+      const backdrop = document.getElementById('serviceBackdrop');
+      const region = document.getElementById('serviceBrowserRegion');
+      if (region) region.textContent = REGION_META[currentRegion]?.name || currentRegion;
       renderBrowserGrid();
       updateBrowserSaveBtn();
+      if (backdrop) backdrop.classList.remove('hidden');
+      if (browser) browser.classList.remove('hidden');
+      placeServiceBrowser();
+      document.getElementById('servicePill')?.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('svc-picker-open');
+      (browser?.querySelector('.svc-option') || browser)?.focus({ preventScroll: true });
     }
 
     function closeBrowser() {
       const browser = document.getElementById('serviceBrowser');
+      const backdrop = document.getElementById('serviceBackdrop');
+      const wasOpen = browser && !browser.classList.contains('hidden');
       if (browser) browser.classList.add('hidden');
+      if (backdrop) backdrop.classList.add('hidden');
+      document.body.classList.remove('svc-picker-open');
+      const pill = document.getElementById('servicePill');
+      if (pill) { pill.setAttribute('aria-expanded', 'false'); if (wasOpen && document.activeElement && browser.contains(document.activeElement)) pill.focus({ preventScroll: true }); }
       renderSelectedView();
     }
 
@@ -1534,35 +1535,31 @@
       localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds]));
       saveSelectedProviderData();
       closeBrowser();
+      if (selectedServiceIds.size > 0 && el.formError && /streaming service/.test(el.formError.textContent)) el.formError.classList.add('hidden');
       if (scannedMovies.length > 0) applyFiltersAndRender();
     }
 
-    document.getElementById('serviceEmptyBtn')?.addEventListener('click', openBrowser);
-    document.getElementById('serviceBrowserCancel')?.addEventListener('click', closeBrowser);
-    document.getElementById('serviceBrowserSave')?.addEventListener('click', saveBrowser);
-
-    const sbs = document.getElementById('serviceBrowserSearch');
-    const sbc = document.getElementById('serviceBrowserClear');
-    if (sbs && sbc) {
-      sbs.addEventListener('input', () => {
-        sbc.classList.toggle('hidden', sbs.value.trim().length === 0);
-        renderBrowserGrid();
-      });
-      sbc.addEventListener('click', () => {
-        sbs.value = '';
-        sbc.classList.add('hidden');
-        renderBrowserGrid();
-        sbs.focus();
-      });
-    }
+    // Wired through arrow functions so 16-motion.js can wrap open/close with its animations.
+    document.getElementById('servicePill')?.addEventListener('click', () => {
+      const browser = document.getElementById('serviceBrowser');
+      if (browser && !browser.classList.contains('hidden')) closeBrowser(); else openBrowser();
+    });
+    document.getElementById('serviceBackdrop')?.addEventListener('click', () => closeBrowser());
+    document.getElementById('serviceBrowserCancel')?.addEventListener('click', () => closeBrowser());
+    document.getElementById('serviceBrowserSave')?.addEventListener('click', () => saveBrowser());
+    document.addEventListener('keydown', (e) => {
+      const browser = document.getElementById('serviceBrowser');
+      if (e.key === 'Escape' && browser && !browser.classList.contains('hidden')) { e.stopPropagation(); closeBrowser(); }
+    });
+    window.addEventListener('resize', () => {
+      const browser = document.getElementById('serviceBrowser');
+      if (browser && !browser.classList.contains('hidden')) placeServiceBrowser();
+    });
 
     // ----- END INLINE SERVICE SELECTOR LOGIC -----
 
     async function loadAndRenderProviders() {
       renderSelectedView();
-      if (el.serviceSelectedGrid && currentProviders.length === 0 && selectedServiceIds.size === 0) {
-        el.serviceSelectedGrid.innerHTML = `<div class="col-span-full py-6 flex flex-col items-center justify-center gap-2.5 text-center"><div class="w-7 h-7 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div><span class="text-blue-400 text-xs font-bold uppercase tracking-widest animate-pulse">Loading services...</span></div>`;
-      }
       try {
         currentProviders = await fetchProvidersForRegion(currentRegion);
       } catch (e) {
@@ -7316,10 +7313,10 @@
     function resetUI() {
       isScanning = false; cancelRequested = false;
       const startBtn = document.getElementById('startButton');
-      if (startBtn) { startBtn.disabled = false; startBtn.innerHTML = 'Find what I can stream'; }
+      if (startBtn) { startBtn.disabled = false; startBtn.innerHTML = 'Find my films'; }
       if (el.usernameInput) el.usernameInput.disabled = false; if (el.friendInput) el.friendInput.disabled = false; if (el.regionSelect) el.regionSelect.disabled = false; if (el.regionContainer) el.regionContainer.classList.remove('opacity-50', 'pointer-events-none');
-      if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('pointer-events-none', 'opacity-50'); document.querySelectorAll('.service-btn').forEach(b => b.classList.remove('locked'));
-      const friendWrapperVisible = el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden'); if (friendWrapperVisible) { if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); } else { if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); } toggleClearSyncBtn();
+      const pill = document.getElementById('servicePill'); if (pill) pill.disabled = false;
+      syncFriendClearBtn(); toggleClearSyncBtn();
     }
     if (el.startButton) {
       el.startButton.addEventListener('click', async () => {
@@ -7338,13 +7335,12 @@
         const isValidLetterboxdUser = (u) => /^[a-z0-9_]{1,40}$/.test(u);
         const username = normalizeLetterboxdUser(el.usernameInput ? el.usernameInput.value : ''); let friendName = normalizeLetterboxdUser(el.friendInput ? el.friendInput.value : '');
         if ((username && !isValidLetterboxdUser(username)) || (friendName && !isValidLetterboxdUser(friendName))) { if (el.formError) { el.formError.textContent = 'Letterboxd usernames only use letters, numbers and underscores.'; el.formError.classList.remove('hidden'); } return; }
-        if (el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden') && friendName === '') { if (el.removeFriendBtn) el.removeFriendBtn.click(); friendName = ''; }
         if (selectedServiceIds.size === 0) { if (el.formError) { el.formError.textContent = 'Pick at least one streaming service first.'; el.formError.classList.remove('hidden'); } return; }
         if (!username && friendName) { if (el.formError) { el.formError.textContent = 'Enter your own username too, to compare with a friend.'; el.formError.classList.remove('hidden'); } return; }
         if (!username) { if (el.formError) { el.formError.textContent = 'Enter your Letterboxd username.'; el.formError.classList.remove('hidden'); } return; }
         if (username === friendName) { if (el.formError) { el.formError.textContent = 'That\'s your own username. Enter a friend\'s to compare.'; el.formError.classList.remove('hidden'); } return; }
         const myScanSessionId = ++activeScanSessionId; scanPanelExpanded = false; tonightPickKey = null;
-        isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('pointer-events-none', 'opacity-50'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); document.querySelectorAll('.service-btn').forEach(b => b.classList.add('locked')); if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
+        isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); { const pill = document.getElementById('servicePill'); if (pill) pill.disabled = true; } if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
         scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden');
         if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden');
         if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';
@@ -9356,12 +9352,22 @@
         if (src) { img.src = src; img.classList.remove('hidden'); } else { img.removeAttribute('src'); img.classList.add('hidden'); }
       }
 
+      // Title artwork: the plain title stays invisible until we know whether there's a logo,
+      // so it never flashes up in text first. Re-renders of the same film leave it alone.
       const logo = document.getElementById('tonightPickLogo');
-      if (logo && card) {
+      const key = movieKeyOf(m);
+      if (logo && card && logo.dataset.key !== key) {
+        logo.dataset.key = key;
         logo.classList.add('hidden'); logo.removeAttribute('src'); card.classList.remove('has-logo');
+        const known = tonightPickLogoCache.has(key) && !tonightPickLogoCache.get(key);
+        card.classList.toggle('logo-pending', !known);
+        const settle = () => { if (currentTonightPick === m) card.classList.remove('logo-pending'); };
+        setTimeout(settle, 1500); // a slow lookup never hides the title for long
         loadTonightPickLogo(m).then((url) => {
-          if (!url || currentTonightPick !== m) return; // a newer pick replaced this one meanwhile
-          logo.onload = () => { if (currentTonightPick === m) { logo.classList.remove('hidden'); card.classList.add('has-logo'); } };
+          if (currentTonightPick !== m) return; // a newer pick replaced this one meanwhile
+          if (!url) { settle(); return; }
+          logo.onload = () => { if (currentTonightPick === m) { logo.classList.remove('hidden'); card.classList.add('has-logo'); settle(); } };
+          logo.onerror = settle;
           logo.alt = m.title || '';
           logo.src = url;
         });
@@ -9448,12 +9454,16 @@
         }
         fillTonightPick(pick, pool.length);
       };
-      const src = pick.backdrop || pick.poster;
-      if (!src) { swap(); return; }
-      const preload = new Image();
-      preload.onload = swap; preload.onerror = swap;
-      preload.src = src;
-      setTimeout(swap, 700); // a slow image never holds the new pick back for long
+      // Wait for the still and the title logo together, so both land in the same frame.
+      const loadImage = (url) => new Promise((resolve) => {
+        if (!url) { resolve(); return; }
+        const i = new Image(); i.onload = i.onerror = () => resolve(); i.src = url;
+      });
+      Promise.all([
+        loadImage(pick.backdrop || pick.poster),
+        loadTonightPickLogo(pick).then(loadImage)
+      ]).then(swap);
+      setTimeout(swap, 900); // a slow image never holds the new pick back for long
     }
 
     async function playTonightPickTrailer() {
@@ -9481,19 +9491,28 @@
       const bar = document.getElementById('scanCompactBar');
       if (!full || !bar) return;
       const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
-      const compact = resultsVisible && scannedMovies.length > 0 && !scanPanelExpanded && !isScanning;
+      const hasResults = resultsVisible && scannedMovies.length > 0 && !isScanning;
+      const compact = hasResults && !scanPanelExpanded;
       full.classList.toggle('hidden', compact);
       bar.classList.toggle('hidden', !compact);
+      // "Change" opens a clean start page: the results wait behind "Back to your results".
+      const landingMode = hasResults && scanPanelExpanded;
+      document.body.classList.toggle('landing-mode', landingMode);
+      const back = document.getElementById('landingBackBtn');
+      if (back) back.classList.toggle('hidden', !landingMode);
       if (!compact) return;
 
-      const user = ((el.usernameInput && el.usernameInput.value) || localStorage.getItem('ps_username') || '').trim();
-      const friend = isFriendMatchActive ? ((el.friendInput && el.friendInput.value) || '').trim() : '';
+      const user = (localStorage.getItem('ps_username') || (el.usernameInput && el.usernameInput.value) || '').trim();
+      const friend = isFriendMatchActive ? (localStorage.getItem('ps_friend_username') || '').trim() : '';
       const userEl = document.getElementById('scanCompactUser');
-      if (userEl) userEl.textContent = friend ? `${user} + ${friend}` : user;
+      if (userEl) userEl.textContent = friend ? `${user} and ${friend}` : user;
 
-      const names = currentProviders.filter(cp => selectedServiceIds.has(cp.id)).map(cp => cp.name);
       const servicesEl = document.getElementById('scanCompactServices');
-      if (servicesEl) servicesEl.textContent = names.length > 3 ? `${names.slice(0, 3).join(', ')} +${names.length - 3}` : names.join(', ');
+      if (servicesEl) {
+        const selected = getSelectedProviderList();
+        servicesEl.innerHTML = serviceStackHTML(selected, 5);
+        servicesEl.title = describeServices(selected);
+      }
 
       const friendBtn = document.getElementById('scanCompactFriendBtn');
       if (friendBtn) friendBtn.classList.toggle('hidden', isFriendMatchActive);
@@ -9540,24 +9559,40 @@
 
     // The landing's poster wall: the visitor's own watchlist when we have it, otherwise
     // this week's most talked-about films.
+    // Four columns that drift slowly (CSS), each holding its posters twice for a seamless loop;
+    // the speeds differ a little so the columns never line up.
     async function fillPosterWall() {
       const wall = document.getElementById('posterWall');
       if (!wall || wall.childElementCount) return;
-      let posters = scannedMovies.filter(m => m.poster).slice(0, 16).map(m => m.poster.replace('/w500/', '/w342/'));
-      if (posters.length < 12) {
+      const COLS = 4, PER_COL = 7;
+      let posters = scannedMovies.filter(m => m.poster).sort(() => Math.random() - 0.5).slice(0, COLS * PER_COL).map(m => m.poster.replace('/w500/', '/w342/'));
+      if (posters.length < 16) {
         try {
-          const data = await tmdbFetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}`).then(r => r.json());
-          posters = (data.results || []).filter(f => f.poster_path).slice(0, 16).map(f => `https://image.tmdb.org/t/p/w342${f.poster_path}`);
+          const pages = await Promise.all([1, 2].map(page => tmdbFetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}&page=${page}`).then(r => r.json())));
+          posters = pages.flatMap(d => d.results || []).filter(f => f.poster_path).slice(0, COLS * PER_COL).map(f => `https://image.tmdb.org/t/p/w342${f.poster_path}`);
         } catch (e) { logIgnored('fillPosterWall', e); return; }
       }
-      wall.innerHTML = posters.map(src => `<img src="${src}" alt="" loading="lazy" decoding="async">`).join('');
+      if (posters.length < COLS) return;
+      const perCol = Math.floor(posters.length / COLS);
+      const speeds = [170, 140, 190, 155];
+      wall.innerHTML = Array.from({ length: COLS }, (_, c) => {
+        const col = posters.slice(c * perCol, (c + 1) * perCol);
+        const imgs = col.map(src => `<img src="${src}" alt="" decoding="async">`).join('');
+        return `<div class="wall-col"><div class="wall-track" style="--drift:${speeds[c % speeds.length]}s;animation-delay:-${c * 23}s">${imgs}${imgs}</div></div>`;
+      }).join('');
     }
 
     function expandScanPanel() {
       scanPanelExpanded = true;
       updateScanPanelMode();
-      const full = document.getElementById('scanPanel');
-      if (full) full.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
+    }
+
+    function collapseScanPanel() {
+      scanPanelExpanded = false;
+      if (typeof closeBrowser === 'function') closeBrowser();
+      updateScanPanelMode();
+      window.scrollTo({ top: 0 });
     }
 
     (() => {
@@ -9573,12 +9608,8 @@
       on('tonightPickTrailer', playTonightPickTrailer);
       on('tonightPickArt', () => { if (currentTonightPick) openMoviePage(currentTonightPick, true); });
       on('scanCompactChangeBtn', () => { expandScanPanel(); if (el.usernameInput) el.usernameInput.focus({ preventScroll: true }); });
-      on('scanCompactFriendBtn', () => {
-        expandScanPanel();
-        const friendHidden = el.friendInputWrapper && el.friendInputWrapper.classList.contains('hidden');
-        if (friendHidden && el.toggleFriendBtn) el.toggleFriendBtn.click();
-        else if (el.friendInput) el.friendInput.focus({ preventScroll: true });
-      });
+      on('scanCompactFriendBtn', () => { expandScanPanel(); if (el.friendInput) el.friendInput.focus({ preventScroll: true }); });
+      on('landingBackBtn', collapseScanPanel);
       // Results are shown and hidden from many places (scan, restore, clear, friend removal...),
       // so follow the section itself rather than hooking each of them.
       if (el.resultsSection) {
@@ -9638,103 +9669,145 @@
       return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
     }
 
-    // ── The filter bottom sheet (phones) ────────────────────────────────────
-    // It slides up on open, slides back down on close (same path), and can be
+    // ── Bottom sheets (phones): the filter panel and the service picker ─────
+    // A sheet slides up on open, slides back down on close (same path), and can be
     // dragged down by its top area, grabbed mid-animation, and flicked closed.
-    var sheetState = { y: 0, anim: null, closing: false };
-    const isSheetMode = () => {
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      return !!(menu && menu.parentElement === document.body && !menu.classList.contains('hidden'));
-    };
-    function setSheetY(y) {
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      const backdrop = document.getElementById('homeFilterBackdrop');
-      sheetState.y = y;
-      if (menu) menu.style.transform = `translate3d(0, ${y}px, 0)`;
-      if (backdrop && menu) backdrop.style.opacity = String(Math.max(0, Math.min(1, 1 - y / menu.offsetHeight)));
-    }
-    function clearSheetStyles() {
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      const backdrop = document.getElementById('homeFilterBackdrop');
-      if (menu) menu.style.transform = '';
-      if (backdrop) backdrop.style.opacity = '';
-      sheetState.y = 0;
-    }
-    function animateSheet(target, velocity, onDone) {
-      if (sheetState.anim) sheetState.anim.stop();
-      // Settling back after a drag is a momentum moment, so a touch of bounce; closing never overshoots.
-      const opts = target === 0 ? { response: 0.3, dampingRatio: 0.85, velocity } : { response: 0.3, dampingRatio: 1, velocity };
-      sheetState.anim = springTo(sheetState.y, target, opts, setSheetY, () => { sheetState.anim = null; if (onDone) onDone(); });
-    }
-
-    // Wrap the existing open/close so every way in and out (button, backdrop, "Show films") animates.
-    const openHomeFilterDropdownInstant = openHomeFilterDropdown;
-    const closeHomeFilterDropdownInstant = closeHomeFilterDropdown;
-    openHomeFilterDropdown = function () {
-      const wasMoving = !!sheetState.anim; // reopened while closing: reverse from where it is
-      sheetState.closing = false;
-      if (sheetState.anim) { sheetState.anim.stop(); sheetState.anim = null; }
-      if (!wasMoving) openHomeFilterDropdownInstant();
-      if (!isSheetMode() || prefersReducedMotion.matches) { clearSheetStyles(); return; }
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      setSheetY(wasMoving ? sheetState.y : menu.offsetHeight);
-      animateSheet(0, 0);
-    };
-    closeHomeFilterDropdown = function () {
-      if (!isSheetMode() || prefersReducedMotion.matches) { clearSheetStyles(); closeHomeFilterDropdownInstant(); return; }
-      if (sheetState.closing) return;
-      sheetState.closing = true;
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      animateSheet(menu.offsetHeight, sheetState.lastVelocity || 0, () => {
-        sheetState.closing = false; sheetState.lastVelocity = 0;
-        clearSheetStyles(); closeHomeFilterDropdownInstant();
-      });
-    };
-
-    (() => {
-      const menu = document.getElementById('homeFilterDropdownMenu');
-      if (!menu) return;
-      let drag = null;
-      // Drag from the handle and the title row; the options below keep scrolling normally.
-      const isGrabZone = (target) => !!target.closest('.sheet-handle, .filter-panel-head') && !target.closest('button');
-      menu.addEventListener('pointerdown', (e) => {
-        if (!isSheetMode() || !isGrabZone(e.target) || e.button > 0) return;
-        if (sheetState.anim) { sheetState.anim.stop(); sheetState.anim = null; } // grab it mid-flight
-        sheetState.closing = false;
-        drag = { id: e.pointerId, startY: e.clientY, baseY: sheetState.y, active: false, history: [{ y: e.clientY, t: e.timeStamp }] };
-        try { menu.setPointerCapture(e.pointerId); } catch (err) { logIgnored('sheet pointer capture', err); }
-      });
-      menu.addEventListener('pointermove', (e) => {
-        if (!drag || e.pointerId !== drag.id) return;
-        const dy = e.clientY - drag.startY;
-        if (!drag.active && Math.abs(dy) < 8) return; // a little hysteresis before committing
-        drag.active = true;
-        drag.history.push({ y: e.clientY, t: e.timeStamp });
-        if (drag.history.length > 6) drag.history.shift();
-        const raw = drag.baseY + dy;
-        setSheetY(raw < 0 ? rubberband(raw, menu.offsetHeight) : raw);
-      });
-      const end = (e) => {
-        if (!drag || e.pointerId !== drag.id) return;
-        const d = drag; drag = null;
-        if (!d.active) return;
-        const first = d.history[0], lastPt = d.history[d.history.length - 1];
-        const dt = Math.max(1, lastPt.t - first.t);
-        const velocity = ((lastPt.y - first.y) / dt) * 1000; // px/s, positive = downwards
-        const projected = sheetState.y + projectMomentum(velocity);
-        const shouldClose = projected > menu.offsetHeight * 0.5;
-        if (prefersReducedMotion.matches) {
-          // No spring: settle at once (closing is already instant in this mode).
-          if (shouldClose) closeHomeFilterDropdown(); else clearSheetStyles();
-        } else if (shouldClose) {
-          sheetState.lastVelocity = velocity;
-          closeHomeFilterDropdown();
-        } else {
-          animateSheet(0, velocity);
-        }
+    // `isActive()` says whether the panel is currently showing as a sheet; `grabZone`
+    // is where a drag may start (the content below keeps scrolling normally).
+    function createSheet({ menuId, backdropId, isActive, grabZone }) {
+      const s = { y: 0, anim: null, closing: false, lastVelocity: 0, close: null };
+      const menu = () => document.getElementById(menuId);
+      const backdrop = () => document.getElementById(backdropId);
+      s.height = () => (menu() ? menu().offsetHeight : 0);
+      s.setY = (y) => {
+        const m = menu(), b = backdrop();
+        s.y = y;
+        if (m) m.style.transform = `translate3d(0, ${y}px, 0)`;
+        if (b && m) b.style.opacity = String(Math.max(0, Math.min(1, 1 - y / m.offsetHeight)));
       };
-      menu.addEventListener('pointerup', end);
-      menu.addEventListener('pointercancel', end);
+      s.clear = () => {
+        const m = menu(), b = backdrop();
+        if (m) m.style.transform = '';
+        if (b) b.style.opacity = '';
+        s.y = 0;
+      };
+      s.animate = (target, velocity, onDone) => {
+        if (s.anim) s.anim.stop();
+        // Settling back after a drag is a momentum moment, so a touch of bounce; closing never overshoots.
+        const opts = target === 0 ? { response: 0.3, dampingRatio: 0.85, velocity } : { response: 0.3, dampingRatio: 1, velocity };
+        s.anim = springTo(s.y, target, opts, s.setY, () => { s.anim = null; if (onDone) onDone(); });
+      };
+      // Wrap instant open/close functions so every way in and out animates.
+      // `reopenRuns`: call the open function again when reopened mid-close (it re-renders safely).
+      s.wrap = (openInstant, closeInstant, reopenRuns) => {
+        const open = function (...args) {
+          const wasMoving = !!s.anim; // reopened while closing: reverse from where it is
+          s.closing = false;
+          if (s.anim) { s.anim.stop(); s.anim = null; }
+          if (!wasMoving || reopenRuns) openInstant.apply(this, args);
+          if (!isActive() || prefersReducedMotion.matches) { s.clear(); return; }
+          s.setY(wasMoving ? s.y : s.height());
+          s.animate(0, 0);
+        };
+        const close = function (...args) {
+          if (!isActive() || prefersReducedMotion.matches) { s.clear(); closeInstant.apply(this, args); return; }
+          if (s.closing) return;
+          s.closing = true;
+          s.animate(s.height(), s.lastVelocity || 0, () => {
+            s.closing = false; s.lastVelocity = 0;
+            s.clear(); closeInstant.apply(this, args);
+          });
+        };
+        s.close = close;
+        return { open, close };
+      };
+      (() => {
+        const m = menu();
+        if (!m) return;
+        let drag = null;
+        const isGrabZone = (target) => !!target.closest(grabZone) && !target.closest('button');
+        m.addEventListener('pointerdown', (e) => {
+          if (!isActive() || !isGrabZone(e.target) || e.button > 0) return;
+          if (s.anim) { s.anim.stop(); s.anim = null; } // grab it mid-flight
+          s.closing = false;
+          drag = { id: e.pointerId, startY: e.clientY, baseY: s.y, active: false, history: [{ y: e.clientY, t: e.timeStamp }] };
+          try { m.setPointerCapture(e.pointerId); } catch (err) { logIgnored('sheet pointer capture', err); }
+        });
+        m.addEventListener('pointermove', (e) => {
+          if (!drag || e.pointerId !== drag.id) return;
+          const dy = e.clientY - drag.startY;
+          if (!drag.active && Math.abs(dy) < 8) return; // a little hysteresis before committing
+          drag.active = true;
+          drag.history.push({ y: e.clientY, t: e.timeStamp });
+          if (drag.history.length > 6) drag.history.shift();
+          const raw = drag.baseY + dy;
+          s.setY(raw < 0 ? rubberband(raw, m.offsetHeight) : raw);
+        });
+        const end = (e) => {
+          if (!drag || e.pointerId !== drag.id) return;
+          const d = drag; drag = null;
+          if (!d.active) return;
+          const first = d.history[0], lastPt = d.history[d.history.length - 1];
+          const dt = Math.max(1, lastPt.t - first.t);
+          const velocity = ((lastPt.y - first.y) / dt) * 1000; // px/s, positive = downwards
+          const projected = s.y + projectMomentum(velocity);
+          const shouldClose = projected > m.offsetHeight * 0.5;
+          if (prefersReducedMotion.matches) {
+            // No spring: settle at once (closing is already instant in this mode).
+            if (shouldClose && s.close) s.close(); else s.clear();
+          } else if (shouldClose && s.close) {
+            s.lastVelocity = velocity;
+            s.close();
+          } else {
+            s.animate(0, velocity);
+          }
+        };
+        m.addEventListener('pointerup', end);
+        m.addEventListener('pointercancel', end);
+      })();
+      return s;
+    }
+
+    // The filter panel is a sheet when it has been moved to <body> (phones).
+    var sheetState = createSheet({
+      menuId: 'homeFilterDropdownMenu',
+      backdropId: 'homeFilterBackdrop',
+      grabZone: '.sheet-handle, .filter-panel-head',
+      isActive: () => {
+        const menu = document.getElementById('homeFilterDropdownMenu');
+        return !!(menu && menu.parentElement === document.body && !menu.classList.contains('hidden'));
+      }
+    });
+    ({ open: openHomeFilterDropdown, close: closeHomeFilterDropdown } = sheetState.wrap(openHomeFilterDropdown, closeHomeFilterDropdown, false));
+
+    // The service picker is a sheet on phones; on wider screens it's a popover that grows out of
+    // its pill (CSS) and shrinks back into it on close.
+    var serviceSheet = createSheet({
+      menuId: 'serviceBrowser',
+      backdropId: 'serviceBackdrop',
+      grabZone: '.sheet-handle, .service-browser-head',
+      isActive: () => {
+        const b = document.getElementById('serviceBrowser');
+        return !!(b && !b.classList.contains('hidden') && window.matchMedia('(max-width: 719px)').matches);
+      }
+    });
+    (() => {
+      const sheet = serviceSheet.wrap(openBrowser, closeBrowser, true);
+      let popOut = null;
+      openBrowser = function () {
+        if (popOut) { clearTimeout(popOut); popOut = null; }
+        document.getElementById('serviceBrowser')?.classList.remove('pop-out');
+        sheet.open();
+      };
+      closeBrowser = function () {
+        const b = document.getElementById('serviceBrowser');
+        const open = b && !b.classList.contains('hidden');
+        if (!open || serviceSheet.closing) { sheet.close(); return; }
+        if (window.matchMedia('(max-width: 719px)').matches || prefersReducedMotion.matches) { sheet.close(); return; }
+        if (popOut) return;
+        b.classList.add('pop-out');
+        popOut = setTimeout(() => { popOut = null; b.classList.remove('pop-out'); sheet.close(); }, 140);
+      };
     })();
 
     // ── Popovers grow out of the button that opened them ────────────────────
