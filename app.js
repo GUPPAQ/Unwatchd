@@ -1731,22 +1731,22 @@
     // Bespoke Glassmorphism Custom Filter Engine (Home & Actor)
     // -------------------------------------------------------------
     const GENRE_ICON_MAP = {
-      'Action': '💥', 'Adventure': '🗺️', 'Animation': '🎨', 'Comedy': '😂', 'Crime': '🕵️',
-      'Documentary': '📹', 'Drama': '🎭', 'Family': '👨‍👩‍👧‍👦', 'Fantasy': '🧙', 'History': '📜',
-      'Horror': '👻', 'Music': '🎵', 'Mystery': '🔍', 'Romance': '❤️', 'Science Fiction': '🚀',
-      'TV Movie': '📺', 'Thriller': '😱', 'War': '⚔️', 'Western': '🤠'
+      'Action': '', 'Adventure': '', 'Animation': '', 'Comedy': '', 'Crime': '',
+      'Documentary': '', 'Drama': '', 'Family': '', 'Fantasy': '', 'History': '',
+      'Horror': '', 'Music': '', 'Mystery': '', 'Romance': '', 'Science Fiction': '',
+      'TV Movie': '', 'Thriller': '', 'War': '', 'Western': ''
     };
 
     const DECADE_ICON_MAP = {
-      'all': '📅', '2020': '✨', '2010': '📼', '2000': '💿', '1990': '🕹️',
-      '1980': '📻', '1970': '🎞️', '1960': '📽️', '1950': '🎙️', 'older': '🕰️',
-      '2020s': '✨', '2010s': '📼', '2000s': '💿', '1990s': '🕹️', '1980s': '📻',
-      '1970s': '🎞️', '1960s': '📽️', '1950s': '🎙️'
+      'all': '', '2020': '', '2010': '', '2000': '', '1990': '',
+      '1980': '', '1970': '', '1960': '', '1950': '', 'older': '',
+      '2020s': '', '2010s': '', '2000s': '', '1990s': '', '1980s': '',
+      '1970s': '', '1960s': '', '1950s': ''
     };
 
     const SORT_ICON_MAP = {
-      'year_desc': '⏳', 'year_asc': '🕰️', 'popularity': '🔥',
-      'rating_desc': '⭐', 'az': '🔤', 'za': '🔤'
+      'year_desc': '', 'year_asc': '', 'popularity': '',
+      'rating_desc': '', 'az': '', 'za': ''
     };
 
     // Home Filter State
@@ -1968,12 +1968,12 @@
         const cur = isHome ? homeFilterSort : actorFilterSort;
         const defaultSort = isHome ? 'year_desc' : 'popularity';
         const options = [
-          { value: 'year_desc', label: 'Newest First', icon: '⏳' },
-          { value: 'year_asc', label: 'Oldest First', icon: '🕰️' },
-          { value: 'popularity', label: 'Popular', icon: '🔥' },
-          { value: 'rating_desc', label: 'Highest Rated', icon: '⭐' },
-          { value: 'az', label: 'A-Z', icon: '🔤' },
-          { value: 'za', label: 'Z-A', icon: '🔤' }
+          { value: 'year_desc', label: 'Newest First', icon: '' },
+          { value: 'year_asc', label: 'Oldest First', icon: '' },
+          { value: 'popularity', label: 'Popular', icon: '' },
+          { value: 'rating_desc', label: 'Highest Rated', icon: '' },
+          { value: 'az', label: 'A-Z', icon: '' },
+          { value: 'za', label: 'Z-A', icon: '' }
         ];
         const selected = options.find(o => o.value === cur) || options.find(o => o.value === defaultSort) || options[0];
         const isCustom = cur !== defaultSort;
@@ -2011,7 +2011,7 @@
         const isCustom = !isAll;
 
         const provList = [];
-        provList.push({ id: 'all', name: isHome ? 'All My Services' : 'All Services', icon: '🍿' });
+        provList.push({ id: 'all', name: isHome ? 'All My Services' : 'All Services', icon: '' });
         if (vpnModeEnabled) {
           provList.push({ id: 'vpn', name: 'VPN Available 🌐', icon: '🌐' });
         }
@@ -2043,7 +2043,7 @@
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">🍿</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -2056,8 +2056,8 @@
               ${provList.map(p => {
           const isSelected = p.id === 'all' ? isAll : curSet.has(p.id);
           const logoHtml = p.logo
-            ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'>📺</span>'" />`
-            : `<span class="text-sm shrink-0">${p.icon || '📺'}</span>`;
+            ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'></span>'" />`
+            : `<span class="text-sm shrink-0">${p.icon || ''}</span>`;
           return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'provider', '${escapeHTML(p.id)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
@@ -2105,7 +2105,7 @@
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">🎭</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -2117,7 +2117,7 @@
               </div>
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">🎭</span>
+                  <span class="text-sm shrink-0"></span>
                   <span class="truncate">All Genres</span>
                 </div>
                 <div class="custom-filter-checkbox">
@@ -2126,7 +2126,7 @@
               </button>
               ${genreNames.map(g => {
           const isSelected = !isAll && curSet.has(g);
-          const icon = GENRE_ICON_MAP[g] || '🎬';
+          const icon = GENRE_ICON_MAP[g] || '';
           return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', '${escapeHTML(g)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
@@ -2150,15 +2150,15 @@
         const isCustom = !isAll;
 
         const decadeOptions = [
-          { value: '2020', label: '2020s', icon: '✨' },
-          { value: '2010', label: '2010s', icon: '📼' },
-          { value: '2000', label: '2000s', icon: '💿' },
-          { value: '1990', label: '1990s', icon: '🕹️' },
-          { value: '1980', label: '1980s', icon: '📻' },
-          { value: '1970', label: '1970s', icon: '🎞️' },
-          { value: '1960', label: '1960s', icon: '📽️' },
-          { value: '1950', label: '1950s', icon: '🎙️' },
-          { value: 'older', label: 'Older (< 1950)', icon: '🕰️' }
+          { value: '2020', label: '2020s', icon: '' },
+          { value: '2010', label: '2010s', icon: '' },
+          { value: '2000', label: '2000s', icon: '' },
+          { value: '1990', label: '1990s', icon: '' },
+          { value: '1980', label: '1980s', icon: '' },
+          { value: '1970', label: '1970s', icon: '' },
+          { value: '1960', label: '1960s', icon: '' },
+          { value: '1950', label: '1950s', icon: '' },
+          { value: 'older', label: 'Older (< 1950)', icon: '' }
         ];
 
         let previewText = 'All Decades';
@@ -2174,7 +2174,7 @@
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">📅</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -2186,7 +2186,7 @@
               </div>
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'decade', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">📅</span>
+                  <span class="text-sm shrink-0"></span>
                   <span class="truncate">All Decades</span>
                 </div>
                 <div class="custom-filter-checkbox">
@@ -2216,12 +2216,12 @@
         const cur = isHome ? homeFilterRating : actorFilterRating;
         const isCustom = cur && cur !== 'all';
         const ratingOptions = [
-          { value: 'all', label: 'Any Rating', icon: '🌟' },
-          { value: '6', label: 'IMDb 6.0+', icon: '⭐' },
-          { value: '7', label: 'IMDb 7.0+', icon: '⭐' },
-          { value: '8', label: 'IMDb 8.0+', icon: '⭐' },
-          { value: '8.5', label: 'IMDb 8.5+', icon: '⭐' },
-          { value: '9', label: 'IMDb 9.0+', icon: '🏆' }
+          { value: 'all', label: 'Any Rating', icon: '' },
+          { value: '6', label: 'IMDb 6.0+', icon: '' },
+          { value: '7', label: 'IMDb 7.0+', icon: '' },
+          { value: '8', label: 'IMDb 8.0+', icon: '' },
+          { value: '8.5', label: 'IMDb 8.5+', icon: '' },
+          { value: '9', label: 'IMDb 9.0+', icon: '' }
         ];
         const selected = ratingOptions.find(r => r.value === cur) || ratingOptions[0];
 
@@ -2256,10 +2256,10 @@
         const cur = isHome ? homeFilterRuntime : actorFilterRuntime;
         const isCustom = cur && cur !== 'all';
         const runtimeOptions = [
-          { value: 'all', label: 'Any Length', icon: '⏱️' },
-          { value: 'short', label: 'Short (< 90 min)', icon: '⚡' },
-          { value: 'medium', label: 'Medium (90 - 120 min)', icon: '⏳' },
-          { value: 'long', label: 'Long (> 120 min)', icon: '🎬' }
+          { value: 'all', label: 'Any Length', icon: '' },
+          { value: 'short', label: 'Short (< 90 min)', icon: '' },
+          { value: 'medium', label: 'Medium (90 - 120 min)', icon: '' },
+          { value: 'long', label: 'Long (> 120 min)', icon: '' }
         ];
         const selected = runtimeOptions.find(r => r.value === cur) || runtimeOptions[0];
 
@@ -4639,7 +4639,7 @@
       if (!hasAny) {
         const fallbackMsg = (data && data.rentBuyCount > 0) ? 'Only available to rent or buy' : 'Not available to stream';
         html = `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1">📺</span>
+          <span class="text-3xl opacity-60 mb-1"></span>
           <span class="font-bold uppercase tracking-widest text-sm text-gray-400">${fallbackMsg}</span>
           <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No streaming options found in this region.</span>
         </div>`;
@@ -4675,7 +4675,7 @@
       const html = data.rentBuyCount > 0
         ? `<div class="space-y-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.rbLinksHtml}</div>${(data.hasVpnLinks || data.rbLinksHtml?.includes('via VPN*')) ? `<p class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center pt-2">*Some streaming services may detect or restrict VPN connections</p>` : ''}</div>`
         : `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1">🛒</span>
+          <span class="text-3xl opacity-60 mb-1"></span>
           <span class="font-bold uppercase tracking-widest text-sm text-gray-400">Not available to rent or buy</span>
           <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No digital purchase or rental options found in this region.</span>
         </div>`;
@@ -4706,28 +4706,28 @@
       const statsHtml = `
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <div class="insight-stat-card">
-            <span class="stat-icon">🎬</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Total Films</span>
               <span class="stat-value">${escapeHTML(total)}</span>
             </div>
           </div>
           <div class="insight-stat-card">
-            <span class="stat-icon">🍿</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Top Genre</span>
               <span class="stat-value">${escapeHTML(genre)}</span>
             </div>
           </div>
           <div class="insight-stat-card">
-            <span class="stat-icon">🕰</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Top Decade</span>
               <span class="stat-value">${escapeHTML(decade)}</span>
             </div>
           </div>
           <div class="insight-stat-card">
-            <span class="stat-icon">⭐</span>
+            <span class="stat-icon"></span>
             <div class="flex flex-col gap-0.5">
               <span class="stat-label">Avg Rating</span>
               <span class="stat-value">${escapeHTML(avg)}</span>
@@ -5815,9 +5815,7 @@
         if (!modalWrapper) return;
         modalWrapper.innerHTML = `
           <div class="w-full h-full flex flex-col items-center justify-center bg-black/90 p-6 text-center rounded-2xl gap-3">
-            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl">
-              🎬
-            </div>
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl"><svg class="w-6 h-6 text-red-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></div>
             <div class="flex flex-col gap-1">
               <span class="text-white font-extrabold text-sm sm:text-base">Trailer can't play here</span>
               <span class="text-gray-400 text-xs sm:text-sm max-w-sm">YouTube didn't load, or the uploader doesn't allow this video to play outside YouTube.</span>
@@ -6120,7 +6118,7 @@
       }
 
       if (list.length === 0) {
-        const emptyIcon = query ? '🔍' : '👥';
+        const emptyIcon = query ? '' : '';
         const emptyMsg = query ? 'No people match your search' : 'No cast or crew found';
         const emptySub = query ? 'Try searching for a different name or department.' : 'Nothing listed for this selection.';
         grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
@@ -6304,6 +6302,22 @@
         }
       }
 
+      // Where it's available, as small service logos along the bottom of the poster.
+      // `subtext` is "Netflix, Max" (or "Netflix · 🇺🇸 VPN" for a VPN unlock).
+      const serviceNames = (movieObj.subtext || '').split(' · ')[0].split(', ').map(s => s.trim()).filter(s => s && s !== 'Not streaming in region');
+      if (serviceNames.length > 0) {
+        const logos = serviceNames.slice(0, 3).map(name => {
+          const src = getProviderLogoUrl(name);
+          return src ? `<img src="${escapeHTML(src)}" alt="${escapeHTML(name)}" loading="lazy" onerror="this.remove()">` : '';
+        }).join('');
+        if (logos) {
+          const row = document.createElement('div');
+          row.className = 'poster-services';
+          row.innerHTML = logos + (serviceNames.length > 3 ? `<span class="poster-services-more">+${serviceNames.length - 3}</span>` : '');
+          a.appendChild(row);
+        }
+      }
+
       if (movieObj.vpnInfo) {
         const vpnBadge = document.createElement('div');
         vpnBadge.className = 'poster-corner-badge poster-vpn-badge';
@@ -6474,13 +6488,24 @@
         if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999');
         return 0;
       });
-      currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
+      currentGroupedResults = groupMoviesByAvailability(filtered, isSubscribedScan);
+      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
+      renderActiveGrid();
+      renderResultsHero();
+    }
 
-      filtered.forEach(movie => {
+    // Sorts movies into the four home tabs (stream / rentbuy / other / unavailable) for the
+    // current region, selected services and VPN mode. Used for the visible (filtered) grid and,
+    // unfiltered, for the results headline.
+    function groupMoviesByAvailability(movies, isSubscribedScan = buildSubscribedMatcher()) {
+      const getMovieVpnMatch = (m) => findVpnMatch(m, isSubscribedScan);
+      const groups = { stream: [], rentbuy: [], other: [], unavailable: [] };
+
+      movies.forEach(movie => {
         const localData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData;
         const vpnInfo = getMovieVpnMatch(movie);
         const baseObj = { ...movie, regionData: localData, vpnInfo };
-        if (!localData && !vpnInfo) { baseObj.subtext = 'Not streaming in region'; currentGroupedResults.unavailable.push(baseObj); return; }
+        if (!localData && !vpnInfo) { baseObj.subtext = 'Not streaming in region'; groups.unavailable.push(baseObj); return; }
 
         const localFlatrate = (localData?.flatrate || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
         const localRent = (localData?.rent || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
@@ -6491,19 +6516,19 @@
 
         if (matchedSubscribed.length > 0) {
           baseObj.subtext = matchedSubscribed.map(s => s.provider_name).join(', ');
-          currentGroupedResults.stream.push(baseObj);
+          groups.stream.push(baseObj);
         } else if (vpnInfo && movie.allProviders && movie.allProviders[vpnInfo.region]) {
           const vpnFlat = (movie.allProviders[vpnInfo.region]?.flatrate || []).filter(isSubscribedScan);
           baseObj.subtext = `${vpnInfo.services[0]?.label || vpnFlat[0]?.provider_name || 'VPN'} · ${REGION_META[vpnInfo.region]?.flag || ''} VPN`;
-          currentGroupedResults.stream.push(baseObj);
+          groups.stream.push(baseObj);
         } else if (matchedUnsubscribed.length > 0) {
           baseObj.subtext = matchedUnsubscribed.map(s => s.provider_name).join(', ');
-          currentGroupedResults.other.push(baseObj);
+          groups.other.push(baseObj);
         } else if (localRent.length > 0 || localBuy.length > 0) {
           const p = [...localRent, ...localBuy];
           const rawNames = [...new Set(p.map(x => x.provider_name))];
           baseObj.subtext = rawNames.slice(0, 2).join(', ');
-          currentGroupedResults.rentbuy.push(baseObj);
+          groups.rentbuy.push(baseObj);
         } else if (vpnModeEnabled && movie.allProviders) {
           let vpnRb = null;
           let vpnRbCode = null;
@@ -6520,25 +6545,24 @@
           if (vpnRb && vpnRbCode) {
             const rawNames = [...new Set(vpnRb.map(x => x.provider_name))];
             baseObj.subtext = `${rawNames.slice(0, 2).join(', ')} · ${REGION_META[vpnRbCode]?.flag || ''} VPN`;
-            currentGroupedResults.rentbuy.push(baseObj);
+            groups.rentbuy.push(baseObj);
           } else {
             baseObj.subtext = 'Not streaming in region';
-            currentGroupedResults.unavailable.push(baseObj);
+            groups.unavailable.push(baseObj);
           }
         } else {
           baseObj.subtext = 'Not streaming in region';
-          currentGroupedResults.unavailable.push(baseObj);
+          groups.unavailable.push(baseObj);
         }
       });
-      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
-      renderActiveGrid();
+      return groups;
     }
     function renderActiveGrid() {
       const container = el.activeGridContainer; if (!container) return; container.innerHTML = ''; const currentData = currentGroupedResults[activeTab] || [];
-      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const count = serviceTally[topService]; const countText = count === 1 ? '1 film' : `${count} films`; const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${countText}</strong> from your watchlist.</p></div><div class="text-3xl opacity-80">💡</div>`; container.appendChild(banner); } }
+      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const count = serviceTally[topService]; const countText = count === 1 ? '1 film' : `${count} films`; const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${countText}</strong> from your watchlist.</p></div><div class="text-3xl opacity-80"></div>`; container.appendChild(banner); } }
       if (currentData.length === 0) {
         const hasActiveFilter = (el.filterSearch && el.filterSearch.value.trim() !== '') || (el.filterGenre && el.filterGenre.value !== 'all') || (el.filterDecade && el.filterDecade.value !== 'all');
-        const emptyIcon = hasActiveFilter ? '🔍' : '🎬';
+        const emptyIcon = hasActiveFilter ? '' : '';
         const emptyMsg = hasActiveFilter ? 'No titles match your filters' : 'No films in this category';
         const emptySub = hasActiveFilter ? 'Try a different search, genre, or decade.' : 'Nothing landed here for your current selection.';
         container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[300px] text-gray-500 gap-2"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
@@ -6551,7 +6575,7 @@
     if (el.quickSearchInput) {
       el.quickSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => {
-          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60">🔍</span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
+          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60"></span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
             el.searchDropdown.innerHTML = '';
             results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 15).forEach(item => {
               const isPerson = item.__mediaType === 'person';
@@ -6644,7 +6668,7 @@
           if (el.progressBar) el.progressBar.style.width = '0%';
           if (el.progressPercent) el.progressPercent.textContent = '0%';
           if (el.formError) {
-            el.formError.textContent = 'Scan aborted by user.';
+            el.formError.textContent = 'Scan stopped.';
             el.formError.classList.remove('hidden');
           }
           if (el.resultsSection) el.resultsSection.classList.add('hidden');
@@ -7202,7 +7226,7 @@
     };
 
     const fetchWatchlist = async (targetUser, labelPrefix) => {
-      if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
+      if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix}…`;
       // No cache-busting query on these URLs: our proxy drops it anyway and caches pages for
       // two minutes, so repeat scans don't hit Letterboxd again.
 
@@ -7463,7 +7487,7 @@
     function resetUI() {
       isScanning = false; cancelRequested = false;
       const startBtn = document.getElementById('startButton');
-      if (startBtn) { startBtn.disabled = false; startBtn.innerHTML = 'Execute'; }
+      if (startBtn) { startBtn.disabled = false; startBtn.innerHTML = 'Find what I can stream'; }
       if (el.usernameInput) el.usernameInput.disabled = false; if (el.friendInput) el.friendInput.disabled = false; if (el.regionSelect) el.regionSelect.disabled = false; if (el.regionContainer) el.regionContainer.classList.remove('opacity-50', 'pointer-events-none');
       if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('pointer-events-none', 'opacity-50'); document.querySelectorAll('.service-btn').forEach(b => b.classList.remove('locked'));
       const friendWrapperVisible = el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden'); if (friendWrapperVisible) { if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); } else { if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); } toggleClearSyncBtn();
@@ -7484,20 +7508,20 @@
         };
         const isValidLetterboxdUser = (u) => /^[a-z0-9_]{1,40}$/.test(u);
         const username = normalizeLetterboxdUser(el.usernameInput ? el.usernameInput.value : ''); let friendName = normalizeLetterboxdUser(el.friendInput ? el.friendInput.value : '');
-        if ((username && !isValidLetterboxdUser(username)) || (friendName && !isValidLetterboxdUser(friendName))) { if (el.formError) { el.formError.textContent = 'ERROR: Letterboxd usernames can only contain letters, numbers and underscores.'; el.formError.classList.remove('hidden'); } return; }
+        if ((username && !isValidLetterboxdUser(username)) || (friendName && !isValidLetterboxdUser(friendName))) { if (el.formError) { el.formError.textContent = 'Letterboxd usernames only use letters, numbers and underscores.'; el.formError.classList.remove('hidden'); } return; }
         if (el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden') && friendName === '') { if (el.removeFriendBtn) el.removeFriendBtn.click(); friendName = ''; }
-        if (selectedServiceIds.size === 0) { if (el.formError) { el.formError.textContent = 'ERROR: Minimum one network subscription required.'; el.formError.classList.remove('hidden'); } return; }
-        if (!username && friendName) { if (el.formError) { el.formError.textContent = 'ERROR: Enter your own username to match with a friend.'; el.formError.classList.remove('hidden'); } return; }
-        if (!username) { if (el.formError) { el.formError.textContent = 'ERROR: Letterboxd username required.'; el.formError.classList.remove('hidden'); } return; }
-        if (username === friendName) { if (el.formError) { el.formError.textContent = 'ERROR: You cannot match with yourself.'; el.formError.classList.remove('hidden'); } return; }
-        const myScanSessionId = ++activeScanSessionId;
+        if (selectedServiceIds.size === 0) { if (el.formError) { el.formError.textContent = 'Pick at least one streaming service first.'; el.formError.classList.remove('hidden'); } return; }
+        if (!username && friendName) { if (el.formError) { el.formError.textContent = 'Enter your own username too, to compare with a friend.'; el.formError.classList.remove('hidden'); } return; }
+        if (!username) { if (el.formError) { el.formError.textContent = 'Enter your Letterboxd username.'; el.formError.classList.remove('hidden'); } return; }
+        if (username === friendName) { if (el.formError) { el.formError.textContent = 'That\'s your own username. Enter a friend\'s to compare.'; el.formError.classList.remove('hidden'); } return; }
+        const myScanSessionId = ++activeScanSessionId; scanPanelExpanded = false; tonightPickKey = null;
         isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('pointer-events-none', 'opacity-50'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); document.querySelectorAll('.service-btn').forEach(b => b.classList.add('locked')); if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
         scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.statsBar) el.statsBar.classList.add('hidden');
         if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden');
         if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';
         try {
           if (el.progressSection) el.progressSection.classList.remove('hidden'); if (el.progressBar) el.progressBar.style.width = `0%`; if (el.progressPercent) el.progressPercent.textContent = '0%';
-          const myScan = await fetchWatchlist(username, 'Pinging your servers');
+          const myScan = await fetchWatchlist(username, 'Reading your watchlist');
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
           const myTitles = myScan.films;
           if (myTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${username}`);
@@ -7505,12 +7529,12 @@
           let titlesToProcess = myTitles;
           if (friendName) {
             if (el.progressBar) el.progressBar.style.width = `10%`; if (el.progressPercent) el.progressPercent.textContent = '10%';
-            const friendScan = await fetchWatchlist(friendName, 'Pinging friend servers');
+            const friendScan = await fetchWatchlist(friendName, 'Reading your friend\'s watchlist');
             if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
             const friendTitles = friendScan.films;
             if (friendTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${friendName}`);
             incompleteNotes.push(...describeIncompleteScan(`${friendName}'s`, friendScan));
-            const friendKeys = new Set(friendTitles.map(getFilmKey)); titlesToProcess = myTitles.filter(t => friendKeys.has(getFilmKey(t))); if (titlesToProcess.length === 0) { throw new Error('NO MATCHES: You and your friend have no movies in common!'); }
+            const friendKeys = new Set(friendTitles.map(getFilmKey)); titlesToProcess = myTitles.filter(t => friendKeys.has(getFilmKey(t))); if (titlesToProcess.length === 0) { throw new Error('You and your friend don\'t have any films in common on your watchlists.'); }
           }
           titlesToProcess.forEach((t, idx) => { t.extractedIndex = idx; }); // watchlist order, used to order the saved scan
           // Films are resolved by a rolling pool of workers: when one film finishes, that worker
@@ -7520,7 +7544,7 @@
           let nextFilmIndex = 0; let filmsDone = 0;
           const showScanProgress = () => {
             const pct = 15 + ((filmsDone / totalFilms) * 85);
-            if (el.progressLabel) el.progressLabel.textContent = `Cross-referencing global database (${Math.min(filmsDone + 1, totalFilms)} of ${totalFilms})...`; if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%';
+            if (el.progressLabel) el.progressLabel.textContent = `Finding where your films stream (${Math.min(filmsDone + 1, totalFilms)} of ${totalFilms})…`; if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%';
           };
           showScanProgress();
           const processFilm = async (qObj) => {
@@ -7604,7 +7628,7 @@
           };
           await Promise.all(Array.from({ length: Math.min(SCAN_CONCURRENCY, totalFilms) }, scanWorker));
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
-          if (el.progressLabel) el.progressLabel.textContent = 'Rendering Visual Matrix...'; if (el.progressBar) el.progressBar.style.width = '100%'; if (el.progressPercent) el.progressPercent.textContent = '100%';
+          if (el.progressLabel) el.progressLabel.textContent = 'Almost done…'; if (el.progressBar) el.progressBar.style.width = '100%'; if (el.progressPercent) el.progressPercent.textContent = '100%';
           isFriendMatchActive = friendName !== ''; localStorage.setItem('ps_is_friend_match_active', isFriendMatchActive);
 
           // Deduplicate scannedMovies before sorting and storing
@@ -7640,7 +7664,7 @@
           let msg = err.message || '';
           if (msg.startsWith('USER_NOT_FOUND:')) {
             const u = msg.split(':')[1];
-            msg = `Profile not found: ${u}. Make sure the username is spelled correctly and is public.`;
+            msg = `Couldn't find a Letterboxd profile called ${u}. Check the spelling.`;
           } else if (msg.startsWith('PROXY_FAILURE:')) {
             msg = `Couldn't reach Letterboxd right now. That's a problem on our side, not your privacy settings. Please try again in a moment.`;
           } else if (msg.startsWith('WATCHLIST_EMPTY:')) {
@@ -7997,7 +8021,7 @@
       let filmographyHtml = '';
       if (moviesToShow.length === 0) {
         const isFiltered = actorFilterQuery || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (actorFilterRating && actorFilterRating !== 'all') || (actorFilterRuntime && actorFilterRuntime !== 'all');
-        let emptyIcon = isFiltered ? '🔍' : (actorMediaTypeFilter === 'watchlist' ? '📋' : (actorMediaTypeFilter === 'tv' ? '📺' : '🎬'));
+        let emptyIcon = isFiltered ? '' : (actorMediaTypeFilter === 'watchlist' ? '' : (actorMediaTypeFilter === 'tv' ? '' : ''));
         let emptyMsg = 'No credits found';
         let emptySub = 'Nothing landed here for your current selection.';
         if (isFiltered) {
@@ -8113,13 +8137,13 @@
         </div>`;
 
       const roleIcons = {
-        'Actor': '🎭',
-        'Director': '🎬',
-        'Writer': '✍️',
-        'Producer': '💼',
-        'Composer': '🎵'
+        'Actor': '',
+        'Director': '',
+        'Writer': '',
+        'Producer': '',
+        'Composer': ''
       };
-      const activeRoleIcon = roleIcons[activeRole] || '🎭';
+      const activeRoleIcon = roleIcons[activeRole] || '';
 
       const roleSelectWrapper = availableRoles.length > 1 ? `
         <div class="custom-filter-dropdown-container shrink-0 min-w-[130px] sm:min-w-[145px] max-w-[185px]">
@@ -8134,7 +8158,7 @@
             ${availableRoles.map(r => `
               <button type="button" onclick="selectActorRole('${r}', event)" class="custom-filter-item ${r === activeRole ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">${roleIcons[r] || '🎬'}</span>
+                  <span class="text-sm shrink-0">${roleIcons[r] || ''}</span>
                   <span class="truncate font-bold text-xs uppercase tracking-wider">${r}</span>
                 </div>
                 <div class="custom-filter-radio">
@@ -9167,14 +9191,14 @@
           // Update Role dropdown button label, icon, and popover state
           const roleLabelEl = document.getElementById('actorRoleLabel');
           const roleIcons = {
-            'Actor': '🎭',
-            'Director': '🎬',
-            'Writer': '✍️',
-            'Producer': '💼',
-            'Composer': '🎵'
+            'Actor': '',
+            'Director': '',
+            'Writer': '',
+            'Producer': '',
+            'Composer': ''
           };
           const activeRole = activeRoleHint || 'Actor';
-          const activeIcon = roleIcons[activeRole] || '🎬';
+          const activeIcon = roleIcons[activeRole] || '';
           if (roleLabelEl) {
             roleLabelEl.textContent = activeRole;
             const trigger = roleLabelEl.closest('.custom-filter-trigger');
@@ -9386,3 +9410,285 @@
       }).observe(document.body, { childList: true, subtree: true });
     })();
 
+    // =========================================================================
+    // RESULTS HEADLINE, TONIGHT'S PICK AND THE SLIM SCAN BAR
+    // renderResultsHero() runs at the end of every applyFiltersAndRender().
+    // =========================================================================
+    // `var` and function declarations (not let/const) on purpose: applyFiltersAndRender() in
+    // 10-home-results.js can run before this file's lines have executed during page load.
+    var tonightPickKey = null;        // `${mediaType}_${id}` of the film the pick card shows
+    var currentTonightPick = null;
+    var scanPanelExpanded = false;    // true after "Change" is pressed, until the next scan starts
+
+    function movieKeyOf(m) { return `${m.mediaType || 'movie'}_${m.id}`; }
+    function filmsCount(n) { return n === 1 ? '1 film' : `${n.toLocaleString()} films`; }
+    function cleanProviderName(p) { return (p.provider_name || p.name || '').replace('with Ads', '').trim(); }
+
+    function renderResultsHero() {
+      const headline = document.getElementById('resultsHeadline');
+      const subline = document.getElementById('resultsSubline');
+      if (!headline || !subline) return;
+      if (!scannedMovies.length) {
+        headline.textContent = '';
+        subline.textContent = '';
+        renderTonightPick();
+        updateScanPanelMode();
+        return;
+      }
+
+      // Counts come from the whole watchlist, not the filtered grid, so typing in the
+      // title search doesn't turn the headline into "1 of your 617 films".
+      const isSubscribed = buildSubscribedMatcher();
+      const all = groupMoviesByAvailability(scannedMovies, isSubscribed);
+      const total = scannedMovies.length;
+      const streaming = all.stream.length;
+
+      const perService = {};
+      all.stream.forEach(m => {
+        const names = (m.regionData?.flatrate || []).filter(isSubscribed).map(cleanProviderName);
+        if (names.length === 0 && m.vpnInfo) names.push(`${m.vpnInfo.services[0]?.label || 'Other region'} via VPN`);
+        new Set(names).forEach(n => { perService[n] = (perService[n] || 0) + 1; });
+      });
+      const breakdown = Object.keys(perService)
+        .sort((a, b) => perService[b] - perService[a])
+        .slice(0, 4)
+        .map(n => `${n} ${perService[n]}`)
+        .join(' · ');
+
+      const whose = isFriendMatchActive ? `the ${filmsCount(total)} you both want to see` : `your ${filmsCount(total)}`;
+      if (streaming > 0) {
+        headline.innerHTML = `<span class="text-blue-400">${streaming.toLocaleString()}</span> of ${whose} ${streaming === 1 ? 'is' : 'are'} streaming on your services right now.`;
+      } else {
+        headline.textContent = `None of ${whose} are streaming on your services right now.`;
+      }
+
+      const rentbuy = all.rentbuy.length;
+      const other = all.other.length;
+      const parts = [];
+      if (streaming > 0) {
+        // With one service the breakdown just repeats the headline ("Disney+ 24"), so skip it.
+        if (Object.keys(perService).length > 1) parts.push(`${breakdown}.`);
+        if (rentbuy > 0) parts.push(`${rentbuy.toLocaleString()} more can be rented or bought.`);
+      } else {
+        if (rentbuy > 0) parts.push(`${filmsCount(rentbuy)} can be rented or bought.`);
+        if (other > 0) parts.push(`${filmsCount(other)} ${other === 1 ? 'is' : 'are'} on services you don't have.`);
+      }
+      subline.textContent = parts.join(' ');
+
+      renderTonightPick();
+      updateScanPanelMode();
+    }
+
+    // The pick comes from the visible "Streaming" tab, so filters (genre, length...) shape it.
+    // It stays put while it's still in that list, and only changes on "Another pick".
+    function renderTonightPick() {
+      const card = document.getElementById('tonightPick');
+      if (!card) return;
+      const pool = (currentGroupedResults && currentGroupedResults.stream) || [];
+      if (!scannedMovies.length || pool.length === 0) {
+        card.classList.add('hidden');
+        currentTonightPick = null;
+        setAmbientBackdrop(null);
+        return;
+      }
+      let pick = pool.find(m => movieKeyOf(m) === tonightPickKey);
+      if (!pick) {
+        pick = pool[Math.floor(Math.random() * pool.length)];
+        tonightPickKey = movieKeyOf(pick);
+      }
+      fillTonightPick(pick, pool.length);
+      card.classList.remove('hidden');
+    }
+
+    // A soft, blurred wash of the pick's artwork behind the top of the page. Uses the
+    // smallest backdrop size: it is blurred beyond recognition anyway.
+    function setAmbientBackdrop(backdropUrl) {
+      const layer = document.getElementById('ambientBackdrop');
+      if (!layer) return;
+      const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
+      if (!backdropUrl || !resultsVisible) { layer.classList.remove('is-on'); return; }
+      layer.style.backgroundImage = `url("${backdropUrl.replace('/w1280/', '/w300/')}")`;
+      layer.classList.add('is-on');
+    }
+
+    // The film's own title logo (the artwork streaming apps show), when TMDB has one.
+    var tonightPickLogoCache = new Map();
+    async function loadTonightPickLogo(m) {
+      const key = movieKeyOf(m);
+      if (tonightPickLogoCache.has(key)) return tonightPickLogoCache.get(key);
+      let url = null;
+      try {
+        const type = m.mediaType === 'tv' ? 'tv' : 'movie';
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/${type}/${m.id}/images?api_key=${TMDB_API_KEY}&include_image_language=en`);
+        const data = await res.json();
+        const logos = (data.logos || []).filter(l => l.file_path && !l.file_path.endsWith('.svg'));
+        logos.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0) || (b.width || 0) - (a.width || 0));
+        if (logos[0]) url = `https://image.tmdb.org/t/p/w500${logos[0].file_path}`;
+      } catch (e) { logIgnored('loadTonightPickLogo', e); }
+      tonightPickLogoCache.set(key, url);
+      return url;
+    }
+
+    function fillTonightPick(m, poolSize) {
+      currentTonightPick = m;
+      const card = document.getElementById('tonightPick');
+      const img = document.getElementById('tonightPickBackdrop');
+      if (img) {
+        const src = m.backdrop || m.poster || '';
+        if (src) { img.src = src; img.classList.remove('hidden'); } else { img.removeAttribute('src'); img.classList.add('hidden'); }
+      }
+      setAmbientBackdrop(m.backdrop || null);
+
+      const logo = document.getElementById('tonightPickLogo');
+      if (logo && card) {
+        logo.classList.add('hidden'); logo.removeAttribute('src'); card.classList.remove('has-logo');
+        loadTonightPickLogo(m).then((url) => {
+          if (!url || currentTonightPick !== m) return; // a newer pick replaced this one meanwhile
+          logo.onload = () => { if (currentTonightPick === m) { logo.classList.remove('hidden'); card.classList.add('has-logo'); } };
+          logo.alt = m.title || '';
+          logo.src = url;
+        });
+      }
+      const title = document.getElementById('tonightPickTitle');
+      if (title) title.textContent = m.title || '';
+
+      const meta = [];
+      const year = (m.releaseDate || '').slice(0, 4);
+      if (year) meta.push(year);
+      if (m.runtime > 0) meta.push(m.runtime >= 60 ? `${Math.floor(m.runtime / 60)}h ${m.runtime % 60}m` : `${m.runtime}m`);
+      const genres = (m.genreIds || []).map(id => GENRE_MAP[id]).filter(Boolean).slice(0, 2).join(', ');
+      if (genres) meta.push(genres);
+      const rating = getCachedRating(m);
+      if (rating) meta.push(`IMDb ${rating}`);
+      const metaEl = document.getElementById('tonightPickMeta');
+      if (metaEl) metaEl.textContent = meta.join(' · ');
+
+      // Which of the viewer's services has it: a local one first, otherwise the VPN region.
+      const local = (m.regionData?.flatrate || []).filter(buildSubscribedMatcher());
+      let serviceName = local.length ? cleanProviderName(local[0]) : null;
+      let region = currentRegion;
+      let viaVpn = false;
+      if (!serviceName && m.vpnInfo) {
+        serviceName = m.vpnInfo.services[0]?.label || null;
+        region = m.vpnInfo.region;
+        viaVpn = true;
+      }
+      const where = document.getElementById('tonightPickWhere');
+      if (where) {
+        if (!serviceName) where.textContent = '';
+        else if (viaVpn) where.textContent = `Streaming on ${serviceName} in ${REGION_META[region]?.name || region} (needs a VPN).`;
+        else {
+          const names = [...new Set(local.map(cleanProviderName))].slice(0, 2);
+          where.textContent = `Streaming on ${names.join(' and ')}, which you have.`;
+        }
+      }
+
+      const watch = document.getElementById('tonightPickWatch');
+      if (watch) {
+        if (serviceName) {
+          let link = getRegionServiceUrl(serviceName, region, m.title);
+          const deeplink = getDeeplinkFor(serviceName);
+          if (deeplink && deeplink.searchUrl) link = deeplink.searchUrl(m.title);
+          const appLink = deeplink && deeplink.appUrl ? deeplink.appUrl(m.title) : null;
+          watch.href = link;
+          watch.textContent = `Watch on ${serviceName}`;
+          watch.onclick = (e) => { if (appLink) { e.preventDefault(); openStreamingService(link, appLink); } };
+          watch.classList.remove('hidden');
+        } else {
+          watch.classList.add('hidden');
+        }
+      }
+
+      const another = document.getElementById('tonightPickAnother');
+      if (another) another.disabled = poolSize <= 1;
+    }
+
+    function showAnotherTonightPick() {
+      const pool = (currentGroupedResults && currentGroupedResults.stream) || [];
+      const others = pool.filter(m => movieKeyOf(m) !== tonightPickKey);
+      if (others.length === 0) return;
+      const pick = others[Math.floor(Math.random() * others.length)];
+      tonightPickKey = movieKeyOf(pick);
+      // Fade the artwork out, swap, and fade back in once the new image has loaded.
+      const card = document.getElementById('tonightPick');
+      const img = document.getElementById('tonightPickBackdrop');
+      if (!card || !img) { fillTonightPick(pick, pool.length); return; }
+      card.classList.add('is-swapping');
+      setTimeout(() => {
+        const reveal = () => card.classList.remove('is-swapping');
+        img.onload = reveal; img.onerror = reveal;
+        setTimeout(reveal, 1200); // never stay faded if the image is slow
+        fillTonightPick(pick, pool.length);
+      }, 180);
+    }
+
+    async function playTonightPickTrailer() {
+      const m = currentTonightPick;
+      if (!m) return;
+      const btn = document.getElementById('tonightPickTrailer');
+      if (btn) btn.disabled = true;
+      try {
+        const type = m.mediaType === 'tv' ? 'tv' : 'movie';
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/${type}/${m.id}/videos?api_key=${TMDB_API_KEY}`);
+        const data = await res.json();
+        const trailer = getBestTrailer({ videos: data });
+        if (trailer && trailer.key) { openTrailerModal(trailer.key, m.title); return; }
+      } catch (e) {
+        logIgnored('playTonightPickTrailer', e);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+      openMoviePage(m, true); // no trailer found: the film page still has everything else
+    }
+
+    // Once results are showing, the big scan form collapses into a one-line bar.
+    function updateScanPanelMode() {
+      const full = document.getElementById('scanPanel');
+      const bar = document.getElementById('scanCompactBar');
+      if (!full || !bar) return;
+      const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
+      setAmbientBackdrop(resultsVisible && currentTonightPick ? (currentTonightPick.backdrop || null) : null);
+      const compact = resultsVisible && scannedMovies.length > 0 && !scanPanelExpanded && !isScanning;
+      full.classList.toggle('hidden', compact);
+      bar.classList.toggle('hidden', !compact);
+      if (!compact) return;
+
+      const user = ((el.usernameInput && el.usernameInput.value) || localStorage.getItem('ps_username') || '').trim();
+      const friend = isFriendMatchActive ? ((el.friendInput && el.friendInput.value) || '').trim() : '';
+      const userEl = document.getElementById('scanCompactUser');
+      if (userEl) userEl.textContent = friend ? `${user} + ${friend}` : user;
+
+      const names = currentProviders.filter(cp => selectedServiceIds.has(cp.id)).map(cp => cp.name);
+      const servicesEl = document.getElementById('scanCompactServices');
+      if (servicesEl) servicesEl.textContent = names.length > 3 ? `${names.slice(0, 3).join(', ')} +${names.length - 3}` : names.join(', ');
+
+      const friendBtn = document.getElementById('scanCompactFriendBtn');
+      if (friendBtn) friendBtn.classList.toggle('hidden', isFriendMatchActive);
+    }
+
+    function expandScanPanel() {
+      scanPanelExpanded = true;
+      updateScanPanelMode();
+      const full = document.getElementById('scanPanel');
+      if (full) full.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    (() => {
+      const on = (id, fn) => { const node = document.getElementById(id); if (node) node.addEventListener('click', fn); };
+      on('tonightPickAnother', showAnotherTonightPick);
+      on('tonightPickTrailer', playTonightPickTrailer);
+      on('tonightPickArt', () => { if (currentTonightPick) openMoviePage(currentTonightPick, true); });
+      on('scanCompactChangeBtn', () => { expandScanPanel(); if (el.usernameInput) el.usernameInput.focus({ preventScroll: true }); });
+      on('scanCompactFriendBtn', () => {
+        expandScanPanel();
+        const friendHidden = el.friendInputWrapper && el.friendInputWrapper.classList.contains('hidden');
+        if (friendHidden && el.toggleFriendBtn) el.toggleFriendBtn.click();
+        else if (el.friendInput) el.friendInput.focus({ preventScroll: true });
+      });
+      // Results are shown and hidden from many places (scan, restore, clear, friend removal...),
+      // so follow the section itself rather than hooking each of them.
+      if (el.resultsSection) {
+        new MutationObserver(updateScanPanelMode).observe(el.resultsSection, { attributes: true, attributeFilter: ['class'] });
+      }
+      updateScanPanelMode();
+    })();

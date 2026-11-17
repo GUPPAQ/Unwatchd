@@ -2089,6 +2089,395 @@
     @media (pointer: coarse) {
       input, select, textarea { font-size: 16px !important; }
     }
+    /* ── Results hero: ambient backdrop, Tonight's pick, poster service chips ── */
+    #ambientBackdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 78vh;
+      z-index: -1;
+      pointer-events: none;
+      background-size: cover;
+      background-position: center 25%;
+      filter: blur(70px) saturate(1.5);
+      transform: scale(1.15) translateZ(0);
+      opacity: 0;
+      transition: opacity 0.9s ease;
+      -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.55) 45%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.55) 45%, transparent 100%);
+    }
+
+    #ambientBackdrop.is-on {
+      opacity: 0.42;
+    }
+
+    .landing-title {
+      font-size: clamp(1.9rem, 5.2vw, 3.5rem);
+      line-height: 1.04;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #fff;
+      text-wrap: balance;
+    }
+
+    .landing-title em {
+      font-style: normal;
+      color: #60a5fa;
+    }
+
+    #resultsHeadline {
+      text-wrap: balance;
+      letter-spacing: -0.03em;
+    }
+
+    .pick-hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      background: #0b1120;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.4);
+      isolation: isolate;
+    }
+
+    .pick-hero-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .pick-hero-art img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 22%;
+      transform: scale(1.02);
+      transition: transform 1.4s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.5s ease;
+    }
+
+    .pick-hero.is-swapping .pick-hero-art img {
+      opacity: 0;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .pick-hero:hover .pick-hero-art img {
+        transform: scale(1.06);
+      }
+    }
+
+    .pick-hero-shade {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to top, rgba(2, 6, 23, 0.97) 0%, rgba(2, 6, 23, 0.82) 26%, rgba(2, 6, 23, 0.28) 58%, rgba(2, 6, 23, 0) 82%),
+        linear-gradient(to right, rgba(2, 6, 23, 0.7) 0%, rgba(2, 6, 23, 0.2) 45%, rgba(2, 6, 23, 0) 70%);
+    }
+
+    .pick-hero-body {
+      position: relative;
+      z-index: 1;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 0.7rem;
+      min-height: clamp(430px, 62vw, 600px);
+      padding: 1.25rem;
+      max-width: 46rem;
+    }
+
+    @media (min-width: 640px) {
+      .pick-hero-body {
+        min-height: clamp(440px, 44vw, 600px);
+        padding: 2.25rem;
+        gap: 0.85rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .pick-hero-body {
+        padding: 3rem;
+      }
+    }
+
+    /* Phones: the artwork fills the top two thirds and melts into a solid base, so the
+       title and buttons sit on a dark area instead of on top of faces. */
+    @media (max-width: 639px) {
+      .pick-hero-body {
+        min-height: 540px;
+      }
+
+      .pick-hero-art img {
+        height: 66%;
+        object-position: center 18%;
+      }
+
+      .pick-hero-shade {
+        background: linear-gradient(to top, rgba(11, 17, 32, 1) 0%, rgba(11, 17, 32, 1) 34%, rgba(11, 17, 32, 0.86) 46%, rgba(11, 17, 32, 0.25) 62%, rgba(11, 17, 32, 0) 78%);
+      }
+
+      .pick-hero-logo {
+        max-width: 86%;
+        max-height: 104px;
+      }
+    }
+
+    .pick-hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #bfdbfe;
+    }
+
+    .pick-hero-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 9999px;
+      background: #60a5fa;
+      box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.22), 0 0 14px rgba(96, 165, 250, 0.9);
+    }
+
+    .pick-hero-logo {
+      max-width: min(78%, 26rem);
+      max-height: clamp(84px, 15vw, 150px);
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      object-position: left bottom;
+      align-self: flex-start;
+      filter: drop-shadow(0 6px 22px rgba(0, 0, 0, 0.75));
+    }
+
+    .pick-hero-title {
+      font-size: clamp(2.2rem, 7vw, 4.5rem);
+      line-height: 0.96;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      color: #fff;
+      text-wrap: balance;
+      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+      margin: 0;
+    }
+
+    /* When the film's own title logo is showing, the text title stays for screen readers only. */
+    .pick-hero.has-logo .pick-hero-title {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .pick-hero-meta {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #cbd5e1;
+      margin: 0;
+    }
+
+    .pick-hero-where {
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      margin: 0;
+    }
+
+    .pick-hero-where:empty,
+    .pick-hero-meta:empty {
+      display: none;
+    }
+
+    .pick-hero-actions {
+      pointer-events: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+    }
+
+    .pick-hero-watch {
+      flex: 1 1 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 3.25rem;
+      padding: 0 1.6rem;
+      border-radius: 14px;
+      background: #fff;
+      color: #020617;
+      font-size: 1rem;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .pick-hero-watch.hidden {
+      display: none;
+    }
+
+    .pick-hero-btn {
+      flex: 1 1 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      height: 3.25rem;
+      padding: 0 1.2rem;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background-color 0.18s ease, transform 0.1s ease;
+    }
+
+    .pick-hero-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .pick-hero-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    .pick-hero-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    @media (min-width: 640px) {
+      .pick-hero-watch,
+      .pick-hero-btn {
+        flex: 0 0 auto;
+      }
+    }
+
+    /* Which service a poster is on: small logos along the bottom edge of the card. */
+    .poster-services {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      padding: 28px 9px 9px;
+      border-radius: 0 0 1rem 1rem;
+      background: linear-gradient(to top, rgba(2, 6, 23, 0.88) 0%, rgba(2, 6, 23, 0.5) 45%, rgba(2, 6, 23, 0) 100%);
+      pointer-events: none;
+    }
+
+    .poster-services img {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      object-fit: cover;
+      background: #111827;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.16);
+    }
+
+    .poster-services-more {
+      height: 26px;
+      min-width: 26px;
+      padding: 0 6px;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #e2e8f0;
+      background: rgba(15, 23, 42, 0.9);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16);
+    }
+
+    @media (min-width: 640px) {
+      .poster-services img,
+      .poster-services-more {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        border-radius: 8px;
+      }
+
+      .poster-services-more {
+        width: auto;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #ambientBackdrop,
+      .pick-hero-art img {
+        transition: none;
+      }
+    }
+
+    /* ── Shared style layer ─────────────────────────────────────────────────────
+       The app's markup grew piece by piece, each with its own sizes and casing. These
+       rules sit on top and make every screen follow the same few decisions.
+       (styles.css loads after this block, so selectors here are deliberately a notch
+       more specific than a single Tailwind utility class.) */
+
+    /* Type: nothing smaller than 12px. */
+    [class*="text-[9px]"][class]:not(.poster-rating-tag),
+    [class*="text-[10px]"][class],
+    [class*="text-[11px]"][class] {
+      font-size: 0.75rem;
+    }
+
+    /* Small all-caps labels all share one letter-spacing. */
+    .tracking-widest[class],
+    .tracking-wider[class] {
+      letter-spacing: 0.08em;
+    }
+
+    /* Anything you can press reads as a normal phrase, not SHOUTED COMMANDS. */
+    button.uppercase,
+    a.uppercase,
+    button .uppercase,
+    a .uppercase {
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    button.uppercase,
+    a.uppercase {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    /* Three corner radii: panels 24px, cards 16px (rounded-2xl), controls 12px (rounded-xl). */
+    .glass-panel[class],
+    .pick-hero {
+      border-radius: 24px;
+    }
+
+    /* Filter options used to lead with an emoji; the slot is hidden when empty. */
+    .custom-filter-item span.text-sm:empty,
+    .custom-filter-trigger span.text-sm:empty {
+      display: none;
+    }
   </style>
   <link rel="stylesheet" href="./styles.css">
   <!-- Vercel Web Analytics (page views & visitors, no cookies). Enable it under the project's Analytics tab on vercel.com. -->
@@ -2098,6 +2487,7 @@
 
 <body>
   <div class="bg-fixed-gradient"></div>
+  <div id="ambientBackdrop" aria-hidden="true"></div>
   <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 safe-area-wrapper relative z-10 flex flex-col min-h-screen">
     <header class="flex flex-col md:flex-row justify-between items-center gap-6 mb-4 animate-fade relative z-[100]"
       style="animation-delay: 0s;">
@@ -2105,7 +2495,7 @@
         <img src="./icons/icon-1024-transparent.png" alt="Unwatchd logo" class="w-20 h-20 2xl:w-24 2xl:h-24 shrink-0">
         <div>
           <h1 class="text-4xl 2xl:text-5xl font-extrabold tracking-tight text-white mb-1">Unwatchd</h1>
-          <p class="text-sm 2xl:text-base text-gray-500 font-medium tracking-wide">Global Streaming Directory</p>
+          <p class="text-sm 2xl:text-base text-gray-400 font-medium tracking-wide">Your watchlist, where it streams</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -2134,9 +2524,9 @@
     </header>
 
     <section
-      class="glass-panel rounded-2xl p-4 sm:p-5 mb-4 animate-fade flex flex-col md:flex-row gap-4 items-center relative z-50"
+      class="mb-5 animate-fade flex flex-col md:flex-row gap-4 items-center relative z-50"
       style="animation-delay: 0.1s;">
-      <div class="flex items-center gap-3 w-full md:w-auto shrink-0 md:pr-5 md:border-r border-white/10">
+      <div class="hidden">
         <div class="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-400">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -2150,7 +2540,7 @@
           class="flex w-full bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all">
           <div class="flex-1 relative flex items-center">
             <input id="quickSearchInput" aria-label="Search films, TV shows and people" type="text" autocomplete="off" spellcheck="false"
-              placeholder="Search films, TV shows, actors, directors..."
+              placeholder="Look up any film, show or person..."
               class="w-full h-full bg-transparent pl-4 sm:pl-5 pr-10 py-4 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 truncate" />
             <div class="absolute right-3 flex items-center">
               <span class="kbd-hint pointer-events-none">⌘K</span>
@@ -2171,10 +2561,26 @@
     </section>
     <div id="quickSearchResult" class="mb-8 hidden relative z-10"></div>
 
-    <section class="glass-panel rounded-3xl p-5 sm:p-7 mb-6 animate-fade relative z-10" style="animation-delay: 0.2s;">
-      <div class="mb-8 border-b border-white/10 pb-6">
-        <h2 class="text-2xl font-bold text-white mb-1">Letterboxd Sync</h2>
-        <p class="text-sm text-gray-500">Select your active subscriptions and fetch your watchlist matrix.</p>
+    <!-- Slim scan bar: replaces the scan form while results are showing (see 15-results-hero.js) -->
+    <section id="scanCompactBar" aria-label="Current scan"
+      class="hidden glass-panel rounded-2xl mb-6 relative z-10 px-4 py-3 sm:px-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div class="basis-full sm:basis-auto sm:flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4">
+        <span class="text-white font-bold text-base truncate"><span class="text-gray-400 font-medium">Watchlist</span> <span id="scanCompactUser"></span></span>
+        <span class="hidden sm:block w-px h-5 bg-white/15"></span>
+        <span class="text-gray-300 text-sm sm:text-base truncate"><span class="text-gray-400">Services</span> <span id="scanCompactServices"></span></span>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto sm:shrink-0">
+        <button id="scanCompactFriendBtn" type="button"
+          class="flex-1 sm:flex-none h-11 px-4 rounded-xl text-sm font-semibold text-indigo-200 bg-indigo-500/10 border border-indigo-500/30 hover:bg-indigo-500/20 transition-all active:scale-95 cursor-pointer">+ Friend</button>
+        <button id="scanCompactChangeBtn" type="button"
+          class="flex-1 sm:flex-none h-11 px-5 rounded-xl text-sm font-semibold text-white bg-white/10 border border-white/15 hover:bg-white/15 transition-all active:scale-95 cursor-pointer">Change</button>
+      </div>
+    </section>
+
+    <section id="scanPanel" class="glass-panel rounded-3xl p-5 sm:p-7 mb-6 animate-fade relative z-10" style="animation-delay: 0.2s;">
+      <div class="mb-7 sm:mb-9">
+        <h2 class="landing-title">What can you watch <em>tonight?</em></h2>
+        <p class="mt-3 text-base sm:text-lg text-gray-400 max-w-2xl">Pick the streaming services you pay for and enter your Letterboxd username. We'll show which films on your watchlist you can stream right now.</p>
       </div>
 
       <!-- INLINE SERVICE FINDER MENU -->
@@ -2260,17 +2666,13 @@
               </svg>
               Match with a friend
             </button>
-            <p id="formError"
-              class="text-red-400 text-[10px] font-bold uppercase tracking-widest hidden bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-1.5 flex items-center justify-center sm:justify-start gap-1.5 w-fit shrink-0">
-            </p>
-            <!-- Shown after a scan that finished but couldn't load every watchlist page -->
-            <p id="scanNotice" role="status"
-              class="text-amber-300 text-[10px] font-bold uppercase tracking-widest hidden bg-amber-950/30 border border-amber-900/50 rounded-lg px-3 py-1.5 w-fit">
+            <p id="formError" role="alert"
+              class="text-red-300 text-sm font-medium leading-snug hidden bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-2 w-fit max-w-full">
             </p>
           </div>
         </div>
         <button id="startButton"
-          class="execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-sm rounded-xl px-12 py-4 shadow-[0_0_20px_rgba(255,255,255,0.1)] shrink-0 disabled:opacity-50 disabled:cursor-not-allowed h-[58px] flex items-center justify-center active:scale-[0.98] transition-all cursor-pointer">Execute</button>
+          class="execute-btn bg-white text-black font-extrabold text-base rounded-xl px-8 py-4 shadow-[0_0_20px_rgba(255,255,255,0.1)] shrink-0 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed h-[58px] flex items-center justify-center active:scale-[0.98] transition-all cursor-pointer">Find what I can stream</button>
       </div>
     </section>
     <section id="progressSection"
@@ -2278,12 +2680,11 @@
       <div class="flex justify-between items-end mb-4">
         <div>
           <div class="flex items-center gap-3 mb-1">
-            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest animate-pulse">Processing Data</p>
+            <p class="text-xs text-blue-300 font-bold uppercase tracking-widest animate-pulse">Scanning</p>
             <button id="stopButton"
-              class="text-[9px] text-red-400 hover:bg-red-500/20 font-bold uppercase tracking-widest transition-colors flex items-center gap-1 border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded cursor-pointer">Abort
-              ✕</button>
+              class="text-xs text-red-300 hover:bg-red-500/20 font-semibold transition-colors flex items-center gap-1 border border-red-500/30 bg-red-500/10 px-2.5 py-1 rounded-md cursor-pointer">Stop</button>
           </div>
-          <p id="progressLabel" class="text-base text-white font-bold">Connecting to global servers...</p>
+          <p id="progressLabel" class="text-base text-white font-bold">Starting…</p>
         </div>
         <p id="progressPercent" class="text-2xl font-black text-white leading-none">0%</p>
       </div>
@@ -2292,6 +2693,41 @@
       </div>
     </section>
     <section id="resultsSection" class="hidden pb-0 relative z-10 flex-1">
+      <!-- Results headline + Tonight's pick (filled by 15-results-hero.js) -->
+      <div id="resultsHero" class="mb-6 flex flex-col gap-5">
+        <div>
+          <h2 id="resultsHeadline" class="text-[26px] leading-[1.15] sm:text-4xl lg:text-[44px] sm:leading-[1.1] font-extrabold text-white tracking-tight"></h2>
+          <p id="resultsSubline" class="mt-2 text-base sm:text-lg text-gray-400"></p>
+        </div>
+        <!-- Shown after a scan that finished but couldn't load every watchlist page -->
+        <p id="scanNotice" role="status"
+          class="text-amber-200 text-sm leading-snug hidden bg-amber-950/30 border border-amber-900/50 rounded-xl px-3.5 py-2.5 w-fit max-w-full">
+        </p>
+        <section id="tonightPick" aria-label="Tonight's pick" class="hidden pick-hero">
+          <button id="tonightPickArt" type="button" aria-label="Open film details" class="pick-hero-art">
+            <img id="tonightPickBackdrop" alt="" decoding="async">
+          </button>
+          <div class="pick-hero-shade"></div>
+          <div class="pick-hero-body">
+            <span class="pick-hero-label"><span class="pick-hero-dot"></span>Tonight's pick</span>
+            <img id="tonightPickLogo" alt="" class="pick-hero-logo hidden">
+            <h3 id="tonightPickTitle" class="pick-hero-title"></h3>
+            <p id="tonightPickMeta" class="pick-hero-meta"></p>
+            <p id="tonightPickWhere" class="pick-hero-where"></p>
+            <div class="pick-hero-actions">
+              <a id="tonightPickWatch" href="#" target="_blank" rel="noopener noreferrer" class="pick-hero-watch execute-btn"></a>
+              <button id="tonightPickAnother" type="button" class="pick-hero-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M5.6 15a7 7 0 0011.9 2.5L20 15M4 9l2.5-2.5A7 7 0 0118.4 9"></path></svg>
+                <span>Another pick</span>
+              </button>
+              <button id="tonightPickTrailer" type="button" class="pick-hero-btn">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+                <span>Trailer</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
       <!-- MAIN RESULTS CONTROLS -->
       <div id="resultsControlsCard" class="results-controls-card relative z-50 animate-fade">
         <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
@@ -2300,13 +2736,13 @@
           <div id="categoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
             <div
               class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full items-center">
-              <button type="button" class="tab-btn tab-btn-flexrow active" data-tab="stream" onclick="setHomeTab('stream')">Available <span id="tabCount-stream"
+              <button type="button" class="tab-btn tab-btn-flexrow active" data-tab="stream" onclick="setHomeTab('stream')">Streaming <span id="tabCount-stream"
                   class="tab-badge">0</span></button>
-              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="rentbuy" onclick="setHomeTab('rentbuy')">Rent / Buy <span id="tabCount-rentbuy"
+              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="rentbuy" onclick="setHomeTab('rentbuy')">Rent or buy <span id="tabCount-rentbuy"
                   class="tab-badge">0</span></button>
-              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="other" onclick="setHomeTab('other')">Unsubscribed <span id="tabCount-other"
+              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="other" onclick="setHomeTab('other')">Other services <span id="tabCount-other"
                   class="tab-badge">0</span></button>
-              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="unavailable" onclick="setHomeTab('unavailable')">Unavailable <span id="tabCount-unavailable"
+              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="unavailable" onclick="setHomeTab('unavailable')">Not streaming <span id="tabCount-unavailable"
                   class="tab-badge">0</span></button>
             </div>
           </div>
@@ -2438,25 +2874,25 @@
         class="hidden glass-panel rounded-2xl p-3 sm:p-4 mb-6 animate-fade text-xs font-bold uppercase tracking-widest text-gray-400">
         <div
           class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all">
-          <span class="text-base sm:text-lg">🎬</span>
+          <span class="text-base sm:text-lg"></span>
           <span class="text-gray-400">Total:</span>
           <span id="stat-total" class="text-white font-extrabold">0</span>
         </div>
         <div
           class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all min-w-0">
-          <span class="text-base sm:text-lg shrink-0">🍿</span>
+          <span class="text-base sm:text-lg shrink-0"></span>
           <span class="text-gray-400 shrink-0">Genre:</span>
           <span id="stat-genre" class="text-white font-extrabold truncate">-</span>
         </div>
         <div
           class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all">
-          <span class="text-base sm:text-lg">🕰</span>
+          <span class="text-base sm:text-lg"></span>
           <span class="text-gray-400">Decade:</span>
           <span id="stat-decade" class="text-white font-extrabold">-</span>
         </div>
         <div
           class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all">
-          <span class="text-base sm:text-lg">⭐</span>
+          <span class="text-base sm:text-lg"></span>
           <span class="text-gray-400">Rating:</span>
           <span id="stat-avg" class="text-white font-extrabold">-</span>
         </div>
@@ -2691,7 +3127,7 @@
 
       <!-- Empty State -->
       <div id="rouletteEmptyState" class="hidden flex-col items-center justify-center text-center p-6 gap-2">
-        <span class="text-3xl opacity-60 mb-1">🎲</span>
+        <span class="text-3xl opacity-60 mb-1"></span>
         <span class="font-bold uppercase tracking-widest text-sm text-gray-400">No movies available</span>
         <span class="text-xs text-gray-500 font-medium">Sync your Letterboxd watchlist to use Roulette.</span>
       </div>

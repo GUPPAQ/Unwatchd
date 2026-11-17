@@ -26,7 +26,7 @@
     };
 
     const fetchWatchlist = async (targetUser, labelPrefix) => {
-      if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
+      if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix}…`;
       // No cache-busting query on these URLs: our proxy drops it anyway and caches pages for
       // two minutes, so repeat scans don't hit Letterboxd again.
 
@@ -287,7 +287,7 @@
     function resetUI() {
       isScanning = false; cancelRequested = false;
       const startBtn = document.getElementById('startButton');
-      if (startBtn) { startBtn.disabled = false; startBtn.innerHTML = 'Execute'; }
+      if (startBtn) { startBtn.disabled = false; startBtn.innerHTML = 'Find what I can stream'; }
       if (el.usernameInput) el.usernameInput.disabled = false; if (el.friendInput) el.friendInput.disabled = false; if (el.regionSelect) el.regionSelect.disabled = false; if (el.regionContainer) el.regionContainer.classList.remove('opacity-50', 'pointer-events-none');
       if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('pointer-events-none', 'opacity-50'); document.querySelectorAll('.service-btn').forEach(b => b.classList.remove('locked'));
       const friendWrapperVisible = el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden'); if (friendWrapperVisible) { if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); } else { if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); } toggleClearSyncBtn();
@@ -308,20 +308,20 @@
         };
         const isValidLetterboxdUser = (u) => /^[a-z0-9_]{1,40}$/.test(u);
         const username = normalizeLetterboxdUser(el.usernameInput ? el.usernameInput.value : ''); let friendName = normalizeLetterboxdUser(el.friendInput ? el.friendInput.value : '');
-        if ((username && !isValidLetterboxdUser(username)) || (friendName && !isValidLetterboxdUser(friendName))) { if (el.formError) { el.formError.textContent = 'ERROR: Letterboxd usernames can only contain letters, numbers and underscores.'; el.formError.classList.remove('hidden'); } return; }
+        if ((username && !isValidLetterboxdUser(username)) || (friendName && !isValidLetterboxdUser(friendName))) { if (el.formError) { el.formError.textContent = 'Letterboxd usernames only use letters, numbers and underscores.'; el.formError.classList.remove('hidden'); } return; }
         if (el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden') && friendName === '') { if (el.removeFriendBtn) el.removeFriendBtn.click(); friendName = ''; }
-        if (selectedServiceIds.size === 0) { if (el.formError) { el.formError.textContent = 'ERROR: Minimum one network subscription required.'; el.formError.classList.remove('hidden'); } return; }
-        if (!username && friendName) { if (el.formError) { el.formError.textContent = 'ERROR: Enter your own username to match with a friend.'; el.formError.classList.remove('hidden'); } return; }
-        if (!username) { if (el.formError) { el.formError.textContent = 'ERROR: Letterboxd username required.'; el.formError.classList.remove('hidden'); } return; }
-        if (username === friendName) { if (el.formError) { el.formError.textContent = 'ERROR: You cannot match with yourself.'; el.formError.classList.remove('hidden'); } return; }
-        const myScanSessionId = ++activeScanSessionId;
+        if (selectedServiceIds.size === 0) { if (el.formError) { el.formError.textContent = 'Pick at least one streaming service first.'; el.formError.classList.remove('hidden'); } return; }
+        if (!username && friendName) { if (el.formError) { el.formError.textContent = 'Enter your own username too, to compare with a friend.'; el.formError.classList.remove('hidden'); } return; }
+        if (!username) { if (el.formError) { el.formError.textContent = 'Enter your Letterboxd username.'; el.formError.classList.remove('hidden'); } return; }
+        if (username === friendName) { if (el.formError) { el.formError.textContent = 'That\'s your own username. Enter a friend\'s to compare.'; el.formError.classList.remove('hidden'); } return; }
+        const myScanSessionId = ++activeScanSessionId; scanPanelExpanded = false; tonightPickKey = null;
         isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('pointer-events-none', 'opacity-50'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); document.querySelectorAll('.service-btn').forEach(b => b.classList.add('locked')); if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
         scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.statsBar) el.statsBar.classList.add('hidden');
         if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden');
         if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';
         try {
           if (el.progressSection) el.progressSection.classList.remove('hidden'); if (el.progressBar) el.progressBar.style.width = `0%`; if (el.progressPercent) el.progressPercent.textContent = '0%';
-          const myScan = await fetchWatchlist(username, 'Pinging your servers');
+          const myScan = await fetchWatchlist(username, 'Reading your watchlist');
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
           const myTitles = myScan.films;
           if (myTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${username}`);
@@ -329,12 +329,12 @@
           let titlesToProcess = myTitles;
           if (friendName) {
             if (el.progressBar) el.progressBar.style.width = `10%`; if (el.progressPercent) el.progressPercent.textContent = '10%';
-            const friendScan = await fetchWatchlist(friendName, 'Pinging friend servers');
+            const friendScan = await fetchWatchlist(friendName, 'Reading your friend\'s watchlist');
             if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
             const friendTitles = friendScan.films;
             if (friendTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${friendName}`);
             incompleteNotes.push(...describeIncompleteScan(`${friendName}'s`, friendScan));
-            const friendKeys = new Set(friendTitles.map(getFilmKey)); titlesToProcess = myTitles.filter(t => friendKeys.has(getFilmKey(t))); if (titlesToProcess.length === 0) { throw new Error('NO MATCHES: You and your friend have no movies in common!'); }
+            const friendKeys = new Set(friendTitles.map(getFilmKey)); titlesToProcess = myTitles.filter(t => friendKeys.has(getFilmKey(t))); if (titlesToProcess.length === 0) { throw new Error('You and your friend don\'t have any films in common on your watchlists.'); }
           }
           titlesToProcess.forEach((t, idx) => { t.extractedIndex = idx; }); // watchlist order, used to order the saved scan
           // Films are resolved by a rolling pool of workers: when one film finishes, that worker
@@ -344,7 +344,7 @@
           let nextFilmIndex = 0; let filmsDone = 0;
           const showScanProgress = () => {
             const pct = 15 + ((filmsDone / totalFilms) * 85);
-            if (el.progressLabel) el.progressLabel.textContent = `Cross-referencing global database (${Math.min(filmsDone + 1, totalFilms)} of ${totalFilms})...`; if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%';
+            if (el.progressLabel) el.progressLabel.textContent = `Finding where your films stream (${Math.min(filmsDone + 1, totalFilms)} of ${totalFilms})…`; if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%';
           };
           showScanProgress();
           const processFilm = async (qObj) => {
@@ -428,7 +428,7 @@
           };
           await Promise.all(Array.from({ length: Math.min(SCAN_CONCURRENCY, totalFilms) }, scanWorker));
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
-          if (el.progressLabel) el.progressLabel.textContent = 'Rendering Visual Matrix...'; if (el.progressBar) el.progressBar.style.width = '100%'; if (el.progressPercent) el.progressPercent.textContent = '100%';
+          if (el.progressLabel) el.progressLabel.textContent = 'Almost done…'; if (el.progressBar) el.progressBar.style.width = '100%'; if (el.progressPercent) el.progressPercent.textContent = '100%';
           isFriendMatchActive = friendName !== ''; localStorage.setItem('ps_is_friend_match_active', isFriendMatchActive);
 
           // Deduplicate scannedMovies before sorting and storing
@@ -464,7 +464,7 @@
           let msg = err.message || '';
           if (msg.startsWith('USER_NOT_FOUND:')) {
             const u = msg.split(':')[1];
-            msg = `Profile not found: ${u}. Make sure the username is spelled correctly and is public.`;
+            msg = `Couldn't find a Letterboxd profile called ${u}. Check the spelling.`;
           } else if (msg.startsWith('PROXY_FAILURE:')) {
             msg = `Couldn't reach Letterboxd right now. That's a problem on our side, not your privacy settings. Please try again in a moment.`;
           } else if (msg.startsWith('WATCHLIST_EMPTY:')) {

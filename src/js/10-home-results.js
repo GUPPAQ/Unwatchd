@@ -95,6 +95,22 @@
         }
       }
 
+      // Where it's available, as small service logos along the bottom of the poster.
+      // `subtext` is "Netflix, Max" (or "Netflix · 🇺🇸 VPN" for a VPN unlock).
+      const serviceNames = (movieObj.subtext || '').split(' · ')[0].split(', ').map(s => s.trim()).filter(s => s && s !== 'Not streaming in region');
+      if (serviceNames.length > 0) {
+        const logos = serviceNames.slice(0, 3).map(name => {
+          const src = getProviderLogoUrl(name);
+          return src ? `<img src="${escapeHTML(src)}" alt="${escapeHTML(name)}" loading="lazy" onerror="this.remove()">` : '';
+        }).join('');
+        if (logos) {
+          const row = document.createElement('div');
+          row.className = 'poster-services';
+          row.innerHTML = logos + (serviceNames.length > 3 ? `<span class="poster-services-more">+${serviceNames.length - 3}</span>` : '');
+          a.appendChild(row);
+        }
+      }
+
       if (movieObj.vpnInfo) {
         const vpnBadge = document.createElement('div');
         vpnBadge.className = 'poster-corner-badge poster-vpn-badge';
@@ -265,13 +281,24 @@
         if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999');
         return 0;
       });
-      currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
+      currentGroupedResults = groupMoviesByAvailability(filtered, isSubscribedScan);
+      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
+      renderActiveGrid();
+      renderResultsHero();
+    }
 
-      filtered.forEach(movie => {
+    // Sorts movies into the four home tabs (stream / rentbuy / other / unavailable) for the
+    // current region, selected services and VPN mode. Used for the visible (filtered) grid and,
+    // unfiltered, for the results headline.
+    function groupMoviesByAvailability(movies, isSubscribedScan = buildSubscribedMatcher()) {
+      const getMovieVpnMatch = (m) => findVpnMatch(m, isSubscribedScan);
+      const groups = { stream: [], rentbuy: [], other: [], unavailable: [] };
+
+      movies.forEach(movie => {
         const localData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData;
         const vpnInfo = getMovieVpnMatch(movie);
         const baseObj = { ...movie, regionData: localData, vpnInfo };
-        if (!localData && !vpnInfo) { baseObj.subtext = 'Not streaming in region'; currentGroupedResults.unavailable.push(baseObj); return; }
+        if (!localData && !vpnInfo) { baseObj.subtext = 'Not streaming in region'; groups.unavailable.push(baseObj); return; }
 
         const localFlatrate = (localData?.flatrate || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
         const localRent = (localData?.rent || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
@@ -282,19 +309,19 @@
 
         if (matchedSubscribed.length > 0) {
           baseObj.subtext = matchedSubscribed.map(s => s.provider_name).join(', ');
-          currentGroupedResults.stream.push(baseObj);
+          groups.stream.push(baseObj);
         } else if (vpnInfo && movie.allProviders && movie.allProviders[vpnInfo.region]) {
           const vpnFlat = (movie.allProviders[vpnInfo.region]?.flatrate || []).filter(isSubscribedScan);
           baseObj.subtext = `${vpnInfo.services[0]?.label || vpnFlat[0]?.provider_name || 'VPN'} · ${REGION_META[vpnInfo.region]?.flag || ''} VPN`;
-          currentGroupedResults.stream.push(baseObj);
+          groups.stream.push(baseObj);
         } else if (matchedUnsubscribed.length > 0) {
           baseObj.subtext = matchedUnsubscribed.map(s => s.provider_name).join(', ');
-          currentGroupedResults.other.push(baseObj);
+          groups.other.push(baseObj);
         } else if (localRent.length > 0 || localBuy.length > 0) {
           const p = [...localRent, ...localBuy];
           const rawNames = [...new Set(p.map(x => x.provider_name))];
           baseObj.subtext = rawNames.slice(0, 2).join(', ');
-          currentGroupedResults.rentbuy.push(baseObj);
+          groups.rentbuy.push(baseObj);
         } else if (vpnModeEnabled && movie.allProviders) {
           let vpnRb = null;
           let vpnRbCode = null;
@@ -311,25 +338,24 @@
           if (vpnRb && vpnRbCode) {
             const rawNames = [...new Set(vpnRb.map(x => x.provider_name))];
             baseObj.subtext = `${rawNames.slice(0, 2).join(', ')} · ${REGION_META[vpnRbCode]?.flag || ''} VPN`;
-            currentGroupedResults.rentbuy.push(baseObj);
+            groups.rentbuy.push(baseObj);
           } else {
             baseObj.subtext = 'Not streaming in region';
-            currentGroupedResults.unavailable.push(baseObj);
+            groups.unavailable.push(baseObj);
           }
         } else {
           baseObj.subtext = 'Not streaming in region';
-          currentGroupedResults.unavailable.push(baseObj);
+          groups.unavailable.push(baseObj);
         }
       });
-      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
-      renderActiveGrid();
+      return groups;
     }
     function renderActiveGrid() {
       const container = el.activeGridContainer; if (!container) return; container.innerHTML = ''; const currentData = currentGroupedResults[activeTab] || [];
-      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const count = serviceTally[topService]; const countText = count === 1 ? '1 film' : `${count} films`; const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${countText}</strong> from your watchlist.</p></div><div class="text-3xl opacity-80">💡</div>`; container.appendChild(banner); } }
+      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const count = serviceTally[topService]; const countText = count === 1 ? '1 film' : `${count} films`; const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${countText}</strong> from your watchlist.</p></div><div class="text-3xl opacity-80"></div>`; container.appendChild(banner); } }
       if (currentData.length === 0) {
         const hasActiveFilter = (el.filterSearch && el.filterSearch.value.trim() !== '') || (el.filterGenre && el.filterGenre.value !== 'all') || (el.filterDecade && el.filterDecade.value !== 'all');
-        const emptyIcon = hasActiveFilter ? '🔍' : '🎬';
+        const emptyIcon = hasActiveFilter ? '' : '';
         const emptyMsg = hasActiveFilter ? 'No titles match your filters' : 'No films in this category';
         const emptySub = hasActiveFilter ? 'Try a different search, genre, or decade.' : 'Nothing landed here for your current selection.';
         container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[300px] text-gray-500 gap-2"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
@@ -342,7 +368,7 @@
     if (el.quickSearchInput) {
       el.quickSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => {
-          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60">🔍</span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
+          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60"></span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
             el.searchDropdown.innerHTML = '';
             results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 15).forEach(item => {
               const isPerson = item.__mediaType === 'person';
@@ -435,7 +461,7 @@
           if (el.progressBar) el.progressBar.style.width = '0%';
           if (el.progressPercent) el.progressPercent.textContent = '0%';
           if (el.formError) {
-            el.formError.textContent = 'Scan aborted by user.';
+            el.formError.textContent = 'Scan stopped.';
             el.formError.classList.remove('hidden');
           }
           if (el.resultsSection) el.resultsSection.classList.add('hidden');

@@ -663,9 +663,7 @@
         if (!modalWrapper) return;
         modalWrapper.innerHTML = `
           <div class="w-full h-full flex flex-col items-center justify-center bg-black/90 p-6 text-center rounded-2xl gap-3">
-            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl">
-              🎬
-            </div>
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl"><svg class="w-6 h-6 text-red-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></div>
             <div class="flex flex-col gap-1">
               <span class="text-white font-extrabold text-sm sm:text-base">Trailer can't play here</span>
               <span class="text-gray-400 text-xs sm:text-sm max-w-sm">YouTube didn't load, or the uploader doesn't allow this video to play outside YouTube.</span>
@@ -968,7 +966,7 @@
       }
 
       if (list.length === 0) {
-        const emptyIcon = query ? '🔍' : '👥';
+        const emptyIcon = query ? '' : '';
         const emptyMsg = query ? 'No people match your search' : 'No cast or crew found';
         const emptySub = query ? 'Try searching for a different name or department.' : 'Nothing listed for this selection.';
         grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
