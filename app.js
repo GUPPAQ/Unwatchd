@@ -3726,13 +3726,17 @@
           </a>`;
         }
 
-        // A service you have: a row in the panel with its Watch button.
-        return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wp-row">
-          <span class="wp-logo">${logoHtml}</span>
-          <span class="wp-text"><span class="wp-name">${escapeHTML(safeName)}</span><span class="wp-sub${vpnText ? ' is-vpn' : ''}">${vpnText || 'Included with your subscription'}</span></span>
-          <span class="wp-go">Watch</span>
-        </a>`;
-      };      let streamingHtml = '';
+        // Pieces of the Where to watch card.
+        if (mode === 'feature-top') {
+          return `<span class="wp-logo">${logoHtml}</span><span class="wp-text"><span class="wp-name">${escapeHTML(safeName)}</span><span class="wp-sub${vpnText ? ' is-vpn' : ''}">${extraText || vpnText || 'Included with your subscription'}</span></span>`;
+        }
+        if (mode === 'watch') {
+          return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wp-watch">Watch on ${escapeHTML(safeName)}<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"></path></svg></a>`;
+        }
+        // 'mini': another of your services, as a logo button beside the Watch button.
+        return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wp-mini" title="Watch on ${escapeHTML(safeName)}${vpnText ? ` (${vpnText.toLowerCase()})` : ''}" aria-label="Watch on ${escapeHTML(safeName)}">${logoHtml}</a>`;
+      };
+      let streamingHtml = '';
       const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'Turn off VPN unlocks' : 'Also show where you could watch it by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="wp-vpn watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''}">VPN <span class="watchnow-vpn-dot"></span></button>`;
 
       // Rent / Buy: ALWAYS use local home region if available. Only fallback to VPN if unavailable locally.
@@ -3793,27 +3797,30 @@
       // Subscribed streaming: if unlocked via VPN, show ONLY ONE as main (Netflix or HBO first), rest in More popup
       const userFlatrate = isVpnUnlocked ? vpnMatchedProviders : userHomeFlatrate;
 
-      // Your services: up to three as rows in the panel (the rest go in "Other services").
-      const visibleFlatrate = isVpnUnlocked ? vpnMatchedProviders.slice(0, 1) : userHomeFlatrate.slice(0, 3);
+      // The card: your best service with its Watch button, and any other services you have as
+      // small logo buttons beside it, so the box keeps one shape however many services you have.
+      const best = isVpnUnlocked ? vpnMatchedProviders[0] : userHomeFlatrate[0];
+      const yoursElse = (isVpnUnlocked ? vpnMatchedProviders : userHomeFlatrate).filter(p => p !== best);
       const cleanFlatrate = isVpnUnlocked ? vpnMatchedProviders : homeFlatrate;
       const namesOf = (list) => [...new Set(list.map(p => (p.provider_name || p.name || '').replace('with Ads', '').trim()))];
       const regionName = REGION_META[currentRegion]?.name || currentRegion;
-      const empty = (title, sub) => `<div class="wp-empty"><p class="wp-empty-title">${escapeHTML(title)}</p>${sub ? `<p class="wp-empty-sub">${escapeHTML(sub)}</p>` : ''}</div>`;
+      const listNames = (names) => names.length <= 2 ? names.join(' and ') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+      const emptyCard = (title, sub) => `<div class="wp-feature is-empty"><p class="wp-empty-title">${escapeHTML(title)}</p>${sub ? `<p class="wp-empty-sub">${escapeHTML(sub)}</p>` : ''}</div>`;
 
-      if (visibleFlatrate.length > 0) {
-        streamingHtml = visibleFlatrate.map(p => makeProviderLink(p, '', 'single')).join('');
+      if (best) {
+        const alsoText = yoursElse.length ? `Also on ${escapeHTML(listNames(namesOf(yoursElse)))}` : '';
+        const minis = yoursElse.slice(0, 3).map(p => makeProviderLink(p, '', 'mini')).join('');
+        streamingHtml = `<div class="wp-feature"><div class="wp-feature-top">${makeProviderLink(best, alsoText, 'feature-top')}</div><div class="wp-feature-actions">${makeProviderLink(best, '', 'watch')}${minis}</div></div>`;
       } else if (otherFlatrate.length > 0) {
         const names = namesOf(otherFlatrate);
-        streamingHtml = empty('Not on your services', `In ${regionName} it's on ${names.slice(0, 2).join(' and ')}${names.length > 2 ? ` and ${names.length - 2} more` : ''}.${vpnModeEnabled ? '' : ' Turn on VPN to check other countries.'}`);
+        streamingHtml = emptyCard('Not on your services', `In ${regionName} it's on ${listNames(names.slice(0, 3))}${names.length > 3 ? ' and more' : ''}.${vpnModeEnabled ? '' : ' Turn on VPN to check other countries.'}`);
       } else if (rbMap.size > 0) {
-        streamingHtml = empty('Not streaming', isVpnRentBuy ? `You can rent or buy it in ${REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion} with a VPN.` : `You can rent or buy it in ${regionName}.${vpnModeEnabled ? '' : ' Turn on VPN to check streaming elsewhere.'}`);
+        streamingHtml = emptyCard('Not streaming', isVpnRentBuy ? `You can rent or buy it in ${REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion} with a VPN.` : `You can rent or buy it in ${regionName}.${vpnModeEnabled ? '' : ' Turn on VPN to check streaming elsewhere.'}`);
       } else {
-        streamingHtml = empty(`Not streaming in ${regionName}`, vpnModeEnabled ? 'Not on your services in any country we check either.' : 'Turn on VPN to check other countries.');
+        streamingHtml = emptyCard(`Not streaming in ${regionName}`, vpnModeEnabled ? 'Not on your services in any country we check either.' : 'Turn on VPN to check other countries.');
       }
 
-      const extraYours = userFlatrate.filter(p => !visibleFlatrate.includes(p));
-      let userFlatrateLinksHtml = '';
-      extraYours.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, 'Subscription', 'popup'); });
+      const userFlatrateLinksHtml = '';
       let otherFlatrateLinksHtml = '';
       otherFlatrate.forEach(p => { otherFlatrateLinksHtml += makeProviderLink(p, 'Unsubscribed', 'popup'); });
       let rbLinksHtml = '';
@@ -3827,20 +3834,18 @@
         rbLinksHtml,
         rentBuyCount: rbMap.size,
         streamingCount: cleanFlatrate.length,
-        extraCount: extraYours.length,
+        extraCount: 0,
         rbRegion: isVpnRentBuy ? (REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion) : '',
         hasVpnLinks: !!(vpnModeEnabled && (isVpnUnlocked || isVpnRentBuy))
       });
 
-      // Everything else behind two buttons that open popups, each showing who's in it.
+      // Rent or buy, and services you don't have: two buttons side by side, each opening a list.
       const stack = (list) => `<span class="wp-stack">${list.slice(0, 3).map(p => makeProviderLink(p, '', 'logo')).join('')}</span>`;
       const chevron = '<svg class="wp-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"></path></svg>';
-      const others = [...extraYours, ...otherFlatrate];
       const rbList = [...rbMap.values()].map(v => v.p);
-      const count = (n) => `${n} ${n === 1 ? 'service' : 'services'}`;
       const moreBtns = [
-        rbList.length ? `<button type="button" class="wp-more-btn" onclick="openRentBuyPopup(${movieObj.id})">${stack(rbList)}<span class="wp-text"><span class="wp-name">Rent or buy</span><span class="wp-sub">${count(rbList.length)}${isVpnRentBuy ? ` in ${escapeHTML(REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion)}` : ''}</span></span>${chevron}</button>` : '',
-        others.length ? `<button type="button" class="wp-more-btn" onclick="openExtraStreamingPopup(${movieObj.id})">${stack(others)}<span class="wp-text"><span class="wp-name">${extraYours.length && !otherFlatrate.length ? 'More of your services' : 'Other services'}</span><span class="wp-sub">${count(others.length)}</span></span>${chevron}</button>` : ''
+        rbList.length ? `<button type="button" class="wp-more-btn" onclick="openRentBuyPopup(${movieObj.id})">${stack(rbList)}<span class="wp-text"><span class="wp-name">Rent or buy</span><span class="wp-sub">${rbList.length} ${rbList.length === 1 ? 'service' : 'services'}</span></span>${chevron}</button>` : '',
+        otherFlatrate.length ? `<button type="button" class="wp-more-btn" onclick="openExtraStreamingPopup(${movieObj.id})">${stack(otherFlatrate)}<span class="wp-text"><span class="wp-name">Other services</span><span class="wp-sub">${otherFlatrate.length} ${otherFlatrate.length === 1 ? 'service' : 'services'}</span></span>${chevron}</button>` : ''
       ].join('');
 
       // The VPN switch sits in the section heading; re-renders refresh it there.
@@ -8484,42 +8489,17 @@
       grid.querySelectorAll('.tilt-card').forEach(card => apply3DTilt(card));
     }
 
-    function scrollSimilarTrack(direction, e) {
+    // Rails page by exactly one screenful of whole cards (the CSS sizes cards to fit the width).
+    function scrollRail(trackId, direction, e) {
       if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('similarMoviesTrack');
+      const track = document.getElementById(trackId);
       if (!track) return;
-      const firstCard = track.querySelector('.tilt-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
+      const gap = parseFloat(getComputedStyle(track).columnGap) || 16;
+      track.scrollBy({ left: (track.clientWidth + gap) * direction, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
     }
-
-    function scrollRelatedTrack(direction, e) {
-      if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('relatedMoviesTrack');
-      if (!track) return;
-      const firstCard = track.querySelector('.tilt-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
-    }
-
-    function scrollCastTrack(direction, e) {
-      if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('castCrewTrack');
-      if (!track) return;
-      const firstCard = track.querySelector('.cast-chip-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 12;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 4 : 3))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
-    }
-
+    function scrollSimilarTrack(direction, e) { scrollRail('similarMoviesTrack', direction, e); }
+    function scrollRelatedTrack(direction, e) { scrollRail('relatedMoviesTrack', direction, e); }
+    function scrollCastTrack(direction, e) { scrollRail('castCrewTrack', direction, e); }
     function initDynamicScrollTrack(trackId, prevBtnId, nextBtnId, isCast) {
       const track = document.getElementById(trackId);
       const prevBtn = document.getElementById(prevBtnId);

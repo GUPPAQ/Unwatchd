@@ -247,42 +247,17 @@
       grid.querySelectorAll('.tilt-card').forEach(card => apply3DTilt(card));
     }
 
-    function scrollSimilarTrack(direction, e) {
+    // Rails page by exactly one screenful of whole cards (the CSS sizes cards to fit the width).
+    function scrollRail(trackId, direction, e) {
       if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('similarMoviesTrack');
+      const track = document.getElementById(trackId);
       if (!track) return;
-      const firstCard = track.querySelector('.tilt-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
+      const gap = parseFloat(getComputedStyle(track).columnGap) || 16;
+      track.scrollBy({ left: (track.clientWidth + gap) * direction, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
     }
-
-    function scrollRelatedTrack(direction, e) {
-      if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('relatedMoviesTrack');
-      if (!track) return;
-      const firstCard = track.querySelector('.tilt-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
-    }
-
-    function scrollCastTrack(direction, e) {
-      if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('castCrewTrack');
-      if (!track) return;
-      const firstCard = track.querySelector('.cast-chip-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 12;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 4 : 3))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
-    }
-
+    function scrollSimilarTrack(direction, e) { scrollRail('similarMoviesTrack', direction, e); }
+    function scrollRelatedTrack(direction, e) { scrollRail('relatedMoviesTrack', direction, e); }
+    function scrollCastTrack(direction, e) { scrollRail('castCrewTrack', direction, e); }
     function initDynamicScrollTrack(trackId, prevBtnId, nextBtnId, isCast) {
       const track = document.getElementById(trackId);
       const prevBtn = document.getElementById(prevBtnId);

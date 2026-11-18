@@ -4693,13 +4693,6 @@
       scroll-snap-align: start;
     }
 
-    .rail-people {
-      grid-auto-columns: clamp(118px, 13vw, 150px);
-    }
-
-    .rail-posters {
-      grid-auto-columns: clamp(132px, 14vw, 190px);
-    }
 
     .rail-arrow {
       position: absolute;
@@ -5291,13 +5284,6 @@
         font-size: 15px;
       }
 
-      .rail-people {
-        grid-auto-columns: 112px;
-      }
-
-      .rail-posters {
-        grid-auto-columns: 124px;
-      }
 
       .cast-hero {
         padding-top: 96px;
@@ -6308,6 +6294,234 @@
       .person-bar[class] {
         top: calc(64px + env(safe-area-inset-top, 0px));
       }
+    }
+
+    /* ── Rails show whole cards ──
+       Cards are sized from the row's own width so a whole number of them fills it exactly; the
+       arrows page by one screenful. Touch screens add a peek of the next card instead, so you
+       can tell the row scrolls. */
+    .rail-wrap {
+      container-type: inline-size;
+    }
+
+    .rail[class] {
+      --gap: 16px;
+      --n: 2;
+      --peek: 0;
+      gap: var(--gap);
+      grid-auto-columns: calc((100% - (var(--n) + var(--peek) - 1) * var(--gap)) / (var(--n) + var(--peek)));
+      scroll-snap-type: x mandatory;
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      .rail[class] {
+        --peek: 0.4;
+        scroll-snap-type: x proximity;
+      }
+    }
+
+    /* People: about 160–195px a card. */
+    @container (min-width: 512px) { .rail-people[class] { --n: 3; } }
+    @container (min-width: 688px) { .rail-people[class] { --n: 4; } }
+    @container (min-width: 864px) { .rail-people[class] { --n: 5; } }
+    @container (min-width: 1040px) { .rail-people[class] { --n: 6; } }
+    @container (min-width: 1216px) { .rail-people[class] { --n: 7; } }
+    @container (min-width: 1392px) { .rail-people[class] { --n: 8; } }
+    @container (min-width: 1568px) { .rail-people[class] { --n: 9; } }
+    @container (min-width: 1744px) { .rail-people[class] { --n: 10; } }
+    @container (min-width: 1920px) { .rail-people[class] { --n: 11; } }
+    @container (min-width: 2096px) { .rail-people[class] { --n: 12; } }
+
+    /* Posters: about 200–240px a card. */
+    @container (min-width: 632px) { .rail-posters[class] { --n: 3; } }
+    @container (min-width: 848px) { .rail-posters[class] { --n: 4; } }
+    @container (min-width: 1064px) { .rail-posters[class] { --n: 5; } }
+    @container (min-width: 1280px) { .rail-posters[class] { --n: 6; } }
+    @container (min-width: 1496px) { .rail-posters[class] { --n: 7; } }
+    @container (min-width: 1712px) { .rail-posters[class] { --n: 8; } }
+    @container (min-width: 1928px) { .rail-posters[class] { --n: 9; } }
+    @container (min-width: 2144px) { .rail-posters[class] { --n: 10; } }
+
+    @media (max-width: 639px) {
+      .rail[class] {
+        --gap: 12px;
+      }
+    }
+
+    /* ── Film page: cast | where to watch ──
+       Both heading rows are the same height, so the photos and the card start on one line. */
+    .film-top .section-head {
+      height: 44px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .film-top .section-head .section-title {
+      line-height: 1;
+    }
+
+    .film-watch .watch-panel {
+      flex: 1;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 22px;
+    }
+
+    /* The service card takes whatever height is left, so the box never has a gap. */
+    .film-watch .wp-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Your best service: name on top, Watch (and your other services' logos) at the bottom. */
+    .wp-feature {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      min-height: 0;
+      padding: 14px;
+      border-radius: 16px;
+      background: var(--surface-2);
+    }
+
+    .wp-feature-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .wp-feature-top .wp-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 15px;
+    }
+
+    .wp-feature-top .wp-name {
+      font-size: 19px;
+    }
+
+    .wp-feature-top .wp-sub {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .wp-feature-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .wp-watch {
+      flex: 1;
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: transform 0.12s ease-out, opacity 0.15s;
+    }
+
+    .wp-watch svg {
+      width: 17px;
+      height: 17px;
+      flex: none;
+      transition: transform 0.2s var(--ease-out);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .wp-watch:hover svg {
+        transform: translateX(3px);
+      }
+
+      .wp-mini:hover {
+        box-shadow: 0 0 0 2px var(--line-strong);
+      }
+    }
+
+    .wp-watch:active,
+    .wp-mini:active {
+      transform: scale(0.96);
+      transition-duration: 0.06s;
+    }
+
+    .wp-mini {
+      width: 46px;
+      height: 46px;
+      flex: none;
+      overflow: hidden;
+      border-radius: 12px;
+      background: var(--surface);
+      transition: box-shadow 0.15s, transform 0.12s ease-out;
+    }
+
+    .wp-mini img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wp-feature.is-empty {
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .wp-feature .wp-empty-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .wp-feature .wp-empty-sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Rent or buy and Other services side by side under the card. */
+    .film-watch .wp-more {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .film-watch .wp-more-btn {
+      gap: 10px;
+      padding: 8px 10px 8px 8px;
+      border-radius: 14px;
+    }
+
+    .film-watch .wp-more-btn .wp-stack {
+      width: 40px;
+    }
+
+    /* Side by side the whole button is the target; the arrow would only crowd the label. */
+    .film-watch .wp-more-btn .wp-chevron {
+      display: none;
+    }
+
+    .film-watch .wp-more-btn .wp-name {
+      font-size: 15px;
+    }
+
+    .film-watch .wp-more-btn .wp-sub {
+      font-size: 13px;
     }
   </style>
   <link rel="stylesheet" href="./styles.css">
