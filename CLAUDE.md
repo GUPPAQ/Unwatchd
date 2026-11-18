@@ -43,8 +43,12 @@ Tokens and components live in the "FILM-NIGHT WORLD" block at the end of the `<s
   `#f4f0e8`, muted `#a5a097`. One accent, ember `#ff5a36`. `tailwind.config.cjs` maps Tailwind's
   blue/indigo/purple/sky to ember and gray/slate/zinc/neutral to the warm ink scale, so stock
   utility classes in generated markup stay in palette. No navy, no glass, no gradients as decoration.
-- Type: Instrument Serif for display lines and titles, Outfit for everything else; both served
-  from `/fonts/`. No text below 12px.
+- Type: Instrument Serif for display lines and section titles (always weight 400), Outfit for
+  everything else; both served from `/fonts/`. Three weights only: 400 text, 500 controls, 600
+  emphasis (the wordmark is the one 700). Sizes from 12/13/14/15/16/17/18/20 plus the serif display
+  sizes. No text below 12px, no letter-spaced capitals, no other faces (the IMDb mark is Outfit in
+  #f5c518). The "Type system" block at the end of the `<style>` folds older utility classes
+  (font-black, uppercase, tracking-*, text-[10px]) into these rules.
 - Buttons are pills (`.btn`, `.btn-primary`, `.btn-quiet`, `.ghost-btn`, `.link-btn`), sentence
   case, never all caps. No small labels above headings.
 - No emoji as icons. Inline SVG or nothing. Region flags are the exception.

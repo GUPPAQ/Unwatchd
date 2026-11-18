@@ -381,17 +381,10 @@
       });
     }
 
+    // The watch box now sizes to its own content (it used to be pinned to the cast row's height).
     function syncWatchNowHeight() {
-      const track = document.getElementById('castCrewTrack');
       const box = document.getElementById('desktopWatchOptionsBox');
-      if (!track || !box) return;
-      const firstChip = track.querySelector('.cast-chip-card');
-      if (firstChip && firstChip.offsetHeight > 40) {
-        const exactH = Math.round(firstChip.offsetHeight);
-        box.style.height = exactH + 'px';
-        box.style.minHeight = exactH + 'px';
-        box.style.maxHeight = exactH + 'px';
-      }
+      if (box) { box.style.height = ''; box.style.minHeight = ''; box.style.maxHeight = ''; }
     }
 
     let watchNowResizeObserver = null;

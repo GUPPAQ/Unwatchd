@@ -4911,7 +4911,7 @@
     #moviePageView .imdb-rating-badge > span:first-child {
       padding: 0 !important;
       background: none !important;
-      color: var(--muted) !important;
+      color: #f5c518 !important;
       font-family: var(--sans) !important;
       font-size: inherit !important;
       font-weight: 500 !important;
@@ -5277,6 +5277,447 @@
         transition: none;
       }
     }
+
+    /* ── Type system: the last word on fonts ──
+       Two faces: Instrument Serif for display lines and section titles (always 400), Outfit for
+       everything else. Three weights: 400 text, 500 controls, 600 emphasis (the wordmark is the
+       one 700). Sizes come from one scale: 12 · 13 · 14 · 15 · 16 · 18 · 20, then the serif sizes.
+       Tracking follows size (Apple): display lines tighten, small text opens a touch, nothing is
+       letter-spaced capitals. The rules below fold the older generated markup into this. */
+    body {
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font-family: inherit;
+    }
+
+    /* Weights: 700–900 from old utility classes become the one emphasis weight. */
+    :is(.font-bold, .font-extrabold, .font-black)[class] {
+      font-weight: 600;
+    }
+
+    /* No shouting: sentence case at normal spacing. */
+    .uppercase[class] {
+      text-transform: none;
+    }
+
+    :is(.tracking-tighter, .tracking-tight, .tracking-wide, .tracking-wider, .tracking-widest)[class] {
+      letter-spacing: 0;
+    }
+
+    /* Nothing below 12px, anywhere. */
+    :is([class*="text-[8px]"], [class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[10.5px]"], [class*="text-[11px]"], [class*="text-[11.5px]"])[class] {
+      font-size: 12px;
+    }
+
+    /* Serif is display only, and only ever regular weight. */
+    :is(.display, .section-title, .pick-title, .filter-panel-head h3, .movie-hero-title, .actor-hero-name, .person-name, .cast-title)[class] {
+      font-family: var(--serif);
+      font-weight: 400;
+    }
+
+    .section-title[class],
+    .filter-panel-head h3 {
+      letter-spacing: -0.01em;
+    }
+
+    /* Small text opens slightly so it stays legible on the dark ground. */
+    :is(.ask-seg-label, .person-card-role, .poster-card-sub, .crew-row-role, .search-row-sub, .page-legal, .svc-panel-count, .search-field-kbd, .poster-corner-badge) {
+      letter-spacing: 0.01em;
+    }
+
+    /* Numbers that sit in columns or change in place don't jitter. */
+    :is(.tab-badge, .section-count, .poster-rating-val, .rating-tag + *, .imdb-rating-num, .ask-progress-pct, .svc-option, .person-card-more-count) {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tabs .tab-badge[class],
+    .tabs .actor-tab-badge[class] {
+      min-width: 0;
+      padding: 0 !important;
+      font-size: 14px !important;
+      font-weight: 500;
+    }
+
+    .poster-vpn-badge[class] {
+      text-transform: none;
+    }
+
+    /* The IMDb mark: Outfit in IMDb's yellow, not a pasted-in Impact sticker. */
+    .poster-rating-badge[class] {
+      gap: 5px;
+      padding: 0 7px;
+    }
+
+    .poster-rating-tag,
+    .rating-tag {
+      color: #f5c518;
+      font-family: var(--sans);
+      font-weight: 600;
+    }
+
+    .poster-rating-tag,
+    .poster-rating-val {
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .poster-rating-val {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    #moviePageView .imdb-rating-badge > .rating-tag,
+    #moviePageView .imdb-rating-badge > span:first-child {
+      color: #f5c518 !important;
+      font-weight: 600 !important;
+    }
+
+    .poster-vpn-badge[class] {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .poster-services-more {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── The way back to your results (landing, after "Change") ── */
+    .landing-return {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 560px;
+      padding: 12px 18px 12px 12px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(21, 21, 23, 0.86);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s, background-color 0.15s, transform 0.12s ease-out;
+    }
+
+    .landing-return.hidden {
+      display: none;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .landing-return:hover {
+        border-color: var(--line-strong);
+        background: var(--surface-2);
+      }
+
+      .landing-return:hover .landing-return-go svg {
+        transform: translateX(3px);
+      }
+    }
+
+    .landing-return:active {
+      transform: scale(0.985);
+      transition-duration: 0.06s;
+    }
+
+    /* Three posters fanned like a hand of cards. */
+    .landing-return-posters {
+      position: relative;
+      width: 74px;
+      height: 64px;
+      flex: none;
+    }
+
+    .landing-return-posters img {
+      position: absolute;
+      bottom: 0;
+      width: 42px;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      border-radius: 6px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .landing-return-posters img:nth-child(1) {
+      left: 0;
+      transform: rotate(-8deg);
+    }
+
+    .landing-return-posters img:nth-child(2) {
+      left: 16px;
+      z-index: 1;
+      transform: rotate(-1deg) translateY(-2px);
+    }
+
+    .landing-return-posters img:nth-child(3) {
+      left: 32px;
+      z-index: 2;
+      transform: rotate(7deg);
+    }
+
+    .landing-return-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .landing-return-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .landing-return-sub {
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 14px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .landing-return-go {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent-soft);
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .landing-return-go svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s var(--ease-out);
+    }
+
+    @media (max-width: 479px) {
+      .landing-return-go {
+        font-size: 0;
+        gap: 0;
+      }
+
+      .landing-return-go svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    /* ── Watch now: your services as rows, everything else as chips ── */
+    .watch-options-box.wn-box[class] {
+      display: flex;
+      flex-direction: column;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--surface);
+      box-shadow: none;
+    }
+
+    .wn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .wn-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+      padding: 10px;
+      border-radius: 14px;
+      color: var(--text);
+      transition: background-color 0.15s, transform 0.12s ease-out;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .wn-row:hover {
+        background: var(--surface-2);
+      }
+
+      .wn-row:hover .wn-chevron {
+        transform: translateX(2px);
+        color: var(--text);
+      }
+    }
+
+    .wn-row:active {
+      transform: scale(0.985);
+      transition-duration: 0.06s;
+    }
+
+    .wn-logo {
+      width: 48px;
+      height: 48px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 12px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .wn-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wn-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .wn-name {
+      overflow: hidden;
+      font-size: 16px;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .wn-sub {
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.01em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .wn-sub.is-vpn {
+      color: var(--accent-soft);
+    }
+
+    .wn-go {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .wn-row.is-main + .wn-row.is-main .wn-go {
+      border: 1px solid var(--line-strong);
+      background: transparent;
+      color: var(--text);
+    }
+
+    .wn-chevron {
+      width: 18px;
+      height: 18px;
+      flex: none;
+      color: var(--faint);
+      transition: transform 0.2s var(--ease-out), color 0.15s;
+    }
+
+    .wn-empty {
+      padding: 14px 12px;
+    }
+
+    .wn-empty-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .wn-empty-sub {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .wn-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+      padding: 10px 6px 6px;
+      border-top: 1px solid var(--line);
+    }
+
+    .wn-chip[class] {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      width: auto;
+      height: 36px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      box-shadow: none;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, transform 0.12s ease-out;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .wn-chip[class]:hover {
+        border-color: var(--line-strong);
+        color: var(--text);
+      }
+    }
+
+    .wn-chip[class]:active {
+      transform: scale(0.96);
+    }
+
+    .wn-chip-count {
+      color: var(--faint);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .wn-chip.vpn-active[class] {
+      border-color: rgba(255, 90, 54, 0.5);
+      background: transparent;
+      color: var(--text);
+    }
+
+    .wn-chip .watchnow-vpn-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #57544f;
+      box-shadow: none;
+    }
+
+    .wn-chip.vpn-active .watchnow-vpn-dot {
+      background: var(--accent);
+    }
+
+    /* The "Other services" and "Rent or buy" popups list the same rows. */
+    .premium-popup-panel .wn-row {
+      border: 1px solid var(--line);
+    }
   </style>
   <link rel="stylesheet" href="./styles.css">
   <!-- Vercel Web Analytics (page views & visitors, no cookies). Enable it under the project's Analytics tab on vercel.com. -->
@@ -5378,9 +5819,16 @@
               </div>
             </div>
             <p id="formError" role="alert" class="form-error hidden"></p>
-            <button id="landingBackBtn" type="button" class="btn btn-quiet landing-back hidden">
-              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"></path></svg>
-              Back to your results
+            <!-- After "Change": what's waiting for you, and the way back to it -->
+            <button id="landingBackBtn" type="button" class="landing-return hidden">
+              <span id="landingReturnPosters" class="landing-return-posters" aria-hidden="true"></span>
+              <span class="landing-return-text">
+                <span id="landingReturnTitle" class="landing-return-title">Your results are still here</span>
+                <span id="landingReturnSub" class="landing-return-sub"></span>
+              </span>
+              <span class="landing-return-go">Back to results
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"></path></svg>
+              </span>
             </button>
           </div>
         </div>

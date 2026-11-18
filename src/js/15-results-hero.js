@@ -263,7 +263,10 @@
       const landingMode = hasResults && scanPanelExpanded;
       document.body.classList.toggle('landing-mode', landingMode);
       const back = document.getElementById('landingBackBtn');
-      if (back) back.classList.toggle('hidden', !landingMode);
+      if (back) {
+        back.classList.toggle('hidden', !landingMode);
+        if (landingMode) fillLandingReturn();
+      }
       if (!compact) return;
 
       const user = (localStorage.getItem('ps_username') || (el.usernameInput && el.usernameInput.value) || '').trim();
@@ -345,6 +348,22 @@
       scanPanelExpanded = true;
       updateScanPanelMode();
       window.scrollTo({ top: 0, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
+    }
+
+    // The way back after "Change": a few of the posters waiting, how many, and whose watchlist.
+    function fillLandingReturn() {
+      const stream = (currentGroupedResults && currentGroupedResults.stream) || [];
+      const posters = document.getElementById('landingReturnPosters');
+      if (posters) {
+        posters.innerHTML = stream.filter(m => m.poster).slice(0, 3)
+          .map(m => `<img src="${m.poster.replace('/w500/', '/w154/')}" alt="" decoding="async">`).join('');
+      }
+      const title = document.getElementById('landingReturnTitle');
+      if (title) title.textContent = stream.length ? `${filmsCount(stream.length)} to watch tonight` : 'Your results are still here';
+      const user = (localStorage.getItem('ps_username') || '').trim();
+      const friend = isFriendMatchActive ? (localStorage.getItem('ps_friend_username') || '').trim() : '';
+      const sub = document.getElementById('landingReturnSub');
+      if (sub) sub.textContent = user ? (friend ? `In both ${user}'s and ${friend}'s watchlists` : `From ${user}'s watchlist`) : '';
     }
 
     function collapseScanPanel() {

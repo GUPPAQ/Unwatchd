@@ -29,7 +29,7 @@
     }
 
     const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
-    const IMDB_TAG_HTML = `<span class="poster-rating-tag bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span>`;
+    const IMDB_TAG_HTML = `<span class="poster-rating-tag">IMDb</span>`;
 
 
     // All TMDB requests go through here: at most TMDB_MAX_CONCURRENT in flight, and
