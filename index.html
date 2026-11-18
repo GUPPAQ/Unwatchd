@@ -5513,24 +5513,175 @@
       }
     }
 
-    /* ── Watch now: your services as rows, everything else as chips ── */
-    .watch-options-box.wn-box[class] {
-      display: flex;
-      flex-direction: column;
-      height: auto !important;
-      min-height: 0 !important;
-      max-height: none !important;
-      padding: 6px;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: var(--surface);
-      box-shadow: none;
+    /* ── Where to watch: the point of the whole site, so it leads the film page ──
+       Your services are big cards; other services and rent or buy stay visible as lists. */
+    .wn-section .section-head {
+      margin-bottom: 14px;
     }
 
-    .wn-list {
+    .wn-box {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 18px;
+    }
+
+    .wn-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: -6px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .wn-main {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+      gap: 12px;
+    }
+
+    .wn-card {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color 0.15s, background-color 0.15s, transform 0.12s ease-out;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .wn-card:hover {
+        border-color: var(--line-strong);
+        background: var(--surface-2);
+      }
+
+      .wn-card:hover .wn-card-go svg {
+        transform: translateX(3px);
+      }
+    }
+
+    .wn-card:active {
+      transform: scale(0.985);
+      transition-duration: 0.06s;
+    }
+
+    .wn-card-logo {
+      width: 72px;
+      height: 72px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 18px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: 600;
+      box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.9);
+    }
+
+    .wn-card-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wn-card-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .wn-card-name {
+      overflow: hidden;
+      font-size: 20px;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .wn-card-sub {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .wn-card-sub.is-vpn,
+    .wn-sub.is-vpn {
+      color: var(--accent-soft);
+    }
+
+    .wn-card-go {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 48px;
+      padding: 0 22px;
+      border-radius: 999px;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .wn-card-go svg {
+      width: 18px;
+      height: 18px;
+      transition: transform 0.2s var(--ease-out);
+    }
+
+    .wn-card + .wn-card .wn-card-go {
+      border: 1px solid var(--line-strong);
+      background: transparent;
+      color: var(--text);
+    }
+
+    .wn-empty {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--surface);
+    }
+
+    .wn-empty-title {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 1.9rem;
+      font-weight: 400;
+      line-height: 1.1;
+    }
+
+    .wn-empty-sub {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .wn-more {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap: 12px 32px;
+    }
+
+    .wn-group-title {
+      margin: 0 0 6px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .wn-rows {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+      gap: 4px 12px;
     }
 
     .wn-row {
@@ -5539,6 +5690,7 @@
       gap: 14px;
       min-width: 0;
       padding: 10px;
+      margin: 0 -10px;
       border-radius: 14px;
       color: var(--text);
       transition: background-color 0.15s, transform 0.12s ease-out;
@@ -5546,7 +5698,7 @@
 
     @media (hover: hover) and (pointer: fine) {
       .wn-row:hover {
-        background: var(--surface-2);
+        background: var(--surface);
       }
 
       .wn-row:hover .wn-chevron {
@@ -5599,33 +5751,9 @@
     .wn-sub {
       overflow: hidden;
       color: var(--muted);
-      font-size: 13px;
-      letter-spacing: 0.01em;
+      font-size: 14px;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    .wn-sub.is-vpn {
-      color: var(--accent-soft);
-    }
-
-    .wn-go {
-      flex: none;
-      display: inline-flex;
-      align-items: center;
-      height: 36px;
-      padding: 0 16px;
-      border-radius: 999px;
-      background: var(--text);
-      color: var(--bg);
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .wn-row.is-main + .wn-row.is-main .wn-go {
-      border: 1px solid var(--line-strong);
-      background: transparent;
-      color: var(--text);
     }
 
     .wn-chevron {
@@ -5636,45 +5764,19 @@
       transition: transform 0.2s var(--ease-out), color 0.15s;
     }
 
-    .wn-empty {
-      padding: 14px 12px;
-    }
-
-    .wn-empty-title {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .wn-empty-sub {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
-    }
-
-    .wn-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
-      padding: 10px 6px 6px;
-      border-top: 1px solid var(--line);
-    }
-
     .wn-chip[class] {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
+      gap: 8px;
       width: auto;
-      height: 36px;
-      padding: 0 14px;
+      height: 40px;
+      padding: 0 16px;
       border: 1px solid var(--line);
       border-radius: 999px;
       background: transparent;
       box-shadow: none;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 500;
       cursor: pointer;
       transition: border-color 0.15s, color 0.15s, transform 0.12s ease-out;
@@ -5691,11 +5793,6 @@
       transform: scale(0.96);
     }
 
-    .wn-chip-count {
-      color: var(--faint);
-      font-variant-numeric: tabular-nums;
-    }
-
     .wn-chip.vpn-active[class] {
       border-color: rgba(255, 90, 54, 0.5);
       background: transparent;
@@ -5703,8 +5800,8 @@
     }
 
     .wn-chip .watchnow-vpn-dot {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: #57544f;
       box-shadow: none;
@@ -5714,9 +5811,203 @@
       background: var(--accent);
     }
 
-    /* The "Other services" and "Rent or buy" popups list the same rows. */
     .premium-popup-panel .wn-row {
+      margin: 0;
       border: 1px solid var(--line);
+    }
+
+    @media (max-width: 639px) {
+      .wn-card {
+        gap: 14px;
+        padding: 14px;
+      }
+
+      .wn-card-logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+      }
+
+      .wn-card-name {
+        font-size: 18px;
+      }
+
+      .wn-card-sub {
+        font-size: 14px;
+      }
+
+      .wn-card-go {
+        height: 44px;
+        padding: 0 16px;
+        font-size: 15px;
+      }
+
+      .wn-card-go svg {
+        display: none;
+      }
+    }
+
+    /* ── Film banner actions: one family, one height ──
+       "Watch on …" (primary), Trailer and the sound switch are all the same pill height;
+       the sound switch is the same pill, just square. */
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .hero-watch-slot:empty {
+      display: none;
+    }
+
+    .hero-actions .btn {
+      height: 52px;
+    }
+
+    .hero-watch-btn {
+      gap: 12px;
+      padding: 0 24px 0 8px;
+    }
+
+    .hero-watch-logo {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #000;
+    }
+
+    .hero-watch-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero-actions .hero-icon-btn[class] {
+      width: 52px;
+      padding: 0;
+      justify-content: center;
+      border-radius: 999px;
+    }
+
+    .hero-icon-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    @media (max-width: 1023px) {
+      #moviePageView .hero-actions {
+        justify-content: center;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 479px) {
+      .hero-watch-slot {
+        flex-basis: 100%;
+      }
+
+      .hero-watch-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* The IMDb logo: the real yellow plate, sized to sit on the line it's on. */
+    .imdb-logo {
+      display: inline-block;
+      flex: none;
+      height: 14px;
+      width: auto;
+      vertical-align: -2px;
+    }
+
+    .poster-rating-badge .imdb-logo {
+      height: 13px;
+    }
+
+    #moviePageView .imdb-rating-badge .imdb-logo {
+      height: 1.15em;
+      vertical-align: -0.2em;
+    }
+
+    /* ── The way back to your results: a sibling of the search bar ──
+       Same width, same pill, same surface and the same button height as the bar above it,
+       so the two read as one set. */
+    .landing-return {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      width: 100%;
+      max-width: none;
+      height: 76px;
+      padding: 6px 6px 6px 22px;
+      border: 1px solid var(--line);
+      border-radius: 38px;
+      background: var(--surface);
+      box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.9);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .landing-return:hover {
+        border-color: var(--line-strong);
+        background: var(--surface);
+      }
+    }
+
+    .landing-return-posters {
+      width: 64px;
+      height: 54px;
+    }
+
+    .landing-return-posters img {
+      width: 34px;
+    }
+
+    .landing-return-posters img:nth-child(2) {
+      left: 14px;
+    }
+
+    .landing-return-posters img:nth-child(3) {
+      left: 28px;
+    }
+
+    .landing-return-go {
+      height: 62px;
+      padding: 0 26px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 600;
+      transition: background-color 0.15s;
+    }
+
+    .landing-return:hover .landing-return-go {
+      background: var(--surface-2);
+    }
+
+    @media (max-width: 719px) {
+      .landing-return {
+        height: auto;
+        padding: 6px 6px 6px 14px;
+        border-radius: 24px;
+      }
+
+      .landing-return-go {
+        height: 52px;
+        padding: 0 16px;
+        font-size: 0;
+      }
     }
   </style>
   <link rel="stylesheet" href="./styles.css">

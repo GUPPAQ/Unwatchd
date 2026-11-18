@@ -438,28 +438,33 @@
         const appAttr = appLink ? `data-app-link="${escapeHTML(appLink)}"` : '';
         const openApp = `onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }"`;
         const logoHtml = logoSrc ? `<img src="${logoSrc}" alt="" loading="lazy">` : `<span>${escapeHTML(safeName.slice(0, 2))}</span>`;
-        const vpnLine = isVpnProvider ? `<span class="wn-sub is-vpn">In ${vpnArticle}${escapeHTML(vpnRegionName)} with a VPN</span>` : '';
+        const vpnText = isVpnProvider ? `In ${vpnArticle}${escapeHTML(vpnRegionName)} with a VPN` : '';
 
-        // A row in the "Other services" and "Rent or buy" lists.
+        // A row in "Also streaming on" and "Rent or buy".
         if (mode === 'popup') {
           const actionLabel = extraText || (modeExtra && modeExtra.type ? modeExtra.type : 'Stream');
-          const tag = { 'Rent': 'Rent', 'Buy': 'Buy', 'Rent/Buy': 'Rent or buy', 'Unsubscribed': 'Subscription needed', 'Subscription': 'Included', 'Subscription (VPN)': 'Included' }[actionLabel] || actionLabel;
+          const tag = { 'Rent': 'Rent', 'Buy': 'Buy', 'Rent/Buy': 'Rent or buy', 'Unsubscribed': 'Needs a subscription', 'Subscription': 'Included', 'Subscription (VPN)': 'Included' }[actionLabel] || actionLabel;
           return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wn-row">
             <span class="wn-logo">${logoHtml}</span>
-            <span class="wn-text"><span class="wn-name">${escapeHTML(safeName)}</span>${vpnLine || `<span class="wn-sub">${escapeHTML(tag)}</span>`}</span>
+            <span class="wn-text"><span class="wn-name">${escapeHTML(safeName)}</span><span class="wn-sub${vpnText ? ' is-vpn' : ''}">${vpnText || escapeHTML(tag)}</span></span>
             <svg class="wn-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"></path></svg>
           </a>`;
         }
 
-        // A service you have: the main thing this box is for.
-        return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wn-row is-main">
-          <span class="wn-logo">${logoHtml}</span>
-          <span class="wn-text"><span class="wn-name">${escapeHTML(safeName)}</span>${vpnLine || '<span class="wn-sub">Included with your subscription</span>'}</span>
-          <span class="wn-go">Watch</span>
+        // The hero's main button: "Watch on Prime Video", logo and all.
+        if (mode === 'hero') {
+          return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="btn btn-primary btn-lg hero-watch-btn"><span class="hero-watch-logo">${logoHtml}</span>Watch on ${escapeHTML(safeName)}</a>`;
+        }
+
+        // A service you have: a big card, the main thing this page is for.
+        return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wn-card">
+          <span class="wn-card-logo">${logoHtml}</span>
+          <span class="wn-card-text"><span class="wn-card-name">${escapeHTML(safeName)}</span><span class="wn-card-sub${vpnText ? ' is-vpn' : ''}">${vpnText || 'Included with your subscription'}</span></span>
+          <span class="wn-card-go">Watch<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
         </a>`;
       };
       let streamingHtml = '';
-      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'Turn off VPN unlocks' : 'Also show where you could watch it by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="wn-chip watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''}">VPN <span class="watchnow-vpn-dot"></span></button>`;
+      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'Turn off VPN unlocks' : 'Also show where you could watch it by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="wn-chip watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''}">VPN countries <span class="watchnow-vpn-dot"></span></button>`;
 
       // Rent / Buy: ALWAYS use local home region if available. Only fallback to VPN if unavailable locally.
       const localRent = filterAndDeduplicateProviders(homeRegionData?.rent || [], true);
@@ -519,22 +524,29 @@
       // Subscribed streaming: if unlocked via VPN, show ONLY ONE as main (Netflix or HBO first), rest in More popup
       const userFlatrate = isVpnUnlocked ? vpnMatchedProviders : userHomeFlatrate;
 
-      // Your services first (all of them when you're home; the best one when it takes a VPN).
-      const visibleFlatrate = isVpnUnlocked ? vpnMatchedProviders.slice(0, 1) : userHomeFlatrate.slice(0, 4);
+      // Your services first: every one you have (or up to three in other countries with a VPN).
+      const visibleFlatrate = isVpnUnlocked ? vpnMatchedProviders.slice(0, 3) : userHomeFlatrate;
       const cleanFlatrate = isVpnUnlocked ? vpnMatchedProviders : homeFlatrate;
       const namesOf = (list) => [...new Set(list.map(p => (p.provider_name || p.name || '').replace('with Ads', '').trim()))];
+      const regionName = REGION_META[currentRegion]?.name || currentRegion;
       const empty = (title, sub) => `<div class="wn-empty"><p class="wn-empty-title">${escapeHTML(title)}</p>${sub ? `<p class="wn-empty-sub">${escapeHTML(sub)}</p>` : ''}</div>`;
 
       if (visibleFlatrate.length > 0) {
         streamingHtml = visibleFlatrate.map(p => makeProviderLink(p, '', 'single')).join('');
       } else if (otherFlatrate.length > 0) {
         const names = namesOf(otherFlatrate);
-        streamingHtml = empty('Not on your services', `Streaming on ${names.slice(0, 3).join(', ')}${names.length > 3 ? ` and ${names.length - 3} more` : ''} in ${REGION_META[currentRegion]?.name || currentRegion}.`);
+        streamingHtml = empty('Not on your services', `In ${regionName} it streams on ${names.slice(0, 3).join(', ')}${names.length > 3 ? ` and ${names.length - 3} more` : ''}.${vpnModeEnabled ? '' : ' Turn on VPN to check other countries.'}`);
       } else if (rbMap.size > 0) {
-        streamingHtml = empty(isVpnRentBuy ? 'To rent or buy with a VPN' : 'Only to rent or buy', isVpnRentBuy ? `Available in ${REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion}.` : '');
+        streamingHtml = empty(isVpnRentBuy ? 'Rent or buy it with a VPN' : 'Not streaming, but you can rent or buy it', isVpnRentBuy ? `Available in ${REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion}.` : (vpnModeEnabled ? '' : 'Turn on VPN to check streaming in other countries.'));
       } else {
-        streamingHtml = empty('Not streaming anywhere yet', vpnModeEnabled ? '' : 'Turn on VPN to check other countries too.');
+        streamingHtml = empty(`Not streaming in ${regionName} yet`, vpnModeEnabled ? 'Not on your services in any country we check either.' : 'Turn on VPN to check other countries.');
       }
+
+      // The banner's main button follows the same answer.
+      const heroWatchHtml = visibleFlatrate.length > 0 ? makeProviderLink(visibleFlatrate[0], '', 'hero') : '';
+      movieObj._heroWatchHtml = heroWatchHtml;
+      const heroSlot = typeof document !== 'undefined' ? document.getElementById('heroWatchSlot') : null;
+      if (heroSlot) heroSlot.innerHTML = heroWatchHtml;
       let userFlatrateLinksHtml = '';
       userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, isVpnUnlocked ? 'Subscription (VPN)' : 'Subscription', 'popup'); });
       let otherFlatrateLinksHtml = '';
@@ -556,15 +568,18 @@
         hasVpnLinks: !!(vpnModeEnabled && (isVpnUnlocked || isVpnRentBuy))
       });
 
-      // Plain chips for everything else: other services, rent or buy, and the VPN switch.
-      const otherCount = extraStreamingCount + otherFlatrate.length;
-      const chips = [
-        otherCount > 0 ? `<button type="button" class="wn-chip" onclick="openExtraStreamingPopup(${movieObj.id})">Other services <span class="wn-chip-count">${otherCount}</span></button>` : '',
-        rbMap.size > 0 ? `<button type="button" class="wn-chip" onclick="openRentBuyPopup(${movieObj.id})">Rent or buy <span class="wn-chip-count">${rbMap.size}</span></button>` : '',
-        vpnToggleBtnHtml
+      // Everything else stays visible: other services and rent or buy, as lists.
+      const extraYours = userFlatrate.filter(p => !visibleFlatrate.includes(p));
+      const otherRows = [...extraYours.map(p => makeProviderLink(p, 'Subscription', 'popup')), ...otherFlatrate.map(p => makeProviderLink(p, 'Unsubscribed', 'popup'))].join('');
+      let rbRows = '';
+      rbMap.forEach(val => { rbRows += makeProviderLink(val.p, val.type, 'popup', { type: val.type }); });
+      const groups = [
+        otherRows ? `<div class="wn-group"><h3 class="wn-group-title">Also streaming on</h3><div class="wn-rows">${otherRows}</div></div>` : '',
+        rbRows ? `<div class="wn-group"><h3 class="wn-group-title">${isVpnRentBuy ? `Rent or buy in ${escapeHTML(REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion)}` : 'Rent or buy'}</h3><div class="wn-rows">${rbRows}</div></div>` : ''
       ].join('');
+      const bar = `<div class="wn-bar"><span class="wn-where">${vpnModeEnabled ? `${escapeHTML(regionName)}, and other countries with a VPN` : `In ${escapeHTML(regionName)}`}</span>${vpnToggleBtnHtml}</div>`;
 
-      return `<div class="wn-list">${streamingHtml}</div><div class="wn-chips">${chips}</div>`;
+      return `${bar}<div class="wn-main">${streamingHtml}</div>${groups ? `<div class="wn-more">${groups}</div>` : ''}`;
     }
     function isMovieVpnActive(movieObj, details) {
       if (!vpnModeEnabled || !movieObj) return false;
@@ -648,9 +663,9 @@
       const cachedImdbRating = imdbId ? imdbRatingCache.get(imdbId) : null;
       let modalRatingBadgeHtml = '';
       if (cachedImdbRating) {
-        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" title="IMDb Rating: ${cachedImdbRating}/10"><span class="rating-tag">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">${cachedImdbRating}</span></div>`;
+        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" title="IMDb Rating: ${cachedImdbRating}/10">${IMDB_TAG_HTML}<span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">${cachedImdbRating}</span></div>`;
       } else if (imdbId) {
-        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" title="Loading IMDb rating..."><span class="rating-tag">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none animate-pulse">...</span></div>`;
+        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" title="Loading IMDb rating...">${IMDB_TAG_HTML}<span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none animate-pulse">...</span></div>`;
         setTimeout(() => { resolveImdbRatingBadges(imdbId, isTvMedia); }, 0);
 
       }
@@ -839,12 +854,14 @@
       }
       const initialMuteParam = isHeroVideoMuted ? 1 : 0;
       const soundIconsInnerHtml = `<svg class="heroSoundIconMuted w-4 h-4 sm:w-5 sm:h-5 ${isHeroVideoMuted ? '' : 'hidden'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg><svg class="heroSoundIconUnmuted w-4 h-4 sm:w-5 sm:h-5 ${isHeroVideoMuted ? 'hidden' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>`;
-      const soundBtnInlineHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn liquid-glass shrink-0 w-8 h-8 sm:w-12 sm:h-12 rounded-full sm:rounded-xl flex items-center justify-center active:scale-95 text-gray-300 hover:text-white transition-all cursor-pointer">${soundIconsInnerHtml}</button>` : '';
+      const soundBtnInlineHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Sound on or off" class="heroSoundToggleBtn btn btn-quiet btn-lg hero-icon-btn">${soundIconsInnerHtml}</button>` : '';
       const soundBtnHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn liquid-glass hidden sm:flex absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full items-center justify-center active:scale-95 text-white transition-all cursor-pointer pointer-events-auto">${soundIconsInnerHtml}</button>` : '';
       const heroVideoHtml = heroTrailer ? `<div class="absolute inset-0 overflow-hidden pointer-events-none z-10 clip-mask"><iframe id="heroVideoIframe" src="https://www.youtube.com/embed/${heroTrailer.key}?autoplay=1&mute=${initialMuteParam}&controls=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&modestbranding=1&iv_load_policy=3&rel=0&vq=hd1080&cc_load_policy=0&cc_lang_pref=none&hl=en" title="${safeTitle} preview" allow="autoplay; encrypted-media" class="absolute pointer-events-none opacity-0 transition-opacity duration-700 transform-gpu" onload="onHeroVideoLoad(this)"></iframe></div><div id="heroFadeOverlay" class="absolute inset-0 bg-black opacity-0 transition-opacity duration-500 pointer-events-none z-15"></div>` : '';
 
 
       if (isPage) {
+        const watchBoxHtml = renderMovieWatchOptionsBox(movieObj, details, true, false);
+        const heroActionsHtml = `<div id="heroWatchSlot" class="hero-watch-slot">${movieObj._heroWatchHtml || ''}</div>${pageTrailerBtnHtml}${soundBtnInlineHtml}`;
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
         const hasHero = !!(heroBackdropUrl || heroTrailer);
         const heroPosterUrl = getTextlessPosterUrl(details, movieObj.poster);
@@ -870,10 +887,8 @@
                     </div>
                     <div class="mt-1 w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
                   </div>
-                  <div class="hero-actions flex items-center gap-2.5 sm:gap-3 pointer-events-auto shrink-0 mt-1 lg:mt-0">
-                    ${pageTrailerBtnHtml}
-                    ${soundBtnInlineHtml ? soundBtnInlineHtml.replace('sm:hidden', '') : ''}
-                  </div>
+                  <div class="hero-actions pointer-events-auto">${heroActionsHtml}</div>
+
                 </div>
               </div>
             </div>`
@@ -884,28 +899,18 @@
                   <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg 2xl:text-xl font-bold text-gray-200 mt-2 whitespace-nowrap overflow-hidden max-w-full">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold shrink-0">${year}</span>${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}</div>
                   <div class="mt-3 w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
                 </div>
-                <div class="hidden lg:flex items-center gap-2.5 sm:gap-3 pointer-events-auto shrink-0">${pageTrailerBtnHtml}${soundBtnInlineHtml ? soundBtnInlineHtml.replace('sm:hidden', '') : ''}</div>
+                <div class="hero-actions pointer-events-auto">${heroActionsHtml}</div>
               </div>
             </div>`;
 
         return `${pageNavHTML('closeMoviePage()', 'goHomeFromPage()', 'moviePageNav')}
           ${heroBannerSectionHtml}
           <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 ${hasHero ? 'pt-0' : 'pt-8'} pb-0 flex flex-col gap-7 sm:gap-9 lg:gap-11">
-            <div class="lg:hidden space-y-3">
-              ${watchNowHeaderHtml}
-              <div id="mobileWatchOptionsBox" class="watch-options-box wn-box">
-                ${renderMovieWatchOptionsBox(movieObj, details, false, false)}
-              </div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px] 2xl:grid-cols-[1fr_440px] gap-x-8 xl:gap-x-10 items-start">
-              <div class="min-w-0">${castCrewHtml}</div>
-              <aside class="hidden lg:flex flex-col space-y-3">
-                ${watchNowHeaderHtml}
-                <div id="desktopWatchOptionsBox" class="watch-options-box wn-box">
-                  ${renderMovieWatchOptionsBox(movieObj, details, true, false)}
-                </div>
-              </aside>
-            </div>
+            <section class="page-section wn-section">
+              <div class="section-head"><h2 class="section-title">Where to watch</h2></div>
+              <div id="desktopWatchOptionsBox" class="wn-box">${watchBoxHtml}</div>
+            </section>
+            ${castCrewHtml}
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
             ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
           </div>
