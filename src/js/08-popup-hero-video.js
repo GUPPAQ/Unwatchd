@@ -137,60 +137,27 @@
       _openGenericPopupAnimated();
     }
 
+    // "Other services" and "Rent or buy": the same rows as the Where to watch panel, in a list.
+    const vpnNote = '<p class="wp-pop-note">Some streaming services may detect or block VPN connections.</p>';
     window.openExtraStreamingPopup = function (movieId) {
       const data = window.moviePopupDataCache ? window.moviePopupDataCache.get(movieId) : null;
       if (!data) return;
-      const hasUser = !!data.userFlatrateLinksHtml;
-      const hasOther = !!data.otherFlatrateLinksHtml;
-      const hasAny = hasUser || hasOther || (data.streamingCount > 0);
-
-      let html = '';
-      if (!hasAny) {
-        const fallbackMsg = (data && data.rentBuyCount > 0) ? 'Only available to rent or buy' : 'Not available to stream';
-        html = `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1"></span>
-          <span class="font-bold uppercase tracking-widest text-sm text-gray-400">${fallbackMsg}</span>
-          <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No streaming options found in this region.</span>
-        </div>`;
-      } else {
-        html = `<div class="space-y-6">
-          ${hasUser ? `
-            <div>
-              <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(255,90,54,0.8)]"></span>
-                Your Subscriptions
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.userFlatrateLinksHtml}</div>
-            </div>
-          ` : ''}
-          ${hasOther ? `
-            <div>
-              <h4 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-gray-500"></span>
-                Unsubscribed
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.otherFlatrateLinksHtml}</div>
-            </div>
-          ` : ''}
-          ${(data.hasVpnLinks || data.userFlatrateLinksHtml?.includes('via VPN*')) ? `<p class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center pt-2">*Some streaming services may detect or restrict VPN connections</p>` : ''}
-        </div>`;
-      }
-      openCustomPopup(data.title, html, 'Streaming Options');
+      const group = (title, rows) => rows ? `<div class="wp-pop-group">${title ? `<h4 class="wp-pop-group-title">${title}</h4>` : ''}<div class="wp-pop-list">${rows}</div></div>` : '';
+      const both = data.userFlatrateLinksHtml && data.otherFlatrateLinksHtml;
+      const html = (data.userFlatrateLinksHtml || data.otherFlatrateLinksHtml)
+        ? `<div class="wp-pop">${group(both ? 'Your services' : '', data.userFlatrateLinksHtml)}${group(both ? 'Needs a subscription' : '', data.otherFlatrateLinksHtml)}${data.hasVpnLinks ? vpnNote : ''}</div>`
+        : '<p class="wp-pop-empty">No other streaming services have it here.</p>';
+      openCustomPopup(data.userFlatrateLinksHtml && !data.otherFlatrateLinksHtml ? 'More of your services' : 'Other services', html);
     };
 
     window.openRentBuyPopup = function (movieId) {
       const data = window.moviePopupDataCache ? window.moviePopupDataCache.get(movieId) : null;
       if (!data) return;
       const html = data.rentBuyCount > 0
-        ? `<div class="space-y-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.rbLinksHtml}</div>${(data.hasVpnLinks || data.rbLinksHtml?.includes('via VPN*')) ? `<p class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center pt-2">*Some streaming services may detect or restrict VPN connections</p>` : ''}</div>`
-        : `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1"></span>
-          <span class="font-bold uppercase tracking-widest text-sm text-gray-400">Not available to rent or buy</span>
-          <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No digital purchase or rental options found in this region.</span>
-        </div>`;
-      openCustomPopup(data.title, html, 'Rent & Buy Options');
+        ? `<div class="wp-pop"><div class="wp-pop-list">${data.rbLinksHtml}</div>${data.hasVpnLinks ? vpnNote : ''}</div>`
+        : '<p class="wp-pop-empty">Nobody rents or sells it here yet.</p>';
+      openCustomPopup(data.rbRegion ? `Rent or buy in ${escapeHTML(data.rbRegion)}` : 'Rent or buy', html);
     };
-
     function openTextPopup(title, text) {
       const body = document.getElementById('genericPopupBody');
       if (!body) return;

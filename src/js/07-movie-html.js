@@ -440,29 +440,28 @@
         const logoHtml = logoSrc ? `<img src="${logoSrc}" alt="" loading="lazy">` : `<span>${escapeHTML(safeName.slice(0, 2))}</span>`;
         const vpnText = isVpnProvider ? `In ${vpnArticle}${escapeHTML(vpnRegionName)} with a VPN` : '';
 
-        // A tile in "Also streaming on" and "Rent or buy".
+        // Just the logo, for the little logo stacks on the panel's buttons.
+        if (mode === 'logo') return `<span class="wp-stack-logo">${logoHtml}</span>`;
+
+        // A row in the "Rent or buy" and "Other services" popups.
         if (mode === 'popup') {
           const actionLabel = extraText || (modeExtra && modeExtra.type ? modeExtra.type : 'Stream');
-          const tag = { 'Rent': 'Rent', 'Buy': 'Buy', 'Rent/Buy': 'Rent or buy', 'Unsubscribed': 'Subscription', 'Subscription': 'Included', 'Subscription (VPN)': 'Included' }[actionLabel] || actionLabel;
-          return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wn-tile">
-            <span class="wn-tile-logo">${logoHtml}</span>
-            <span class="wn-tile-text"><span class="wn-tile-name">${escapeHTML(safeName)}</span>${vpnText ? `<span class="wn-tile-tag is-vpn">${vpnText}</span>` : `<span class="wn-tile-tag">${escapeHTML(tag)}</span>`}</span>
+          const tag = { 'Rent': 'Rent', 'Buy': 'Buy', 'Rent/Buy': 'Rent or buy', 'Unsubscribed': 'Needs a subscription', 'Subscription': 'Included with your subscription', 'Subscription (VPN)': 'Included with your subscription' }[actionLabel] || actionLabel;
+          return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wp-row wp-row-pop">
+            <span class="wp-logo">${logoHtml}</span>
+            <span class="wp-text"><span class="wp-name">${escapeHTML(safeName)}</span><span class="wp-sub${vpnText ? ' is-vpn' : ''}">${vpnText || escapeHTML(tag)}</span></span>
+            <svg class="wp-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"></path></svg>
           </a>`;
         }
-        // The hero's main button: "Watch on Prime Video", logo and all.
-        if (mode === 'hero') {
-          return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="btn btn-primary btn-lg hero-watch-btn"><span class="hero-watch-logo">${logoHtml}</span>Watch on ${escapeHTML(safeName)}</a>`;
-        }
 
-        // A service you have: a big card, the main thing this page is for.
-        return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wn-card">
-          <span class="wn-card-logo">${logoHtml}</span>
-          <span class="wn-card-text"><span class="wn-card-name">${escapeHTML(safeName)}</span><span class="wn-card-sub${vpnText ? ' is-vpn' : ''}">${vpnText || 'Included with your subscription'}</span></span>
-          <span class="wn-card-go">Watch<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+        // A service you have: a row in the panel with its Watch button.
+        return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wp-row">
+          <span class="wp-logo">${logoHtml}</span>
+          <span class="wp-text"><span class="wp-name">${escapeHTML(safeName)}</span><span class="wp-sub${vpnText ? ' is-vpn' : ''}">${vpnText || 'Included with your subscription'}</span></span>
+          <span class="wp-go">Watch</span>
         </a>`;
-      };
-      let streamingHtml = '';
-      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'Turn off VPN unlocks' : 'Also show where you could watch it by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="wn-chip watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''}">VPN<span class="hide-narrow">&nbsp;countries</span> <span class="watchnow-vpn-dot"></span></button>`;
+      };      let streamingHtml = '';
+      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'Turn off VPN unlocks' : 'Also show where you could watch it by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="wp-vpn watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''}">VPN <span class="watchnow-vpn-dot"></span></button>`;
 
       // Rent / Buy: ALWAYS use local home region if available. Only fallback to VPN if unavailable locally.
       const localRent = filterAndDeduplicateProviders(homeRegionData?.rent || [], true);
@@ -522,37 +521,31 @@
       // Subscribed streaming: if unlocked via VPN, show ONLY ONE as main (Netflix or HBO first), rest in More popup
       const userFlatrate = isVpnUnlocked ? vpnMatchedProviders : userHomeFlatrate;
 
-      // Your services first: every one you have (or up to three in other countries with a VPN).
-      const visibleFlatrate = isVpnUnlocked ? vpnMatchedProviders.slice(0, 3) : userHomeFlatrate;
+      // Your services: up to three as rows in the panel (the rest go in "Other services").
+      const visibleFlatrate = isVpnUnlocked ? vpnMatchedProviders.slice(0, 1) : userHomeFlatrate.slice(0, 3);
       const cleanFlatrate = isVpnUnlocked ? vpnMatchedProviders : homeFlatrate;
       const namesOf = (list) => [...new Set(list.map(p => (p.provider_name || p.name || '').replace('with Ads', '').trim()))];
       const regionName = REGION_META[currentRegion]?.name || currentRegion;
-      const empty = (title, sub) => `<div class="wn-empty"><p class="wn-empty-title">${escapeHTML(title)}</p>${sub ? `<p class="wn-empty-sub">${escapeHTML(sub)}</p>` : ''}</div>`;
+      const empty = (title, sub) => `<div class="wp-empty"><p class="wp-empty-title">${escapeHTML(title)}</p>${sub ? `<p class="wp-empty-sub">${escapeHTML(sub)}</p>` : ''}</div>`;
 
       if (visibleFlatrate.length > 0) {
         streamingHtml = visibleFlatrate.map(p => makeProviderLink(p, '', 'single')).join('');
       } else if (otherFlatrate.length > 0) {
         const names = namesOf(otherFlatrate);
-        streamingHtml = empty('Not on your services', `In ${regionName} it streams on ${names.slice(0, 3).join(', ')}${names.length > 3 ? ` and ${names.length - 3} more` : ''}.${vpnModeEnabled ? '' : ' Turn on VPN to check other countries.'}`);
+        streamingHtml = empty('Not on your services', `In ${regionName} it's on ${names.slice(0, 2).join(' and ')}${names.length > 2 ? ` and ${names.length - 2} more` : ''}.${vpnModeEnabled ? '' : ' Turn on VPN to check other countries.'}`);
       } else if (rbMap.size > 0) {
-        streamingHtml = empty(isVpnRentBuy ? 'Rent or buy it with a VPN' : 'Not streaming, but you can rent or buy it', isVpnRentBuy ? `Available in ${REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion}.` : (vpnModeEnabled ? '' : 'Turn on VPN to check streaming in other countries.'));
+        streamingHtml = empty('Not streaming', isVpnRentBuy ? `You can rent or buy it in ${REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion} with a VPN.` : `You can rent or buy it in ${regionName}.${vpnModeEnabled ? '' : ' Turn on VPN to check streaming elsewhere.'}`);
       } else {
-        streamingHtml = empty(`Not streaming in ${regionName} yet`, vpnModeEnabled ? 'Not on your services in any country we check either.' : 'Turn on VPN to check other countries.');
+        streamingHtml = empty(`Not streaming in ${regionName}`, vpnModeEnabled ? 'Not on your services in any country we check either.' : 'Turn on VPN to check other countries.');
       }
 
-      // The banner's main button follows the same answer.
-      const heroWatchHtml = visibleFlatrate.length > 0 ? makeProviderLink(visibleFlatrate[0], '', 'hero') : '';
-      movieObj._heroWatchHtml = heroWatchHtml;
-      const heroSlot = typeof document !== 'undefined' ? document.getElementById('heroWatchSlot') : null;
-      if (heroSlot) heroSlot.innerHTML = heroWatchHtml;
+      const extraYours = userFlatrate.filter(p => !visibleFlatrate.includes(p));
       let userFlatrateLinksHtml = '';
-      userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, isVpnUnlocked ? 'Subscription (VPN)' : 'Subscription', 'popup'); });
+      extraYours.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, 'Subscription', 'popup'); });
       let otherFlatrateLinksHtml = '';
       otherFlatrate.forEach(p => { otherFlatrateLinksHtml += makeProviderLink(p, 'Unsubscribed', 'popup'); });
       let rbLinksHtml = '';
       rbMap.forEach(val => { rbLinksHtml += makeProviderLink(val.p, val.type, 'popup', { type: val.type }); });
-
-      const extraStreamingCount = Math.max(0, userFlatrate.length - visibleFlatrate.length);
 
       if (!window.moviePopupDataCache) window.moviePopupDataCache = new Map();
       window.moviePopupDataCache.set(movieObj.id, {
@@ -562,32 +555,24 @@
         rbLinksHtml,
         rentBuyCount: rbMap.size,
         streamingCount: cleanFlatrate.length,
-        extraCount: extraStreamingCount,
+        extraCount: extraYours.length,
+        rbRegion: isVpnRentBuy ? (REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion) : '',
         hasVpnLinks: !!(vpnModeEnabled && (isVpnUnlocked || isVpnRentBuy))
       });
 
-      // Everything else stays visible as tiles: other services, then rent or buy.
-      const extraYours = userFlatrate.filter(p => !visibleFlatrate.includes(p));
-      const otherTiles = [...extraYours.map(p => makeProviderLink(p, 'Subscription', 'popup')), ...otherFlatrate.map(p => makeProviderLink(p, 'Unsubscribed', 'popup'))].join('');
-      let rbTiles = '';
-      const rbTypes = new Set();
-      rbMap.forEach(val => { rbTypes.add(val.type); rbTiles += makeProviderLink(val.p, val.type, 'popup', { type: val.type }); });
-      // When every service offers the same thing ("Rent or buy"), say it once in the heading.
-      const rbSame = rbTypes.size === 1 && !isVpnRentBuy;
-      const rbHeading = rbSame ? ({ 'Rent': 'Rent', 'Buy': 'Buy', 'Rent/Buy': 'Rent or buy' }[[...rbTypes][0]] || 'Rent or buy') : 'Rent or buy';
-      const groups = [
-        otherTiles ? `<div class="wn-group"><h3 class="wn-group-title">${extraYours.length && !otherFlatrate.length ? 'More of your services' : 'Also streaming on'}</h3><div class="wn-tiles">${otherTiles}</div></div>` : '',
-        rbTiles ? `<div class="wn-group${rbSame ? ' same-tag' : ''}"><h3 class="wn-group-title">${isVpnRentBuy ? `${rbHeading} in ${escapeHTML(REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion)}` : rbHeading}</h3><div class="wn-tiles">${rbTiles}</div></div>` : ''
+      // Everything else behind two buttons that open popups, each showing who's in it.
+      const stack = (list) => `<span class="wp-stack">${list.slice(0, 3).map(p => makeProviderLink(p, '', 'logo')).join('')}</span>`;
+      const chevron = '<svg class="wp-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"></path></svg>';
+      const others = [...extraYours, ...otherFlatrate];
+      const rbList = [...rbMap.values()].map(v => v.p);
+      const count = (n) => `${n} ${n === 1 ? 'service' : 'services'}`;
+      const moreBtns = [
+        rbList.length ? `<button type="button" class="wp-more-btn" onclick="openRentBuyPopup(${movieObj.id})">${stack(rbList)}<span class="wp-text"><span class="wp-name">Rent or buy</span><span class="wp-sub">${count(rbList.length)}${isVpnRentBuy ? ` in ${escapeHTML(REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion)}` : ''}</span></span>${chevron}</button>` : '',
+        others.length ? `<button type="button" class="wp-more-btn" onclick="openExtraStreamingPopup(${movieObj.id})">${stack(others)}<span class="wp-text"><span class="wp-name">${extraYours.length && !otherFlatrate.length ? 'More of your services' : 'Other services'}</span><span class="wp-sub">${count(others.length)}</span></span>${chevron}</button>` : ''
       ].join('');
 
-      // The VPN switch lives in the section heading (the page puts it there; re-renders refresh it).
-      movieObj._wnToggleHtml = vpnToggleBtnHtml;
-      const headSlot = typeof document !== 'undefined' ? document.getElementById('wnHeadToggle') : null;
-      if (headSlot) headSlot.innerHTML = vpnToggleBtnHtml;
-
-      return `<div class="wn-main">${streamingHtml}</div>${groups}`;
-    }
-    function isMovieVpnActive(movieObj, details) {
+      return `<div class="wp-head"><h2 class="wp-title">Where to watch</h2>${vpnToggleBtnHtml}</div><div class="wp-main">${streamingHtml}</div>${moreBtns ? `<div class="wp-more">${moreBtns}</div>` : ''}`;
+    }    function isMovieVpnActive(movieObj, details) {
       if (!vpnModeEnabled || !movieObj) return false;
       if (typeof movieObj._hasVpnActive === 'boolean') return movieObj._hasVpnActive;
       if (movieObj.vpnInfo) return true;
@@ -869,7 +854,7 @@
         const watchBoxHtml = renderMovieWatchOptionsBox(movieObj, details, true, false);
         const metaSep = '<span class="hero-meta-sep" aria-hidden="true">·</span>';
         const heroMetaHtml = `<div class="hero-meta">${[modalRatingBadgeHtml, year && year !== 'N/A' ? `<span>${year}</span>` : '', runtime ? `<span>${runtime}</span>` : '', genres ? `<span>${genres}</span>` : ''].filter(Boolean).join(metaSep)}</div>`;
-        const heroActionsHtml = `<div id="heroWatchSlot" class="hero-watch-slot">${movieObj._heroWatchHtml || ''}</div>${pageTrailerBtnHtml}${soundBtnInlineHtml}`;
+        const heroActionsHtml = `${pageTrailerBtnHtml}${soundBtnInlineHtml}`;
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
         const hasHero = !!(heroBackdropUrl || heroTrailer);
         const heroPosterUrl = getTextlessPosterUrl(details, movieObj.poster);
@@ -882,30 +867,33 @@
               </div>
               <!-- Content overlay: sits directly over the bottom of the poster/backdrop on all screens -->
               <div class="absolute inset-x-0 bottom-0 z-30 pointer-events-none pb-5 sm:pb-10 lg:pb-12">
-                <div class="page-width hero-copy">
+                <div class="page-width hero-layout">
+                  <div class="hero-copy">
+                    ${pageTitleHeaderHtml}
+                    ${heroMetaHtml}
+                    ${createHeroOverviewHtml(overview, safeTitle)}
+                    <div class="hero-actions pointer-events-auto">${heroActionsHtml}</div>
+                  </div>
+                  <aside id="desktopWatchOptionsBox" class="watch-panel watch-panel-hero" aria-label="Where to watch">${watchBoxHtml}</aside>
+                </div>
+              </div>
+            </div>`
+          : `<div class="relative w-full pt-24 pb-8 sm:pb-12 bg-gradient-to-b from-[#151517] via-[#151517] to-[#0a0a0b] border-b border-white/5">
+              <div class="page-width hero-layout">
+                <div class="hero-copy">
                   ${pageTitleHeaderHtml}
                   ${heroMetaHtml}
                   ${createHeroOverviewHtml(overview, safeTitle)}
                   <div class="hero-actions pointer-events-auto">${heroActionsHtml}</div>
                 </div>
-              </div>
-            </div>`
-          : `<div class="relative w-full pt-24 pb-8 sm:pb-12 bg-gradient-to-b from-[#151517] via-[#151517] to-[#0a0a0b] border-b border-white/5">
-              <div class="page-width hero-copy">
-                ${pageTitleHeaderHtml}
-                ${heroMetaHtml}
-                ${createHeroOverviewHtml(overview, safeTitle)}
-                <div class="hero-actions pointer-events-auto">${heroActionsHtml}</div>
+                <aside id="desktopWatchOptionsBox" class="watch-panel watch-panel-hero" aria-label="Where to watch">${watchBoxHtml}</aside>
               </div>
             </div>`;
 
         return `${pageNavHTML('closeMoviePage()', 'goHomeFromPage()', 'moviePageNav')}
           ${heroBannerSectionHtml}
           <div class="page-width film-body">
-            <section class="page-section wn-section">
-              <div class="section-head"><h2 class="section-title">Where to watch</h2><span class="section-count">in ${escapeHTML(REGION_META[currentRegion]?.name || currentRegion)}</span><div id="wnHeadToggle" class="section-head-end">${movieObj._wnToggleHtml || ''}</div></div>
-              <div id="desktopWatchOptionsBox" class="wn-box">${watchBoxHtml}</div>
-            </section>
+            <aside id="mobileWatchOptionsBox" class="watch-panel watch-panel-inline" aria-label="Where to watch">${watchBoxHtml}</aside>
             ${castCrewHtml}
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
             ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
