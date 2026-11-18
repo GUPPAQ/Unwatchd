@@ -176,7 +176,9 @@
           let link = getRegionServiceUrl(serviceName, region, m.title);
           const deeplink = getDeeplinkFor(serviceName);
           if (deeplink && deeplink.searchUrl) link = deeplink.searchUrl(m.title);
-          const appLink = deeplink && deeplink.appUrl ? deeplink.appUrl(m.title) : null;
+          let appLink = deeplink && deeplink.appUrl ? deeplink.appUrl(m.title) : null;
+          const directLink = getJustWatchLink(m, region, serviceName, false); // the film's own page, once known
+          if (directLink) { link = directLink; appLink = null; }
           watch.href = link;
           watch.textContent = `Watch on ${serviceName}`;
           watch.onclick = (e) => { if (appLink) { e.preventDefault(); openStreamingService(link, appLink); } };

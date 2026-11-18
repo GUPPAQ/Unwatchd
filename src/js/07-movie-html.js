@@ -310,6 +310,8 @@
 
     function renderMovieWatchOptionsBox(movieObj, details, isDesktop = false, isModal = false) {
       if (!movieObj) return '';
+      // JustWatch sometimes knows a film only by its original title (see requestJustWatchLinks).
+      if (details && !movieObj.originalTitle) movieObj.originalTitle = details.original_title || details.original_name || '';
 
       // Resolve full providers dictionary across all available regions
       const allProvidersMap = movieObj.allProviders
@@ -429,11 +431,16 @@
         let link = getRegionServiceUrl(safeName, effectiveRegion, movieObj.title);
 
         const deeplink = getDeeplinkFor(safeName);
-        const appLink = deeplink && deeplink.appUrl ? deeplink.appUrl(movieObj.title) : null;
+        let appLink = deeplink && deeplink.appUrl ? deeplink.appUrl(movieObj.title) : null;
 
         if (deeplink && deeplink.searchUrl) {
           link = deeplink.searchUrl(movieObj.title);
         }
+        // The title's own page on the service, when JustWatch knows it (these also open the app on
+        // phones by themselves, so the app-search fallback isn't needed).
+        const isRentBuyLink = mode === 'popup' && /Rent|Buy/.test(extraText || (modeExtra && modeExtra.type) || '');
+        const directLink = getJustWatchLink(movieObj, effectiveRegion, safeName, isRentBuyLink);
+        if (directLink) { link = directLink; appLink = null; }
 
         const appAttr = appLink ? `data-app-link="${escapeHTML(appLink)}"` : '';
         const openApp = `onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }"`;

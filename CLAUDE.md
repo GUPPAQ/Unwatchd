@@ -16,6 +16,11 @@ Letterboxd pages (letterboxd.com only).
 - `api/proxy.js` – only allows `letterboxd.com/<user>/watchlist/page/<n>/` and caches
   pages at the edge for 2 minutes. If the app needs other Letterboxd pages, widen
   `WATCHLIST_PAGE_PATH` deliberately.
+- `api/justwatch.js` – one fixed JustWatch GraphQL lookup (TMDB id + title + country, matched on
+  the TMDB id) that returns each service's direct link to the title; cached at the edge for hours.
+  The client side is `getJustWatchLink()` in `02-providers-regions.js`: Watch buttons use the direct
+  link when known and fall back to the service's search/home URL. It's JustWatch's own website
+  API, not an official one, so it can change; keep the fallback, and keep JustWatch attributed.
 - `og-image.png` – link preview image (1200×630) referenced by the `og:`/`twitter:` meta tags.
 
 ## Build

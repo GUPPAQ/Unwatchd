@@ -78,6 +78,7 @@
     <ul>
       <li><strong>Our server (hosted by Vercel).</strong> When you scan, the Letterboxd username you entered is sent to our server, which fetches that public watchlist from Letterboxd and passes it back. Watchlist pages are cached for up to two minutes. Vercel, as the host, processes technical request data such as your IP address.</li>
       <li><strong>TMDB.</strong> Your browser asks The Movie Database directly for film details, posters and streaming availability.</li>
+      <li><strong>JustWatch, through our server.</strong> When you open a film, our server asks JustWatch for the links to that film on each streaming service, so the Watch buttons can open it directly. Only the film's TMDB id, its title and the country are sent; your browser never contacts JustWatch, and nothing about you is included. Answers are cached for a few hours.</li>
       <li><strong>Cinemeta (Stremio).</strong> Your browser asks this service directly for IMDb ratings.</li>
       <li><strong>logo.dev.</strong> Your browser may load a streaming service's logo from here when we don't have our own copy.</li>
       <li><strong>YouTube.</strong> Only when you open a trailer, the player is loaded from YouTube.</li>

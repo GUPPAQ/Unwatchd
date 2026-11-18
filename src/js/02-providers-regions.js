@@ -517,6 +517,61 @@
       const key = (providerName || '').toLowerCase().trim();
       return KNOWN_DEEPLINKS[key] || null;
     }
+
+    // ── Direct links to a title on each service, from JustWatch (via /api/justwatch) ──
+    // Asked once per title and country; until the answer arrives (or when JustWatch has nothing)
+    // the Watch buttons fall back to the service's search or home page above.
+    var justWatchLinks = new Map(); // `${type}_${id}_${country}` -> { status: 'loading' | 'done', offers: [] }
+    // JustWatch names some stores differently: Prime Video's rentals are "Amazon Video", Apple's are
+    // "Apple TV Store" (technical name "itunes"). Map both sides onto one key.
+    const justWatchNameKey = (name) => {
+      let k = cleanNormalize(name || '').replace(/plus$/, '');
+      if (k === 'amazon' || k === 'amazonvideo' || k === 'amazonprimevideo' || k === 'primevideo') return 'primevideo';
+      if (k === 'itunes' || k.startsWith('appletv')) return 'appletv';
+      return k.replace(/^amazon/, '');
+    };
+    function getJustWatchLink(movieObj, country, providerName, rentOrBuy) {
+      if (!movieObj || !movieObj.id || !country) return null;
+      const type = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
+      const key = `${type}_${movieObj.id}_${country}`;
+      const entry = justWatchLinks.get(key);
+      if (!entry) { requestJustWatchLinks(movieObj, country); return null; }
+      if (entry.status !== 'done') return null;
+      const want = justWatchNameKey(providerName);
+      const offers = entry.offers.filter(o => justWatchNameKey(o.name) === want || justWatchNameKey(o.key) === want);
+      if (!offers.length) return null;
+      const preferred = rentOrBuy
+        ? offers.find(o => o.type === 'RENT' || o.type === 'BUY')
+        : offers.find(o => o.type === 'FLATRATE' || o.type === 'FREE' || o.type === 'ADS');
+      return (preferred || offers[0]).url;
+    }
+    function requestJustWatchLinks(movieObj, country) {
+      const type = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
+      const key = `${type}_${movieObj.id}_${country}`;
+      const title = (movieObj.title || movieObj.name || '').trim();
+      if (!title || !REGION_META[country]) { justWatchLinks.set(key, { status: 'done', offers: [] }); return; }
+      justWatchLinks.set(key, { status: 'loading', offers: [] });
+      const original = (movieObj.originalTitle || movieObj.original_title || movieObj.original_name || '').trim();
+      const url = `/api/justwatch?tmdb=${encodeURIComponent(movieObj.id)}&type=${type}&country=${country}&title=${encodeURIComponent(title)}${original && original !== title ? `&alt=${encodeURIComponent(original)}` : ''}`;
+      fetch(url)
+        .then(r => (r.ok ? r.json() : { offers: [] }))
+        .then(d => {
+          justWatchLinks.set(key, { status: 'done', offers: Array.isArray(d.offers) ? d.offers : [] });
+          if (d.offers && d.offers.length) refreshWatchLinksFor(movieObj);
+        })
+        .catch(e => { logIgnored('justwatch links', e); justWatchLinks.set(key, { status: 'done', offers: [] }); });
+    }
+    // Redraw whatever is showing this title's Watch buttons, now that direct links are known.
+    function refreshWatchLinksFor(movieObj) {
+      const view = document.getElementById('moviePageView');
+      if (view && !view.classList.contains('hidden') && window.currentMoviePageObj && window.currentMoviePageObj.id === movieObj.id) {
+        refreshMovieVpnView();
+      }
+      if (typeof currentTonightPick !== 'undefined' && currentTonightPick && currentTonightPick.id === movieObj.id) {
+        const pool = (currentGroupedResults && currentGroupedResults.stream) || [];
+        fillTonightPick(currentTonightPick, pool.length);
+      }
+    }
     let scannedMovies = [];
     let selectedServiceIds = new Set();
     try {
