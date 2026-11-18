@@ -209,7 +209,7 @@
       const id = 'heroOverview_' + (++heroOverviewCounter);
       heroOverviewTextStore[id] = { text: escapedText, popupTitle };
       setTimeout(() => clampHeroOverview(id), 0);
-      return `<p id="${id}" class="w-full max-w-full lg:max-w-2xl text-gray-200 text-base sm:text-lg leading-snug font-medium line-clamp-2">${escapedText}</p>`;
+      return `<p id="${id}" class="hero-overview w-full max-w-full lg:max-w-2xl line-clamp-3">${escapedText}</p>`;
     }
     // Measures the actual rendered paragraph and binary-searches for the longest prefix that still
     // fits on 2 lines once "… More" is appended — guarantees "More" lands as the real last word on
@@ -218,10 +218,10 @@
       const p = document.getElementById(id);
       const data = heroOverviewTextStore[id];
       if (!p || !data) return;
-      p.classList.remove('line-clamp-2');
+      p.classList.remove('line-clamp-3');
       const lineHeight = parseFloat(getComputedStyle(p).lineHeight) || 24;
-      const maxHeight = lineHeight * 2 + 2;
-      const moreSpan = `<span class="text-blue-400 font-extrabold">more</span>`;
+      const maxHeight = lineHeight * 3 + 2;
+      const moreSpan = `<span class="hero-overview-more">more</span>`;
       p.innerHTML = data.text;
       if (p.scrollHeight <= maxHeight) return;
       let lo = 0, hi = data.text.length;
@@ -233,8 +233,11 @@
         p.innerHTML = data.text.slice(0, mid).trim() + '… ' + moreSpan;
         if (p.scrollHeight <= maxHeight) lo = mid; else hi = mid - 1;
       }
-      const truncated = data.text.slice(0, lo).trim();
-      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="text-blue-400 font-extrabold cursor-pointer hover:text-blue-300 transition-colors">more</span>`;
+      // Never stop mid-word: back up to the last whole word that fits, and drop trailing punctuation.
+      let cut = data.text.slice(0, lo);
+      if (lo < data.text.length && /\S/.test(data.text[lo] || '')) cut = cut.replace(/\s+\S*$/, '');
+      const truncated = cut.trim().replace(/[,;:.\-–—]+$/, '');
+      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="hero-overview-more">more</span>`;
     }
 
     function createExpandableTextHtml(text, id = '') {

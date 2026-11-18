@@ -3712,17 +3712,15 @@
         const logoHtml = logoSrc ? `<img src="${logoSrc}" alt="" loading="lazy">` : `<span>${escapeHTML(safeName.slice(0, 2))}</span>`;
         const vpnText = isVpnProvider ? `In ${vpnArticle}${escapeHTML(vpnRegionName)} with a VPN` : '';
 
-        // A row in "Also streaming on" and "Rent or buy".
+        // A tile in "Also streaming on" and "Rent or buy".
         if (mode === 'popup') {
           const actionLabel = extraText || (modeExtra && modeExtra.type ? modeExtra.type : 'Stream');
-          const tag = { 'Rent': 'Rent', 'Buy': 'Buy', 'Rent/Buy': 'Rent or buy', 'Unsubscribed': 'Needs a subscription', 'Subscription': 'Included', 'Subscription (VPN)': 'Included' }[actionLabel] || actionLabel;
-          return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wn-row">
-            <span class="wn-logo">${logoHtml}</span>
-            <span class="wn-text"><span class="wn-name">${escapeHTML(safeName)}</span><span class="wn-sub${vpnText ? ' is-vpn' : ''}">${vpnText || escapeHTML(tag)}</span></span>
-            <svg class="wn-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"></path></svg>
+          const tag = { 'Rent': 'Rent', 'Buy': 'Buy', 'Rent/Buy': 'Rent or buy', 'Unsubscribed': 'Subscription', 'Subscription': 'Included', 'Subscription (VPN)': 'Included' }[actionLabel] || actionLabel;
+          return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wn-tile">
+            <span class="wn-tile-logo">${logoHtml}</span>
+            <span class="wn-tile-text"><span class="wn-tile-name">${escapeHTML(safeName)}</span>${vpnText ? `<span class="wn-tile-tag is-vpn">${vpnText}</span>` : `<span class="wn-tile-tag">${escapeHTML(tag)}</span>`}</span>
           </a>`;
         }
-
         // The hero's main button: "Watch on Prime Video", logo and all.
         if (mode === 'hero') {
           return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="btn btn-primary btn-lg hero-watch-btn"><span class="hero-watch-logo">${logoHtml}</span>Watch on ${escapeHTML(safeName)}</a>`;
@@ -3736,7 +3734,7 @@
         </a>`;
       };
       let streamingHtml = '';
-      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'Turn off VPN unlocks' : 'Also show where you could watch it by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="wn-chip watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''}">VPN countries <span class="watchnow-vpn-dot"></span></button>`;
+      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'Turn off VPN unlocks' : 'Also show where you could watch it by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="wn-chip watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''}">VPN<span class="hide-narrow">&nbsp;countries</span> <span class="watchnow-vpn-dot"></span></button>`;
 
       // Rent / Buy: ALWAYS use local home region if available. Only fallback to VPN if unavailable locally.
       const localRent = filterAndDeduplicateProviders(homeRegionData?.rent || [], true);
@@ -3840,18 +3838,26 @@
         hasVpnLinks: !!(vpnModeEnabled && (isVpnUnlocked || isVpnRentBuy))
       });
 
-      // Everything else stays visible: other services and rent or buy, as lists.
+      // Everything else stays visible as tiles: other services, then rent or buy.
       const extraYours = userFlatrate.filter(p => !visibleFlatrate.includes(p));
-      const otherRows = [...extraYours.map(p => makeProviderLink(p, 'Subscription', 'popup')), ...otherFlatrate.map(p => makeProviderLink(p, 'Unsubscribed', 'popup'))].join('');
-      let rbRows = '';
-      rbMap.forEach(val => { rbRows += makeProviderLink(val.p, val.type, 'popup', { type: val.type }); });
+      const otherTiles = [...extraYours.map(p => makeProviderLink(p, 'Subscription', 'popup')), ...otherFlatrate.map(p => makeProviderLink(p, 'Unsubscribed', 'popup'))].join('');
+      let rbTiles = '';
+      const rbTypes = new Set();
+      rbMap.forEach(val => { rbTypes.add(val.type); rbTiles += makeProviderLink(val.p, val.type, 'popup', { type: val.type }); });
+      // When every service offers the same thing ("Rent or buy"), say it once in the heading.
+      const rbSame = rbTypes.size === 1 && !isVpnRentBuy;
+      const rbHeading = rbSame ? ({ 'Rent': 'Rent', 'Buy': 'Buy', 'Rent/Buy': 'Rent or buy' }[[...rbTypes][0]] || 'Rent or buy') : 'Rent or buy';
       const groups = [
-        otherRows ? `<div class="wn-group"><h3 class="wn-group-title">Also streaming on</h3><div class="wn-rows">${otherRows}</div></div>` : '',
-        rbRows ? `<div class="wn-group"><h3 class="wn-group-title">${isVpnRentBuy ? `Rent or buy in ${escapeHTML(REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion)}` : 'Rent or buy'}</h3><div class="wn-rows">${rbRows}</div></div>` : ''
+        otherTiles ? `<div class="wn-group"><h3 class="wn-group-title">${extraYours.length && !otherFlatrate.length ? 'More of your services' : 'Also streaming on'}</h3><div class="wn-tiles">${otherTiles}</div></div>` : '',
+        rbTiles ? `<div class="wn-group${rbSame ? ' same-tag' : ''}"><h3 class="wn-group-title">${isVpnRentBuy ? `${rbHeading} in ${escapeHTML(REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion)}` : rbHeading}</h3><div class="wn-tiles">${rbTiles}</div></div>` : ''
       ].join('');
-      const bar = `<div class="wn-bar"><span class="wn-where">${vpnModeEnabled ? `${escapeHTML(regionName)}, and other countries with a VPN` : `In ${escapeHTML(regionName)}`}</span>${vpnToggleBtnHtml}</div>`;
 
-      return `${bar}<div class="wn-main">${streamingHtml}</div>${groups ? `<div class="wn-more">${groups}</div>` : ''}`;
+      // The VPN switch lives in the section heading (the page puts it there; re-renders refresh it).
+      movieObj._wnToggleHtml = vpnToggleBtnHtml;
+      const headSlot = typeof document !== 'undefined' ? document.getElementById('wnHeadToggle') : null;
+      if (headSlot) headSlot.innerHTML = vpnToggleBtnHtml;
+
+      return `<div class="wn-main">${streamingHtml}</div>${groups}`;
     }
     function isMovieVpnActive(movieObj, details) {
       if (!vpnModeEnabled || !movieObj) return false;
@@ -3914,7 +3920,7 @@
         const seasons = details.number_of_seasons;
         const episodes = details.number_of_episodes;
         if (seasons && episodes) {
-          runtime = `${seasons} ${seasons === 1 ? 'Season' : 'Seasons'} • ${episodes} ${episodes === 1 ? 'Episode' : 'Episodes'}`;
+          runtime = `${seasons} ${seasons === 1 ? 'season' : 'seasons'}, ${episodes} ${episodes === 1 ? 'episode' : 'episodes'}`;
         } else if (episodes) {
           runtime = `${episodes} ${episodes === 1 ? 'Episode' : 'Episodes'}`;
         } else if (seasons) {
@@ -3922,7 +3928,7 @@
         }
       } else if (details && details.runtime) {
         runtime = `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m`;
-      } const genres = details && details.genres ? details.genres.map(g => escapeHTML(g.name)).slice(0, 3).join(' • ') : ''; const overview = details && details.overview ? escapeHTML(details.overview) : 'No synopsis available.';
+      } const genres = details && details.genres ? details.genres.map(g => escapeHTML(g.name)).slice(0, 3).join(', ') : ''; const overview = details && details.overview ? escapeHTML(details.overview) : 'No synopsis available.';
       const titleLogo = getBestTitleLogo(details);
       const titleHeaderHtml = titleLogo
         ? `<img src="${titleLogo}" alt="${safeTitle}" loading="eager" decoding="async" class="titleLogoImg max-h-20 sm:max-h-28 max-w-[280px] sm:max-w-[440px] object-contain mb-2 shrink-0" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`
@@ -4133,6 +4139,8 @@
 
       if (isPage) {
         const watchBoxHtml = renderMovieWatchOptionsBox(movieObj, details, true, false);
+        const metaSep = '<span class="hero-meta-sep" aria-hidden="true">·</span>';
+        const heroMetaHtml = `<div class="hero-meta">${[modalRatingBadgeHtml, year && year !== 'N/A' ? `<span>${year}</span>` : '', runtime ? `<span>${runtime}</span>` : '', genres ? `<span>${genres}</span>` : ''].filter(Boolean).join(metaSep)}</div>`;
         const heroActionsHtml = `<div id="heroWatchSlot" class="hero-watch-slot">${movieObj._heroWatchHtml || ''}</div>${pageTrailerBtnHtml}${soundBtnInlineHtml}`;
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
         const hasHero = !!(heroBackdropUrl || heroTrailer);
@@ -4146,40 +4154,28 @@
               </div>
               <!-- Content overlay: sits directly over the bottom of the poster/backdrop on all screens -->
               <div class="absolute inset-x-0 bottom-0 z-30 pointer-events-none pb-5 sm:pb-10 lg:pb-12">
-                <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-6">
-                  <div class="w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl min-w-0 pointer-events-auto flex flex-col items-center lg:items-start gap-2 sm:gap-2.5 mx-auto lg:mx-0">
-                    ${pageTitleHeaderHtml}
-                    <!-- Rating, Year, Runtime & Genres (Single unbroken row) -->
-                    <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg 2xl:text-xl font-bold text-gray-200 whitespace-nowrap overflow-hidden max-w-full">
-                      ${modalRatingBadgeHtml}
-                      ${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}
-                      <span class="text-white font-extrabold shrink-0">${year}</span>
-                      ${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}
-                      ${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}
-                    </div>
-                    <div class="mt-1 w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
-                  </div>
+                <div class="page-width hero-copy">
+                  ${pageTitleHeaderHtml}
+                  ${heroMetaHtml}
+                  ${createHeroOverviewHtml(overview, safeTitle)}
                   <div class="hero-actions pointer-events-auto">${heroActionsHtml}</div>
-
                 </div>
               </div>
             </div>`
           : `<div class="relative w-full pt-24 pb-8 sm:pb-12 bg-gradient-to-b from-[#151517] via-[#151517] to-[#0a0a0b] border-b border-white/5">
-              <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-                <div class="w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl min-w-0 flex flex-col items-center lg:items-start mx-auto lg:mx-0">
-                  ${pageTitleHeaderHtml}
-                  <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg 2xl:text-xl font-bold text-gray-200 mt-2 whitespace-nowrap overflow-hidden max-w-full">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold shrink-0">${year}</span>${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}</div>
-                  <div class="mt-3 w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
-                </div>
+              <div class="page-width hero-copy">
+                ${pageTitleHeaderHtml}
+                ${heroMetaHtml}
+                ${createHeroOverviewHtml(overview, safeTitle)}
                 <div class="hero-actions pointer-events-auto">${heroActionsHtml}</div>
               </div>
             </div>`;
 
         return `${pageNavHTML('closeMoviePage()', 'goHomeFromPage()', 'moviePageNav')}
           ${heroBannerSectionHtml}
-          <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 ${hasHero ? 'pt-0' : 'pt-8'} pb-0 flex flex-col gap-7 sm:gap-9 lg:gap-11">
+          <div class="page-width film-body">
             <section class="page-section wn-section">
-              <div class="section-head"><h2 class="section-title">Where to watch</h2></div>
+              <div class="section-head"><h2 class="section-title">Where to watch</h2><span class="section-count">in ${escapeHTML(REGION_META[currentRegion]?.name || currentRegion)}</span><div id="wnHeadToggle" class="section-head-end">${movieObj._wnToggleHtml || ''}</div></div>
               <div id="desktopWatchOptionsBox" class="wn-box">${watchBoxHtml}</div>
             </section>
             ${castCrewHtml}
@@ -4412,7 +4408,7 @@
       const id = 'heroOverview_' + (++heroOverviewCounter);
       heroOverviewTextStore[id] = { text: escapedText, popupTitle };
       setTimeout(() => clampHeroOverview(id), 0);
-      return `<p id="${id}" class="w-full max-w-full lg:max-w-2xl text-gray-200 text-base sm:text-lg leading-snug font-medium line-clamp-2">${escapedText}</p>`;
+      return `<p id="${id}" class="hero-overview w-full max-w-full lg:max-w-2xl line-clamp-3">${escapedText}</p>`;
     }
     // Measures the actual rendered paragraph and binary-searches for the longest prefix that still
     // fits on 2 lines once "… More" is appended — guarantees "More" lands as the real last word on
@@ -4421,10 +4417,10 @@
       const p = document.getElementById(id);
       const data = heroOverviewTextStore[id];
       if (!p || !data) return;
-      p.classList.remove('line-clamp-2');
+      p.classList.remove('line-clamp-3');
       const lineHeight = parseFloat(getComputedStyle(p).lineHeight) || 24;
-      const maxHeight = lineHeight * 2 + 2;
-      const moreSpan = `<span class="text-blue-400 font-extrabold">more</span>`;
+      const maxHeight = lineHeight * 3 + 2;
+      const moreSpan = `<span class="hero-overview-more">more</span>`;
       p.innerHTML = data.text;
       if (p.scrollHeight <= maxHeight) return;
       let lo = 0, hi = data.text.length;
@@ -4436,8 +4432,11 @@
         p.innerHTML = data.text.slice(0, mid).trim() + '… ' + moreSpan;
         if (p.scrollHeight <= maxHeight) lo = mid; else hi = mid - 1;
       }
-      const truncated = data.text.slice(0, lo).trim();
-      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="text-blue-400 font-extrabold cursor-pointer hover:text-blue-300 transition-colors">more</span>`;
+      // Never stop mid-word: back up to the last whole word that fits, and drop trailing punctuation.
+      let cut = data.text.slice(0, lo);
+      if (lo < data.text.length && /\S/.test(data.text[lo] || '')) cut = cut.replace(/\s+\S*$/, '');
+      const truncated = cut.trim().replace(/[,;:.\-–—]+$/, '');
+      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="hero-overview-more">more</span>`;
     }
 
     function createExpandableTextHtml(text, id = '') {
