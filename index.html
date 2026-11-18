@@ -6523,6 +6523,129 @@
     .film-watch .wp-more-btn .wp-sub {
       font-size: 13px;
     }
+
+    /* ── The services card in Where to watch ──
+       One service: logo, name and status, then Watch. Several: a row of tiles to pick from, the
+       picked service's status, and one Watch button that follows the pick. */
+    .wp-feature {
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .wp-feature-top .wp-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+    }
+
+    .wp-feature-top .wp-name {
+      font-size: 20px;
+    }
+
+    .wp-feature-top .wp-sub,
+    .wp-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: normal;
+    }
+
+    /* A small mark before the status: a quiet grey dot when it's included, ember when it needs a VPN. */
+    .wp-feature-top .wp-sub::before,
+    .wp-status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      flex: none;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .wp-feature-top .wp-sub.is-vpn::before,
+    .wp-status.is-vpn::before {
+      background: var(--accent);
+    }
+
+    .wp-status {
+      margin: -2px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .wp-status.is-vpn {
+      color: var(--accent-soft);
+    }
+
+    .wp-pick {
+      display: grid;
+      grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .wp-pick-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 12px 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.15s, background-color 0.15s, color 0.15s, transform 0.12s ease-out;
+    }
+
+    .wp-pick-logo {
+      width: 48px;
+      height: 48px;
+      flex: none;
+      overflow: hidden;
+      border-radius: 12px;
+      background: var(--surface);
+    }
+
+    .wp-pick-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wp-pick-name {
+      max-width: 100%;
+      overflow: hidden;
+      font-size: 13px;
+      font-weight: 500;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .wp-pick-btn[aria-pressed="true"] {
+      border-color: var(--text);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .wp-pick-btn[aria-pressed="false"]:hover {
+        border-color: var(--line-strong);
+        color: var(--text);
+      }
+    }
+
+    .wp-pick-btn:active {
+      transform: scale(0.96);
+      transition-duration: 0.06s;
+    }
+
+    .wp-feature .wp-watch {
+      flex: none;
+      width: 100%;
+      height: 48px;
+      font-size: 16px;
+    }
   </style>
   <link rel="stylesheet" href="./styles.css">
   <!-- Vercel Web Analytics (page views & visitors, no cookies). Enable it under the project's Analytics tab on vercel.com. -->

@@ -85,3 +85,22 @@
         }, { passive: true });
       });
     })();
+    // Where to watch, several of your services: picking a tile points the Watch button (and the
+    // status line under the tiles) at that service.
+    function selectWatchService(btn) {
+      const card = btn.closest('.wp-feature');
+      if (!card) return;
+      card.querySelectorAll('.wp-pick-btn').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      const watch = card.querySelector('.wp-watch');
+      if (watch) {
+        watch.href = btn.dataset.link;
+        if (btn.dataset.app) watch.setAttribute('data-app-link', btn.dataset.app); else watch.removeAttribute('data-app-link');
+        const label = watch.querySelector('.wp-watch-label');
+        if (label) label.textContent = `Watch on ${btn.dataset.name}`;
+      }
+      const status = card.querySelector('.wp-status');
+      if (status) {
+        status.textContent = btn.dataset.status;
+        status.classList.toggle('is-vpn', btn.dataset.vpn === '1');
+      }
+    }
