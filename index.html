@@ -35,24 +35,26 @@
   <meta name="twitter:image" content="https://www.unwatchd.online/og-image.png">
   <link rel="preconnect" href="https://api.themoviedb.org" crossorigin>
   <link rel="preconnect" href="https://image.tmdb.org">
-  <link rel="preload" href="/fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-serif-display-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>
-    /* Outfit is served from this site, not from Google Fonts, so loading the page doesn't send visitors' IP addresses to Google. */
+    /* DM Sans (text) and DM Serif Display (display) are served from this site, not from Google Fonts,
+       so loading the page doesn't send visitors' IP addresses to Google. Both are SIL OFL; see /fonts. */
     @font-face {
-      font-family: 'Outfit';
+      font-family: 'DM Sans';
       font-style: normal;
-      font-weight: 300 900;
+      font-weight: 100 1000;
       font-display: swap;
-      src: url(/fonts/outfit-latin-ext.woff2) format('woff2');
+      src: url(/fonts/dm-sans-latin-ext.woff2) format('woff2');
       unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
     }
 
     @font-face {
-      font-family: 'Outfit';
+      font-family: 'DM Sans';
       font-style: normal;
-      font-weight: 300 900;
+      font-weight: 100 1000;
       font-display: swap;
-      src: url(/fonts/outfit-latin.woff2) format('woff2');
+      src: url(/fonts/dm-sans-latin.woff2) format('woff2');
       unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
 
@@ -147,7 +149,7 @@
     body {
       background-color: var(--bg-base);
       color: #f4f0e8;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'DM Sans', system-ui, sans-serif;
       overflow-x: hidden;
       margin: 0;
       min-height: 100dvh;
@@ -2017,19 +2019,39 @@
        (Tailwind) loads after it, hence the occasional doubled selector for specificity.
        ════════════════════════════════════════════════════════════════════════════ */
     @font-face {
-      font-family: 'Instrument Serif';
+      font-family: 'DM Serif Display';
       font-style: normal;
       font-weight: 400;
       font-display: swap;
-      src: url(/fonts/instrument-serif-normal.woff2) format('woff2');
+      src: url(/fonts/dm-serif-display-latin-ext.woff2) format('woff2');
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
     }
 
     @font-face {
-      font-family: 'Instrument Serif';
+      font-family: 'DM Serif Display';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(/fonts/dm-serif-display-latin.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+      font-family: 'DM Serif Display';
       font-style: italic;
       font-weight: 400;
       font-display: swap;
-      src: url(/fonts/instrument-serif-italic.woff2) format('woff2');
+      src: url(/fonts/dm-serif-display-latin-ext-italic.woff2) format('woff2');
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    @font-face {
+      font-family: 'DM Serif Display';
+      font-style: italic;
+      font-weight: 400;
+      font-display: swap;
+      src: url(/fonts/dm-serif-display-latin-italic.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
 
     :root {
@@ -2043,8 +2065,8 @@
       --faint: #8a857d;
       --accent: #ff5a36;
       --accent-soft: #ff7a5c;
-      --serif: 'Instrument Serif', Georgia, serif;
-      --sans: 'Outfit', system-ui, sans-serif;
+      --serif: 'DM Serif Display', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
       --pad: 20px;
       --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
       color-scheme: dark;
@@ -2353,8 +2375,8 @@
       margin: 0;
       font-family: var(--serif);
       font-weight: 400;
-      font-size: clamp(3.1rem, 9.5vw, 6rem);
-      line-height: 0.96;
+      font-size: clamp(2.9rem, 8.6vw, 5.4rem);
+      line-height: 1;
       letter-spacing: -0.015em;
       text-wrap: balance;
       color: var(--text);
@@ -2366,9 +2388,9 @@
     }
 
     .display-sm {
-      font-size: clamp(2.3rem, 5.6vw, 4.4rem);
-      line-height: 1.02;
-      max-width: 18ch;
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      line-height: 1.04;
+      max-width: 24ch;
     }
 
     .lede {
@@ -5279,7 +5301,7 @@
     }
 
     /* ── Type system: the last word on fonts ──
-       Two faces: Instrument Serif for display lines and section titles (always 400), Outfit for
+       Two faces: DM Serif Display for display lines and section titles (always 400), DM Sans for
        everything else. Three weights: 400 text, 500 controls, 600 emphasis (the wordmark is the
        one 700). Sizes come from one scale: 12 · 13 · 14 · 15 · 16 · 18 · 20, then the serif sizes.
        Tracking follows size (Apple): display lines tighten, small text opens a touch, nothing is
@@ -5351,7 +5373,7 @@
       text-transform: none;
     }
 
-    /* The IMDb mark: Outfit in IMDb's yellow, not a pasted-in Impact sticker. */
+    /* The IMDb rating sits next to its logo. */
     .poster-rating-badge[class] {
       gap: 5px;
       padding: 0 7px;
