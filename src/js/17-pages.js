@@ -72,3 +72,16 @@
       btn.textContent = 'Link copied';
       setTimeout(() => { btn.textContent = old; }, 1800);
     }
+
+    // Once a full page scrolls, its back/close row gets a solid strip (the sticky tab bars sit
+    // right under it), so content never shows through around the buttons.
+    (() => {
+      ['moviePageView', 'actorPageView', 'allCastModal'].forEach(id => {
+        const view = document.getElementById(id);
+        if (!view) return;
+        view.addEventListener('scroll', () => {
+          const nav = view.querySelector('.page-nav');
+          if (nav) nav.classList.toggle('is-solid', view.scrollTop > 40);
+        }, { passive: true });
+      });
+    })();

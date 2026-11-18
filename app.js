@@ -3843,7 +3843,12 @@
         others.length ? `<button type="button" class="wp-more-btn" onclick="openExtraStreamingPopup(${movieObj.id})">${stack(others)}<span class="wp-text"><span class="wp-name">${extraYours.length && !otherFlatrate.length ? 'More of your services' : 'Other services'}</span><span class="wp-sub">${count(others.length)}</span></span>${chevron}</button>` : ''
       ].join('');
 
-      return `<div class="wp-head"><h2 class="wp-title">Where to watch</h2>${vpnToggleBtnHtml}</div><div class="wp-main">${streamingHtml}</div>${moreBtns ? `<div class="wp-more">${moreBtns}</div>` : ''}`;
+      // The VPN switch sits in the section heading; re-renders refresh it there.
+      movieObj._wnToggleHtml = vpnToggleBtnHtml;
+      const headSlot = typeof document !== 'undefined' ? document.getElementById('wnHeadToggle') : null;
+      if (headSlot) headSlot.innerHTML = vpnToggleBtnHtml;
+
+      return `<div class="wp-main">${streamingHtml}</div>${moreBtns ? `<div class="wp-more">${moreBtns}</div>` : ''}`;
     }    function isMovieVpnActive(movieObj, details) {
       if (!vpnModeEnabled || !movieObj) return false;
       if (typeof movieObj._hasVpnActive === 'boolean') return movieObj._hasVpnActive;
@@ -4144,9 +4149,8 @@
                     ${pageTitleHeaderHtml}
                     ${heroMetaHtml}
                     ${createHeroOverviewHtml(overview, safeTitle)}
-                    <div class="hero-actions pointer-events-auto">${heroActionsHtml}</div>
                   </div>
-                  <aside id="desktopWatchOptionsBox" class="watch-panel watch-panel-hero" aria-label="Where to watch">${watchBoxHtml}</aside>
+                  <div class="hero-actions hero-actions-side pointer-events-auto">${heroActionsHtml}</div>
                 </div>
               </div>
             </div>`
@@ -4156,17 +4160,21 @@
                   ${pageTitleHeaderHtml}
                   ${heroMetaHtml}
                   ${createHeroOverviewHtml(overview, safeTitle)}
-                  <div class="hero-actions pointer-events-auto">${heroActionsHtml}</div>
                 </div>
-                <aside id="desktopWatchOptionsBox" class="watch-panel watch-panel-hero" aria-label="Where to watch">${watchBoxHtml}</aside>
+                <div class="hero-actions hero-actions-side pointer-events-auto">${heroActionsHtml}</div>
               </div>
             </div>`;
 
         return `${pageNavHTML('closeMoviePage()', 'goHomeFromPage()', 'moviePageNav')}
           ${heroBannerSectionHtml}
           <div class="page-width film-body">
-            <aside id="mobileWatchOptionsBox" class="watch-panel watch-panel-inline" aria-label="Where to watch">${watchBoxHtml}</aside>
-            ${castCrewHtml}
+            <div class="film-top${castCrewHtml ? '' : ' no-cast'}">
+              ${castCrewHtml}
+              <section class="page-section film-watch" aria-label="Where to watch">
+                <div class="section-head"><h2 class="section-title">Where to watch</h2><div id="wnHeadToggle" class="section-head-end">${movieObj._wnToggleHtml || ''}</div></div>
+                <div id="desktopWatchOptionsBox" class="watch-panel">${watchBoxHtml}</div>
+              </section>
+            </div>
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
             ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
           </div>
@@ -9577,3 +9585,16 @@
       btn.textContent = 'Link copied';
       setTimeout(() => { btn.textContent = old; }, 1800);
     }
+
+    // Once a full page scrolls, its back/close row gets a solid strip (the sticky tab bars sit
+    // right under it), so content never shows through around the buttons.
+    (() => {
+      ['moviePageView', 'actorPageView', 'allCastModal'].forEach(id => {
+        const view = document.getElementById(id);
+        if (!view) return;
+        view.addEventListener('scroll', () => {
+          const nav = view.querySelector('.page-nav');
+          if (nav) nav.classList.toggle('is-solid', view.scrollTop > 40);
+        }, { passive: true });
+      });
+    })();

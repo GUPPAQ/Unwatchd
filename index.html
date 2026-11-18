@@ -6191,6 +6191,124 @@
         font-size: 0;
       }
     }
+
+    /* ── Film page: cast and where to watch as a pair ──
+       Same heading row (serif title + action at the end), same top line, and the panel stretches
+       to the height of the cast cards, so the two read as one band. Phones: where to watch first. */
+    .film-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 440px;
+      gap: 40px;
+      align-items: stretch;
+    }
+
+    @media (min-width: 1536px) {
+      .film-top {
+        grid-template-columns: minmax(0, 1fr) 480px;
+      }
+    }
+
+    .film-top.no-cast {
+      grid-template-columns: minmax(0, 560px);
+    }
+
+    .film-watch {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* An action at the end of a heading row ("See all 85", the VPN switch). */
+    .section-head-end {
+      margin-left: auto;
+    }
+
+    .section-head-end:empty {
+      display: none;
+    }
+
+    .film-watch .watch-panel {
+      flex: 1;
+      padding: 14px;
+      border-radius: 22px;
+      background: var(--surface);
+      box-shadow: none;
+    }
+
+    .film-watch .wp-more {
+      margin-top: auto;
+    }
+
+    @media (max-width: 1023px) {
+      .film-top {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 44px;
+      }
+
+      .film-watch {
+        order: -1;
+      }
+    }
+
+    /* Banner: the film on the left, Trailer and sound on the right, both on the bottom line. */
+    .hero-actions-side {
+      flex: none;
+      margin: 0 0 4px;
+    }
+
+    @media (max-width: 1023px) {
+      .hero-actions-side {
+        justify-content: center;
+        margin-top: 18px;
+      }
+    }
+
+    /* ── Full pages: once you scroll, the back/close row gets a solid strip, and the tab bars
+       stick directly under it at full width, so nothing shows through around them. ── */
+    .page-nav.movie-page-nav {
+      height: calc(72px + env(safe-area-inset-top, 0px));
+      align-items: center;
+      padding-top: env(safe-area-inset-top, 0px) !important;
+      padding-bottom: 0 !important;
+      transition: background-color 0.2s ease;
+    }
+
+    .page-nav.is-solid {
+      background: var(--bg);
+    }
+
+    @media (max-width: 639px) {
+      .page-nav.movie-page-nav {
+        height: calc(64px + env(safe-area-inset-top, 0px));
+      }
+    }
+
+    .cast-bar[class],
+    .person-bar[class] {
+      top: calc(72px + env(safe-area-inset-top, 0px));
+      border-bottom: 0;
+      box-shadow: 0 0 0 100vmax var(--bg);
+      clip-path: inset(0 -100vmax -1px);
+    }
+
+    .cast-bar[class]::after,
+    .person-bar[class]::after {
+      content: "";
+      position: absolute;
+      left: -100vmax;
+      right: -100vmax;
+      bottom: -1px;
+      height: 1px;
+      background: var(--line);
+      pointer-events: none;
+    }
+
+    @media (max-width: 639px) {
+      .cast-bar[class],
+      .person-bar[class] {
+        top: calc(64px + env(safe-area-inset-top, 0px));
+      }
+    }
   </style>
   <link rel="stylesheet" href="./styles.css">
   <!-- Vercel Web Analytics (page views & visitors, no cookies). Enable it under the project's Analytics tab on vercel.com. -->
