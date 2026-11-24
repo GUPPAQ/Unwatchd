@@ -6646,6 +6646,68 @@
       height: 48px;
       font-size: 16px;
     }
+
+    /* ── Cast and person pages: one top bar ──
+       When the tab bar sticks it becomes the top bar itself: back, tabs, tools and close all on
+       one line, the same height as the back/close row (72px, 64px on phones). Its sides make
+       room for the two round buttons only where the page edge would run into them. */
+    .cast-bar[class],
+    .person-bar[class] {
+      top: 0;
+      min-height: 72px;
+      align-items: center;
+      padding-top: 0;
+      padding-left: max(var(--pad), calc(84px - (100vw - 100% - 2 * var(--pad)) / 2));
+      padding-right: max(var(--pad), calc(84px - (100vw - 100% - 2 * var(--pad)) / 2));
+    }
+
+    .cast-bar .tabs .tab-btn[class],
+    .person-bar .tabs .tab-btn[class] {
+      height: 72px;
+    }
+
+    .cast-bar .results-tools,
+    .person-bar .results-tools {
+      padding-bottom: 0;
+    }
+
+    /* The bar carries the background here, so the button row stays clear (no second strip). */
+    #allCastModal .page-nav.is-solid,
+    #actorPageView .page-nav.is-solid {
+      background: transparent;
+    }
+
+    @media (max-width: 639px) {
+      .cast-bar[class],
+      .person-bar[class] {
+        min-height: 64px;
+        padding-left: var(--pad);
+        padding-right: var(--pad);
+      }
+
+      /* Only the tabs line sits between the round buttons; the tools line below gets the full width. */
+      .cast-bar .tabs,
+      .person-bar .tabs {
+        margin-left: calc(72px - var(--pad));
+        margin-right: calc(72px - var(--pad));
+        gap: 20px;
+      }
+
+      .cast-bar .filter-field[class] {
+        max-width: none;
+      }
+
+      .cast-bar .tabs .tab-btn[class],
+      .person-bar .tabs .tab-btn[class] {
+        height: 64px;
+      }
+
+      /* On a phone the tools take a second line under the tabs. */
+      .cast-bar .results-tools,
+      .person-bar .results-tools {
+        padding-bottom: 10px;
+      }
+    }
   </style>
   <link rel="stylesheet" href="./styles.css">
   <!-- Vercel Web Analytics (page views & visitors, no cookies). Enable it under the project's Analytics tab on vercel.com. -->
@@ -6907,7 +6969,7 @@
     <div class="page-width cast-body">
       <div class="results-bar cast-bar">
         <div id="allCastTabs" class="tabs" role="tablist" aria-label="Show">
-          <button type="button" id="allCastTabAll" class="tab-btn active" onclick="setAllCastTab('all')">Everyone <span id="allCastTabCountAll" class="tab-badge">0</span></button>
+          <button type="button" id="allCastTabAll" class="tab-btn active" onclick="setAllCastTab('all')">All <span id="allCastTabCountAll" class="tab-badge">0</span></button>
           <button type="button" id="allCastTabCast" class="tab-btn" onclick="setAllCastTab('cast')">Cast <span id="allCastTabCountCast" class="tab-badge">0</span></button>
           <button type="button" id="allCastTabCrew" class="tab-btn" onclick="setAllCastTab('crew')">Crew <span id="allCastTabCountCrew" class="tab-badge">0</span></button>
         </div>
