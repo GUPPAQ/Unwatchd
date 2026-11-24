@@ -1,0 +1,10 @@
+# Vercel serves this repo's files as they are, so anything that isn't part of the website stays
+# out of the deployment: project notes, the JS/CSS sources (app.js and styles.css are built from
+# them), tooling and the design prototype. package.json stays: the api functions need its "type".
+CLAUDE.md
+PRODUCT.md
+.impeccable
+next.html
+scripts
+src
+tailwind.config.cjs

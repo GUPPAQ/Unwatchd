@@ -3887,36 +3887,73 @@
       color: #0a0a0b;
     }
 
-    /* Tonight's pick */
+    /* Tonight's pick: a section of its own (heading, "Another pick"), then a raised card: the film's
+       words on the left, its still on the right, the still melting into the card (not the page). */
     .pick {
-      position: relative;
-      margin-top: 28px;
-      border-radius: 22px;
-      overflow: hidden;
-      background: var(--surface);
-      isolation: isolate;
+      margin-top: 40px;
     }
 
     .pick.hidden {
       display: none;
     }
 
+    .pick-head {
+      align-items: center;
+    }
+
+    .pick-head .pick-another {
+      margin-left: auto;
+    }
+
+    .pick-another svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .pick-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      min-height: clamp(380px, 30vw, 500px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--surface);
+      isolation: isolate;
+    }
+
     .pick-art {
-      position: absolute;
-      inset: 0;
+      position: relative;
+      grid-column: 2;
+      grid-row: 1;
       padding: 0;
       border: 0;
-      background: none;
+      background: var(--surface-2);
       cursor: pointer;
       overflow: hidden;
     }
 
     .pick-art img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: center 22%;
       transition: opacity 0.35s ease, transform 1.4s var(--ease-out);
+    }
+
+    .pick-art img:not([src]) {
+      visibility: hidden;
+    }
+
+    /* The still's left edge fades into the card's own surface. */
+    .pick-art::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(to right, var(--surface) 0%, rgba(21, 21, 23, 0.6) 14%, rgba(21, 21, 23, 0) 38%);
     }
 
     .pick.is-swapping .pick-art img {
@@ -3929,36 +3966,26 @@
       }
     }
 
-    .pick::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background:
-        linear-gradient(to top, rgba(10, 10, 11, 0.96) 0%, rgba(10, 10, 11, 0.7) 30%, rgba(10, 10, 11, 0) 68%),
-        linear-gradient(to right, rgba(10, 10, 11, 0.85) 0%, rgba(10, 10, 11, 0.25) 46%, rgba(10, 10, 11, 0) 70%);
-    }
-
     .pick-body {
       position: relative;
       z-index: 1;
-      pointer-events: none;
+      grid-column: 1;
+      grid-row: 1;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
-      gap: 12px;
-      min-height: clamp(440px, 46vw, 620px);
-      max-width: 44rem;
-      padding: clamp(22px, 4vw, 52px);
+      justify-content: center;
+      gap: 14px;
+      min-width: 0;
+      padding: clamp(24px, 3vw, 48px);
     }
 
     .pick-logo {
       align-self: flex-start;
-      max-width: min(80%, 24rem);
-      max-height: clamp(80px, 13vw, 150px);
+      max-width: min(85%, 22rem);
+      max-height: clamp(72px, 8vw, 120px);
+      margin-bottom: 4px;
       object-fit: contain;
       object-position: left bottom;
-      filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.7));
     }
 
     .pick-logo.hidden {
@@ -3969,11 +3996,10 @@
       margin: 0;
       font-family: var(--serif);
       font-weight: 400;
-      font-size: clamp(2.6rem, 6.5vw, 5rem);
-      line-height: 0.96;
+      font-size: clamp(2.2rem, 3.6vw, 3.4rem);
+      line-height: 1;
       letter-spacing: -0.01em;
       text-wrap: balance;
-      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
     }
 
     .pick.has-logo .pick-title {
@@ -3985,42 +4011,148 @@
       white-space: nowrap;
     }
 
-    .pick-meta,
-    .pick-where {
+    /* The film's own line, in the display face's italic: it gives the card a voice. */
+    .pick-tagline {
       margin: 0;
-      color: #d8d3c9;
-      font-size: 16px;
+      color: var(--text);
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(1.15rem, 1.5vw, 1.4rem);
+      line-height: 1.25;
+      text-wrap: balance;
     }
 
+    .pick-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 10px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .pick-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .pick-dot {
+      color: var(--faint);
+    }
+
+    .pick-overview {
+      display: -webkit-box;
+      margin: 0;
+      overflow: hidden;
+      color: #d8d3c9;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      max-width: 38rem;
+    }
+
+    .pick-tagline:empty,
+    .pick-overview:empty,
     .pick-meta:empty,
     .pick-where:empty {
       display: none;
     }
 
+    /* Where it streams: logo, name and status, like a service row in Where to watch. */
+    .pick-where {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .pick-where-logo {
+      width: 40px;
+      height: 40px;
+      flex: none;
+      overflow: hidden;
+      border-radius: 11px;
+      background: var(--surface-2);
+    }
+
+    .pick-where-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .pick-where-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      line-height: 1.35;
+    }
+
+    .pick-where-name {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .pick-where-status {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .pick-where-status.is-vpn {
+      color: var(--accent-soft);
+    }
+
     .pick-actions {
-      pointer-events: auto;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-top: 8px;
+      margin-top: 6px;
     }
 
     .pick-actions .btn-primary.hidden {
       display: none;
     }
 
-    @media (max-width: 639px) {
-      .pick-art {
-        bottom: auto;
-        height: 62%;
+    /* Narrower screens: the still on top, the words under it. */
+    @media (max-width: 899px) {
+      .pick-card {
+        grid-template-columns: minmax(0, 1fr);
+        min-height: 0;
       }
 
-      .pick::after {
-        background: linear-gradient(to top, var(--surface) 0%, var(--surface) 40%, rgba(21, 21, 23, 0.85) 50%, rgba(21, 21, 23, 0) 72%);
+      .pick-art {
+        grid-column: 1;
+        grid-row: 1;
+        aspect-ratio: 16 / 9;
+      }
+
+      .pick-art::after {
+        background: linear-gradient(to top, var(--surface) 0%, rgba(21, 21, 23, 0.55) 18%, rgba(21, 21, 23, 0) 45%);
       }
 
       .pick-body {
-        min-height: 560px;
+        grid-column: 1;
+        grid-row: 2;
+        margin-top: -36px;
+        padding-top: 0;
+      }
+    }
+
+    @media (max-width: 639px) {
+      .pick {
+        margin-top: 32px;
+      }
+
+      .pick-body {
+        gap: 12px;
+        padding: 0 18px 20px;
       }
 
       .pick-actions .btn-primary {
@@ -4029,7 +4161,6 @@
 
       .pick-actions .btn-quiet {
         flex: 1;
-        padding: 0 12px;
       }
     }
 
@@ -4427,24 +4558,21 @@
       line-height: 1.5;
     }
 
-    .site-footer p {
-      margin: 0;
-      flex: 1 1 22rem;
-    }
-
-    .site-footer a {
-      color: var(--muted);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
-
-    .site-footer a:hover {
-      color: var(--text);
+    .site-footer {
+      align-items: flex-start;
+      gap: 14px 28px;
     }
 
     .footer-tmdb {
       flex: none;
+      margin-top: 5px;
       opacity: 0.8;
+    }
+
+    @media (max-width: 639px) {
+      .site-footer .page-credits {
+        flex-basis: 100%;
+      }
     }
 
     /* ── Legacy components re-skinned (film pages, actor pages, menus, popups) ── */
@@ -4905,17 +5033,89 @@
       }
     }
 
-    .page-legal {
-      margin: 0;
-      color: var(--faint);
-      font-size: 13px;
+    /* Credits: sources on the first line, the fine print under it, Privacy on the right. */
+    .page-credits {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px 32px;
+      align-items: baseline;
+      flex: 1;
       line-height: 1.5;
     }
 
-    .page-legal a {
+    .page-credits p {
+      margin: 0;
+    }
+
+    .credits-sources {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .credits-fine {
+      grid-column: 1;
+      color: var(--faint);
+      font-size: 13px;
+    }
+
+    .credits-links {
+      grid-column: 2;
+      grid-row: 1;
+      display: flex;
+      gap: 20px;
+      font-size: 14px;
+    }
+
+    .page-credits a {
       color: var(--muted);
       text-decoration: underline;
+      text-decoration-color: var(--line-strong);
       text-underline-offset: 3px;
+      transition: color 0.15s, text-decoration-color 0.15s;
+    }
+
+    .credits-sources a {
+      color: var(--text);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .page-credits a:hover {
+        color: var(--text);
+        text-decoration-color: currentColor;
+      }
+    }
+
+    @media (max-width: 639px) {
+      .page-credits {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .credits-links {
+        grid-column: 1;
+        grid-row: auto;
+        margin-top: 8px;
+      }
+    }
+
+    /* A note about this page (the VPN warning), on its own line, marked like the VPN status. */
+    .page-note {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .page-note::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      flex: none;
+      border-radius: 50%;
+      background: var(--accent);
+      transform: translateY(-1px);
     }
 
     /* ── Film page tweaks: same nav, buttons, headings and type as the rest ── */
@@ -5352,7 +5552,7 @@
     }
 
     /* Small text opens slightly so it stays legible on the dark ground. */
-    :is(.ask-seg-label, .person-card-role, .poster-card-sub, .crew-row-role, .search-row-sub, .page-legal, .svc-panel-count, .search-field-kbd, .poster-corner-badge) {
+    :is(.ask-seg-label, .person-card-role, .poster-card-sub, .crew-row-role, .search-row-sub, .credits-fine, .svc-panel-count, .search-field-kbd, .poster-corner-badge) {
       letter-spacing: 0.01em;
     }
 
@@ -6249,18 +6449,13 @@
       }
     }
 
-    /* ── Full pages: once you scroll, the back/close row gets a solid strip, and the tab bars
-       stick directly under it at full width, so nothing shows through around them. ── */
+    /* ── Full pages: the back/close row floats over the page with no strip behind it (the round
+       buttons carry their own backing). The cast and person tab bars stick full width at the top. ── */
     .page-nav.movie-page-nav {
       height: calc(72px + env(safe-area-inset-top, 0px));
       align-items: center;
       padding-top: env(safe-area-inset-top, 0px) !important;
       padding-bottom: 0 !important;
-      transition: background-color 0.2s ease;
-    }
-
-    .page-nav.is-solid {
-      background: var(--bg);
     }
 
     @media (max-width: 639px) {
@@ -6525,8 +6720,8 @@
     }
 
     /* ── The services card in Where to watch ──
-       One service: logo, name and status, then Watch. Several: a row of tiles to pick from, the
-       picked service's status, and one Watch button that follows the pick. */
+       One service: logo, name and status, then Watch. Several: a row of tiles to pick from, each
+       with its own status under the name, and one Watch button that follows the pick. */
     .wp-feature {
       gap: 14px;
       padding: 16px;
@@ -6542,8 +6737,7 @@
       font-size: 20px;
     }
 
-    .wp-feature-top .wp-sub,
-    .wp-status {
+    .wp-feature-top .wp-sub {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -6551,8 +6745,7 @@
     }
 
     /* A small mark before the status: a quiet grey dot when it's included, ember when it needs a VPN. */
-    .wp-feature-top .wp-sub::before,
-    .wp-status::before {
+    .wp-feature-top .wp-sub::before {
       content: "";
       width: 7px;
       height: 7px;
@@ -6561,20 +6754,17 @@
       background: var(--muted);
     }
 
-    .wp-feature-top .wp-sub.is-vpn::before,
-    .wp-status.is-vpn::before {
+    .wp-feature-top .wp-sub.is-vpn::before {
       background: var(--accent);
     }
 
-    .wp-status {
-      margin: -2px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.35;
+    .wp-feature.is-multi {
+      gap: 10px;
+      padding: 14px;
     }
 
-    .wp-status.is-vpn {
-      color: var(--accent-soft);
+    .wp-feature.is-multi .wp-watch {
+      height: 46px;
     }
 
     .wp-pick {
@@ -6587,9 +6777,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 0;
       min-width: 0;
-      padding: 12px 6px 10px;
+      padding: 9px 6px 8px;
       border: 1px solid var(--line);
       border-radius: 16px;
       background: transparent;
@@ -6599,11 +6789,12 @@
     }
 
     .wp-pick-logo {
-      width: 48px;
-      height: 48px;
+      width: 40px;
+      height: 40px;
       flex: none;
+      margin-bottom: 7px;
       overflow: hidden;
-      border-radius: 12px;
+      border-radius: 11px;
       background: var(--surface);
     }
 
@@ -6613,13 +6804,26 @@
       object-fit: cover;
     }
 
-    .wp-pick-name {
+    .wp-pick-name,
+    .wp-pick-status {
       max-width: 100%;
       overflow: hidden;
       font-size: 13px;
+      line-height: 1.3;
       font-weight: 500;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    /* Each tile's own status: quiet when it's included, ember when it needs a VPN. */
+    .wp-pick-status {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .wp-pick-status.is-vpn {
+      color: var(--accent-soft);
     }
 
     .wp-pick-btn[aria-pressed="true"] {
@@ -6669,12 +6873,6 @@
     .cast-bar .results-tools,
     .person-bar .results-tools {
       padding-bottom: 0;
-    }
-
-    /* The bar carries the background here, so the button row stays clear (no second strip). */
-    #allCastModal .page-nav.is-solid,
-    #actorPageView .page-nav.is-solid {
-      background: transparent;
     }
 
     @media (max-width: 639px) {
@@ -6840,28 +7038,35 @@
 
         <div id="serviceChips" class="svc-chips" role="group" aria-label="Show films on one service"></div>
 
-        <article id="tonightPick" class="pick hidden" aria-label="Tonight's pick">
-          <button id="tonightPickArt" type="button" class="pick-art" aria-label="Open film details">
-            <img id="tonightPickBackdrop" alt="" decoding="async">
-          </button>
-          <div class="pick-body">
-            <img id="tonightPickLogo" alt="" class="pick-logo hidden">
-            <h3 id="tonightPickTitle" class="pick-title"></h3>
-            <p id="tonightPickMeta" class="pick-meta"></p>
-            <p id="tonightPickWhere" class="pick-where"></p>
-            <div class="pick-actions">
-              <a id="tonightPickWatch" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg"></a>
-              <button id="tonightPickAnother" type="button" class="btn btn-quiet btn-lg">
-                <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M5.6 15a7 7 0 0011.9 2.5L20 15M4 9l2.5-2.5A7 7 0 0118.4 9"></path></svg>
-                Another pick
-              </button>
-              <button id="tonightPickTrailer" type="button" class="btn btn-quiet btn-lg">
-                <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
-                Trailer
-              </button>
-            </div>
+        <section id="tonightPick" class="pick hidden" aria-labelledby="tonightPickHeading">
+          <div class="section-head pick-head">
+            <h2 id="tonightPickHeading" class="section-title">Tonight's pick</h2>
+            <button id="tonightPickAnother" type="button" class="btn btn-quiet pick-another">
+              <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M5.6 15a7 7 0 0011.9 2.5L20 15M4 9l2.5-2.5A7 7 0 0118.4 9"></path></svg>
+              Another pick
+            </button>
           </div>
-        </article>
+          <article class="pick-card">
+            <div class="pick-body">
+              <img id="tonightPickLogo" alt="" class="pick-logo hidden">
+              <h3 id="tonightPickTitle" class="pick-title"></h3>
+              <p id="tonightPickTagline" class="pick-tagline"></p>
+              <p id="tonightPickMeta" class="pick-meta"></p>
+              <p id="tonightPickOverview" class="pick-overview"></p>
+              <div id="tonightPickWhere" class="pick-where"></div>
+              <div class="pick-actions">
+                <a id="tonightPickWatch" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg"></a>
+                <button id="tonightPickTrailer" type="button" class="btn btn-quiet btn-lg">
+                  <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+                  Trailer
+                </button>
+              </div>
+            </div>
+            <button id="tonightPickArt" type="button" class="pick-art" aria-label="Open film details">
+              <img id="tonightPickBackdrop" alt="" decoding="async">
+            </button>
+          </article>
+        </section>
 
         <div id="resultsControlsCard" class="results-controls-card">
           <div class="results-bar">
@@ -6920,7 +7125,11 @@
 
     <footer class="site-footer">
       <a href="https://www.themoviedb.org/" target="_blank" rel="noopener" class="footer-tmdb"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB" height="12"></a>
-      <p>This product uses the TMDB API but is not endorsed or certified by TMDB. Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>. Not affiliated with Letterboxd. <a href="/privacy.html">Privacy</a></p>
+      <div class="page-credits">
+        <p class="credits-sources">Film data from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Streaming availability from <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.</p>
+        <p class="credits-fine">This product uses the TMDB API but is not endorsed or certified by TMDB. Not affiliated with Letterboxd or any streaming service.</p>
+        <div class="credits-links"><a href="/privacy.html">Privacy</a></div>
+      </div>
     </footer>
   </div>
 
@@ -6987,7 +7196,11 @@
       <div id="allCastGrid" class="cast-sections"></div>
 
       <footer class="page-footer">
-        <p class="page-legal">This product uses the TMDB API but is not endorsed or certified by TMDB. Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>. <a href="/privacy.html">Privacy</a></p>
+        <div class="page-credits">
+          <p class="credits-sources">Film data from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Streaming availability from <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.</p>
+          <p class="credits-fine">This product uses the TMDB API but is not endorsed or certified by TMDB. Not affiliated with Letterboxd or any streaming service.</p>
+          <div class="credits-links"><a href="/privacy.html">Privacy</a></div>
+        </div>
       </footer>
     </div>
   </div>

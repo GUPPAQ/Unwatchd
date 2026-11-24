@@ -3793,14 +3793,13 @@
         if (mode === 'feature-top') {
           return `<span class="wp-logo">${logoHtml}</span><span class="wp-text"><span class="wp-name">${escapeHTML(safeName)}</span><span class="wp-sub${vpnText ? ' is-vpn' : ''}">${statusText}</span></span>`;
         }
-        if (mode === 'status') {
-          return `<p class="wp-status${vpnText ? ' is-vpn' : ''}">${statusText}</p>`;
-        }
         if (mode === 'watch') {
           return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wp-watch"><span class="wp-watch-label">Watch on ${escapeHTML(safeName)}</span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"></path></svg></a>`;
         }
-        // 'pick': one of your services as a tile; picking it points the Watch button at it.
-        return `<button type="button" class="wp-pick-btn" aria-pressed="${extraText === 'picked' ? 'true' : 'false'}" data-link="${escapeHTML(link)}" data-app="${appLink ? escapeHTML(appLink) : ''}" data-name="${escapeHTML(safeName)}" data-status="${escapeHTML(statusText)}" data-vpn="${vpnText ? '1' : '0'}" onclick="selectWatchService(this)"><span class="wp-pick-logo">${logoHtml}</span><span class="wp-pick-name">${escapeHTML(safeName)}</span></button>`;
+        // 'pick': one of your services as a tile, with its own status under the name; picking it
+        // points the Watch button at it.
+        const tileStatus = vpnText ? `VPN · ${escapeHTML(vpnRegionName)}` : 'Included';
+        return `<button type="button" class="wp-pick-btn" aria-pressed="${extraText === 'picked' ? 'true' : 'false'}" title="${statusText}" aria-label="${escapeHTML(safeName)}: ${statusText}" data-link="${escapeHTML(link)}" data-app="${appLink ? escapeHTML(appLink) : ''}" data-name="${escapeHTML(safeName)}" onclick="selectWatchService(this)"><span class="wp-pick-logo">${logoHtml}</span><span class="wp-pick-name">${escapeHTML(safeName)}</span><span class="wp-pick-status${vpnText ? ' is-vpn' : ''}">${tileStatus}</span></button>`;
       };      let streamingHtml = '';
       const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'Turn off VPN unlocks' : 'Also show where you could watch it by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="wp-vpn watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''}">VPN <span class="watchnow-vpn-dot"></span></button>`;
 
@@ -3878,7 +3877,7 @@
           streamingHtml = `<div class="wp-feature"><div class="wp-feature-top">${makeProviderLink(best, '', 'feature-top')}</div>${makeProviderLink(best, '', 'watch')}</div>`;
         } else {
           const picks = yours.map((p, i) => makeProviderLink(p, i === 0 ? 'picked' : '', 'pick')).join('');
-          streamingHtml = `<div class="wp-feature is-multi"><div class="wp-pick" style="--cols:${yours.length}" role="group" aria-label="Your services with this film">${picks}</div>${makeProviderLink(best, '', 'status')}${makeProviderLink(best, '', 'watch')}</div>`;
+          streamingHtml = `<div class="wp-feature is-multi"><div class="wp-pick" style="--cols:${yours.length}" role="group" aria-label="Your services with this film">${picks}</div>${makeProviderLink(best, '', 'watch')}</div>`;
         }
       } else if (otherFlatrate.length > 0) {
         const names = namesOf(otherFlatrate);
@@ -4252,7 +4251,7 @@
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
             ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
           </div>
-          <div class="page-width">${pageFooterHTML(filmFooterLinks, `<span id="moviePageVpnFootnote" class="movie-page-vpn-footnote ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}"> Some streaming services may detect or block VPN connections.</span>`)}</div>`;
+          <div class="page-width">${pageFooterHTML(filmFooterLinks, `<p id="moviePageVpnFootnote" class="page-note movie-page-vpn-footnote ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">Some streaming services may detect or block VPN connections.</p>`)}</div>`;
       }
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
@@ -9072,22 +9071,34 @@
       card.classList.remove('hidden');
     }
 
-    // The film's own title logo (the artwork streaming apps show), when TMDB has one.
-    var tonightPickLogoCache = new Map();
-    async function loadTonightPickLogo(m) {
+    // One TMDB request per pick: the film's own title logo (the artwork streaming apps show), its
+    // tagline and its synopsis. The scan doesn't keep those, so the pick fetches them itself.
+    var tonightPickInfoCache = new Map();
+    async function loadTonightPickInfo(m) {
       const key = movieKeyOf(m);
-      if (tonightPickLogoCache.has(key)) return tonightPickLogoCache.get(key);
-      let url = null;
+      if (tonightPickInfoCache.has(key)) return tonightPickInfoCache.get(key);
+      const info = { logo: null, tagline: '', overview: '' };
       try {
         const type = m.mediaType === 'tv' ? 'tv' : 'movie';
-        const res = await tmdbFetch(`https://api.themoviedb.org/3/${type}/${m.id}/images?api_key=${TMDB_API_KEY}&include_image_language=en`);
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/${type}/${m.id}?api_key=${TMDB_API_KEY}&append_to_response=images&include_image_language=en`);
         const data = await res.json();
-        const logos = (data.logos || []).filter(l => l.file_path && !l.file_path.endsWith('.svg'));
+        const logos = ((data.images && data.images.logos) || []).filter(l => l.file_path && !l.file_path.endsWith('.svg'));
         logos.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0) || (b.width || 0) - (a.width || 0));
-        if (logos[0]) url = `https://image.tmdb.org/t/p/w500${logos[0].file_path}`;
-      } catch (e) { logIgnored('loadTonightPickLogo', e); }
-      tonightPickLogoCache.set(key, url);
-      return url;
+        if (logos[0]) info.logo = `https://image.tmdb.org/t/p/w500${logos[0].file_path}`;
+        info.tagline = (data.tagline || '').trim();
+        info.overview = (data.overview || '').trim();
+      } catch (e) { logIgnored('loadTonightPickInfo', e); }
+      tonightPickInfoCache.set(key, info);
+      return info;
+    }
+
+    // Tagline and synopsis for the pick shown now (filled in when the lookup lands).
+    function fillTonightPickText(m, info) {
+      if (currentTonightPick !== m) return;
+      const tagline = document.getElementById('tonightPickTagline');
+      const overview = document.getElementById('tonightPickOverview');
+      if (tagline) tagline.textContent = info ? info.tagline : '';
+      if (overview) overview.textContent = info ? info.overview : '';
     }
 
     function fillTonightPick(m, poolSize) {
@@ -9106,12 +9117,15 @@
       if (logo && card && logo.dataset.key !== key) {
         logo.dataset.key = key;
         logo.classList.add('hidden'); logo.removeAttribute('src'); card.classList.remove('has-logo');
-        const known = tonightPickLogoCache.has(key) && !tonightPickLogoCache.get(key);
+        const known = tonightPickInfoCache.has(key) && !tonightPickInfoCache.get(key).logo;
         card.classList.toggle('logo-pending', !known);
+        fillTonightPickText(m, tonightPickInfoCache.get(key));
         const settle = () => { if (currentTonightPick === m) card.classList.remove('logo-pending'); };
         setTimeout(settle, 1500); // a slow lookup never hides the title for long
-        loadTonightPickLogo(m).then((url) => {
+        loadTonightPickInfo(m).then((info) => {
           if (currentTonightPick !== m) return; // a newer pick replaced this one meanwhile
+          fillTonightPickText(m, info);
+          const url = info.logo;
           if (!url) { settle(); return; }
           logo.onload = () => { if (currentTonightPick === m) { logo.classList.remove('hidden'); card.classList.add('has-logo'); settle(); } };
           logo.onerror = settle;
@@ -9129,9 +9143,12 @@
       const genres = (m.genreIds || []).map(id => GENRE_MAP[id]).filter(Boolean).slice(0, 2).join(', ');
       if (genres) meta.push(genres);
       const rating = getCachedRating(m);
-      if (rating) meta.push(`IMDb ${rating}`);
       const metaEl = document.getElementById('tonightPickMeta');
-      if (metaEl) metaEl.textContent = ["Tonight's pick", ...meta].join(' · ');
+      if (metaEl) {
+        const parts = meta.map(t => `<span>${escapeHTML(t)}</span>`);
+        if (rating) parts.unshift(`<span class="pick-rating">${IMDB_TAG_HTML}<span>${escapeHTML(String(rating))}</span></span>`);
+        metaEl.innerHTML = parts.join('<span class="pick-dot" aria-hidden="true">·</span>');
+      }
 
       // Which of the viewer's services has it: a local one first, otherwise the VPN region.
       const local = (m.regionData?.flatrate || []).filter(buildSubscribedMatcher());
@@ -9143,13 +9160,18 @@
         region = m.vpnInfo.region;
         viaVpn = true;
       }
+      // Where it streams: the service's logo and name, and whether it's included or needs a VPN.
       const where = document.getElementById('tonightPickWhere');
       if (where) {
-        if (!serviceName) where.textContent = '';
-        else if (viaVpn) where.textContent = `Streaming on ${serviceName} in ${REGION_META[region]?.name || region} (needs a VPN).`;
+        if (!serviceName) where.innerHTML = '';
         else {
-          const names = [...new Set(local.map(cleanProviderName))].slice(0, 2);
-          where.textContent = `Streaming on ${names.join(' and ')}, which you have.`;
+          const logoUrl = getProviderLogoUrl(serviceName);
+          const others = viaVpn ? [] : [...new Set(local.map(cleanProviderName))].filter(n => n !== serviceName);
+          const name = others.length ? `${serviceName} and ${others.length === 1 ? others[0] : `${others.length} more`}` : serviceName;
+          const status = viaVpn
+            ? `<span class="pick-where-status is-vpn">Needs a VPN set to ${escapeHTML(REGION_META[region]?.name || region)}</span>`
+            : `<span class="pick-where-status">Included with your subscription</span>`;
+          where.innerHTML = `<span class="pick-where-logo">${logoUrl ? `<img src="${escapeHTML(logoUrl)}" alt="">` : ''}</span><span class="pick-where-text"><span class="pick-where-name">On ${escapeHTML(name)}</span>${status}</span>`;
         }
       }
 
@@ -9210,7 +9232,7 @@
       });
       Promise.all([
         loadImage(pick.backdrop || pick.poster),
-        loadTonightPickLogo(pick).then(loadImage)
+        loadTonightPickInfo(pick).then(info => loadImage(info.logo))
       ]).then(swap);
       setTimeout(swap, 900); // a slow image never holds the new pick back for long
     }
@@ -9625,8 +9647,19 @@
         : `<button type="button" class="page-link" onclick="${l.onclick}">${escapeHTML(l.label)}</button>`).join('');
       return `<footer class="page-footer">
         ${items ? `<div class="page-links">${items}</div>` : ''}
-        <p class="page-legal">This product uses the TMDB API but is not endorsed or certified by TMDB. Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>. <a href="/privacy.html">Privacy</a>${extraNote}</p>
+        ${extraNote}
+        ${creditsHTML()}
       </footer>`;
+    }
+
+    // Where the data comes from, the required TMDB notice, and Privacy: one block, the same in
+    // every footer (the home footer in index.html has the same markup).
+    function creditsHTML() {
+      return `<div class="page-credits">
+          <p class="credits-sources">Film data from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Streaming availability from <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.</p>
+          <p class="credits-fine">This product uses the TMDB API but is not endorsed or certified by TMDB. Not affiliated with Letterboxd or any streaming service.</p>
+          <div class="credits-links"><a href="/privacy.html">Privacy</a></div>
+        </div>`;
     }
 
     // "Copy link" for the footer: copies, then says so for a moment.
@@ -9637,20 +9670,7 @@
       setTimeout(() => { btn.textContent = old; }, 1800);
     }
 
-    // Once a full page scrolls, its back/close row gets a solid strip (the sticky tab bars sit
-    // right under it), so content never shows through around the buttons.
-    (() => {
-      ['moviePageView', 'actorPageView', 'allCastModal'].forEach(id => {
-        const view = document.getElementById(id);
-        if (!view) return;
-        view.addEventListener('scroll', () => {
-          const nav = view.querySelector('.page-nav');
-          if (nav) nav.classList.toggle('is-solid', view.scrollTop > 40);
-        }, { passive: true });
-      });
-    })();
-    // Where to watch, several of your services: picking a tile points the Watch button (and the
-    // status line under the tiles) at that service.
+    // Where to watch, several of your services: picking a tile points the Watch button at that service.
     function selectWatchService(btn) {
       const card = btn.closest('.wp-feature');
       if (!card) return;
@@ -9661,10 +9681,5 @@
         if (btn.dataset.app) watch.setAttribute('data-app-link', btn.dataset.app); else watch.removeAttribute('data-app-link');
         const label = watch.querySelector('.wp-watch-label');
         if (label) label.textContent = `Watch on ${btn.dataset.name}`;
-      }
-      const status = card.querySelector('.wp-status');
-      if (status) {
-        status.textContent = btn.dataset.status;
-        status.classList.toggle('is-vpn', btn.dataset.vpn === '1');
       }
     }

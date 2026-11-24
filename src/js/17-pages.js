@@ -61,8 +61,19 @@
         : `<button type="button" class="page-link" onclick="${l.onclick}">${escapeHTML(l.label)}</button>`).join('');
       return `<footer class="page-footer">
         ${items ? `<div class="page-links">${items}</div>` : ''}
-        <p class="page-legal">This product uses the TMDB API but is not endorsed or certified by TMDB. Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>. <a href="/privacy.html">Privacy</a>${extraNote}</p>
+        ${extraNote}
+        ${creditsHTML()}
       </footer>`;
+    }
+
+    // Where the data comes from, the required TMDB notice, and Privacy: one block, the same in
+    // every footer (the home footer in index.html has the same markup).
+    function creditsHTML() {
+      return `<div class="page-credits">
+          <p class="credits-sources">Film data from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Streaming availability from <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.</p>
+          <p class="credits-fine">This product uses the TMDB API but is not endorsed or certified by TMDB. Not affiliated with Letterboxd or any streaming service.</p>
+          <div class="credits-links"><a href="/privacy.html">Privacy</a></div>
+        </div>`;
     }
 
     // "Copy link" for the footer: copies, then says so for a moment.
@@ -73,20 +84,7 @@
       setTimeout(() => { btn.textContent = old; }, 1800);
     }
 
-    // Once a full page scrolls, its back/close row gets a solid strip (the sticky tab bars sit
-    // right under it), so content never shows through around the buttons.
-    (() => {
-      ['moviePageView', 'actorPageView', 'allCastModal'].forEach(id => {
-        const view = document.getElementById(id);
-        if (!view) return;
-        view.addEventListener('scroll', () => {
-          const nav = view.querySelector('.page-nav');
-          if (nav) nav.classList.toggle('is-solid', view.scrollTop > 40);
-        }, { passive: true });
-      });
-    })();
-    // Where to watch, several of your services: picking a tile points the Watch button (and the
-    // status line under the tiles) at that service.
+    // Where to watch, several of your services: picking a tile points the Watch button at that service.
     function selectWatchService(btn) {
       const card = btn.closest('.wp-feature');
       if (!card) return;
@@ -97,10 +95,5 @@
         if (btn.dataset.app) watch.setAttribute('data-app-link', btn.dataset.app); else watch.removeAttribute('data-app-link');
         const label = watch.querySelector('.wp-watch-label');
         if (label) label.textContent = `Watch on ${btn.dataset.name}`;
-      }
-      const status = card.querySelector('.wp-status');
-      if (status) {
-        status.textContent = btn.dataset.status;
-        status.classList.toggle('is-vpn', btn.dataset.vpn === '1');
       }
     }

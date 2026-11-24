@@ -89,22 +89,34 @@
       card.classList.remove('hidden');
     }
 
-    // The film's own title logo (the artwork streaming apps show), when TMDB has one.
-    var tonightPickLogoCache = new Map();
-    async function loadTonightPickLogo(m) {
+    // One TMDB request per pick: the film's own title logo (the artwork streaming apps show), its
+    // tagline and its synopsis. The scan doesn't keep those, so the pick fetches them itself.
+    var tonightPickInfoCache = new Map();
+    async function loadTonightPickInfo(m) {
       const key = movieKeyOf(m);
-      if (tonightPickLogoCache.has(key)) return tonightPickLogoCache.get(key);
-      let url = null;
+      if (tonightPickInfoCache.has(key)) return tonightPickInfoCache.get(key);
+      const info = { logo: null, tagline: '', overview: '' };
       try {
         const type = m.mediaType === 'tv' ? 'tv' : 'movie';
-        const res = await tmdbFetch(`https://api.themoviedb.org/3/${type}/${m.id}/images?api_key=${TMDB_API_KEY}&include_image_language=en`);
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/${type}/${m.id}?api_key=${TMDB_API_KEY}&append_to_response=images&include_image_language=en`);
         const data = await res.json();
-        const logos = (data.logos || []).filter(l => l.file_path && !l.file_path.endsWith('.svg'));
+        const logos = ((data.images && data.images.logos) || []).filter(l => l.file_path && !l.file_path.endsWith('.svg'));
         logos.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0) || (b.width || 0) - (a.width || 0));
-        if (logos[0]) url = `https://image.tmdb.org/t/p/w500${logos[0].file_path}`;
-      } catch (e) { logIgnored('loadTonightPickLogo', e); }
-      tonightPickLogoCache.set(key, url);
-      return url;
+        if (logos[0]) info.logo = `https://image.tmdb.org/t/p/w500${logos[0].file_path}`;
+        info.tagline = (data.tagline || '').trim();
+        info.overview = (data.overview || '').trim();
+      } catch (e) { logIgnored('loadTonightPickInfo', e); }
+      tonightPickInfoCache.set(key, info);
+      return info;
+    }
+
+    // Tagline and synopsis for the pick shown now (filled in when the lookup lands).
+    function fillTonightPickText(m, info) {
+      if (currentTonightPick !== m) return;
+      const tagline = document.getElementById('tonightPickTagline');
+      const overview = document.getElementById('tonightPickOverview');
+      if (tagline) tagline.textContent = info ? info.tagline : '';
+      if (overview) overview.textContent = info ? info.overview : '';
     }
 
     function fillTonightPick(m, poolSize) {
@@ -123,12 +135,15 @@
       if (logo && card && logo.dataset.key !== key) {
         logo.dataset.key = key;
         logo.classList.add('hidden'); logo.removeAttribute('src'); card.classList.remove('has-logo');
-        const known = tonightPickLogoCache.has(key) && !tonightPickLogoCache.get(key);
+        const known = tonightPickInfoCache.has(key) && !tonightPickInfoCache.get(key).logo;
         card.classList.toggle('logo-pending', !known);
+        fillTonightPickText(m, tonightPickInfoCache.get(key));
         const settle = () => { if (currentTonightPick === m) card.classList.remove('logo-pending'); };
         setTimeout(settle, 1500); // a slow lookup never hides the title for long
-        loadTonightPickLogo(m).then((url) => {
+        loadTonightPickInfo(m).then((info) => {
           if (currentTonightPick !== m) return; // a newer pick replaced this one meanwhile
+          fillTonightPickText(m, info);
+          const url = info.logo;
           if (!url) { settle(); return; }
           logo.onload = () => { if (currentTonightPick === m) { logo.classList.remove('hidden'); card.classList.add('has-logo'); settle(); } };
           logo.onerror = settle;
@@ -146,9 +161,12 @@
       const genres = (m.genreIds || []).map(id => GENRE_MAP[id]).filter(Boolean).slice(0, 2).join(', ');
       if (genres) meta.push(genres);
       const rating = getCachedRating(m);
-      if (rating) meta.push(`IMDb ${rating}`);
       const metaEl = document.getElementById('tonightPickMeta');
-      if (metaEl) metaEl.textContent = ["Tonight's pick", ...meta].join(' · ');
+      if (metaEl) {
+        const parts = meta.map(t => `<span>${escapeHTML(t)}</span>`);
+        if (rating) parts.unshift(`<span class="pick-rating">${IMDB_TAG_HTML}<span>${escapeHTML(String(rating))}</span></span>`);
+        metaEl.innerHTML = parts.join('<span class="pick-dot" aria-hidden="true">·</span>');
+      }
 
       // Which of the viewer's services has it: a local one first, otherwise the VPN region.
       const local = (m.regionData?.flatrate || []).filter(buildSubscribedMatcher());
@@ -160,13 +178,18 @@
         region = m.vpnInfo.region;
         viaVpn = true;
       }
+      // Where it streams: the service's logo and name, and whether it's included or needs a VPN.
       const where = document.getElementById('tonightPickWhere');
       if (where) {
-        if (!serviceName) where.textContent = '';
-        else if (viaVpn) where.textContent = `Streaming on ${serviceName} in ${REGION_META[region]?.name || region} (needs a VPN).`;
+        if (!serviceName) where.innerHTML = '';
         else {
-          const names = [...new Set(local.map(cleanProviderName))].slice(0, 2);
-          where.textContent = `Streaming on ${names.join(' and ')}, which you have.`;
+          const logoUrl = getProviderLogoUrl(serviceName);
+          const others = viaVpn ? [] : [...new Set(local.map(cleanProviderName))].filter(n => n !== serviceName);
+          const name = others.length ? `${serviceName} and ${others.length === 1 ? others[0] : `${others.length} more`}` : serviceName;
+          const status = viaVpn
+            ? `<span class="pick-where-status is-vpn">Needs a VPN set to ${escapeHTML(REGION_META[region]?.name || region)}</span>`
+            : `<span class="pick-where-status">Included with your subscription</span>`;
+          where.innerHTML = `<span class="pick-where-logo">${logoUrl ? `<img src="${escapeHTML(logoUrl)}" alt="">` : ''}</span><span class="pick-where-text"><span class="pick-where-name">On ${escapeHTML(name)}</span>${status}</span>`;
         }
       }
 
@@ -227,7 +250,7 @@
       });
       Promise.all([
         loadImage(pick.backdrop || pick.poster),
-        loadTonightPickLogo(pick).then(loadImage)
+        loadTonightPickInfo(pick).then(info => loadImage(info.logo))
       ]).then(swap);
       setTimeout(swap, 900); // a slow image never holds the new pick back for long
     }

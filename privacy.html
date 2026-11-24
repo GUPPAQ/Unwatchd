@@ -15,10 +15,18 @@
       src: url(/fonts/dm-sans-latin.woff2) format('woff2');
     }
 
+    @font-face {
+      font-family: 'DM Serif Display';
+      font-weight: 400;
+      font-display: swap;
+      src: url(/fonts/dm-serif-display-latin.woff2) format('woff2');
+    }
+
+    /* The site's film-night palette: near-black ground, warm type, one ember accent. */
     body {
       margin: 0;
-      background: #020617;
-      color: #cbd5e1;
+      background: #0a0a0b;
+      color: #d8d3c9;
       font-family: 'DM Sans', system-ui, sans-serif;
       font-size: 17px;
       line-height: 1.6;
@@ -30,26 +38,39 @@
       padding: 48px 20px 80px;
     }
 
+    h1,
+    h2 {
+      color: #f4f0e8;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-weight: 400;
+    }
+
     h1 {
-      color: #fff;
-      font-size: 2.2rem;
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      margin: 24px 0 8px;
+      font-size: 2.6rem;
+      line-height: 1.05;
+      margin: 28px 0 8px;
     }
 
     h2 {
-      color: #fff;
-      font-size: 1.2rem;
-      margin: 36px 0 8px;
+      font-size: 1.5rem;
+      line-height: 1.15;
+      margin: 40px 0 8px;
+    }
+
+    strong {
+      color: #f4f0e8;
+      font-weight: 600;
     }
 
     a {
-      color: #93c5fd;
+      color: #f4f0e8;
+      text-decoration-color: rgba(255, 255, 255, 0.3);
+      text-underline-offset: 3px;
     }
 
     a:hover {
-      color: #bfdbfe;
+      color: #ff5a36;
+      text-decoration-color: currentColor;
     }
 
     li {
@@ -57,8 +78,8 @@
     }
 
     .muted {
-      color: #94a3b8;
-      font-size: 0.95rem;
+      color: #a5a097;
+      font-size: 15px;
     }
   </style>
 </head>

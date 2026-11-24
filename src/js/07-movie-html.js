@@ -466,14 +466,13 @@
         if (mode === 'feature-top') {
           return `<span class="wp-logo">${logoHtml}</span><span class="wp-text"><span class="wp-name">${escapeHTML(safeName)}</span><span class="wp-sub${vpnText ? ' is-vpn' : ''}">${statusText}</span></span>`;
         }
-        if (mode === 'status') {
-          return `<p class="wp-status${vpnText ? ' is-vpn' : ''}">${statusText}</p>`;
-        }
         if (mode === 'watch') {
           return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wp-watch"><span class="wp-watch-label">Watch on ${escapeHTML(safeName)}</span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"></path></svg></a>`;
         }
-        // 'pick': one of your services as a tile; picking it points the Watch button at it.
-        return `<button type="button" class="wp-pick-btn" aria-pressed="${extraText === 'picked' ? 'true' : 'false'}" data-link="${escapeHTML(link)}" data-app="${appLink ? escapeHTML(appLink) : ''}" data-name="${escapeHTML(safeName)}" data-status="${escapeHTML(statusText)}" data-vpn="${vpnText ? '1' : '0'}" onclick="selectWatchService(this)"><span class="wp-pick-logo">${logoHtml}</span><span class="wp-pick-name">${escapeHTML(safeName)}</span></button>`;
+        // 'pick': one of your services as a tile, with its own status under the name; picking it
+        // points the Watch button at it.
+        const tileStatus = vpnText ? `VPN · ${escapeHTML(vpnRegionName)}` : 'Included';
+        return `<button type="button" class="wp-pick-btn" aria-pressed="${extraText === 'picked' ? 'true' : 'false'}" title="${statusText}" aria-label="${escapeHTML(safeName)}: ${statusText}" data-link="${escapeHTML(link)}" data-app="${appLink ? escapeHTML(appLink) : ''}" data-name="${escapeHTML(safeName)}" onclick="selectWatchService(this)"><span class="wp-pick-logo">${logoHtml}</span><span class="wp-pick-name">${escapeHTML(safeName)}</span><span class="wp-pick-status${vpnText ? ' is-vpn' : ''}">${tileStatus}</span></button>`;
       };      let streamingHtml = '';
       const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'Turn off VPN unlocks' : 'Also show where you could watch it by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="wp-vpn watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''}">VPN <span class="watchnow-vpn-dot"></span></button>`;
 
@@ -551,7 +550,7 @@
           streamingHtml = `<div class="wp-feature"><div class="wp-feature-top">${makeProviderLink(best, '', 'feature-top')}</div>${makeProviderLink(best, '', 'watch')}</div>`;
         } else {
           const picks = yours.map((p, i) => makeProviderLink(p, i === 0 ? 'picked' : '', 'pick')).join('');
-          streamingHtml = `<div class="wp-feature is-multi"><div class="wp-pick" style="--cols:${yours.length}" role="group" aria-label="Your services with this film">${picks}</div>${makeProviderLink(best, '', 'status')}${makeProviderLink(best, '', 'watch')}</div>`;
+          streamingHtml = `<div class="wp-feature is-multi"><div class="wp-pick" style="--cols:${yours.length}" role="group" aria-label="Your services with this film">${picks}</div>${makeProviderLink(best, '', 'watch')}</div>`;
         }
       } else if (otherFlatrate.length > 0) {
         const names = namesOf(otherFlatrate);
@@ -925,7 +924,7 @@
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
             ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
           </div>
-          <div class="page-width">${pageFooterHTML(filmFooterLinks, `<span id="moviePageVpnFootnote" class="movie-page-vpn-footnote ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}"> Some streaming services may detect or block VPN connections.</span>`)}</div>`;
+          <div class="page-width">${pageFooterHTML(filmFooterLinks, `<p id="moviePageVpnFootnote" class="page-note movie-page-vpn-footnote ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">Some streaming services may detect or block VPN connections.</p>`)}</div>`;
       }
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
