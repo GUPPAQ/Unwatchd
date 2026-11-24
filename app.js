@@ -9192,8 +9192,7 @@
         }
       }
 
-      const another = document.getElementById('tonightPickAnother');
-      if (another) another.disabled = poolSize <= 1;
+      document.querySelectorAll('.pick-another').forEach(b => { b.disabled = poolSize <= 1; });
     }
 
     function showAnotherTonightPick() {
@@ -9395,6 +9394,7 @@
       if (chips) chips.addEventListener('click', (e) => { const b = e.target.closest('.svc-chip'); if (b) selectServiceChip(b.dataset.service || null); });
       setTimeout(fillPosterWall, 400); // after the saved scan (if any) has had a chance to load
       on('tonightPickAnother', showAnotherTonightPick);
+      on('tonightPickAnotherInline', showAnotherTonightPick);
       on('tonightPickTrailer', playTonightPickTrailer);
       on('tonightPickArt', () => { if (currentTonightPick) openMoviePage(currentTonightPick, true); });
       on('scanCompactChangeBtn', () => { expandScanPanel(); if (el.usernameInput) el.usernameInput.focus({ preventScroll: true }); });

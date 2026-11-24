@@ -3910,6 +3910,22 @@
       height: 16px;
     }
 
+    /* "Another pick" has two homes: beside Trailer on computer screens wide enough for all three
+       buttons on one line, up by the heading anywhere the buttons would wrap or stack. */
+    .pick-another-inline {
+      display: none;
+    }
+
+    @media (min-width: 1440px) {
+      .pick-head .pick-another {
+        display: none;
+      }
+
+      .pick-another-inline[class] {
+        display: inline-flex;
+      }
+    }
+
     .pick-card {
       position: relative;
       display: grid;
@@ -4118,6 +4134,13 @@
 
     .pick-actions .btn-primary.hidden {
       display: none;
+    }
+
+    /* Laptops: the words get half the card, so the details and buttons have room. */
+    @media (min-width: 900px) and (max-width: 1599px) {
+      .pick-card {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
     }
 
     /* Narrower screens: the still on top, the words under it. */
@@ -7137,6 +7160,10 @@
                 <button id="tonightPickTrailer" type="button" class="btn btn-quiet btn-lg">
                   <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
                   Trailer
+                </button>
+                <button id="tonightPickAnotherInline" type="button" class="btn btn-quiet btn-lg pick-another pick-another-inline">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M5.6 15a7 7 0 0011.9 2.5L20 15M4 9l2.5-2.5A7 7 0 0118.4 9"></path></svg>
+                  Another pick
                 </button>
               </div>
             </div>
