@@ -517,6 +517,61 @@
       const key = (providerName || '').toLowerCase().trim();
       return KNOWN_DEEPLINKS[key] || null;
     }
+
+    // ── Direct links to a title on each service, from JustWatch (via /api/justwatch) ──
+    // Asked once per title and country; until the answer arrives (or when JustWatch has nothing)
+    // the Watch buttons fall back to the service's search or home page above.
+    var justWatchLinks = new Map(); // `${type}_${id}_${country}` -> { status: 'loading' | 'done', offers: [] }
+    // JustWatch names some stores differently: Prime Video's rentals are "Amazon Video", Apple's are
+    // "Apple TV Store" (technical name "itunes"). Map both sides onto one key.
+    const justWatchNameKey = (name) => {
+      let k = cleanNormalize(name || '').replace(/plus$/, '');
+      if (k === 'amazon' || k === 'amazonvideo' || k === 'amazonprimevideo' || k === 'primevideo') return 'primevideo';
+      if (k === 'itunes' || k.startsWith('appletv')) return 'appletv';
+      return k.replace(/^amazon/, '');
+    };
+    function getJustWatchLink(movieObj, country, providerName, rentOrBuy) {
+      if (!movieObj || !movieObj.id || !country) return null;
+      const type = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
+      const key = `${type}_${movieObj.id}_${country}`;
+      const entry = justWatchLinks.get(key);
+      if (!entry) { requestJustWatchLinks(movieObj, country); return null; }
+      if (entry.status !== 'done') return null;
+      const want = justWatchNameKey(providerName);
+      const offers = entry.offers.filter(o => justWatchNameKey(o.name) === want || justWatchNameKey(o.key) === want);
+      if (!offers.length) return null;
+      const preferred = rentOrBuy
+        ? offers.find(o => o.type === 'RENT' || o.type === 'BUY')
+        : offers.find(o => o.type === 'FLATRATE' || o.type === 'FREE' || o.type === 'ADS');
+      return (preferred || offers[0]).url;
+    }
+    function requestJustWatchLinks(movieObj, country) {
+      const type = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
+      const key = `${type}_${movieObj.id}_${country}`;
+      const title = (movieObj.title || movieObj.name || '').trim();
+      if (!title || !REGION_META[country]) { justWatchLinks.set(key, { status: 'done', offers: [] }); return; }
+      justWatchLinks.set(key, { status: 'loading', offers: [] });
+      const original = (movieObj.originalTitle || movieObj.original_title || movieObj.original_name || '').trim();
+      const url = `/api/justwatch?tmdb=${encodeURIComponent(movieObj.id)}&type=${type}&country=${country}&title=${encodeURIComponent(title)}${original && original !== title ? `&alt=${encodeURIComponent(original)}` : ''}`;
+      fetch(url)
+        .then(r => (r.ok ? r.json() : { offers: [] }))
+        .then(d => {
+          justWatchLinks.set(key, { status: 'done', offers: Array.isArray(d.offers) ? d.offers : [] });
+          if (d.offers && d.offers.length) refreshWatchLinksFor(movieObj);
+        })
+        .catch(e => { logIgnored('justwatch links', e); justWatchLinks.set(key, { status: 'done', offers: [] }); });
+    }
+    // Redraw whatever is showing this title's Watch buttons, now that direct links are known.
+    function refreshWatchLinksFor(movieObj) {
+      const view = document.getElementById('moviePageView');
+      if (view && !view.classList.contains('hidden') && window.currentMoviePageObj && window.currentMoviePageObj.id === movieObj.id) {
+        refreshMovieVpnView();
+      }
+      if (typeof currentTonightPick !== 'undefined' && currentTonightPick && currentTonightPick.id === movieObj.id) {
+        const pool = (currentGroupedResults && currentGroupedResults.stream) || [];
+        fillTonightPick(currentTonightPick, pool.length);
+      }
+    }
     let scannedMovies = [];
     let selectedServiceIds = new Set();
     try {
@@ -539,7 +594,6 @@
       vpnToggleBtnInline: document.getElementById('vpnToggleBtnInline'),
       vpnToggleDotInline: document.getElementById('vpnToggleDotInline'),
       regionContainer: document.getElementById('regionContainer'),
-      serviceSelectedGrid: document.getElementById('serviceSelectedGrid'),
       usernameInput: document.getElementById('usernameInput'),
       clearSyncBtn: document.getElementById('clearSyncBtn'),
       startButton: document.getElementById('startButton'),
@@ -566,11 +620,7 @@
       paginationControls: document.getElementById('paginationControls'),
       friendInputWrapper: document.getElementById('friendInputWrapper'),
       friendInput: document.getElementById('friendInput'),
-      toggleFriendBtn: document.getElementById('toggleFriendBtn'),
-      removeFriendBtn: document.getElementById('removeFriendBtn'),
-      rouletteBtn: document.getElementById('rouletteBtn'),
-      statsBtn: document.getElementById('statsBtn'),
-      statsBar: document.getElementById('statsBar')
+      removeFriendBtn: document.getElementById('removeFriendBtn')
     };
 
     const savedRegion = localStorage.getItem('ps_region');
@@ -610,8 +660,8 @@
       // Fix: Refresh the service browser if it's currently open
       const browser = document.getElementById('serviceBrowser');
       if (browser && !browser.classList.contains('hidden')) {
-        const availableIds = new Set(currentProviders.map(p => p.id));
-        pendingSelectedIds = new Set([...pendingSelectedIds].filter(id => availableIds.has(id)));
+        const name = document.getElementById('serviceBrowserRegion');
+        if (name) name.textContent = REGION_META[currentRegion]?.name || currentRegion;
         renderBrowserGrid();
         updateBrowserSaveBtn();
       }
@@ -655,11 +705,11 @@
         if (!btn) return;
         if (vpnModeEnabled) {
           btn.classList.add('vpn-active'); btn.classList.remove('text-gray-500', 'text-gray-400');
-          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-blue-400'); dot.classList.remove('shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-blue-400'); dot.classList.remove('shadow-[0_0_6px_rgba(255,122,92,0.8)]'); }
         } else {
           btn.classList.remove('vpn-active');
           if (btn.id === 'vpnToggleBtn') btn.classList.add('text-gray-500'); else btn.classList.add('text-gray-400');
-          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-blue-400', 'shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-blue-400', 'shadow-[0_0_6px_rgba(255,122,92,0.8)]'); }
         }
       });
       // Also update any inline Watch Now VPN toggle buttons currently visible

@@ -9,17 +9,25 @@
   <link rel="icon" href="./icons/favicon.ico" sizes="any">
   <style>
     @font-face {
-      font-family: 'Outfit';
+      font-family: 'DM Sans';
       font-weight: 300 900;
       font-display: swap;
-      src: url(/fonts/outfit-latin.woff2) format('woff2');
+      src: url(/fonts/dm-sans-latin.woff2) format('woff2');
     }
 
+    @font-face {
+      font-family: 'DM Serif Display';
+      font-weight: 400;
+      font-display: swap;
+      src: url(/fonts/dm-serif-display-latin.woff2) format('woff2');
+    }
+
+    /* The site's film-night palette: near-black ground, warm type, one ember accent. */
     body {
       margin: 0;
-      background: #020617;
-      color: #cbd5e1;
-      font-family: 'Outfit', system-ui, sans-serif;
+      background: #0a0a0b;
+      color: #d8d3c9;
+      font-family: 'DM Sans', system-ui, sans-serif;
       font-size: 17px;
       line-height: 1.6;
     }
@@ -30,26 +38,39 @@
       padding: 48px 20px 80px;
     }
 
+    h1,
+    h2 {
+      color: #f4f0e8;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-weight: 400;
+    }
+
     h1 {
-      color: #fff;
-      font-size: 2.2rem;
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      margin: 24px 0 8px;
+      font-size: 2.6rem;
+      line-height: 1.05;
+      margin: 28px 0 8px;
     }
 
     h2 {
-      color: #fff;
-      font-size: 1.2rem;
-      margin: 36px 0 8px;
+      font-size: 1.5rem;
+      line-height: 1.15;
+      margin: 40px 0 8px;
+    }
+
+    strong {
+      color: #f4f0e8;
+      font-weight: 600;
     }
 
     a {
-      color: #93c5fd;
+      color: #f4f0e8;
+      text-decoration-color: rgba(255, 255, 255, 0.3);
+      text-underline-offset: 3px;
     }
 
     a:hover {
-      color: #bfdbfe;
+      color: #ff5a36;
+      text-decoration-color: currentColor;
     }
 
     li {
@@ -57,8 +78,8 @@
     }
 
     .muted {
-      color: #94a3b8;
-      font-size: 0.95rem;
+      color: #a5a097;
+      font-size: 15px;
     }
   </style>
 </head>
@@ -78,6 +99,7 @@
     <ul>
       <li><strong>Our server (hosted by Vercel).</strong> When you scan, the Letterboxd username you entered is sent to our server, which fetches that public watchlist from Letterboxd and passes it back. Watchlist pages are cached for up to two minutes. Vercel, as the host, processes technical request data such as your IP address.</li>
       <li><strong>TMDB.</strong> Your browser asks The Movie Database directly for film details, posters and streaming availability.</li>
+      <li><strong>JustWatch, through our server.</strong> When you open a film, our server asks JustWatch for the links to that film on each streaming service, so the Watch buttons can open it directly. Only the film's TMDB id, its title and the country are sent; your browser never contacts JustWatch, and nothing about you is included. Answers are cached for a few hours.</li>
       <li><strong>Cinemeta (Stremio).</strong> Your browser asks this service directly for IMDb ratings.</li>
       <li><strong>logo.dev.</strong> Your browser may load a streaming service's logo from here when we don't have our own copy.</li>
       <li><strong>YouTube.</strong> Only when you open a trailer, the player is loaded from YouTube.</li>

@@ -65,23 +65,20 @@
       const safeTitle = escapeHTML(movieObj.title);
       const safeSubtext = escapeHTML(movieObj.subtext);
       const wrapper = document.createElement('div');
-      wrapper.className = `tilt-card animate-fade h-full cursor-pointer z-10 hover:z-30 relative`;
-      wrapper.style.animationDelay = `${delayIndex * 0.02}s`;
+      wrapper.className = 'poster-card';
+      wrapper.style.setProperty('--i', Math.min(delayIndex, 24));
       const a = document.createElement('a');
       a.href = movieObj.url;
       a.dataset.movieCardId = movieObj.id;
       a.addEventListener('click', (e) => { e.preventDefault(); openMoviePage(movieObj, true); });
-      a.className = 'tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full';
+      a.className = 'poster-card-art';
       const innerClip = document.createElement('div');
-      innerClip.className = 'absolute inset-0 rounded-2xl overflow-hidden pointer-events-none';
+      innerClip.className = 'poster-card-clip';
       if (movieObj.poster) {
-        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
+        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="" loading="lazy" decoding="async">`;
       } else {
-        innerClip.innerHTML = `<div class="absolute inset-0 flex items-center justify-center p-4 text-center font-bold text-gray-500 text-xs">${safeTitle}</div>`;
+        innerClip.innerHTML = `<div class="poster-card-fallback">${safeTitle}</div>`;
       }
-      const glare = document.createElement('div');
-      glare.className = 'glare';
-      innerClip.appendChild(glare);
       a.appendChild(innerClip);
 
       const badgeHtml = renderPosterRatingBadgeHtml(movieObj);
@@ -95,21 +92,39 @@
         }
       }
 
-      if (movieObj.vpnInfo) {
-        const vpnBadge = document.createElement('div');
-        vpnBadge.className = 'poster-corner-badge poster-vpn-badge';
-        vpnBadge.title = `Requires switching your VPN to ${REGION_META[movieObj.vpnInfo.region].name}`;
-        vpnBadge.innerHTML = `${REGION_META[movieObj.vpnInfo.region].flag} VPN`;
-        a.appendChild(vpnBadge);
+      // Where it's available, as small service logos along the bottom of the poster.
+      // `subtext` is "Netflix, Max" (or "Netflix · 🇺🇸 VPN" for a VPN unlock).
+      // A VPN unlock gets a small "VPN" chip at the end of that row (with the country's flag), so
+      // the top of the poster stays free for the rating, however narrow the card.
+      // At most two logos (one beside a VPN chip) and a "+N" for the rest, so the row fits the
+      // narrowest phone cards; the film page lists every service.
+      const serviceNames = (movieObj.subtext || '').split(' · ')[0].split(', ').map(s => s.trim()).filter(s => s && s !== 'Not streaming in region');
+      const vpnRegion = movieObj.vpnInfo && REGION_META[movieObj.vpnInfo.region];
+      const maxLogos = vpnRegion ? 1 : 2;
+      const logos = serviceNames.slice(0, maxLogos).map(name => {
+        const src = getProviderLogoUrl(name);
+        return src ? `<img src="${escapeHTML(src)}" alt="${escapeHTML(name)}" loading="lazy" onerror="this.remove()">` : '';
+      }).join('');
+      const vpnChip = vpnRegion
+        ? `<span class="poster-vpn-chip" title="Requires switching your VPN to ${escapeHTML(vpnRegion.name)}">${vpnRegion.flag} VPN</span>`
+        : '';
+      if (logos || vpnChip) {
+        const row = document.createElement('div');
+        row.className = 'poster-services';
+        row.innerHTML = logos + (logos && !vpnChip && serviceNames.length > maxLogos ? `<span class="poster-services-more">+${serviceNames.length - maxLogos}</span>` : '') + vpnChip;
+        a.appendChild(row);
       }
 
-      a.title = safeTitle;
+      a.setAttribute('aria-label', movieObj.title || 'Film');
       wrapper.appendChild(a);
-      apply3DTilt(wrapper);
+      const year = (movieObj.releaseDate || '').slice(0, 4);
+      const caption = document.createElement('div');
+      caption.className = 'poster-card-caption';
+      caption.innerHTML = `<span class="poster-card-title">${safeTitle}</span>${year ? `<span class="poster-card-year">${year}</span>` : ''}`;
+      wrapper.appendChild(caption);
       return wrapper;
     }
-    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
-    function updateStats() { if (scannedMovies.length === 0) { if (el.statsBar) el.statsBar.classList.add('hidden'); return; } document.getElementById('stat-total').textContent = scannedMovies.length; let genreCounts = {}; let decadeCounts = {}; let totalRating = 0; let ratedCount = 0; scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genreCounts[GENRE_MAP[id]] = (genreCounts[GENRE_MAP[id]] || 0) + 1; }); if (m.releaseDate) { const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10; if (!isNaN(dec)) decadeCounts[dec] = (decadeCounts[dec] || 0) + 1; } const rVal = getCachedRating(m); if (rVal) { const r = parseFloat(rVal); if (!isNaN(r) && r > 0) { totalRating += r; ratedCount++; } } }); const topG = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a])[0] || '-'; const topD = Object.keys(decadeCounts).sort((a, b) => decadeCounts[b] - decadeCounts[a])[0]; const avg = ratedCount ? (totalRating / ratedCount).toFixed(1) : '-'; document.getElementById('stat-genre').textContent = topG; document.getElementById('stat-decade').innerHTML = topD ? `${topD}S` : '-'; const avgEl = document.getElementById('stat-avg'); if (avgEl) avgEl.textContent = avg; }
+    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
     function populateFilterDropdowns() {
       renderAllCustomFilters('home');
     }
@@ -265,13 +280,24 @@
         if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999');
         return 0;
       });
-      currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
+      currentGroupedResults = groupMoviesByAvailability(filtered, isSubscribedScan);
+      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
+      renderActiveGrid();
+      renderResultsHero();
+    }
 
-      filtered.forEach(movie => {
+    // Sorts movies into the four home tabs (stream / rentbuy / other / unavailable) for the
+    // current region, selected services and VPN mode. Used for the visible (filtered) grid and,
+    // unfiltered, for the results headline.
+    function groupMoviesByAvailability(movies, isSubscribedScan = buildSubscribedMatcher()) {
+      const getMovieVpnMatch = (m) => findVpnMatch(m, isSubscribedScan);
+      const groups = { stream: [], rentbuy: [], other: [], unavailable: [] };
+
+      movies.forEach(movie => {
         const localData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData;
         const vpnInfo = getMovieVpnMatch(movie);
         const baseObj = { ...movie, regionData: localData, vpnInfo };
-        if (!localData && !vpnInfo) { baseObj.subtext = 'Not streaming in region'; currentGroupedResults.unavailable.push(baseObj); return; }
+        if (!localData && !vpnInfo) { baseObj.subtext = 'Not streaming in region'; groups.unavailable.push(baseObj); return; }
 
         const localFlatrate = (localData?.flatrate || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
         const localRent = (localData?.rent || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
@@ -282,19 +308,19 @@
 
         if (matchedSubscribed.length > 0) {
           baseObj.subtext = matchedSubscribed.map(s => s.provider_name).join(', ');
-          currentGroupedResults.stream.push(baseObj);
+          groups.stream.push(baseObj);
         } else if (vpnInfo && movie.allProviders && movie.allProviders[vpnInfo.region]) {
           const vpnFlat = (movie.allProviders[vpnInfo.region]?.flatrate || []).filter(isSubscribedScan);
           baseObj.subtext = `${vpnInfo.services[0]?.label || vpnFlat[0]?.provider_name || 'VPN'} · ${REGION_META[vpnInfo.region]?.flag || ''} VPN`;
-          currentGroupedResults.stream.push(baseObj);
+          groups.stream.push(baseObj);
         } else if (matchedUnsubscribed.length > 0) {
           baseObj.subtext = matchedUnsubscribed.map(s => s.provider_name).join(', ');
-          currentGroupedResults.other.push(baseObj);
+          groups.other.push(baseObj);
         } else if (localRent.length > 0 || localBuy.length > 0) {
           const p = [...localRent, ...localBuy];
           const rawNames = [...new Set(p.map(x => x.provider_name))];
           baseObj.subtext = rawNames.slice(0, 2).join(', ');
-          currentGroupedResults.rentbuy.push(baseObj);
+          groups.rentbuy.push(baseObj);
         } else if (vpnModeEnabled && movie.allProviders) {
           let vpnRb = null;
           let vpnRbCode = null;
@@ -311,25 +337,24 @@
           if (vpnRb && vpnRbCode) {
             const rawNames = [...new Set(vpnRb.map(x => x.provider_name))];
             baseObj.subtext = `${rawNames.slice(0, 2).join(', ')} · ${REGION_META[vpnRbCode]?.flag || ''} VPN`;
-            currentGroupedResults.rentbuy.push(baseObj);
+            groups.rentbuy.push(baseObj);
           } else {
             baseObj.subtext = 'Not streaming in region';
-            currentGroupedResults.unavailable.push(baseObj);
+            groups.unavailable.push(baseObj);
           }
         } else {
           baseObj.subtext = 'Not streaming in region';
-          currentGroupedResults.unavailable.push(baseObj);
+          groups.unavailable.push(baseObj);
         }
       });
-      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
-      renderActiveGrid();
+      return groups;
     }
     function renderActiveGrid() {
       const container = el.activeGridContainer; if (!container) return; container.innerHTML = ''; const currentData = currentGroupedResults[activeTab] || [];
-      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const count = serviceTally[topService]; const countText = count === 1 ? '1 film' : `${count} films`; const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${countText}</strong> from your watchlist.</p></div><div class="text-3xl opacity-80">💡</div>`; container.appendChild(banner); } }
+      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const count = serviceTally[topService]; const countText = count === 1 ? '1 film' : `${count} films`; const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${countText}</strong> from your watchlist.</p></div><div class="text-3xl opacity-80"></div>`; container.appendChild(banner); } }
       if (currentData.length === 0) {
         const hasActiveFilter = (el.filterSearch && el.filterSearch.value.trim() !== '') || (el.filterGenre && el.filterGenre.value !== 'all') || (el.filterDecade && el.filterDecade.value !== 'all');
-        const emptyIcon = hasActiveFilter ? '🔍' : '🎬';
+        const emptyIcon = hasActiveFilter ? '' : '';
         const emptyMsg = hasActiveFilter ? 'No titles match your filters' : 'No films in this category';
         const emptySub = hasActiveFilter ? 'Try a different search, genre, or decade.' : 'Nothing landed here for your current selection.';
         container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[300px] text-gray-500 gap-2"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
@@ -342,7 +367,7 @@
     if (el.quickSearchInput) {
       el.quickSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => {
-          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60">🔍</span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
+          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<p class="search-empty">Nothing matches “${escapeHTML(query)}” yet. Keep typing, or try a person's name.</p>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
             el.searchDropdown.innerHTML = '';
             results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 15).forEach(item => {
               const isPerson = item.__mediaType === 'person';
@@ -351,34 +376,17 @@
               const year = date ? date.split('-')[0] : '';
               const imagePath = isPerson ? item.profile_path : item.poster_path;
               const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : '';
-              const row = document.createElement('div');
-              row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0';
+              const row = document.createElement('button');
+              row.type = 'button';
+              row.className = 'search-row';
               const safeTitle = escapeHTML(displayTitle);
-              let badgeLabel = '';
-              let badgeColor = '';
-              if (item.__mediaType === 'tv') {
-                badgeLabel = 'TV';
-                badgeColor = 'text-blue-400 border-blue-500/30';
-              } else if (item.__mediaType === 'person') {
-                const dept = item.known_for_department;
-                if (dept === 'Directing') badgeLabel = 'DIRECTOR';
-                else if (dept === 'Writing') badgeLabel = 'WRITER';
-                else if (dept === 'Production') badgeLabel = 'PRODUCER';
-                else if (dept === 'Sound') badgeLabel = 'COMPOSER';
-                else badgeLabel = 'ACTOR';
-                badgeColor = 'text-purple-400 border-purple-500/30';
-              } else {
-                badgeLabel = 'FILM';
-                badgeColor = 'text-gray-400 border-gray-500/30';
-              }
+              const dept = item.known_for_department;
+              const kind = item.__mediaType === 'tv' ? 'TV series'
+                : isPerson ? (dept === 'Directing' ? 'Director' : dept === 'Writing' ? 'Writer' : dept === 'Production' ? 'Producer' : dept === 'Sound' ? 'Composer' : 'Actor')
+                : 'Film';
               const searchImdbRating = isPerson ? null : getRatingInfo({ ...item }).rating;
-              const searchYear = (item.release_date || item.first_air_date || '').slice(0, 4);
-              const ratingOrYear = searchImdbRating ? `IMDb ${searchImdbRating}` : searchYear;
-              const ratingOrDept = item.matchedRole
-                ? `${item.matchedRole}${searchImdbRating ? ` • IMDb ${searchImdbRating}` : ''}`
-                : (isPerson ? (item.known_for_department || 'Person') : ratingOrYear);
-              const subtitleColor = item.matchedRole ? 'text-amber-400 font-extrabold' : 'text-blue-400';
-              row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="${subtitleColor} text-[10px]">${escapeHTML(ratingOrDept)}</span></div>`;
+              const sub = [item.matchedRole || kind, !isPerson && year ? year : null, searchImdbRating ? `IMDb ${searchImdbRating}` : null].filter(Boolean).join(' · ');
+              row.innerHTML = `<span class="search-row-thumb${isPerson ? ' is-person' : ''}">${poster ? `<img src="${poster}" alt="" loading="lazy" decoding="async">` : `<span>${safeTitle.charAt(0)}</span>`}</span><span class="search-row-text"><span class="search-row-title">${safeTitle}</span><span class="search-row-sub">${escapeHTML(sub)}</span></span>`;
               row.addEventListener('click', () => {
                 el.quickSearchInput.value = displayTitle;
                 el.searchDropdown.classList.add('hidden');
@@ -408,12 +416,13 @@
         if (!query) return;
         const results = await searchMultiMedia(query);
         if (results.length === 0) {
-          if (el.quickSearchResult) {
-            el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`;
-            el.quickSearchResult.classList.remove('hidden');
+          if (el.searchDropdown) {
+            el.searchDropdown.innerHTML = `<p class="search-empty">Nothing matches “${escapeHTML(query)}”. Try the original title, or a person's name.</p>`;
+            el.searchDropdown.classList.remove('hidden');
           }
           return;
         }
+        if (el.quickSearchInput) el.quickSearchInput.blur();
         results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query));
         const topResult = results[0];
         if (topResult.__mediaType === 'person') {
@@ -435,11 +444,11 @@
           if (el.progressBar) el.progressBar.style.width = '0%';
           if (el.progressPercent) el.progressPercent.textContent = '0%';
           if (el.formError) {
-            el.formError.textContent = 'Scan aborted by user.';
+            el.formError.textContent = 'Scan stopped.';
             el.formError.classList.remove('hidden');
           }
           if (el.resultsSection) el.resultsSection.classList.add('hidden');
-          if (el.statsBar) el.statsBar.classList.add('hidden');
+         
           resetUI();
         }
       });

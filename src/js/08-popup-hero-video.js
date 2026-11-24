@@ -1,5 +1,4 @@
-    // ---- Generic popup (Insights, full description text, etc.) ----
-    let statsBarOriginalParent = null;
+    // ---- Generic popup (full description text, etc.) ----
     function closeGenericPopup() {
       const overlay = document.getElementById('genericPopupOverlay');
       const content = document.getElementById('genericPopupContent');
@@ -18,14 +17,6 @@
         overlay.classList.remove('flex', 'popup-overlay-out');
         if (content) content.classList.remove('popup-animate-out');
 
-        const bar = document.getElementById('statsBar');
-        if (bar && statsBarOriginalParent) {
-          statsBarOriginalParent.appendChild(bar);
-          statsBarOriginalParent = null;
-          bar.classList.add('hidden');
-          bar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3');
-          if (el.statsBtn) el.statsBtn.classList.remove('vpn-active');
-        }
       }, 220);
     }
     function handleSpotifyMarqueeEnter(cardEl) {
@@ -146,60 +137,27 @@
       _openGenericPopupAnimated();
     }
 
+    // "Other services" and "Rent or buy": the same rows as the Where to watch panel, in a list.
+    const vpnNote = '<p class="wp-pop-note">Some streaming services may detect or block VPN connections.</p>';
     window.openExtraStreamingPopup = function (movieId) {
       const data = window.moviePopupDataCache ? window.moviePopupDataCache.get(movieId) : null;
       if (!data) return;
-      const hasUser = !!data.userFlatrateLinksHtml;
-      const hasOther = !!data.otherFlatrateLinksHtml;
-      const hasAny = hasUser || hasOther || (data.streamingCount > 0);
-
-      let html = '';
-      if (!hasAny) {
-        const fallbackMsg = (data && data.rentBuyCount > 0) ? 'Only available to rent or buy' : 'Not available to stream';
-        html = `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1">📺</span>
-          <span class="font-bold uppercase tracking-widest text-sm text-gray-400">${fallbackMsg}</span>
-          <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No streaming options found in this region.</span>
-        </div>`;
-      } else {
-        html = `<div class="space-y-6">
-          ${hasUser ? `
-            <div>
-              <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
-                Your Subscriptions
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.userFlatrateLinksHtml}</div>
-            </div>
-          ` : ''}
-          ${hasOther ? `
-            <div>
-              <h4 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-gray-500"></span>
-                Unsubscribed
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.otherFlatrateLinksHtml}</div>
-            </div>
-          ` : ''}
-          ${(data.hasVpnLinks || data.userFlatrateLinksHtml?.includes('via VPN*')) ? `<p class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center pt-2">*Some streaming services may detect or restrict VPN connections</p>` : ''}
-        </div>`;
-      }
-      openCustomPopup(data.title, html, 'Streaming Options');
+      const group = (title, rows) => rows ? `<div class="wp-pop-group">${title ? `<h4 class="wp-pop-group-title">${title}</h4>` : ''}<div class="wp-pop-list">${rows}</div></div>` : '';
+      const both = data.userFlatrateLinksHtml && data.otherFlatrateLinksHtml;
+      const html = (data.userFlatrateLinksHtml || data.otherFlatrateLinksHtml)
+        ? `<div class="wp-pop">${group(both ? 'Your services' : '', data.userFlatrateLinksHtml)}${group(both ? 'Needs a subscription' : '', data.otherFlatrateLinksHtml)}${data.hasVpnLinks ? vpnNote : ''}</div>`
+        : '<p class="wp-pop-empty">No other streaming services have it here.</p>';
+      openCustomPopup(data.userFlatrateLinksHtml && !data.otherFlatrateLinksHtml ? 'More of your services' : 'Other services', html);
     };
 
     window.openRentBuyPopup = function (movieId) {
       const data = window.moviePopupDataCache ? window.moviePopupDataCache.get(movieId) : null;
       if (!data) return;
       const html = data.rentBuyCount > 0
-        ? `<div class="space-y-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.rbLinksHtml}</div>${(data.hasVpnLinks || data.rbLinksHtml?.includes('via VPN*')) ? `<p class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center pt-2">*Some streaming services may detect or restrict VPN connections</p>` : ''}</div>`
-        : `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1">🛒</span>
-          <span class="font-bold uppercase tracking-widest text-sm text-gray-400">Not available to rent or buy</span>
-          <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No digital purchase or rental options found in this region.</span>
-        </div>`;
-      openCustomPopup(data.title, html, 'Rent & Buy Options');
+        ? `<div class="wp-pop"><div class="wp-pop-list">${data.rbLinksHtml}</div>${data.hasVpnLinks ? vpnNote : ''}</div>`
+        : '<p class="wp-pop-empty">Nobody rents or sells it here yet.</p>';
+      openCustomPopup(data.rbRegion ? `Rent or buy in ${escapeHTML(data.rbRegion)}` : 'Rent or buy', html);
     };
-
     function openTextPopup(title, text) {
       const body = document.getElementById('genericPopupBody');
       if (!body) return;
@@ -209,53 +167,6 @@
       body.scrollTop = 0;
     }
 
-    function openInsightsPopup() {
-      const bar = document.getElementById('statsBar');
-      const body = document.getElementById('genericPopupBody');
-      if (!bar || !body) return;
-      statsBarOriginalParent = bar.parentElement;
-
-      // Read current stat values
-      const total = document.getElementById('stat-total')?.textContent || '0';
-      const genre = document.getElementById('stat-genre')?.textContent || '-';
-      const decade = document.getElementById('stat-decade')?.textContent || '-';
-      const avg = document.getElementById('stat-avg')?.textContent || '-';
-
-      const statsHtml = `
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div class="insight-stat-card">
-            <span class="stat-icon">🎬</span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Total Films</span>
-              <span class="stat-value">${escapeHTML(total)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon">🍿</span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Top Genre</span>
-              <span class="stat-value">${escapeHTML(genre)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon">🕰</span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Top Decade</span>
-              <span class="stat-value">${escapeHTML(decade)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon">⭐</span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Avg Rating</span>
-              <span class="stat-value">${escapeHTML(avg)}</span>
-            </div>
-          </div>
-        </div>`;
-
-      if (el.statsBtn) el.statsBtn.classList.add('vpn-active');
-      openCustomPopup('Watchlist Insights', statsHtml, 'Analytics');
-    }
     // 2-line-clamped hero description with a "More" link that opens the full text in the popup
     // above, instead of expanding inline (used on the full-page movie/actor hero).
     let heroOverviewCounter = 0;
@@ -265,7 +176,7 @@
       const id = 'heroOverview_' + (++heroOverviewCounter);
       heroOverviewTextStore[id] = { text: escapedText, popupTitle };
       setTimeout(() => clampHeroOverview(id), 0);
-      return `<p id="${id}" class="w-full max-w-full lg:max-w-2xl text-gray-200 text-base sm:text-lg leading-snug font-medium line-clamp-2">${escapedText}</p>`;
+      return `<p id="${id}" class="hero-overview w-full max-w-full lg:max-w-2xl line-clamp-3">${escapedText}</p>`;
     }
     // Measures the actual rendered paragraph and binary-searches for the longest prefix that still
     // fits on 2 lines once "… More" is appended — guarantees "More" lands as the real last word on
@@ -274,10 +185,10 @@
       const p = document.getElementById(id);
       const data = heroOverviewTextStore[id];
       if (!p || !data) return;
-      p.classList.remove('line-clamp-2');
+      p.classList.remove('line-clamp-3');
       const lineHeight = parseFloat(getComputedStyle(p).lineHeight) || 24;
-      const maxHeight = lineHeight * 2 + 2;
-      const moreSpan = `<span class="text-blue-400 font-extrabold">more</span>`;
+      const maxHeight = lineHeight * 3 + 2;
+      const moreSpan = `<span class="hero-overview-more">more</span>`;
       p.innerHTML = data.text;
       if (p.scrollHeight <= maxHeight) return;
       let lo = 0, hi = data.text.length;
@@ -289,8 +200,11 @@
         p.innerHTML = data.text.slice(0, mid).trim() + '… ' + moreSpan;
         if (p.scrollHeight <= maxHeight) lo = mid; else hi = mid - 1;
       }
-      const truncated = data.text.slice(0, lo).trim();
-      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="text-blue-400 font-extrabold cursor-pointer hover:text-blue-300 transition-colors">more</span>`;
+      // Never stop mid-word: back up to the last whole word that fits, and drop trailing punctuation.
+      let cut = data.text.slice(0, lo);
+      if (lo < data.text.length && /\S/.test(data.text[lo] || '')) cut = cut.replace(/\s+\S*$/, '');
+      const truncated = cut.trim().replace(/[,;:.\-–—]+$/, '');
+      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="hero-overview-more">more</span>`;
     }
 
     function createExpandableTextHtml(text, id = '') {
@@ -464,10 +378,25 @@
 
     let heroRevealTimeout = null;
     let heroVideoFailed = false;
+    // The trailer replaces the backdrop only once YouTube reports it actually playing. Revealing
+    // on the timer alone covered the backdrop with a black, spinning player whenever autoplay was
+    // blocked (power saving, data saver, some browsers) or the video was slow.
+    let heroVideoPlaying = false;
+    let heroRevealDue = false;
+    let heroRevealed = false;
+    function tryRevealHeroVideo() {
+      const iframeEl = document.getElementById('heroVideoIframe');
+      if (!heroRevealDue || !heroVideoPlaying || heroRevealed || heroVideoFailed || !iframeEl) return;
+      heroRevealed = true;
+      revealHeroVideo(iframeEl);
+    }
 
     window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
       heroVideoFailed = false;
+      heroVideoPlaying = false;
+      heroRevealDue = false;
+      heroRevealed = false;
       fitHeroVideoCover(iframeEl);
       setTimeout(() => fitHeroVideoCover(iframeEl), 600);
       try {
@@ -479,9 +408,8 @@
       if (heroRevealTimeout) clearTimeout(heroRevealTimeout);
       // Wait the full 6.6s delay before revealing the video (as long as no error occurred)
       heroRevealTimeout = setTimeout(() => {
-        if (!heroVideoFailed) {
-          revealHeroVideo(iframeEl);
-        }
+        heroRevealDue = true;
+        tryRevealHeroVideo();
       }, 6600);
     };
 
@@ -541,6 +469,8 @@
         const state = data.event === 'onStateChange' ? data.info : data.info.playerState;
         if (state === 1) {
           isTrailerPaused = false;
+          heroVideoPlaying = true;
+          tryRevealHeroVideo();
         } else if (state === 2 || state === 0) {
           isTrailerPaused = true;
         }

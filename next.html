@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Design prototype for a full rebuild of the Unwatchd interface. Sample films, no scanning.
+     Not linked from the site. The serif is loaded from Google Fonts here only because this is
+     a prototype; the real build would host it in /fonts/ like Outfit. -->
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="robots" content="noindex">
+  <title>Unwatchd · rebuild prototype</title>
+  <link rel="icon" href="./icons/favicon.ico" sizes="any">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Outfit';
+      font-weight: 300 900;
+      font-display: swap;
+      src: url(/fonts/outfit-latin.woff2) format('woff2');
+    }
+
+    :root {
+      --bg: #0a0a0b;
+      --surface: #151517;
+      --surface-2: #1d1d20;
+      --line: rgba(255, 255, 255, 0.11);
+      --text: #f4f0e8;
+      --muted: #a5a097;
+      --accent: #ff5a36;
+      --serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+      --sans: 'Outfit', system-ui, sans-serif;
+      --pad: 20px;
+    }
+
+    @media (min-width: 768px) {
+      :root {
+        --pad: 44px;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    button,
+    input {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .wrap {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 var(--pad);
+    }
+
+    /* ── Top bar ── */
+    .top {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .brand img {
+      width: 26px;
+      height: 26px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 0.15s, background-color 0.15s;
+    }
+
+    .ghost:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .ghost svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .ghost .hide-sm {
+      display: none;
+    }
+
+    @media (min-width: 640px) {
+      .ghost .hide-sm {
+        display: inline;
+      }
+    }
+
+    /* ── Type ── */
+    .eyebrow {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .display {
+      margin: 0;
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(3.1rem, 10.5vw, 8rem);
+      line-height: 0.94;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+
+    .display em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .display-sm {
+      font-size: clamp(2.3rem, 6.2vw, 4.6rem);
+      line-height: 1;
+      max-width: 17ch;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 34rem;
+      font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+      color: var(--muted);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 52px;
+      padding: 0 26px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+      text-decoration: none;
+      transition: transform 0.12s, background-color 0.15s, border-color 0.15s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--text);
+      color: #0a0a0b;
+    }
+
+    .btn-primary:hover {
+      background: #fff;
+    }
+
+    .btn-quiet {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.16);
+      color: var(--text);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+    }
+
+    .btn-quiet:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .link-btn {
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--text);
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: var(--line);
+      text-underline-offset: 4px;
+    }
+
+    .link-btn:hover {
+      text-decoration-color: var(--accent);
+    }
+
+    /* ── Landing ── */
+    .landing {
+      position: relative;
+      min-height: calc(100svh - 72px);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .poster-wall {
+      position: absolute;
+      top: -8%;
+      right: -6%;
+      width: min(62vw, 900px);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      transform: rotate(8deg);
+      opacity: 0.5;
+      pointer-events: none;
+      -webkit-mask-image: linear-gradient(to left, #000 20%, transparent 92%), linear-gradient(to top, transparent 4%, #000 40%);
+      -webkit-mask-composite: source-in;
+      mask-image: linear-gradient(to left, #000 20%, transparent 92%), linear-gradient(to top, transparent 4%, #000 40%);
+      mask-composite: intersect;
+    }
+
+    .poster-wall img {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      border-radius: 10px;
+      background: var(--surface);
+    }
+
+    .poster-wall img:nth-child(4n + 2),
+    .poster-wall img:nth-child(4n + 4) {
+      transform: translateY(46px);
+    }
+
+    @media (max-width: 767px) {
+      .poster-wall {
+        width: 130vw;
+        right: -30vw;
+        top: -4%;
+        opacity: 0.22;
+      }
+    }
+
+    .landing-inner {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      padding-top: 32px;
+      padding-bottom: 72px;
+    }
+
+    .ask {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 620px;
+      margin-top: 6px;
+    }
+
+    .ask-field {
+      display: flex;
+      align-items: center;
+      height: 60px;
+      padding: 0 22px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      font-size: 18px;
+      transition: border-color 0.15s;
+    }
+
+    .ask-field:focus-within {
+      border-color: var(--text);
+    }
+
+    .ask-field span {
+      color: var(--muted);
+    }
+
+    .ask-field input {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      font-weight: 600;
+    }
+
+    .ask-field input::placeholder {
+      color: #6d6962;
+      font-weight: 400;
+    }
+
+    .ask .btn {
+      height: 60px;
+      font-size: 17px;
+    }
+
+    @media (min-width: 640px) {
+      .ask {
+        flex-direction: row;
+      }
+
+      /* Only grow sideways in the row layout; in the phone column flex: 1 collapsed its height. */
+      .ask-field {
+        flex: 1;
+      }
+    }
+
+    .services {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .services img,
+    .svc-chip img,
+    .card-svc img {
+      border-radius: 22.5%;
+    }
+
+    .services img {
+      width: 34px;
+      height: 34px;
+    }
+
+    /* ── Results ── */
+    .results {
+      padding-bottom: 80px;
+    }
+
+    .context {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 14px;
+      padding: 10px 0 30px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .context strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .context .dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .svc-filter {
+      display: flex;
+      gap: 8px;
+      margin: 26px calc(var(--pad) * -1) 0;
+      padding: 0 var(--pad);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .svc-filter::-webkit-scrollbar {
+      display: none;
+    }
+
+    .svc-chip {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      height: 46px;
+      padding: 0 16px 0 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+      transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+    }
+
+    .svc-chip:first-child {
+      padding-left: 18px;
+    }
+
+    .svc-chip img {
+      width: 30px;
+      height: 30px;
+    }
+
+    .svc-chip b {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .svc-chip:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .svc-chip[aria-pressed="true"] {
+      background: var(--text);
+      border-color: var(--text);
+      color: #3b3833;
+    }
+
+    .svc-chip[aria-pressed="true"] b {
+      color: #0a0a0b;
+    }
+
+    /* Tonight's pick */
+    .pick {
+      position: relative;
+      margin-top: 30px;
+      border-radius: 22px;
+      overflow: hidden;
+      background: var(--surface);
+      isolation: isolate;
+    }
+
+    .pick-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+      transition: opacity 0.35s ease;
+    }
+
+    .pick.is-swapping .pick-art {
+      opacity: 0;
+    }
+
+    .pick::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to top, rgba(10, 10, 11, 0.96) 0%, rgba(10, 10, 11, 0.7) 30%, rgba(10, 10, 11, 0) 70%),
+        linear-gradient(to right, rgba(10, 10, 11, 0.85) 0%, rgba(10, 10, 11, 0.25) 48%, rgba(10, 10, 11, 0) 72%);
+      pointer-events: none;
+    }
+
+    .pick-body {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 12px;
+      min-height: clamp(440px, 46vw, 620px);
+      max-width: 44rem;
+      padding: clamp(22px, 4vw, 52px);
+    }
+
+    .pick-logo {
+      align-self: flex-start;
+      max-width: min(80%, 24rem);
+      max-height: clamp(80px, 13vw, 150px);
+      object-fit: contain;
+      object-position: left bottom;
+      filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.7));
+    }
+
+    .pick-title {
+      margin: 0;
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(2.6rem, 7vw, 5.2rem);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+
+    .pick-meta {
+      margin: 0;
+      color: #d8d3c9;
+      font-size: 16px;
+    }
+
+    .pick-meta img {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 22.5%;
+      vertical-align: -5px;
+      margin-right: 6px;
+    }
+
+    .pick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 639px) {
+      .pick-art {
+        height: 62%;
+      }
+
+      .pick::after {
+        background: linear-gradient(to top, rgba(21, 21, 23, 1) 0%, rgba(21, 21, 23, 1) 38%, rgba(21, 21, 23, 0.8) 50%, rgba(21, 21, 23, 0) 76%);
+      }
+
+      .pick-body {
+        min-height: 560px;
+      }
+
+      .pick-actions .btn-primary {
+        flex: 1 1 100%;
+      }
+
+      .pick-actions .btn-quiet {
+        flex: 1;
+        padding: 0 12px;
+      }
+    }
+
+    /* Tabs and tools */
+    .bar {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 44px calc(var(--pad) * -1) 22px;
+      padding: 10px var(--pad) 0;
+      background: linear-gradient(to bottom, var(--bg) 78%, rgba(10, 10, 11, 0));
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 26px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab {
+      flex: none;
+      position: relative;
+      height: 50px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .tab span {
+      margin-left: 6px;
+      font-size: 14px;
+      color: #7a766f;
+    }
+
+    .tab:hover {
+      color: var(--text);
+    }
+
+    .tab[aria-selected="true"] {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .tab[aria-selected="true"]::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: var(--accent);
+    }
+
+    .tools {
+      display: none;
+      gap: 2px;
+      padding-bottom: 4px;
+    }
+
+    @media (min-width: 900px) {
+      .tools {
+        display: flex;
+      }
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (min-width: 560px) {
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 18px 16px;
+      }
+    }
+
+    @media (min-width: 1100px) {
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+        gap: 26px 20px;
+      }
+    }
+
+    .card {
+      position: relative;
+      display: block;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .card-art {
+      position: relative;
+      aspect-ratio: 2 / 3;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--surface);
+      transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.25s;
+    }
+
+    .card-art img.poster {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .card:hover .card-art {
+        transform: translateY(-6px);
+        box-shadow: 0 22px 40px -18px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.22);
+      }
+    }
+
+    .card-svc {
+      position: absolute;
+      left: 7px;
+      bottom: 7px;
+    }
+
+    .card-svc img {
+      width: 24px;
+      height: 24px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+    }
+
+    .card-info {
+      display: none;
+    }
+
+    @media (min-width: 560px) {
+      .card-svc img {
+        width: 28px;
+        height: 28px;
+      }
+
+      .card-info {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 10px;
+        font-size: 14px;
+        line-height: 1.3;
+      }
+
+      .card-info b {
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .card-info span {
+        flex: none;
+        color: var(--muted);
+      }
+    }
+
+    footer {
+      padding: 36px 0 48px;
+      border-top: 1px solid var(--line);
+      color: #7a766f;
+      font-size: 13px;
+    }
+
+    footer a {
+      color: var(--muted);
+    }
+
+    .proto-note {
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      z-index: 20;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(21, 21, 23, 0.92);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="wrap top">
+    <a class="brand" href="#" id="brand"><img src="./icons/icon-512-transparent.png" alt="">Unwatchd</a>
+    <div class="top-actions">
+      <button class="ghost" type="button" aria-label="Search films, shows and people">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
+        <span class="hide-sm">Search</span>
+      </button>
+      <button class="ghost" type="button" aria-label="Region: Sweden">Sweden
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Landing -->
+    <section class="landing" id="landing">
+      <div class="poster-wall" id="wall" aria-hidden="true"></div>
+      <div class="wrap landing-inner">
+        <p class="eyebrow">For your Letterboxd watchlist</p>
+        <h1 class="display">What can you watch <em>tonight?</em></h1>
+        <p class="lede">Enter your Letterboxd username and we'll check your whole watchlist against the streaming services you already pay for.</p>
+        <form class="ask" id="ask">
+          <label class="ask-field"><span>letterboxd.com/</span><input id="user" type="text" autocomplete="off" spellcheck="false" placeholder="username" aria-label="Your Letterboxd username"></label>
+          <button class="btn btn-primary" type="submit">Find my films</button>
+        </form>
+        <div class="services">
+          <span>Your services</span>
+          <img src="./icons/netflix.png" alt="Netflix"><img src="./icons/disneyplus.png" alt="Disney+"><img src="./icons/hbomax.png" alt="Max">
+          <button class="link-btn" type="button">Edit</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section class="results" id="results" hidden>
+      <div class="wrap">
+        <div class="context">
+          <span>Watchlist <strong id="ctxUser">kurstboy</strong></span><span class="dot"></span>
+          <span>Netflix, Disney+, Max</span><span class="dot"></span>
+          <button class="link-btn" type="button" id="change">Change</button>
+        </div>
+
+        <p class="eyebrow">Streaming now</p>
+        <h1 class="display display-sm" style="margin-top:12px"><em id="count">0</em> films on your watchlist you can watch tonight.</h1>
+
+        <div class="svc-filter" id="chips" role="group" aria-label="Filter by service"></div>
+
+        <article class="pick" id="pick" aria-label="Tonight's pick">
+          <img class="pick-art" id="pickArt" alt="">
+          <div class="pick-body">
+            <p class="eyebrow">Tonight's pick</p>
+            <img class="pick-logo" id="pickLogo" alt="" hidden>
+            <h2 class="pick-title" id="pickTitle"></h2>
+            <p class="pick-meta" id="pickMeta"></p>
+            <div class="pick-actions">
+              <a class="btn btn-primary" id="pickWatch" href="#"></a>
+              <button class="btn btn-quiet" type="button" id="another">
+                <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M5.6 15a7 7 0 0011.9 2.5L20 15M4 9l2.5-2.5A7 7 0 0118.4 9"></path></svg>Another pick
+              </button>
+              <button class="btn btn-quiet" type="button">
+                <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>Trailer
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <div class="bar">
+          <div class="tabs" role="tablist" aria-label="Availability">
+            <button class="tab" role="tab" aria-selected="true" type="button">Streaming<span id="tabCount">0</span></button>
+            <button class="tab" role="tab" aria-selected="false" type="button">Rent or buy<span>163</span></button>
+            <button class="tab" role="tab" aria-selected="false" type="button">Other services<span>129</span></button>
+            <button class="tab" role="tab" aria-selected="false" type="button">Not streaming<span>98</span></button>
+          </div>
+          <div class="tools">
+            <button class="ghost" type="button">Newest first
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"></path></svg>
+            </button>
+            <button class="ghost" type="button">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M7 12h10M10 17h4"></path></svg>Filters
+            </button>
+          </div>
+        </div>
+
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">Film data from TMDB. Streaming availability by JustWatch. Not affiliated with Letterboxd. <a href="/privacy.html">Privacy</a></div>
+  </footer>
+
+  <div class="proto-note">Design prototype · sample films</div>
+
+  <script>
+    // Prototype only: fills the page with well-known films from TMDB and pretends each is on a service.
+    const KEY = '774f07552749a1ca68245403367e3218';
+    const IMG = 'https://image.tmdb.org/t/p/';
+    const SERVICES = [
+      { name: 'Netflix', icon: './icons/netflix.png' },
+      { name: 'Disney+', icon: './icons/disneyplus.png' },
+      { name: 'Max', icon: './icons/hbomax.png' }
+    ];
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    let films = [], activeService = null, pick = null;
+
+    async function load() {
+      const pages = await Promise.all([1, 2, 3].map((p) => fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${KEY}&sort_by=vote_count.desc&page=${p}`).then((r) => r.json())));
+      films = pages.flatMap((p) => p.results || []).filter((f) => f.poster_path && f.backdrop_path)
+        .map((f, i) => ({ ...f, service: SERVICES[[0, 0, 1, 0, 2, 1, 0][i % 7]] }));
+      $('wall').innerHTML = films.slice(0, 16).map((f) => `<img src="${IMG}w342${f.poster_path}" alt="">`).join('');
+      renderChips(); renderGrid(); choosePick();
+    }
+
+    const visible = () => activeService ? films.filter((f) => f.service.name === activeService) : films;
+
+    function renderChips() {
+      const chip = (label, n, icon, value) => `<button class="svc-chip" type="button" aria-pressed="${activeService === value}" data-svc="${value || ''}">${icon ? `<img src="${icon}" alt="">` : ''}<b>${label}</b>${n}</button>`;
+      $('chips').innerHTML = chip('All', films.length, null, null) + SERVICES.map((s) => chip(s.name, films.filter((f) => f.service === s).length, s.icon, s.name)).join('');
+      $('count').textContent = films.length;
+      $('tabCount').textContent = visible().length;
+    }
+
+    function renderGrid() {
+      $('grid').innerHTML = visible().map((f) => `
+        <a class="card" href="#" title="${esc(f.title)}">
+          <div class="card-art"><img class="poster" loading="lazy" src="${IMG}w342${f.poster_path}" alt="${esc(f.title)} poster"><span class="card-svc"><img src="${f.service.icon}" alt="${f.service.name}"></span></div>
+          <div class="card-info"><b>${esc(f.title)}</b><span>${f.vote_average.toFixed(1)}</span></div>
+        </a>`).join('');
+    }
+
+    async function choosePick() {
+      const pool = visible().filter((f) => f !== pick);
+      if (!pool.length) return;
+      pick = pool[Math.floor(Math.random() * Math.min(pool.length, 24))];
+      const card = $('pick'); card.classList.add('is-swapping');
+      await new Promise((r) => setTimeout(r, 180));
+      const art = $('pickArt'); art.onload = () => card.classList.remove('is-swapping'); art.src = `${IMG}w1280${pick.backdrop_path}`;
+      setTimeout(() => card.classList.remove('is-swapping'), 1200);
+      $('pickTitle').textContent = pick.title; $('pickTitle').hidden = false; $('pickLogo').hidden = true;
+      $('pickMeta').innerHTML = `<img src="${pick.service.icon}" alt="">On ${pick.service.name} · ${pick.release_date.slice(0, 4)} · ${pick.vote_average.toFixed(1)}`;
+      $('pickWatch').textContent = `Watch on ${pick.service.name}`;
+      const chosen = pick;
+      const data = await fetch(`https://api.themoviedb.org/3/movie/${pick.id}/images?api_key=${KEY}&include_image_language=en`).then((r) => r.json()).catch(() => ({}));
+      const logo = (data.logos || []).filter((l) => !l.file_path.endsWith('.svg')).sort((a, b) => b.vote_average - a.vote_average)[0];
+      if (logo && pick === chosen) { const el = $('pickLogo'); el.onload = () => { el.hidden = false; $('pickTitle').hidden = true; }; el.alt = pick.title; el.src = `${IMG}w500${logo.file_path}`; }
+    }
+
+    $('chips').addEventListener('click', (e) => {
+      const b = e.target.closest('.svc-chip'); if (!b) return;
+      activeService = b.dataset.svc || null; renderChips(); renderGrid(); choosePick();
+    });
+    $('another').addEventListener('click', choosePick);
+    document.querySelector('.tabs').addEventListener('click', (e) => {
+      const t = e.target.closest('.tab'); if (!t) return;
+      document.querySelectorAll('.tab').forEach((x) => x.setAttribute('aria-selected', x === t));
+    });
+    const show = (results) => { $('landing').hidden = results; $('results').hidden = !results; window.scrollTo(0, 0); };
+    $('ask').addEventListener('submit', (e) => { e.preventDefault(); $('ctxUser').textContent = $('user').value.trim() || 'kurstboy'; show(true); });
+    $('change').addEventListener('click', () => show(false));
+    $('brand').addEventListener('click', (e) => { e.preventDefault(); show(false); });
+    if (location.hash === '#results') show(true);
+    load();
+  </script>
+</body>
+
+</html>

@@ -411,7 +411,7 @@
           if (details && details.belongs_to_collection && details.belongs_to_collection.id) {
             collectionData = await getCollectionDetails(details.belongs_to_collection.id);
           }
-          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup', false, collectionData)}</div>`;
+          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0a0a0b] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup', false, collectionData)}</div>`;
           const closeBtn = document.getElementById('closeModalBtn');
           if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; window.currentActiveMovieObj = null; };
           const backBtn = document.getElementById('movieBackBtn');
@@ -447,7 +447,7 @@
 
       content.dataset.movieId = movieObj.id;
       if (!isAlreadyCached && !preserveScroll) {
-        content.innerHTML = `<div class="p-20 flex flex-col items-center justify-center w-full min-h-[300px]"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-blue-400 font-bold uppercase tracking-widest text-xs animate-pulse">Decrypting Data...</p></div>`;
+        content.innerHTML = `<div class="p-20 flex flex-col items-center justify-center w-full min-h-[300px]"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-blue-400 font-bold uppercase tracking-widest text-xs animate-pulse">Loading…</p></div>`;
       }
 
       modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.classList.add('modal-open'); requestAnimationFrame(() => { backdrop.classList.remove('opacity-0'); content.classList.remove('translate-y-8', 'opacity-0'); });
@@ -663,9 +663,7 @@
         if (!modalWrapper) return;
         modalWrapper.innerHTML = `
           <div class="w-full h-full flex flex-col items-center justify-center bg-black/90 p-6 text-center rounded-2xl gap-3">
-            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl">
-              🎬
-            </div>
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl"><svg class="w-6 h-6 text-red-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></div>
             <div class="flex flex-col gap-1">
               <span class="text-white font-extrabold text-sm sm:text-base">Trailer can't play here</span>
               <span class="text-gray-400 text-xs sm:text-sm max-w-sm">YouTube didn't load, or the uploader doesn't allow this video to play outside YouTube.</span>
@@ -759,7 +757,7 @@
 
       const createBtn = (text, disabled, page, isActive = false) => {
         if (isActive) {
-          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]">${text}</button>`;
         } else if (disabled && text !== '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
         } else if (text === '...') {
@@ -826,31 +824,14 @@
       if (searchInput) searchInput.value = '';
 
       const { movieTitle, backdrop, titleLogo, cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
-      const totalCount = directors.length + cast.length;
 
       const bannerArtEl = document.getElementById('allCastBannerArt');
-      if (bannerArtEl) {
-        bannerArtEl.innerHTML = backdrop
-          ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">`
-          : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0b1121]"></div>`;
-      }
-
-      const titleContainer = document.getElementById('allCastModalTitleContainer');
-      const titleEl = document.getElementById('allCastModalTitle');
+      if (bannerArtEl) bannerArtEl.innerHTML = backdrop ? `<img src="${backdrop}" alt="" decoding="async">` : '';
+      const filmLink = document.getElementById('allCastFilmLink');
+      if (filmLink) filmLink.textContent = movieTitle;
       const subEl = document.getElementById('allCastModalSubtitle');
-
-      if (titleContainer) {
-        if (titleLogo) {
-          titleContainer.innerHTML = `<img src="${titleLogo}" alt="${escapeHTML(movieTitle)}" loading="eager" decoding="async" class="titleLogoImg pageTitleImg max-h-20 min-[400px]:max-h-24 sm:max-h-36 max-w-[280px] min-[400px]:max-w-[340px] sm:max-w-[560px] object-contain mb-2 shrink-0 drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)]" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`;
-        } else {
-          titleContainer.innerHTML = `<h1 id="allCastModalTitle" class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${escapeHTML(movieTitle)}</h1>`;
-        }
-      } else if (titleEl) {
-        titleEl.textContent = movieTitle;
-      }
-
-      if (subEl) subEl.textContent = `${totalCount} actors, directors & crew members`;
-
+      const people = new Set([...directors, ...cast, ...crew].map(p => p.id)).size;
+      if (subEl) subEl.textContent = `· ${people.toLocaleString()} ${people === 1 ? 'person' : 'people'}`;
       updateAllCastTabsUI();
       renderAllCastGrid();
 
@@ -906,7 +887,7 @@
         if (countCrewEl) countCrewEl.textContent = countCrew;
         if (infoEl) {
           const currentCount = currentAllCastActiveTab === 'cast' ? countCast : (currentAllCastActiveTab === 'crew' ? countCrew : countAll);
-          infoEl.textContent = `${currentCount} Total`;
+          infoEl.textContent = String(currentCount);
         }
       }
     }
@@ -933,75 +914,71 @@
       renderAllCastGrid();
     }
 
+    // Credits grouped the way a film's credits read: who made it, who's in it, then the crew by
+    // department. Directors, writers and cast get portraits; the wider crew is a compact list.
+    const CAST_DEPT_ORDER = ['Directing', 'Writing', 'Cast', 'Directing team', 'Production', 'Camera', 'Editing', 'Sound', 'Art', 'Costume & Make-Up', 'Visual Effects', 'Lighting', 'Crew'];
+    const CAST_DEPT_NAMES = { 'Directing': 'Directed by', 'Writing': 'Written by', 'Cast': 'Cast', 'Directing team': 'Assistant directors and script', 'Production': 'Production', 'Camera': 'Camera', 'Editing': 'Editing', 'Sound': 'Sound and music', 'Art': 'Art and design', 'Costume & Make-Up': 'Costume and make-up', 'Visual Effects': 'Visual effects', 'Lighting': 'Lighting', 'Crew': 'Crew' };
+    function groupFullCredits() {
+      const { cast = [], crew = [], directors = [] } = window.currentMovieFullCredits || {};
+      const groups = new Map();
+      const add = (dept, person, role) => {
+        if (!groups.has(dept)) groups.set(dept, new Map());
+        const g = groups.get(dept);
+        const prev = g.get(person.id);
+        if (prev) { if (role && !prev.roles.includes(role)) prev.roles.push(role); return; }
+        g.set(person.id, { ...person, roles: role ? [role] : [] });
+      };
+      directors.forEach(d => add('Directing', d, d._role || d.job || 'Director'));
+      cast.forEach(c => add('Cast', c, c.character || ''));
+      // "Directed by" is the director(s) only; the rest of the directing department (assistant
+      // directors, script supervisor) gets its own list further down.
+      crew.forEach(c => {
+        let dept = CAST_DEPT_ORDER.includes(c.department) ? c.department : 'Crew';
+        if (dept === 'Directing' && c.job !== 'Director') dept = 'Directing team';
+        add(dept, c, c.job || '');
+      });
+      return CAST_DEPT_ORDER.filter(d => groups.has(d)).map(d => ({ dept: d, people: [...groups.get(d).values()] }));
+    }
+
     function renderAllCastGrid() {
       const grid = document.getElementById('allCastGrid');
       if (!grid || !window.currentMovieFullCredits) return;
-
-      const { cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
       const searchInput = document.getElementById('allCastSearchInput');
       const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
-      let list = [];
-      if (currentAllCastActiveTab === 'cast') {
-        list = cast.map(c => ({ ...c, _role: c.character || 'Cast' }));
-      } else if (currentAllCastActiveTab === 'crew') {
-        list = [...directors.map(d => ({ ...d, _role: 'Director' })), ...crew.map(c => ({ ...c, _role: c.job || 'Crew' }))];
-      } else {
-        const seenIds = new Set();
-        directors.forEach(d => { seenIds.add(d.id); list.push({ ...d, _role: 'Director' }); });
-        cast.forEach(c => {
-          if (!seenIds.has(c.id)) {
-            seenIds.add(c.id);
-            list.push({ ...c, _role: c.character || 'Actor' });
-          }
-        });
-        crew.forEach(cr => {
-          if (!seenIds.has(cr.id)) {
-            seenIds.add(cr.id);
-            list.push({ ...cr, _role: cr.job || 'Crew' });
-          }
-        });
-      }
+      let groups = groupFullCredits();
+      if (currentAllCastActiveTab === 'cast') groups = groups.filter(g => g.dept === 'Cast');
+      else if (currentAllCastActiveTab === 'crew') groups = groups.filter(g => g.dept !== 'Cast');
+
+      const roleText = (p) => p.roles.filter(Boolean).join(', ');
+      const portrait = (p, i) => personCardHTML(p, { role: roleText(p), index: i });
+      const row = (p) => {
+        const img = p.profile_path ? `https://image.tmdb.org/t/p/w92${p.profile_path}` : null;
+        const name = escapeHTML(p.name || 'Unknown');
+        return `<button type="button" class="crew-row" data-person-id="${p.id}" data-person-name="${name}" data-role-hint="Actor" onclick="openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)"><span class="crew-row-photo">${img ? `<img src="${img}" alt="" loading="lazy" decoding="async">` : name.charAt(0)}</span><span class="crew-row-text"><span class="crew-row-name">${name}</span><span class="crew-row-role">${escapeHTML(roleText(p))}</span></span></button>`;
+      };
 
       if (query) {
-        list = list.filter(p => (p.name || '').toLowerCase().includes(query) || (p._role || '').toLowerCase().includes(query));
-      }
-
-      if (list.length === 0) {
-        const emptyIcon = query ? '🔍' : '👥';
-        const emptyMsg = query ? 'No people match your search' : 'No cast or crew found';
-        const emptySub = query ? 'Try searching for a different name or department.' : 'Nothing listed for this selection.';
-        grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
+        const seen = new Set();
+        const matches = [];
+        groups.forEach(g => g.people.forEach(p => {
+          if (seen.has(p.id)) return;
+          if ((p.name || '').toLowerCase().includes(query) || roleText(p).toLowerCase().includes(query)) { seen.add(p.id); matches.push(p); }
+        }));
+        grid.innerHTML = matches.length
+          ? `<section class="page-section"><div class="section-head"><h2 class="section-title">${matches.length === 1 ? '1 match' : `${matches.length} matches`}</h2></div><div class="people-grid">${matches.map(portrait).join('')}</div></section>`
+          : `<p class="page-empty">Nobody on this film matches “${escapeHTML(query)}”.</p>`;
         return;
       }
+      if (!groups.length) { grid.innerHTML = '<p class="page-empty">No credits listed for this yet.</p>'; return; }
 
-      const maxPage = Math.ceil(list.length / ALL_CAST_PER_PAGE);
-      if (allCastCurrentPage > maxPage) allCastCurrentPage = maxPage || 1;
-      const start = (allCastCurrentPage - 1) * ALL_CAST_PER_PAGE;
-      const pageItems = list.slice(start, start + ALL_CAST_PER_PAGE);
-
-      const isPage = currentAllCastMovieContext;
-      const cardsHtml = pageItems.map(p => {
-        const pImg = p.profile_path ? `https://image.tmdb.org/t/p/w185${p.profile_path}` : null;
-        const pName = escapeHTML(p.name || 'Unknown');
-        const pRole = escapeHTML(p._role || '');
-        const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
-
-        return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'closeAllCastModal(); openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-full shrink-0 group/person cursor-pointer select-none relative">
-          <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
-            <div class="w-full h-full rounded-full overflow-hidden">
-              ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
-            </div>
-          </div>
-          <div class="spotify-marquee-container w-full pointer-events-none text-center">
-            <span class="spotify-marquee-text text-xs sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">${pName}</span>
-          </div>
-          ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-0.5 text-center"><span class="spotify-marquee-text text-[11px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
-        </div>`;
+      grid.innerHTML = groups.map(g => {
+        const big = g.dept === 'Directing' || g.dept === 'Writing' || g.dept === 'Cast';
+        const body = big
+          ? `<div class="people-grid${g.dept === 'Cast' ? '' : ' people-grid-key'}">${g.people.map(portrait).join('')}</div>`
+          : `<div class="crew-list">${g.people.map(row).join('')}</div>`;
+        return `<section class="page-section cast-dept"><div class="section-head"><h2 class="section-title">${CAST_DEPT_NAMES[g.dept] || g.dept}</h2><span class="section-count">${g.people.length}</span></div>${body}</section>`;
       }).join('');
-
-      const pagHtml = renderAllCastPaginationHtml(allCastCurrentPage, maxPage);
-      grid.innerHTML = cardsHtml + pagHtml;
     }
     let touchStartX = 0; let touchStartY = 0; let touchEndX = 0; let touchEndY = 0; let isSwipingModal = false;
     const modalContentEl = document.getElementById('modalContent');

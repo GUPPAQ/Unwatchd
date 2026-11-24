@@ -223,7 +223,6 @@
         const renderCachedGallery = () => {
           try {
             populateFilterDropdowns();
-            updateStats();
             applyFiltersAndRender();
             if (el.resultsSection) el.resultsSection.classList.remove('hidden');
             toggleClearSyncBtn();
@@ -598,7 +597,7 @@
       const imdbAttr = data.imdbId ? ` data-imdb-id="${data.imdbId}"` : '';
       const sourceAttr = ' data-rating-source="imdb"';
       const titleAttr = `IMDb Rating: ${data.rating}/10`;
-      return `<div class="poster-corner-badge poster-rating-badge" data-movie-id="${movieObj.id}"${imdbAttr}${sourceAttr} title="${titleAttr}">${tagHtml}<span class="poster-rating-val font-black text-white text-[11px] sm:text-xs leading-none tracking-tight">${data.rating}</span></div>`;
+      return `<div class="poster-corner-badge poster-rating-badge" data-movie-id="${movieObj.id}"${imdbAttr}${sourceAttr} title="${titleAttr}">${tagHtml}<span class="poster-rating-val">${data.rating}</span></div>`;
     }
 
     let debouncedApplyFiltersTimer = null;
@@ -720,7 +719,6 @@
 
         if (anyNewSynced) {
           saveScanToStorage(movies, isFriendMatchActive);
-          updateStats();
           if ((window.homeFilterRating && window.homeFilterRating !== 'all') || (homeFilterSort === 'rating_desc')) {
             debouncedApplyFilters();
           }

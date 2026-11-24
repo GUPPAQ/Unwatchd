@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Unwatchd | Watchlist Filter</title>
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#151517">
   <link rel="icon" href="./icons/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16x16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32x32.png">
@@ -35,31 +35,33 @@
   <meta name="twitter:image" content="https://www.unwatchd.online/og-image.png">
   <link rel="preconnect" href="https://api.themoviedb.org" crossorigin>
   <link rel="preconnect" href="https://image.tmdb.org">
-  <link rel="preload" href="/fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-serif-display-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>
-    /* Outfit is served from this site, not from Google Fonts, so loading the page doesn't send visitors' IP addresses to Google. */
+    /* DM Sans (text) and DM Serif Display (display) are served from this site, not from Google Fonts,
+       so loading the page doesn't send visitors' IP addresses to Google. Both are SIL OFL; see /fonts. */
     @font-face {
-      font-family: 'Outfit';
+      font-family: 'DM Sans';
       font-style: normal;
-      font-weight: 300 900;
+      font-weight: 100 1000;
       font-display: swap;
-      src: url(/fonts/outfit-latin-ext.woff2) format('woff2');
+      src: url(/fonts/dm-sans-latin-ext.woff2) format('woff2');
       unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
     }
 
     @font-face {
-      font-family: 'Outfit';
+      font-family: 'DM Sans';
       font-style: normal;
-      font-weight: 300 900;
+      font-weight: 100 1000;
       font-display: swap;
-      src: url(/fonts/outfit-latin.woff2) format('woff2');
+      src: url(/fonts/dm-sans-latin.woff2) format('woff2');
       unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
 
     :root {
-      --bg-base: #020617;
-      --panel-bg: rgba(15, 23, 42, 0.6);
-      --accent: #3b82f6;
+      --bg-base: #0a0a0b;
+      --panel-bg: rgba(21, 21, 23, 0.6);
+      --accent: #ff5a36;
     }
 
     .ytp-pause-overlay,
@@ -146,8 +148,8 @@
 
     body {
       background-color: var(--bg-base);
-      color: #f8fafc;
-      font-family: 'Outfit', sans-serif;
+      color: #f4f0e8;
+      font-family: 'DM Sans', system-ui, sans-serif;
       overflow-x: hidden;
       margin: 0;
       min-height: 100dvh;
@@ -250,7 +252,7 @@
       left: 0;
       width: 100vw;
       height: 100dvh;
-      background-image: radial-gradient(circle at 50% 0%, #152a63 0%, #020617 55%);
+      background-image: radial-gradient(circle at 50% 0%, #0a0a0b 0%, #0a0a0b 55%);
       z-index: -1;
       pointer-events: none;
       transform: translateZ(0);
@@ -335,7 +337,7 @@
 
     .glass-panel {
       position: relative;
-      background: rgba(15, 23, 42, 0.55);
+      background: rgba(21, 21, 23, 0.55);
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
@@ -404,7 +406,7 @@
     }
 
     .service-btn.selected .logo-wrapper {
-      box-shadow: 0 0 0 1.5px #3b82f6, 0 0 8px rgba(59, 130, 246, 0.35);
+      box-shadow: 0 0 0 1.5px #ff5a36, 0 0 8px rgba(255, 90, 54, 0.35);
     }
 
     .service-btn.locked {
@@ -467,7 +469,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #9ca3af;
+      color: #a5a097;
       padding: 0.625rem 2.5rem 0.625rem 1rem;
       height: 42px;
       pointer-events: none;
@@ -493,7 +495,7 @@
 
     .filter-select-wrapper:focus-within .filter-select-label {
       color: #ffffff;
-      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.5);
+      box-shadow: inset 0 0 0 1px rgba(255, 90, 54, 0.5), 0 0 0 1px rgba(255, 90, 54, 0.5);
     }
 
     select.filter-select {
@@ -530,7 +532,7 @@
 
     select.filter-select option,
     select.region-select option {
-      background: #0f172a;
+      background: #151517;
       color: white;
     }
 
@@ -594,14 +596,14 @@
     }
 
     .watchnow-vpn-toggle.vpn-active {
-      background: rgba(59, 130, 246, 0.22) !important;
-      border-color: rgba(96, 165, 250, 0.45) !important;
-      color: #93c5fd !important;
+      background: rgba(255, 90, 54, 0.22) !important;
+      border-color: rgba(255, 122, 92, 0.45) !important;
+      color: #ffb09c !important;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
     }
 
     .watchnow-vpn-toggle.vpn-active .watchnow-vpn-dot {
-      background: #60a5fa;
+      background: #ff7a5c;
       box-shadow: none;
     }
 
@@ -630,14 +632,14 @@
 
     .poster-rating-badge {
       right: 10px;
-      background: rgba(3, 7, 18, 0.84);
+      background: rgba(10, 10, 11, 0.84);
     }
 
     .poster-vpn-badge {
       left: 10px;
-      background: rgba(9, 30, 66, 0.88);
-      border-color: rgba(96, 165, 250, 0.35);
-      color: #93c5fd;
+      background: rgba(29, 29, 32, 0.88);
+      border-color: rgba(255, 122, 92, 0.35);
+      color: #ffb09c;
       font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
@@ -724,7 +726,7 @@
       cursor: pointer;
       border: 1px solid transparent;
       background: transparent;
-      color: #9ca3af;
+      color: #a5a097;
       display: flex;
       flex-direction: row;
       align-items: center;
@@ -773,9 +775,9 @@
     }
 
     .tab-btn.active {
-      background: rgba(59, 130, 246, 0.25);
-      color: #60a5fa;
-      border-color: rgba(59, 130, 246, 0.4);
+      background: rgba(255, 90, 54, 0.25);
+      color: #ff7a5c;
+      border-color: rgba(255, 90, 54, 0.4);
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
     }
 
@@ -785,7 +787,7 @@
       border-radius: 9999px;
       font-size: 0.6875rem;
       font-weight: 800;
-      color: #9ca3af;
+      color: #a5a097;
       line-height: 1.2;
       transition: all 0.2s ease;
     }
@@ -863,7 +865,7 @@
     }
 
     .opt-seg-btn {
-      color: #9ca3af;
+      color: #a5a097;
       background: transparent;
       cursor: pointer;
       display: flex;
@@ -885,9 +887,9 @@
     }
 
     .opt-seg-btn.active {
-      background: rgba(59, 130, 246, 0.25) !important;
-      color: #93c5fd !important;
-      border-color: rgba(59, 130, 246, 0.4) !important;
+      background: rgba(255, 90, 54, 0.25) !important;
+      color: #ffb09c !important;
+      border-color: rgba(255, 90, 54, 0.4) !important;
     }
 
     /* Responsive Filter Panel: Bottom Sheet on Mobile, Full-Width Popover on Desktop */
@@ -912,7 +914,7 @@
         border-left: none !important;
         border-right: none !important;
         border-bottom: none !important;
-        background: #0b1121 !important;
+        background: #0a0a0b !important;
         box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.8) !important;
         z-index: 99999 !important;
         padding: 1.25rem 1.25rem 2.25rem 1.25rem !important;
@@ -939,8 +941,8 @@
         top: calc(100% + 10px) !important;
         overflow: visible !important;
         border-radius: 1.25rem !important;
-        background: #0b1121 !important;
-        background: rgba(11, 17, 33, 0.98) !important;
+        background: #0a0a0b !important;
+        background: rgba(10, 10, 11, 0.98) !important;
         backdrop-filter: blur(20px) !important;
         -webkit-backdrop-filter: blur(20px) !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
@@ -976,7 +978,7 @@
       border-radius: 0.75rem;
       background: rgba(0, 0, 0, 0.4);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #d1d5db;
+      color: #d8d3c9;
       font-size: 0.75rem;
       font-weight: 700;
       transition: all 0.2s ease;
@@ -993,13 +995,13 @@
     }
 
     .custom-filter-trigger.active-custom {
-      border-color: #3b82f6 !important;
-      color: #93c5fd !important;
-      background: rgba(59, 130, 246, 0.15) !important;
+      border-color: #ff5a36 !important;
+      color: #ffb09c !important;
+      background: rgba(255, 90, 54, 0.15) !important;
     }
 
     .custom-filter-trigger.is-open {
-      border-color: #3b82f6 !important;
+      border-color: #ff5a36 !important;
     }
 
     .custom-filter-trigger.is-open .custom-filter-chevron {
@@ -1014,7 +1016,7 @@
       min-width: 220px;
       max-height: 280px;
       overflow-y: auto;
-      background: rgba(11, 17, 33, 0.96) !important;
+      background: rgba(10, 10, 11, 0.96) !important;
       backdrop-filter: blur(24px) !important;
       -webkit-backdrop-filter: blur(24px) !important;
       border: 1px solid rgba(255, 255, 255, 0.12) !important;
@@ -1044,7 +1046,7 @@
       border-radius: 0.5rem;
       font-size: 0.75rem;
       font-weight: 700;
-      color: #d1d5db;
+      color: #d8d3c9;
       background: transparent;
       border: 1px solid transparent;
       transition: all 0.15s ease;
@@ -1060,8 +1062,8 @@
     }
 
     .custom-filter-item.selected {
-      background: rgba(59, 130, 246, 0.2) !important;
-      border-color: rgba(59, 130, 246, 0.4) !important;
+      background: rgba(255, 90, 54, 0.2) !important;
+      border-color: rgba(255, 90, 54, 0.4) !important;
       color: #ffffff !important;
     }
 
@@ -1079,8 +1081,8 @@
     }
 
     .custom-filter-item.selected .custom-filter-checkbox {
-      background: #3b82f6;
-      border-color: #3b82f6;
+      background: #ff5a36;
+      border-color: #ff5a36;
       color: #ffffff;
     }
 
@@ -1098,14 +1100,14 @@
     }
 
     .custom-filter-item.selected .custom-filter-radio {
-      border-color: #3b82f6;
+      border-color: #ff5a36;
     }
 
     .custom-filter-radio-dot {
       width: 0.45rem;
       height: 0.45rem;
       border-radius: 9999px;
-      background: #3b82f6;
+      background: #ff5a36;
     }
 
     @keyframes filterSlideUpMobile {
@@ -1121,7 +1123,7 @@
     }
 
     .tab-btn.active .tab-badge {
-      background: rgba(59, 130, 246, 0.35);
+      background: rgba(255, 90, 54, 0.35);
       color: #ffffff;
     }
 
@@ -1163,8 +1165,8 @@
     @media (hover: hover) and (pointer: fine) {
       .glow-card:hover,
       .tilt-card:hover .glow-card {
-        border-color: rgba(59, 130, 246, 0.75) !important;
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.35) !important;
+        border-color: rgba(255, 90, 54, 0.75) !important;
+        box-shadow: 0 0 10px rgba(255, 90, 54, 0.35) !important;
       }
     }
 
@@ -1188,12 +1190,12 @@
 
     .load-fill {
       position: relative;
-      background: linear-gradient(90deg, #1e3a8a, #3b82f6, #93c5fd, #3b82f6, #1e3a8a);
+      background: linear-gradient(90deg, #7a2412, #ff5a36, #ffb09c, #ff5a36, #7a2412);
       background-size: 300% 100%;
       animation: sleekGradient 2.5s ease-in-out infinite;
       transition: width 0.3s ease-out;
       border-radius: 9999px;
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 12px rgba(255, 90, 54, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.4);
     }
 
     @keyframes sleekGradient {
@@ -1236,9 +1238,16 @@
       animation: fadeInSimple 0.22s ease-out forwards;
     }
 
+    /* Visible by default (fill-mode both covers the delay), so nothing stays hidden when
+       animations are switched off. */
     .animate-fade {
-      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      opacity: 0;
+      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-fade {
+        animation: none;
+      }
     }
 
     /* ── Roulette Styles ── */
@@ -1258,11 +1267,11 @@
 
     /* Modal popup panel style matching site aesthetics */
     .premium-popup-panel {
-      background: rgba(11, 17, 33, 0.96);
+      background: rgba(10, 10, 11, 0.96);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.9), 0 0 50px rgba(59, 130, 246, 0.08);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.9), 0 0 50px rgba(255, 90, 54, 0.08);
       position: relative;
     }
 
@@ -1289,7 +1298,7 @@
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      color: #60a5fa;
+      color: #ff7a5c;
       margin-bottom: 0.25rem;
       display: block;
     }
@@ -1369,7 +1378,7 @@
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      color: #94a3b8;
+      color: #a5a097;
     }
 
     .insight-stat-card .stat-value {
@@ -1391,7 +1400,7 @@
 
     /* Text container for description popups */
     .premium-text-body {
-      color: #e2e8f0;
+      color: #e8e3da;
       font-size: 1rem;
       line-height: 1.8;
       font-weight: 400;
@@ -1505,9 +1514,16 @@
       }
     }
 
+    /* Visible by default; the fade only plays when motion is allowed. (A static opacity: 0 here left
+       popups empty for anyone with reduced motion on, since the animation never ran.) */
     .popup-content-stagger>* {
-      opacity: 0;
-      animation: popupContentFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: popupContentFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .popup-content-stagger>* {
+        animation: none;
+      }
     }
 
     .popup-content-stagger>*:nth-child(1) {
@@ -1535,8 +1551,8 @@
     }
 
     .blue-focus:focus-within {
-      border-color: rgba(59, 130, 246, 0.5);
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+      border-color: rgba(255, 90, 54, 0.5);
+      box-shadow: 0 0 0 1px rgba(255, 90, 54, 0.5);
     }
 
     input {
@@ -1602,9 +1618,9 @@
     }
 
     .vpn-active {
-      background: rgba(59, 130, 246, 0.15) !important;
-      border-color: rgba(59, 130, 246, 0.4) !important;
-      color: rgb(147, 197, 253) !important;
+      background: rgba(255, 90, 54, 0.15) !important;
+      border-color: rgba(255, 90, 54, 0.4) !important;
+      color: rgb(255, 176, 156) !important;
     }
 
     #vpnToggleBtn {
@@ -1629,14 +1645,14 @@
       }
 
       #rouletteBtn:hover {
-        background-color: rgba(59, 130, 246, 0.2) !important;
-        border-color: rgba(59, 130, 246, 0.3) !important;
-        color: rgb(147, 197, 253) !important;
+        background-color: rgba(255, 90, 54, 0.2) !important;
+        border-color: rgba(255, 90, 54, 0.3) !important;
+        color: rgb(255, 176, 156) !important;
       }
 
       .add-services-btn:hover {
-        border-color: rgba(59, 130, 246, 0.35);
-        background: rgba(59, 130, 246, 0.06);
+        border-color: rgba(255, 90, 54, 0.35);
+        background: rgba(255, 90, 54, 0.06);
         transform: translateY(-1px);
       }
 
@@ -1701,7 +1717,7 @@
       #regionTriggerBtn:active {
         background-color: rgba(0, 0, 0, 0.4) !important;
         border-color: rgba(255, 255, 255, 0.1) !important;
-        color: #d1d5db !important;
+        color: #d8d3c9 !important;
         box-shadow: none !important;
         transform: none !important;
       }
@@ -1709,9 +1725,9 @@
       /* When filters are active (blue border & blue text), retain blue on touch */
       #homeFilterToggleBtn.bg-blue-500\/10,
       #actorFilterToggleBtn.bg-blue-500\/10 {
-        background-color: rgba(59, 130, 246, 0.1) !important;
-        border-color: #3b82f6 !important;
-        color: #60a5fa !important;
+        background-color: rgba(255, 90, 54, 0.1) !important;
+        border-color: #ff5a36 !important;
+        color: #ff7a5c !important;
       }
 
       /* Tab buttons: Available, Rent/Buy, Watchlist, etc. on mobile */
@@ -1723,7 +1739,7 @@
       .actor-tab-btn:not(.active):active {
         background: transparent !important;
         border-color: transparent !important;
-        color: #9ca3af !important;
+        color: #a5a097 !important;
         box-shadow: none !important;
         transform: none !important;
       }
@@ -1734,7 +1750,7 @@
       .custom-filter-trigger:not(.active-custom):not(.is-open):active {
         background-color: rgba(0, 0, 0, 0.4) !important;
         border-color: rgba(255, 255, 255, 0.1) !important;
-        color: #d1d5db !important;
+        color: #d8d3c9 !important;
       }
 
       /* Liquid glass buttons on mobile */
@@ -1806,16 +1822,16 @@
       border-radius: 99px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(0, 0, 0, 0.4);
-      color: #9ca3af;
+      color: #a5a097;
       cursor: pointer;
       transition: all 0.2s ease;
       white-space: nowrap;
     }
 
     .actor-toggle-btn.active {
-      background: rgba(59, 130, 246, 0.15);
+      background: rgba(255, 90, 54, 0.15);
       color: white;
-      border-color: rgba(59, 130, 246, 0.3);
+      border-color: rgba(255, 90, 54, 0.3);
     }
 
     @media (hover: hover) and (pointer: fine) {
@@ -1836,86 +1852,6 @@
     #similarMoviesTrack {
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
-    }
-
-    /* Sizing rules with uniform 35% touch peek effect:
-       - Movies: 2.35 on mobile, 3.35 on tablet, 4.35 on iPad landscape, 6 on desktop, 7 on 2xl, 8 on 4k */
-    #relatedMoviesTrack>.tilt-card,
-    #similarMoviesTrack>.tilt-card {
-      width: calc((100% - 2 * 1rem) / 2.35) !important;
-      flex-shrink: 0 !important;
-    }
-
-    @media (min-width: 640px) {
-      #relatedMoviesTrack>.tilt-card,
-      #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 3 * 1.25rem) / 3.35) !important;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      #relatedMoviesTrack>.tilt-card,
-      #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 4 * 1.25rem) / 4.35) !important;
-      }
-    }
-
-    @media (min-width: 1280px) {
-      #relatedMoviesTrack>.tilt-card,
-      #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 5 * 1.25rem) / 6) !important;
-      }
-    }
-
-    @media (min-width: 1536px) {
-      #relatedMoviesTrack>.tilt-card,
-      #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 6 * 1.5rem) / 7) !important;
-      }
-    }
-
-    @media (min-width: 2200px) {
-      #relatedMoviesTrack>.tilt-card,
-      #similarMoviesTrack>.tilt-card {
-        width: calc((100% - 7 * 1.5rem) / 8) !important;
-      }
-    }
-
-    /* Cast Chip Sizing:
-       - Mobile: 3.35, Tablet: 4.35, iPad landscape: 4.35, Desktop: 6, 2xl: 7, 4k: 8 */
-    #castCrewTrack>.cast-chip-card {
-      width: calc((100% - 3 * 0.75rem) / 3.35) !important;
-      flex-shrink: 0 !important;
-    }
-
-    @media (min-width: 640px) {
-      #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 4 * 1rem) / 4.35) !important;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 4 * 1rem) / 4.35) !important;
-      }
-    }
-
-    @media (min-width: 1280px) {
-      #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 5 * 1rem) / 6) !important;
-      }
-    }
-
-    @media (min-width: 1536px) {
-      #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 6 * 1rem) / 7) !important;
-      }
-    }
-
-    @media (min-width: 2200px) {
-      #castCrewTrack>.cast-chip-card {
-        width: calc((100% - 7 * 1rem) / 8) !important;
-      }
     }
 
     /* Spotify-style marquee scrolling for actor and character names */
@@ -2056,7 +1992,7 @@
         position: fixed;
         inset: 0;
         z-index: 999999;
-        background: #020617;
+        background: #0a0a0b;
         color: #ffffff;
         display: flex;
         align-items: center;
@@ -2089,6 +2025,4988 @@
     @media (pointer: coarse) {
       input, select, textarea { font-size: 16px !important; }
     }
+    /* ════════════════════════════════════════════════════════════════════════════
+       FILM-NIGHT WORLD
+       Near-black ground, warm off-white type, one ember accent. The films carry the colour.
+       This block comes last in the stylesheet, so it also re-skins the legacy component
+       classes the JS still generates (film pages, actor pages, menus, popups). styles.css
+       (Tailwind) loads after it, hence the occasional doubled selector for specificity.
+       ════════════════════════════════════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'DM Serif Display';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(/fonts/dm-serif-display-latin-ext.woff2) format('woff2');
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    @font-face {
+      font-family: 'DM Serif Display';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(/fonts/dm-serif-display-latin.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+      font-family: 'DM Serif Display';
+      font-style: italic;
+      font-weight: 400;
+      font-display: swap;
+      src: url(/fonts/dm-serif-display-latin-ext-italic.woff2) format('woff2');
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    @font-face {
+      font-family: 'DM Serif Display';
+      font-style: italic;
+      font-weight: 400;
+      font-display: swap;
+      src: url(/fonts/dm-serif-display-latin-italic.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    :root {
+      --bg: #0a0a0b;
+      --surface: #151517;
+      --surface-2: #1d1d20;
+      --line: rgba(255, 255, 255, 0.11);
+      --line-strong: rgba(255, 255, 255, 0.24);
+      --text: #f4f0e8;
+      --muted: #a5a097;
+      --faint: #8a857d;
+      --accent: #ff5a36;
+      --accent-soft: #ff7a5c;
+      --serif: 'DM Serif Display', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+      --pad: 20px;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      color-scheme: dark;
+    }
+
+    /* Same widths and side padding as the film, person and cast pages. */
+    @media (min-width: 640px) {
+      :root {
+        --pad: 32px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      :root {
+        --pad: 48px;
+      }
+    }
+
+    @media (min-width: 1536px) {
+      :root {
+        --pad: 64px;
+      }
+    }
+
+    html {
+      scrollbar-color: #3a3835 var(--bg);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      caret-color: var(--accent);
+    }
+
+    ::selection {
+      background: rgba(255, 90, 54, 0.38);
+      color: #fff;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #3a3835;
+      border-radius: 999px;
+      border: 2px solid var(--bg);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    input:focus-visible {
+      outline: none;
+    }
+
+    .tab-badge,
+    .svc-chip-count,
+    .scan-progress-pct,
+    .poster-rating-val,
+    .poster-card-year {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Shell ── */
+    .app-shell {
+      width: 100%;
+      max-width: 1400px;
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: env(safe-area-inset-top) var(--pad) env(safe-area-inset-bottom);
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 1280px) {
+      .app-shell {
+        max-width: 1760px;
+      }
+    }
+
+    @media (min-width: 1536px) {
+      .app-shell {
+        max-width: 2160px;
+      }
+    }
+
+    @media (min-width: 2500px) {
+      .app-shell {
+        max-width: 2400px;
+      }
+    }
+
+    /* The landing's poster wall runs to the window edges, past the shell. */
+    body {
+      overflow-x: clip;
+    }
+
+    .app-shell > main {
+      flex: 1;
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      height: 72px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: color 0.15s, background-color 0.15s;
+    }
+
+    .ghost-btn:hover,
+    .ghost-btn[aria-expanded="true"],
+    .ghost-btn.is-open {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .ghost-btn svg {
+      width: 18px;
+      height: 18px;
+      flex: none;
+    }
+
+    /* The VPN toggles are ghost buttons; only the dot shows the state (legacy rules use !important). */
+    #vpnToggleBtn.ghost-btn,
+    #vpnToggleBtnInline.ghost-btn {
+      border: 0 !important;
+    }
+
+    .ghost-btn.vpn-active[class] {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: var(--text) !important;
+    }
+
+    .toggle-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #57544f;
+      transition: background-color 0.15s, box-shadow 0.15s;
+    }
+
+    .vpn-active .toggle-dot {
+      background: var(--accent);
+    }
+
+    .hide-narrow {
+      display: none;
+    }
+
+    @media (min-width: 640px) {
+      .hide-narrow {
+        display: inline;
+      }
+    }
+
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      flex: none;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .icon-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .icon-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .link-btn {
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: var(--line-strong);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 5px;
+      cursor: pointer;
+      transition: text-decoration-color 0.15s;
+    }
+
+    .link-btn:hover {
+      text-decoration-color: var(--accent);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 46px;
+      padding: 0 22px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.12s var(--ease-out), background-color 0.15s, border-color 0.15s, opacity 0.15s;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      flex: none;
+    }
+
+    .btn-lg {
+      height: 54px;
+      padding: 0 28px;
+      font-size: 16px;
+    }
+
+    .btn-primary {
+      background: var(--text);
+      color: #0a0a0b;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #fff;
+    }
+
+    .btn-quiet {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.16);
+      color: var(--text);
+    }
+
+    .btn-quiet:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.17);
+    }
+
+    /* ── Display type ── */
+    .display {
+      margin: 0;
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(2.9rem, 8.6vw, 5.4rem);
+      line-height: 1;
+      letter-spacing: -0.015em;
+      text-wrap: balance;
+      color: var(--text);
+    }
+
+    .display em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .display-sm {
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      line-height: 1.04;
+      max-width: 24ch;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 34rem;
+      color: var(--muted);
+      font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+      line-height: 1.5;
+    }
+
+    /* ── Quick search ── */
+    .quick-search {
+      position: relative;
+      z-index: 90;
+      margin: 0 0 28px;
+    }
+
+    .quick-search-field {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 56px;
+      padding: 0 8px 0 20px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      transition: border-color 0.15s;
+    }
+
+    .quick-search-field:focus-within {
+      border-color: var(--line-strong);
+    }
+
+    .quick-search-field > svg {
+      width: 18px;
+      height: 18px;
+      color: var(--muted);
+      flex: none;
+    }
+
+    .quick-search-field input {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 16px;
+    }
+
+    .quick-search-field input::placeholder,
+    .filter-field input::placeholder {
+      color: var(--faint);
+    }
+
+    .quick-search-go {
+      height: 40px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--text);
+      color: #0a0a0b;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .kbd-hint[class] {
+      display: none;
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 12px;
+      background: transparent;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .kbd-hint[class] {
+        display: inline-block;
+      }
+    }
+
+    .search-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      z-index: 100;
+      flex-direction: column;
+      max-height: 26rem;
+      overflow-y: auto;
+      border-radius: 18px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.85);
+    }
+
+    .search-dropdown:not(.hidden) {
+      display: flex;
+    }
+
+    /* ── Landing ── */
+    /* Top-anchored (not centred) so the bar can grow downwards without the page shifting up. */
+    .landing {
+      position: relative;
+      min-height: calc(100svh - 72px - 96px);
+      display: flex;
+      align-items: flex-start;
+    }
+
+    /* Full window width behind the shell; only this layer clips, so the service picker can overflow. */
+    .landing-bg {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(50% - 50vw);
+      width: 100vw;
+      overflow: hidden;
+      pointer-events: none;
+      -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+      mask-image: linear-gradient(to bottom, #000 78%, transparent);
+    }
+
+    /* The poster wall: columns of film-strip that drift past, alternate ones the other way. */
+    .poster-wall {
+      position: absolute;
+      top: -14%;
+      right: -5vw;
+      width: min(62vw, 1180px);
+      height: 130%;
+      display: flex;
+      gap: 16px;
+      transform: rotate(8deg);
+      opacity: 0.5;
+      -webkit-mask-image: linear-gradient(to left, #000 30%, transparent 94%);
+      mask-image: linear-gradient(to left, #000 30%, transparent 94%);
+      animation: wall-in 1.4s var(--ease-out) both;
+    }
+
+    .wall-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .wall-track {
+      display: flex;
+      flex-direction: column;
+      animation: wall-drift var(--drift, 150s) linear infinite;
+      will-change: transform;
+    }
+
+    .wall-col:nth-child(even) .wall-track {
+      animation-direction: reverse;
+    }
+
+    .wall-track img {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      background: var(--surface);
+    }
+
+    /* Each track holds its posters twice, so moving it by half loops without a seam. */
+    @keyframes wall-drift {
+      to {
+        transform: translate3d(0, -50%, 0);
+      }
+    }
+
+    @keyframes wall-in {
+      from {
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .poster-wall {
+        width: 150vw;
+        right: -48vw;
+        top: -8%;
+        gap: 10px;
+        opacity: 0.2;
+      }
+
+      .wall-track img {
+        margin-bottom: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .wall-track {
+        animation: none;
+      }
+    }
+
+    .landing-inner {
+      position: relative;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      padding: clamp(40px, calc(50svh - 330px), 260px) 0 72px;
+    }
+
+    /* ── The ask: one bar with who, which services, and go ── */
+    .ask {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+      width: 100%;
+      max-width: 880px;
+      margin-top: 4px;
+    }
+
+    /* The bar is a two-row grid: the pill's row, and the service list under it. Opening
+       "Streaming on" grows the pill itself downwards into a card; its surface is drawn by
+       ::before so it always covers both rows. */
+    .ask-bar {
+      position: relative;
+      isolation: isolate;
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto auto;
+      grid-template-rows: 64px auto;
+      align-items: center;
+      padding: 6px;
+      border-radius: 38px;
+      transition: border-radius 0.3s var(--ease-out);
+    }
+
+    .ask-bar.is-open {
+      border-radius: 30px;
+    }
+
+    .ask-bar > .ask-seg {
+      height: 64px;
+      grid-row: 1;
+    }
+
+    .ask-bar > #startButton {
+      grid-row: 1;
+      grid-column: 4;
+    }
+
+    .ask-bar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      border-radius: inherit;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.9);
+      transition: border-color 0.15s;
+      pointer-events: none;
+    }
+
+    .ask-bar:focus-within::before {
+      border-color: var(--line-strong);
+    }
+
+    .ask-bar {
+      z-index: 5;
+    }
+
+    .ask-bar > .ask-seg,
+    .ask-bar > #startButton {
+      position: relative;
+      z-index: 1;
+    }
+
+    .ask-prefix {
+      flex: none;
+      margin-right: -8px;
+      color: var(--faint);
+      font-size: 17px;
+      white-space: nowrap;
+    }
+
+    .ask-seg {
+      position: relative;
+      flex: 1 1 0;
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+      padding: 0 24px;
+      border-radius: 999px;
+      cursor: text;
+      transition: background-color 0.15s;
+    }
+
+    .ask-seg-user {
+      flex-grow: 1.5;
+    }
+
+    .ask-seg-services {
+      flex: 0 0 auto;
+      padding: 0;
+    }
+
+    /* Hairline between segments; it steps aside for the one you're in or hovering. */
+    .ask-seg + .ask-seg::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 24%;
+      bottom: 24%;
+      width: 1px;
+      background: var(--line);
+      transition: opacity 0.15s;
+    }
+
+    .ask-seg:focus-within {
+      background: var(--surface-2);
+    }
+
+    .ask-seg:focus-within::before,
+    .ask-seg:focus-within + .ask-seg::before {
+      opacity: 0;
+    }
+
+    /* The pill gets focus back when the picker closes; only light it for keyboard focus. */
+    .ask-seg-services:focus-within:not(:has(:focus-visible)) {
+      background: transparent;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .ask-seg:hover {
+        background: var(--surface-2);
+      }
+
+      .ask-seg:hover::before,
+      .ask-seg:hover + .ask-seg::before {
+        opacity: 0;
+      }
+    }
+
+    /* The picker is open: its pill stays lit. */
+    .ask-seg:has([aria-expanded="true"]) {
+      background: var(--surface-2);
+    }
+
+    .ask-seg-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .ask-seg-value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      min-height: 28px;
+    }
+
+    .ask-seg input {
+      flex: 1;
+      min-width: 0;
+      height: 28px;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .ask-seg input::placeholder {
+      color: var(--faint);
+      font-weight: 400;
+    }
+
+    .ask-seg .icon-btn {
+      flex: none;
+      width: 28px;
+      height: 28px;
+      margin-right: -8px;
+    }
+
+    .ask-seg .icon-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .ask-seg-btn {
+      position: relative;
+      height: 100%;
+      min-width: 190px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+      padding: 0 48px 0 24px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .ask-seg-btn:disabled {
+      cursor: default;
+      opacity: 0.55;
+    }
+
+    .ask-seg-chevron {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      margin-top: -8px;
+      color: var(--muted);
+      transition: transform 0.2s var(--ease-out);
+    }
+
+    .ask-seg-btn[aria-expanded="true"] .ask-seg-chevron {
+      transform: rotate(180deg);
+    }
+
+    #startButton {
+      flex: none;
+      height: 62px;
+      margin-left: 6px;
+      padding: 0 30px;
+    }
+
+    /* Logo stacks (the pill above, and the context line over results). */
+    .svc-stack {
+      display: inline-flex;
+      align-items: center;
+      flex: none;
+    }
+
+    .svc-stack-logo {
+      width: 28px;
+      height: 28px;
+      flex: none;
+      overflow: hidden;
+      border-radius: 8px;
+      background: var(--surface-2);
+      box-shadow: 0 0 0 2px var(--surface);
+    }
+
+    .svc-stack-logo + .svc-stack-logo {
+      margin-left: -6px;
+    }
+
+    .svc-stack-logo img,
+    .svc-stack-logo > div {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 0 !important;
+    }
+
+    .svc-stack-more {
+      margin-left: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .svc-summary-name {
+      margin-left: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .svc-summary-empty {
+      color: var(--accent-soft);
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .form-error {
+      margin: 0 0 0 24px;
+      color: #ffb4a3;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .landing-back svg {
+      width: 16px;
+      height: 16px;
+      margin-left: -4px;
+    }
+
+    /* Phones and narrow tablets: the bar stacks into a card, one row per question. */
+    @media (max-width: 719px) {
+      .ask {
+        align-items: stretch;
+      }
+
+      .ask-bar,
+      .ask-bar.is-open {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+        border-radius: 24px;
+      }
+
+      .ask-bar > .ask-seg {
+        height: 66px;
+      }
+
+      .ask-seg {
+        flex: none;
+        height: 66px;
+        padding: 0 18px;
+        border-radius: 18px;
+      }
+
+      .ask-seg-services {
+        padding: 0;
+      }
+
+      .ask-seg + .ask-seg::before {
+        left: 18px;
+        right: 18px;
+        top: 0;
+        bottom: auto;
+        width: auto;
+        height: 1px;
+      }
+
+      .ask-seg-btn {
+        width: 100%;
+        padding: 0 48px 0 18px;
+        border-radius: 18px;
+      }
+
+      #startButton {
+        width: 100%;
+        height: 56px;
+        margin: 6px 0 0;
+      }
+
+      .form-error {
+        margin-left: 4px;
+      }
+
+      .landing-back {
+        align-self: flex-start;
+      }
+    }
+
+    /* ── Services: the pill's second row ──
+       Desktop: it spans the pill's full width under the fields. Phones: it opens inside the card,
+       under the "Streaming on" row. The height runs on a grid-rows transition, which reverses
+       from wherever it is if you tap again. */
+    .svc-panel,
+    .svc-panel.hidden {
+      display: grid;
+    }
+
+    .svc-panel {
+      position: relative;
+      z-index: 1;
+      grid-column: 1 / -1;
+      grid-row: 2;
+      grid-template-rows: 1fr;
+      transition: grid-template-rows 0.38s var(--ease-out), visibility 0s;
+    }
+
+    .svc-panel.hidden {
+      grid-template-rows: 0fr;
+      visibility: hidden;
+      transition: grid-template-rows 0.26s cubic-bezier(0.4, 0, 0.6, 1), visibility 0s 0.26s;
+    }
+
+    .svc-panel-clip {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .svc-panel-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 6px 18px 0;
+      padding: 18px 0 12px;
+      border-top: 1px solid var(--line);
+      transition: opacity 0.24s ease-out, transform 0.38s var(--ease-out);
+    }
+
+    .svc-panel.hidden .svc-panel-body {
+      opacity: 0;
+      transform: translate3d(0, -14px, 0);
+      transition-duration: 0.18s, 0.26s;
+    }
+
+    .svc-panel-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .svc-panel-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .svc-panel-count {
+      flex: none;
+      color: var(--muted);
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .svc-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .svc-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 44px;
+      padding: 0 16px 0 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.12s ease-out;
+    }
+
+    .svc-option-logo {
+      width: 32px;
+      height: 32px;
+      flex: none;
+      overflow: hidden;
+      border-radius: 9px;
+      opacity: 0.45;
+      filter: saturate(0.2);
+      transition: opacity 0.2s, filter 0.2s;
+    }
+
+    .svc-option-logo img,
+    .svc-option-logo > div {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 0 !important;
+    }
+
+    .svc-option-check {
+      width: 0;
+      height: 16px;
+      margin-left: -10px;
+      flex: none;
+      color: var(--accent);
+      opacity: 0;
+      transition: width 0.2s var(--ease-out), margin 0.2s var(--ease-out), opacity 0.15s;
+    }
+
+    .svc-option.selected {
+      border-color: var(--line-strong);
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .svc-option.selected .svc-option-logo {
+      opacity: 1;
+      filter: none;
+    }
+
+    .svc-option.selected .svc-option-check {
+      width: 16px;
+      margin-left: -2px;
+      opacity: 1;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .svc-option:hover {
+        border-color: var(--line-strong);
+        color: var(--text);
+      }
+
+      .svc-option:not(.selected):hover .svc-option-logo {
+        opacity: 0.75;
+      }
+    }
+
+    .svc-option:active {
+      transform: scale(0.96);
+      transition-duration: 0.06s;
+    }
+
+    .svc-panel-foot {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .svc-panel-foot .btn {
+      height: 40px;
+      padding: 0 20px;
+    }
+
+    @media (max-width: 719px) {
+      .svc-panel-body {
+        gap: 14px;
+        margin: 0;
+        padding: 6px 12px 14px;
+        border: 0;
+      }
+
+      .svc-panel-title {
+        font-size: 15px;
+      }
+
+      .svc-option {
+        height: 40px;
+        padding-right: 14px;
+        font-size: 14px;
+      }
+
+      .svc-option-logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+      }
+
+      .svc-panel-foot {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .svc-panel,
+      .svc-panel.hidden,
+      .svc-panel-body,
+      .svc-panel.hidden .svc-panel-body {
+        transition: none;
+      }
+
+      .svc-panel.hidden .svc-panel-body {
+        transform: none;
+      }
+    }
+
+    /* "Change" shows a clean start page; the results come back with "Back to your results". */
+    body.landing-mode #resultsSection {
+      display: none !important;
+    }
+
+    /* ── Scanning: the bar itself becomes the progress bar ── */
+    .ask-progress {
+      position: absolute;
+      inset: 1px;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 6px 0 28px;
+      overflow: hidden;
+      border-radius: inherit;
+      background: var(--surface);
+      animation: fadeInSimple 0.25s ease-out;
+    }
+
+    .ask-progress.hidden {
+      display: none;
+    }
+
+    .ask-progress-fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      background: rgba(255, 90, 54, 0.13);
+      box-shadow: inset -2px 0 0 var(--accent);
+      transition: width 0.6s var(--ease-out);
+      pointer-events: none;
+    }
+
+    /* A soft glow breathing at the leading edge: still working, even between updates. */
+    .ask-progress-fill::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 72px;
+      background: linear-gradient(to left, rgba(255, 90, 54, 0.28), rgba(255, 90, 54, 0));
+      animation: progress-breathe 1.8s ease-in-out infinite;
+    }
+
+    @keyframes progress-breathe {
+      50% {
+        opacity: 0.25;
+      }
+    }
+
+    .ask-progress-text {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+
+    .ask-progress-pct {
+      flex: none;
+      min-width: 2.6ch;
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 2.2rem;
+      line-height: 1;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ask-progress-label {
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
+      font-size: 15px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ask-progress-stop[class] {
+      position: relative;
+      flex: none;
+      height: 62px;
+      padding: 0 28px;
+    }
+
+    /* The posters behind lean in a little while it works. */
+    .poster-wall {
+      transition: opacity 0.8s ease;
+    }
+
+    .landing:has(.ask-progress:not(.hidden)) .poster-wall {
+      opacity: 0.72;
+    }
+
+    @media (max-width: 767px) {
+      .landing:has(.ask-progress:not(.hidden)) .poster-wall {
+        opacity: 0.32;
+      }
+    }
+
+    @media (max-width: 719px) {
+      .ask-progress {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        gap: 18px;
+        padding: 22px;
+      }
+
+      .ask-progress-text {
+        flex: none;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .ask-progress-pct {
+        font-size: 3.2rem;
+      }
+
+      .ask-progress-label {
+        white-space: normal;
+        line-height: 1.4;
+      }
+
+      .ask-progress-stop[class] {
+        height: 52px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ask-progress-fill::after {
+        animation: none;
+      }
+    }
+
+    /* ── Results ── */
+    .results {
+      padding-bottom: 72px;
+    }
+
+    .results.hidden {
+      display: none;
+    }
+
+    .context {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 14px;
+      padding: 8px 0 30px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .context.hidden {
+      display: none;
+    }
+
+    .context strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .context-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--faint);
+    }
+
+    @media (min-width: 640px) {
+      .context-services:not(.context-dot) {
+        display: inline-flex;
+        align-items: center;
+      }
+    }
+
+    .context .svc-stack-logo {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      box-shadow: 0 0 0 2px var(--bg);
+    }
+
+    .context .svc-stack-more {
+      font-size: 14px;
+    }
+
+    /* Tonight's pick: the plain title waits (invisible) while we look for the film's title logo,
+       then whichever arrives fades up into place. Hiding is instant, so the old film's title
+       never lingers. */
+    .pick-title {
+      transition: opacity 0.45s ease-out;
+    }
+
+    .pick.logo-pending .pick-title {
+      opacity: 0;
+      transition: none;
+    }
+
+    .pick-logo:not(.hidden) {
+      animation: pick-logo-in 0.6s var(--ease-out) both;
+    }
+
+    @keyframes pick-logo-in {
+      from {
+        opacity: 0;
+        transform: translate3d(0, 8px, 0) scale(0.985);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pick-logo:not(.hidden) {
+        animation: fadeInSimple 0.4s ease-out both;
+      }
+    }
+
+    /* On phones the service chips below already name the services, and the links get their own line. */
+    @media (max-width: 639px) {
+      .context-services {
+        display: none;
+      }
+
+      .context > span:first-child {
+        flex-basis: 100%;
+      }
+
+      .context > .context-dot:nth-child(2) {
+        display: none;
+      }
+    }
+
+    /* ── Motion and response (see src/js/16-motion.js) ──
+       Feedback on press, not release; no grey tap flash; no double-tap zoom delay. */
+    a,
+    button,
+    [role="tab"],
+    label.ask-seg,
+    .poster-card-art {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .svc-chip,
+    .ghost-btn,
+    .icon-btn,
+    .quick-search-go,
+    .tabs .tab-btn[class],
+    .poster-card-art,
+    .pick-art,
+    .custom-filter-trigger[class],
+    .custom-filter-item[class] {
+      transition-property: transform, background-color, border-color, color, opacity, box-shadow;
+      transition-duration: 0.12s;
+      transition-timing-function: ease-out;
+    }
+
+    .svc-chip:active,
+    .ghost-btn:active,
+    .icon-btn:active,
+    .quick-search-go:active,
+    .custom-filter-trigger[class]:active,
+    .custom-filter-item[class]:active {
+      transform: scale(0.96);
+      transition-duration: 0.06s;
+    }
+
+    .tabs .tab-btn[class]:active,
+    .link-btn:active {
+      opacity: 0.6;
+      transition-duration: 0.06s;
+    }
+
+    .poster-card-art:active {
+      transform: scale(0.97);
+      transition-duration: 0.08s;
+    }
+
+    /* The phone filter sheet is moved by a spring in JS, so the CSS slide is switched off;
+       its title row is the handle you drag it down by. */
+    @media (max-width: 639px) {
+      .filter-panel-responsive[class] {
+        animation: none !important;
+        will-change: transform;
+      }
+
+      .filter-panel-responsive .sheet-handle {
+        box-sizing: content-box;
+        padding: 6px 40px 10px;
+        background-clip: content-box;
+        cursor: grab;
+      }
+
+      .filter-panel-responsive .sheet-handle,
+      .filter-panel-responsive .filter-panel-head {
+        touch-action: none;
+      }
+    }
+
+    /* Popovers grow out of the button that opened them (origin set in JS). */
+    .custom-filter-popover.pop-in {
+      animation: pop-in 0.22s var(--ease-out);
+    }
+
+    @keyframes pop-in {
+      from {
+        opacity: 0;
+        transform: scale(0.94);
+      }
+    }
+
+    /* Tonight's pick crossfade: the outgoing still fades out over the incoming one. */
+    .pick-art .pick-ghost {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 22%;
+      pointer-events: none;
+      transition: opacity 0.4s ease-out;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .svc-chip:active,
+      .ghost-btn:active,
+      .icon-btn:active,
+      .quick-search-go:active,
+      .poster-card-art:active,
+      .custom-filter-trigger[class]:active,
+      .custom-filter-item[class]:active,
+      .btn:active:not(:disabled) {
+        transform: none;
+      }
+
+      .custom-filter-popover.pop-in {
+        animation: none;
+      }
+
+      .filter-panel-responsive[class] {
+        animation: fadeInSimple 0.2s ease-out !important;
+      }
+    }
+
+    /* Settings for less transparency or more contrast. */
+    @media (prefers-reduced-transparency: reduce) {
+      .btn-quiet {
+        background: var(--surface-2);
+        border-color: var(--line-strong);
+      }
+
+      .filter-backdrop-responsive[class] {
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+        background: rgba(0, 0, 0, 0.85) !important;
+      }
+    }
+
+    @media (prefers-contrast: more) {
+      :root {
+        --line: rgba(255, 255, 255, 0.32);
+        --line-strong: rgba(255, 255, 255, 0.6);
+        --muted: #cfcac1;
+      }
+    }
+
+    .display,
+    .pick-title,
+    .filter-panel-head h3 {
+      font-optical-sizing: auto;
+    }
+
+    /* The VPN switch lives with the results it changes (and in a film's watch box), not in the top bar. */
+    #vpnToggleBtnInline[class] {
+      height: 44px;
+      padding: 0 16px;
+      border: 1px solid var(--line) !important;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    #vpnToggleBtnInline.vpn-active[class] {
+      border-color: rgba(255, 90, 54, 0.45) !important;
+      color: var(--text) !important;
+    }
+
+    /* Search is a real field in the top bar; suggestions drop down under it. */
+    .search-field {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: clamp(260px, 24vw, 380px);
+      height: 42px;
+      margin-right: 8px;
+      padding: 0 6px 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: text;
+      transition: border-color 0.15s, width 0.3s var(--ease-out);
+    }
+
+    .search-field:focus-within {
+      border-color: var(--line-strong);
+      color: var(--text);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .search-field:hover {
+        border-color: var(--line-strong);
+      }
+    }
+
+    .search-field > svg {
+      width: 16px;
+      height: 16px;
+      flex: none;
+    }
+
+    .search-field input {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .search-field input::placeholder {
+      color: var(--muted);
+    }
+
+    .search-field input::-webkit-search-cancel-button {
+      display: none;
+    }
+
+    .search-field .icon-btn {
+      width: 30px;
+      height: 30px;
+      flex: none;
+    }
+
+    .search-field .icon-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .search-field-kbd {
+      flex: none;
+      padding: 3px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--faint);
+      font-size: 12px;
+    }
+
+    /* The hint is for finding the field; once you're in it (or have typed), it steps aside. */
+    .search-field:focus-within .search-field-kbd,
+    .search-field:has(input:not(:placeholder-shown)) .search-field-kbd {
+      display: none;
+    }
+
+    @media not ((hover: hover) and (pointer: fine)) {
+      .search-field-kbd {
+        display: none;
+      }
+    }
+
+    .search-field .search-dropdown {
+      top: calc(100% + 10px);
+      left: auto;
+      right: 0;
+      width: max(100%, 440px);
+      padding: 6px;
+    }
+
+    .search-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .search-row:hover,
+    .search-row:focus-visible {
+      background: var(--surface-2);
+      outline: none;
+    }
+
+    .search-row-thumb {
+      width: 40px;
+      height: 60px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 7px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-family: var(--serif);
+      font-size: 20px;
+    }
+
+    .search-row-thumb.is-person {
+      width: 44px;
+      height: 44px;
+      margin: 8px 0;
+      border-radius: 50%;
+    }
+
+    .search-row-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .search-row-text {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .search-row-title {
+      overflow: hidden;
+      font-size: 15px;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .search-row-sub {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .search-empty {
+      margin: 0;
+      padding: 18px 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Phones: a compact pill; tapping in widens it over the whole top bar. */
+    @media (max-width: 639px) {
+      .topbar-actions {
+        flex: 1;
+        min-width: 0;
+        justify-content: flex-end;
+      }
+
+      .search-field {
+        width: auto;
+        flex: 1;
+        min-width: 0;
+        height: 40px;
+        margin: 0 6px 0 4px;
+        padding: 0 4px 0 12px;
+        gap: 8px;
+      }
+
+      .search-field input {
+        font-size: 16px;
+      }
+
+      .search-field:focus-within {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 16px;
+        z-index: 60;
+        margin: 0;
+      }
+
+      .search-field .search-dropdown {
+        position: fixed;
+        top: 68px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-height: calc(100svh - 84px);
+      }
+    }
+
+    /* Filter field labels: sentence case like every other label, not tracked capitals. */
+    .custom-filter-dropdown-container > label.uppercase[class] {
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    /* Film page "Watch now" box: the one raised surface, not a tinted gradient. */
+    .watch-options-box[class] {
+      background-image: none;
+      background-color: var(--surface);
+      border-color: var(--line);
+      box-shadow: none;
+    }
+
+    #scanCompactFriendBtn.hidden,
+    #scanCompactFriendBtn.hidden + .context-dot {
+      display: none;
+    }
+
+    .results-subline {
+      margin: 16px 0 0;
+      max-width: 40rem;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .results-subline:empty {
+      display: none;
+    }
+
+    .scan-notice {
+      margin: 18px 0 0;
+      max-width: 40rem;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(255, 176, 60, 0.08);
+      border: 1px solid rgba(255, 176, 60, 0.28);
+      color: #ffd59a;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .scan-notice.hidden {
+      display: none;
+    }
+
+    .svc-chips {
+      display: flex;
+      gap: 8px;
+      margin: 28px calc(var(--pad) * -1) 0;
+      padding: 0 var(--pad);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .svc-chips::-webkit-scrollbar {
+      display: none;
+    }
+
+    .svc-chips.hidden {
+      display: none;
+    }
+
+    .svc-chip {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      cursor: pointer;
+      transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+    }
+
+    .svc-chip:has(img) {
+      padding-left: 8px;
+    }
+
+    .svc-chip img {
+      width: 30px;
+      height: 30px;
+      border-radius: 22.5%;
+    }
+
+    .svc-chip-name {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .svc-chip:hover {
+      border-color: var(--line-strong);
+    }
+
+    .svc-chip[aria-pressed="true"] {
+      background: var(--text);
+      border-color: var(--text);
+      color: #4a4741;
+    }
+
+    .svc-chip[aria-pressed="true"] .svc-chip-name {
+      color: #0a0a0b;
+    }
+
+    /* Tonight's pick: a section of its own (heading, "Another pick"), then a raised card: the film's
+       words on the left, its still on the right, the still melting into the card (not the page). */
+    .pick {
+      margin-top: 40px;
+    }
+
+    .pick.hidden {
+      display: none;
+    }
+
+    .pick-head {
+      align-items: center;
+    }
+
+    .pick-head .pick-another {
+      margin-left: auto;
+    }
+
+    .pick-another svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* "Another pick" has two homes: beside Trailer on computer screens wide enough for all three
+       buttons on one line, up by the heading anywhere the buttons would wrap or stack. */
+    .pick-another-inline {
+      display: none;
+    }
+
+    @media (min-width: 1440px) {
+      .pick-head .pick-another {
+        display: none;
+      }
+
+      .pick-another-inline[class] {
+        display: inline-flex;
+      }
+    }
+
+    .pick-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      min-height: clamp(380px, 30vw, 500px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--surface);
+      isolation: isolate;
+    }
+
+    .pick-art {
+      position: relative;
+      grid-column: 2;
+      grid-row: 1;
+      padding: 0;
+      border: 0;
+      background: var(--surface-2);
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .pick-art img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 22%;
+      transition: opacity 0.35s ease, transform 1.4s var(--ease-out);
+    }
+
+    .pick-art img:not([src]) {
+      visibility: hidden;
+    }
+
+    /* The still's left edge fades into the card's own surface. */
+    .pick-art::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(to right, var(--surface) 0%, rgba(21, 21, 23, 0.6) 14%, rgba(21, 21, 23, 0) 38%);
+    }
+
+    .pick.is-swapping .pick-art img {
+      opacity: 0;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .pick-art:hover img {
+        transform: scale(1.03);
+      }
+    }
+
+    .pick-body {
+      position: relative;
+      z-index: 1;
+      grid-column: 1;
+      grid-row: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+      min-width: 0;
+      padding: clamp(24px, 3vw, 48px);
+    }
+
+    .pick-logo {
+      align-self: flex-start;
+      max-width: min(85%, 22rem);
+      max-height: clamp(72px, 8vw, 120px);
+      margin-bottom: 4px;
+      object-fit: contain;
+      object-position: left bottom;
+    }
+
+    .pick-logo.hidden {
+      display: none;
+    }
+
+    .pick-title {
+      margin: 0;
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(2.2rem, 3.6vw, 3.4rem);
+      line-height: 1;
+      letter-spacing: -0.01em;
+      text-wrap: balance;
+    }
+
+    .pick.has-logo .pick-title {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    /* The film's own line, in the display face's italic: it gives the card a voice. */
+    .pick-tagline {
+      margin: 0;
+      color: var(--text);
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(1.15rem, 1.5vw, 1.4rem);
+      line-height: 1.25;
+      text-wrap: balance;
+    }
+
+    .pick-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 10px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .pick-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .pick-dot {
+      color: var(--faint);
+    }
+
+    .pick-overview {
+      display: -webkit-box;
+      margin: 0;
+      overflow: hidden;
+      color: #d8d3c9;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      max-width: 38rem;
+    }
+
+    .pick-tagline:empty,
+    .pick-overview:empty,
+    .pick-meta:empty,
+    .pick-where:empty {
+      display: none;
+    }
+
+    /* Where it streams: logo, name and status, like a service row in Where to watch. */
+    .pick-where {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .pick-where-logo {
+      width: 40px;
+      height: 40px;
+      flex: none;
+      overflow: hidden;
+      border-radius: 11px;
+      background: var(--surface-2);
+    }
+
+    .pick-where-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .pick-where-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      line-height: 1.35;
+    }
+
+    .pick-where-name {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .pick-where-status {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .pick-where-status.is-vpn {
+      color: var(--accent-soft);
+    }
+
+    .pick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .pick-actions .btn-primary.hidden {
+      display: none;
+    }
+
+    /* Laptops: the words get half the card, so the details and buttons have room. */
+    @media (min-width: 900px) and (max-width: 1599px) {
+      .pick-card {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
+    }
+
+    /* Narrower screens: the still on top, the words under it. */
+    @media (max-width: 899px) {
+      .pick-card {
+        grid-template-columns: minmax(0, 1fr);
+        min-height: 0;
+      }
+
+      .pick-art {
+        grid-column: 1;
+        grid-row: 1;
+        aspect-ratio: 16 / 9;
+      }
+
+      .pick-art::after {
+        background: linear-gradient(to top, var(--surface) 0%, rgba(21, 21, 23, 0.55) 18%, rgba(21, 21, 23, 0) 45%);
+      }
+
+      .pick-body {
+        grid-column: 1;
+        grid-row: 2;
+        margin-top: -36px;
+        padding-top: 0;
+      }
+    }
+
+    @media (max-width: 639px) {
+      .pick {
+        margin-top: 32px;
+      }
+
+      .pick-body {
+        gap: 12px;
+        padding: 0 18px 20px;
+      }
+
+      .pick-actions .btn-primary {
+        flex: 1 1 100%;
+      }
+
+      .pick-actions .btn-quiet {
+        flex: 1;
+      }
+    }
+
+    /* Tabs, tools, filter panel */
+    .results-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px 20px;
+      flex-wrap: wrap;
+      margin: 40px calc(var(--pad) * -1) 22px;
+      padding: 10px var(--pad) 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tabs[id] {
+      display: flex;
+      gap: 26px;
+      max-width: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tabs .tab-btn[class] {
+      flex: none;
+      position: relative;
+      height: 52px;
+      padding: 0;
+      gap: 7px;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .tabs .tab-btn[class]:hover {
+      color: var(--text);
+      background: none;
+    }
+
+    .tabs .tab-btn.active[class] {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .tabs .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: var(--accent);
+    }
+
+    .tabs .tab-badge[class] {
+      padding: 0;
+      background: none;
+      color: var(--faint);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .tabs .tab-btn.active .tab-badge[class] {
+      color: var(--accent-soft);
+    }
+
+    .results-tools {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+      padding-bottom: 6px;
+      flex: 1 1 320px;
+      justify-content: flex-end;
+    }
+
+    /* min-width 0: the field gives way on narrow phones instead of pushing the row (and with it
+       the whole page) past the screen edge. */
+    .filter-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+      max-width: 280px;
+      height: 42px;
+      padding: 0 6px 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      transition: border-color 0.15s;
+    }
+
+    .filter-field:focus-within {
+      border-color: var(--line-strong);
+    }
+
+    .filter-field > svg {
+      width: 16px;
+      height: 16px;
+      color: var(--muted);
+      flex: none;
+    }
+
+    .filter-field input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .filter-panel-responsive[class] {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 28px 70px -20px rgba(0, 0, 0, 0.9);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    .filter-panel-responsive > * + * {
+      margin-top: 18px;
+    }
+
+    .filter-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .filter-panel-head h3 {
+      margin: 0;
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      margin: 0 auto;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .custom-filter-trigger[class] {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: none;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .custom-filter-trigger[class]:hover,
+    .custom-filter-trigger.is-open[class] {
+      border-color: var(--line-strong);
+    }
+
+    .custom-filter-trigger.active-custom[class] {
+      border-color: rgba(255, 90, 54, 0.6);
+    }
+
+    .custom-filter-popover[class] {
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.85);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    .custom-filter-item[class] {
+      border-radius: 10px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .custom-filter-item[class]:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .custom-filter-item.selected[class] {
+      background: rgba(255, 90, 54, 0.14);
+      color: var(--text);
+    }
+
+    /* ── Poster grid ── */
+    .poster-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px 10px;
+      min-height: 300px;
+      align-content: start;
+    }
+
+    @media (min-width: 560px) {
+      .poster-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 26px 16px;
+      }
+    }
+
+    @media (min-width: 1100px) {
+      .poster-grid {
+        grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+        gap: 32px 20px;
+      }
+    }
+
+    .poster-card {
+      position: relative;
+      min-width: 0;
+      animation: card-in 0.6s var(--ease-out) both;
+      animation-delay: calc(var(--i, 0) * 16ms);
+    }
+
+    @keyframes card-in {
+      from {
+        opacity: 0.25;
+        transform: translateY(12px);
+      }
+    }
+
+    .poster-card-art {
+      position: relative;
+      display: block;
+      aspect-ratio: 2 / 3;
+      border-radius: 10px;
+      background: var(--surface);
+      transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+    }
+
+    .poster-card-clip {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      overflow: hidden;
+    }
+
+    .poster-card-clip img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .poster-card-fallback {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 14px;
+      text-align: center;
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      line-height: 1.1;
+      color: var(--muted);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .poster-card-art:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 22px 40px -18px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.24);
+      }
+    }
+
+    .poster-card-caption {
+      display: none;
+    }
+
+    @media (min-width: 560px) {
+      .poster-card-caption {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 10px;
+        font-size: 14px;
+        line-height: 1.3;
+      }
+
+      .poster-card-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      .poster-card-year {
+        flex: none;
+        color: var(--faint);
+      }
+    }
+
+    .poster-corner-badge[class] {
+      top: 7px;
+      height: 22px;
+      padding: 0 6px;
+      gap: 4px;
+      border-radius: 6px;
+      border: 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+    }
+
+    .poster-rating-badge[class] {
+      right: 7px;
+      background: rgba(10, 10, 11, 0.86);
+    }
+
+    .poster-vpn-badge[class] {
+      left: 7px;
+      background: rgba(10, 10, 11, 0.86);
+      color: var(--text);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+    }
+
+    .poster-services {
+      position: absolute;
+      left: 7px;
+      bottom: 7px;
+      z-index: 20;
+      display: flex;
+      gap: 4px;
+      pointer-events: none;
+    }
+
+    .poster-services img,
+    .poster-services-more {
+      width: 24px;
+      height: 24px;
+      border-radius: 22.5%;
+      object-fit: cover;
+      background: #111;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+    }
+
+    .poster-services-more {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: auto;
+      min-width: 24px;
+      padding: 0 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* "VPN" (with the country's flag) after the service logos: it says how you'd watch it, so it
+       sits with them, and the top of the poster is left to the rating. */
+    .poster-vpn-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 24px;
+      padding: 0 7px;
+      border-radius: 6px;
+      background: rgba(10, 10, 11, 0.86);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      color: var(--accent-soft);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    @media (min-width: 560px) {
+      .poster-vpn-chip {
+        height: 28px;
+      }
+    }
+
+    /* The narrowest cards (small phones, three across) get slightly smaller marks so the row fits. */
+    .poster-card-art {
+      container-type: inline-size;
+    }
+
+    @container (max-width: 119px) {
+      .poster-services {
+        gap: 3px;
+      }
+
+      .poster-services img,
+      .poster-services-more {
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+      }
+
+      .poster-services-more {
+        width: auto;
+        padding: 0 4px;
+      }
+
+      .poster-vpn-chip {
+        height: 20px;
+        padding: 0 5px;
+      }
+    }
+
+    /* On the shared cards, "Watchlist" moves to the bottom corner for the same reason. */
+    .poster-wl-badge[class] {
+      top: auto;
+      bottom: 7px;
+    }
+
+    @media (min-width: 560px) {
+      .poster-services img,
+      .poster-services-more {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+      }
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 36px;
+    }
+
+    .pagination.hidden {
+      display: none;
+    }
+
+    .site-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 18px;
+      padding: 32px 0 40px;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .site-footer {
+      align-items: flex-start;
+      gap: 14px 28px;
+    }
+
+    .footer-tmdb {
+      flex: none;
+      margin-top: 5px;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 639px) {
+      .site-footer .page-credits {
+        flex-basis: 100%;
+      }
+    }
+
+    /* ── Legacy components re-skinned (film pages, actor pages, menus, popups) ── */
+    .glass-panel[class] {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: none;
+    }
+
+    .liquid-glass[class] {
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    .liquid-glass::before {
+      display: none;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .liquid-glass[class]:hover {
+        background: rgba(255, 255, 255, 0.16);
+        border-color: var(--line-strong);
+      }
+    }
+
+    .provider-glass[class] {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--line);
+    }
+
+    .premium-popup-panel[class] {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.95);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    .modal-header-category {
+      display: none;
+    }
+
+    .modal-header-title[class],
+    .movie-hero-title[class],
+    .actor-hero-name[class],
+    #allCastModalTitle[class] {
+      font-family: var(--serif);
+      font-weight: 400;
+      letter-spacing: -0.01em;
+    }
+
+    .modal-header-title[class] {
+      font-size: 1.8rem;
+      line-height: 1.05;
+    }
+
+    /* Section headings on film and actor pages ("Watch now", "Cast and crew"): serif, sentence case */
+    #moviePageView h3.uppercase[class],
+    #actorPageView h3.uppercase[class],
+    #movieModal h3.uppercase[class],
+    #actorModal h3.uppercase[class] {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(1.6rem, 3vw, 2.1rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--text);
+    }
+
+    /* Type: nothing smaller than 12px. */
+    [class*="text-[9px]"][class]:not(.poster-rating-tag),
+    [class*="text-[10px]"][class],
+    [class*="text-[11px]"][class] {
+      font-size: 0.75rem;
+    }
+
+    /* Small all-caps labels share one letter-spacing. */
+    .tracking-widest[class],
+    .tracking-wider[class] {
+      letter-spacing: 0.08em;
+    }
+
+    /* Anything you can press reads as a normal phrase, never all caps. */
+    button.uppercase,
+    a.uppercase,
+    button .uppercase,
+    a .uppercase {
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    button.uppercase,
+    a.uppercase {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    /* Filter options used to lead with an emoji; the slot is hidden when empty. */
+    .custom-filter-item span.text-sm:empty,
+    .custom-filter-trigger span.text-sm:empty {
+      display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .poster-card,
+      .poster-wall img {
+        animation: none;
+      }
+
+      .pick-art img,
+      .poster-card-art,
+      .btn {
+        transition: none;
+      }
+    }
+
+    /* ── Full pages: film, person, cast and crew (shared pieces live in src/js/17-pages.js) ── */
+    .page-width {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 var(--pad);
+    }
+
+    @media (min-width: 1280px) {
+      .page-width {
+        max-width: 1760px;
+      }
+    }
+
+    @media (min-width: 1536px) {
+      .page-width {
+        max-width: 2160px;
+      }
+    }
+
+    @media (min-width: 2500px) {
+      .page-width {
+        max-width: 2400px;
+      }
+    }
+
+    /* Back and close: solid, quiet circles, the same on every page. */
+    .page-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 70;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .page-nav-btn {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: rgba(10, 10, 11, 0.72);
+      color: var(--text);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: background-color 0.15s, border-color 0.15s, transform 0.12s ease-out;
+    }
+
+    .page-nav-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .page-nav-btn:active {
+      transform: scale(0.94);
+      transition-duration: 0.06s;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .page-nav-btn:hover {
+        background: var(--surface-2);
+        border-color: var(--line-strong);
+      }
+    }
+
+    /* Section headings: a serif title, an optional count, an optional link on the right. */
+    .page-section {
+      min-width: 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+      line-height: 1.05;
+      color: var(--text);
+    }
+
+    .section-count {
+      color: var(--faint);
+      font-size: 15px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .section-head .link-btn {
+      margin-left: auto;
+      font-size: 15px;
+    }
+
+    /* Horizontal rails (cast, collections, more like this): no scrollbar, snap to cards. */
+    .rail-wrap {
+      position: relative;
+    }
+
+    .rail {
+      display: grid;
+      grid-auto-flow: column;
+      gap: 16px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+      cursor: grab;
+    }
+
+    .rail::-webkit-scrollbar {
+      display: none;
+    }
+
+    .rail > * {
+      scroll-snap-align: start;
+    }
+
+
+    .rail-arrow {
+      position: absolute;
+      top: 38%;
+      z-index: 5;
+      width: 44px;
+      height: 44px;
+      display: none;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: rgba(10, 10, 11, 0.86);
+      color: var(--text);
+      cursor: pointer;
+      transform: translateY(-50%);
+    }
+
+    .rail-arrow svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .rail-arrow-prev {
+      left: -14px;
+    }
+
+    .rail-arrow-next {
+      right: -14px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .rail-wrap:hover .rail-arrow:not(.\!hidden) {
+        display: grid;
+      }
+    }
+
+    /* Person card: portrait, name, part. */
+    .person-card {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      animation: card-in 0.6s var(--ease-out) both;
+      animation-delay: calc(var(--i, 0) * 16ms);
+    }
+
+    .person-card-photo {
+      position: relative;
+      display: grid;
+      place-items: center;
+      aspect-ratio: 3 / 4;
+      margin-bottom: 8px;
+      overflow: hidden;
+      border-radius: 12px;
+      background: var(--surface);
+      transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+    }
+
+    .person-card-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    .person-card-initial,
+    .person-card-more-count {
+      font-family: var(--serif);
+      font-size: 2.4rem;
+      color: var(--muted);
+    }
+
+    .person-card-more .person-card-photo {
+      border: 1px solid var(--line);
+      background: transparent;
+    }
+
+    .person-card-name,
+    .person-card-role {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .person-card-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .person-card-role {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .person-card:hover .person-card-photo {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 34px -16px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.24);
+      }
+    }
+
+    .person-card:active .person-card-photo {
+      transform: scale(0.97);
+      transition-duration: 0.08s;
+    }
+
+    /* Poster cards outside the home grid: watchlist marker, the film you're on, role captions. */
+    .poster-wl-badge[class] {
+      left: 7px;
+      display: inline-flex;
+      align-items: center;
+      background: rgba(10, 10, 11, 0.86);
+      color: var(--accent-soft);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .poster-card.is-current .poster-card-art {
+      box-shadow: 0 0 0 2px var(--accent);
+      cursor: default;
+    }
+
+    .poster-card-caption.is-stacked {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 9px;
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .poster-card-caption.is-stacked .poster-card-title {
+      overflow: hidden;
+      color: var(--text);
+      font-weight: 500;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .poster-card-sub {
+      overflow: hidden;
+      color: var(--faint);
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .rail .poster-card-caption {
+      display: flex;
+    }
+
+    .grid-span-all {
+      grid-column: 1 / -1;
+    }
+
+    .page-empty {
+      grid-column: 1 / -1;
+      margin: 0;
+      padding: 48px 0;
+      color: var(--muted);
+      font-size: 16px;
+      text-align: center;
+    }
+
+    /* Footer on every page: plain outside links, then the attribution. */
+    .page-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 56px;
+      padding: 28px 0 40px;
+      border-top: 1px solid var(--line);
+    }
+
+    .page-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .page-link {
+      display: inline-flex;
+      align-items: center;
+      height: 38px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: none;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, transform 0.12s ease-out;
+    }
+
+    .page-link:active {
+      transform: scale(0.96);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .page-link:hover {
+        border-color: var(--line-strong);
+        color: var(--text);
+      }
+    }
+
+    /* Credits: sources on the first line, the fine print under it, Privacy on the right. */
+    .page-credits {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px 32px;
+      align-items: baseline;
+      flex: 1;
+      line-height: 1.5;
+    }
+
+    .page-credits p {
+      margin: 0;
+    }
+
+    .credits-sources {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .credits-fine {
+      grid-column: 1;
+      color: var(--faint);
+      font-size: 13px;
+    }
+
+    .credits-links {
+      grid-column: 2;
+      grid-row: 1;
+      display: flex;
+      gap: 20px;
+      font-size: 14px;
+    }
+
+    .page-credits a {
+      color: var(--muted);
+      text-decoration: underline;
+      text-decoration-color: var(--line-strong);
+      text-underline-offset: 3px;
+      transition: color 0.15s, text-decoration-color 0.15s;
+    }
+
+    .credits-sources a {
+      color: var(--text);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .page-credits a:hover {
+        color: var(--text);
+        text-decoration-color: currentColor;
+      }
+    }
+
+    @media (max-width: 639px) {
+      .page-credits {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .credits-links {
+        grid-column: 1;
+        grid-row: auto;
+        margin-top: 8px;
+      }
+    }
+
+    /* A note about this page (the VPN warning), on its own line, marked like the VPN status. */
+    .page-note {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .page-note::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      flex: none;
+      border-radius: 50%;
+      background: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    /* ── Film page tweaks: same nav, buttons, headings and type as the rest ── */
+    #moviePageView .hero-trailer-btn {
+      gap: 8px;
+    }
+
+    .hero-trailer-icon {
+      width: 14px;
+      height: 14px;
+      color: var(--accent);
+    }
+
+    @media (max-width: 1023px) {
+      #moviePageView .hero-actions {
+        justify-content: center;
+        width: 100%;
+      }
+    }
+
+    /* The IMDb rating reads as text in the details line, like everywhere else. */
+    #moviePageView .imdb-rating-badge > span:first-child {
+      padding: 0 !important;
+      background: none !important;
+      color: #f5c518 !important;
+      font-family: var(--sans) !important;
+      font-size: inherit !important;
+      font-weight: 500 !important;
+      letter-spacing: 0 !important;
+    }
+
+    #moviePageView .imdb-rating-num {
+      font-size: inherit !important;
+      font-weight: 600 !important;
+    }
+
+    #moviePageView .rail-people + *,
+    #moviePageView .page-section + .page-section {
+      margin-top: 0;
+    }
+
+    /* No text under 12px on the full pages (old utility classes asked for 9–11px). */
+    :is(#moviePageView, #actorPageView, #allCastModal) :is([class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[11px]"], [class*="text-[11.5px]"]) {
+      font-size: 12px !important;
+    }
+
+    .movie-page-vpn-footnote.hidden {
+      display: none;
+    }
+
+    /* ── Cast and crew page ── */
+    .cast-page > * {
+      flex-shrink: 0;
+    }
+
+    /* The tab bars stick just under the back and close buttons, not behind them. */
+    .cast-bar[class],
+    .person-bar[class] {
+      top: 64px;
+    }
+
+    @media (min-width: 640px) {
+      .cast-bar[class],
+      .person-bar[class] {
+        top: 72px;
+      }
+    }
+
+    .cast-hero {
+      position: relative;
+      padding: 132px 0 8px;
+      overflow: hidden;
+    }
+
+    .cast-hero-art {
+      position: absolute;
+      inset: 0;
+      opacity: 0.32;
+      -webkit-mask-image: linear-gradient(to bottom, #000 10%, transparent);
+      mask-image: linear-gradient(to bottom, #000 10%, transparent);
+    }
+
+    .cast-hero-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 25%;
+    }
+
+    .cast-hero-inner {
+      position: relative;
+    }
+
+    .cast-title {
+      margin: 0;
+    }
+
+    .cast-of {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .cast-film-link {
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--text);
+      font: inherit;
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: var(--line-strong);
+      text-underline-offset: 4px;
+      cursor: pointer;
+    }
+
+    .cast-film-link:hover {
+      text-decoration-color: var(--text);
+    }
+
+    .cast-bar[class] {
+      margin-top: 28px;
+    }
+
+    .cast-sections {
+      display: flex;
+      flex-direction: column;
+      gap: 44px;
+      padding-top: 8px;
+    }
+
+    .people-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+      gap: 26px 16px;
+    }
+
+    @media (min-width: 1100px) {
+      .people-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 30px 20px;
+      }
+    }
+
+    @media (max-width: 559px) {
+      .people-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px 10px;
+      }
+    }
+
+    .crew-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 4px 20px;
+    }
+
+    .crew-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 8px;
+      margin: 0 -8px;
+      border: 0;
+      border-radius: 12px;
+      background: none;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .crew-row:hover {
+        background: var(--surface);
+      }
+    }
+
+    .crew-row-photo {
+      width: 44px;
+      height: 44px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--muted);
+      font-family: var(--serif);
+      font-size: 20px;
+    }
+
+    .crew-row-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .crew-row-text {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .crew-row-name,
+    .crew-row-role {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .crew-row-name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .crew-row-role {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ── Person page ── */
+    .person-hero {
+      position: relative;
+      min-height: min(78svh, 760px);
+      display: flex;
+      align-items: flex-end;
+      padding: 120px 0 36px;
+      overflow: hidden;
+    }
+
+    .person-hero-art {
+      position: absolute;
+      inset: 0;
+    }
+
+    .person-hero-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 22%;
+      opacity: 0;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .person-hero-art img.is-loaded {
+      opacity: 0.62;
+    }
+
+    .person-hero-art::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, var(--bg) 8%, rgba(10, 10, 11, 0.7) 45%, rgba(10, 10, 11, 0.15));
+    }
+
+    .person-hero-inner {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      gap: clamp(20px, 3vw, 44px);
+    }
+
+    .person-hero-photo {
+      width: clamp(120px, 15vw, 230px);
+      flex: none;
+      display: grid;
+      place-items: center;
+      aspect-ratio: 2 / 3;
+      overflow: hidden;
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.95);
+      font-family: var(--serif);
+      font-size: 3rem;
+      color: var(--muted);
+    }
+
+    .person-hero-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .person-hero-text {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 60rem;
+    }
+
+    .person-name[class] {
+      margin: 0;
+      font-size: clamp(2.6rem, 7vw, 6rem);
+    }
+
+    .person-facts {
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .person-bio {
+      color: var(--text);
+    }
+
+    .person-body {
+      padding-top: 8px;
+    }
+
+    .person-films-head {
+      margin: 28px 0 0;
+    }
+
+    .person-bar[class] {
+      margin-top: 10px;
+    }
+
+    #actorFilterToggleBtn.has-filters,
+    #actorFilterToggleBtn.text-blue-400 {
+      color: var(--accent-soft);
+    }
+
+    .role-trigger[class] {
+      border-radius: 999px;
+      background: transparent;
+      font-size: 15px;
+    }
+
+    @media (max-width: 639px) {
+      .person-bar .results-tools {
+        flex: 1 1 100%;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .person-bar .filter-field {
+        max-width: none;
+        min-width: 0;
+      }
+
+      .person-bar .custom-filter-dropdown-container {
+        min-width: 0 !important;
+        max-width: 132px !important;
+        flex: 0 1 auto;
+      }
+
+      .person-hero {
+        min-height: 0;
+        padding-top: 96px;
+      }
+
+      .person-hero-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .person-hero-photo {
+        width: 120px;
+      }
+
+      .person-facts {
+        font-size: 15px;
+      }
+
+
+      .cast-hero {
+        padding-top: 96px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .person-card {
+        animation: none;
+      }
+
+      .person-hero-art img {
+        transition: none;
+      }
+    }
+
+    /* ── Type system: the last word on fonts ──
+       Two faces: DM Serif Display for display lines and section titles (always 400), DM Sans for
+       everything else. Three weights: 400 text, 500 controls, 600 emphasis (the wordmark is the
+       one 700). Sizes come from one scale: 12 · 13 · 14 · 15 · 16 · 18 · 20, then the serif sizes.
+       Tracking follows size (Apple): display lines tighten, small text opens a touch, nothing is
+       letter-spaced capitals. The rules below fold the older generated markup into this. */
+    body {
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font-family: inherit;
+    }
+
+    /* Weights: 700–900 from old utility classes become the one emphasis weight. */
+    :is(.font-bold, .font-extrabold, .font-black)[class] {
+      font-weight: 600;
+    }
+
+    /* No shouting: sentence case at normal spacing. */
+    .uppercase[class] {
+      text-transform: none;
+    }
+
+    :is(.tracking-tighter, .tracking-tight, .tracking-wide, .tracking-wider, .tracking-widest)[class] {
+      letter-spacing: 0;
+    }
+
+    /* Nothing below 12px, anywhere. */
+    :is([class*="text-[8px]"], [class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[10.5px]"], [class*="text-[11px]"], [class*="text-[11.5px]"])[class] {
+      font-size: 12px;
+    }
+
+    /* Serif is display only, and only ever regular weight. */
+    :is(.display, .section-title, .pick-title, .filter-panel-head h3, .movie-hero-title, .actor-hero-name, .person-name, .cast-title)[class] {
+      font-family: var(--serif);
+      font-weight: 400;
+    }
+
+    .section-title[class],
+    .filter-panel-head h3 {
+      letter-spacing: -0.01em;
+    }
+
+    /* Small text opens slightly so it stays legible on the dark ground. */
+    :is(.ask-seg-label, .person-card-role, .poster-card-sub, .crew-row-role, .search-row-sub, .credits-fine, .svc-panel-count, .search-field-kbd, .poster-corner-badge) {
+      letter-spacing: 0.01em;
+    }
+
+    /* Numbers that sit in columns or change in place don't jitter. */
+    :is(.tab-badge, .section-count, .poster-rating-val, .rating-tag + *, .imdb-rating-num, .ask-progress-pct, .svc-option, .person-card-more-count) {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tabs .tab-badge[class],
+    .tabs .actor-tab-badge[class] {
+      min-width: 0;
+      padding: 0 !important;
+      font-size: 14px !important;
+      font-weight: 500;
+    }
+
+    .poster-vpn-badge[class] {
+      text-transform: none;
+    }
+
+    /* The IMDb rating sits next to its logo. */
+    .poster-rating-badge[class] {
+      gap: 5px;
+      padding: 0 7px;
+    }
+
+    .poster-rating-tag,
+    .rating-tag {
+      color: #f5c518;
+      font-family: var(--sans);
+      font-weight: 600;
+    }
+
+    .poster-rating-tag,
+    .poster-rating-val {
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .poster-rating-val {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    #moviePageView .imdb-rating-badge > .rating-tag,
+    #moviePageView .imdb-rating-badge > span:first-child {
+      color: #f5c518 !important;
+      font-weight: 600 !important;
+    }
+
+    .poster-vpn-badge[class] {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .poster-services-more {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── The way back to your results (landing, after "Change") ── */
+    .landing-return {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 560px;
+      padding: 12px 18px 12px 12px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(21, 21, 23, 0.86);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s, background-color 0.15s, transform 0.12s ease-out;
+    }
+
+    .landing-return.hidden {
+      display: none;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .landing-return:hover {
+        border-color: var(--line-strong);
+        background: var(--surface-2);
+      }
+
+      .landing-return:hover .landing-return-go svg {
+        transform: translateX(3px);
+      }
+    }
+
+    .landing-return:active {
+      transform: scale(0.985);
+      transition-duration: 0.06s;
+    }
+
+    /* Three posters fanned like a hand of cards. */
+    .landing-return-posters {
+      position: relative;
+      width: 74px;
+      height: 64px;
+      flex: none;
+    }
+
+    .landing-return-posters img {
+      position: absolute;
+      bottom: 0;
+      width: 42px;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      border-radius: 6px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .landing-return-posters img:nth-child(1) {
+      left: 0;
+      transform: rotate(-8deg);
+    }
+
+    .landing-return-posters img:nth-child(2) {
+      left: 16px;
+      z-index: 1;
+      transform: rotate(-1deg) translateY(-2px);
+    }
+
+    .landing-return-posters img:nth-child(3) {
+      left: 32px;
+      z-index: 2;
+      transform: rotate(7deg);
+    }
+
+    .landing-return-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .landing-return-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .landing-return-sub {
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 14px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .landing-return-go {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent-soft);
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .landing-return-go svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s var(--ease-out);
+    }
+
+    @media (max-width: 479px) {
+      .landing-return-go {
+        font-size: 0;
+        gap: 0;
+      }
+
+      .landing-return-go svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    /* ── Film page body: cast and similar films, straight after the banner ── */
+    .film-body {
+      display: flex;
+      flex-direction: column;
+      gap: 56px;
+      padding-top: 8px;
+    }
+
+    /* ── Banner layout: the film on the left, where to watch it on the right ──
+       The panel fills the space beside the title instead of a separate section below.
+       Phones get the same panel directly under the banner. */
+    .hero-layout {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 48px;
+    }
+
+    .hero-layout .hero-copy {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .watch-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      background: rgba(18, 18, 20, 0.92);
+      box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.95);
+      pointer-events: auto;
+    }
+
+    .watch-panel-hero {
+      flex: 0 0 440px;
+    }
+
+    @media (min-width: 1536px) {
+      .watch-panel-hero {
+        flex-basis: 480px;
+      }
+    }
+
+    .watch-panel-inline {
+      display: none;
+    }
+
+    @media (max-width: 1023px) {
+      .watch-panel-hero {
+        display: none;
+      }
+
+      .watch-panel-inline {
+        display: flex;
+        margin-top: 4px;
+      }
+    }
+
+    .wp-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .wp-title {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .wp-vpn[class] {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 34px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .wp-vpn[class]:hover {
+      border-color: var(--line-strong);
+      color: var(--text);
+    }
+
+    .wp-vpn.vpn-active[class] {
+      border-color: rgba(255, 90, 54, 0.5);
+      background: transparent;
+      color: var(--text);
+    }
+
+    .wp-vpn .watchnow-vpn-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #57544f;
+      box-shadow: none;
+    }
+
+    .wp-vpn.vpn-active .watchnow-vpn-dot {
+      background: var(--accent);
+    }
+
+    .wp-main,
+    .wp-more {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .wp-more {
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    /* One row: logo, name and what kind of access, then the action. */
+    .wp-row,
+    .wp-more-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid transparent;
+      border-radius: 18px;
+      background: var(--surface-2);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s, background-color 0.15s, transform 0.12s ease-out;
+    }
+
+    .wp-more-btn {
+      background: transparent;
+      border-color: var(--line);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .wp-row:hover,
+      .wp-more-btn:hover {
+        border-color: var(--line-strong);
+      }
+
+      .wp-more-btn:hover .wp-chevron,
+      .wp-row-pop:hover .wp-chevron {
+        transform: translateX(2px);
+        color: var(--text);
+      }
+    }
+
+    .wp-row:active,
+    .wp-more-btn:active {
+      transform: scale(0.985);
+      transition-duration: 0.06s;
+    }
+
+    .wp-logo {
+      width: 52px;
+      height: 52px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 13px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .wp-logo img,
+    .wp-stack-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wp-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .wp-name {
+      overflow: hidden;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .wp-sub {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .wp-sub.is-vpn {
+      color: var(--accent-soft);
+    }
+
+    .wp-go {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      height: 44px;
+      padding: 0 22px;
+      border-radius: 999px;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .wp-row + .wp-row .wp-go {
+      border: 1px solid var(--line-strong);
+      background: transparent;
+      color: var(--text);
+    }
+
+    .wp-chevron {
+      width: 18px;
+      height: 18px;
+      flex: none;
+      margin-right: 4px;
+      color: var(--faint);
+      transition: transform 0.2s var(--ease-out), color 0.15s;
+    }
+
+    /* Overlapping logos on the Rent or buy / Other services buttons. */
+    .wp-stack {
+      display: flex;
+      flex: none;
+      justify-content: center;
+      width: 52px;
+    }
+
+    .wp-stack-logo {
+      width: 24px;
+      height: 24px;
+      flex: none;
+      overflow: hidden;
+      border-radius: 8px;
+      background: var(--surface-2);
+      box-shadow: 0 0 0 2px rgb(18, 18, 20);
+    }
+
+    .wp-stack-logo + .wp-stack-logo {
+      margin-left: -10px;
+    }
+
+    .wp-empty {
+      padding: 6px 4px 2px;
+    }
+
+    .wp-empty-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .wp-empty-sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* The popups list the same rows. */
+    .wp-pop {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .wp-pop-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .wp-pop-group-title {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .wp-pop-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+      gap: 8px;
+    }
+
+    .wp-pop-note,
+    .wp-pop-empty {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .wp-pop-empty {
+      padding: 12px 0;
+      font-size: 15px;
+    }
+
+    @media (max-width: 1023px) {
+      .hero-layout {
+        display: block;
+      }
+    }
+
+    @media (max-width: 639px) {
+      .film-body {
+        gap: 44px;
+      }
+
+      .watch-panel {
+        padding: 16px;
+        border-radius: 22px;
+      }
+
+      .wp-logo {
+        width: 46px;
+        height: 46px;
+      }
+
+      .wp-name {
+        font-size: 16px;
+      }
+
+      .wp-go {
+        height: 40px;
+        padding: 0 18px;
+      }
+    }
+
+    /* ── Film banner: one column (title, details, description, actions), like Tonight's pick ── */
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+      pointer-events: auto;
+    }
+
+    .hero-copy > * {
+      max-width: 46rem;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 10px;
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    .hero-meta > span:not(.hero-meta-sep) {
+      white-space: nowrap;
+    }
+
+    .hero-meta-sep {
+      color: var(--faint);
+    }
+
+    .hero-meta .imdb-rating-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .hero-meta .imdb-rating-num {
+      font-size: inherit !important;
+      font-weight: 600 !important;
+      color: var(--text);
+    }
+
+    .hero-overview {
+      margin: 0;
+      color: rgba(244, 240, 232, 0.86);
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .hero-overview-more {
+      color: var(--accent-soft);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .hero-overview-more:hover {
+      color: var(--text);
+    }
+
+    @media (max-width: 1023px) {
+      .hero-copy {
+        align-items: center;
+        text-align: center;
+      }
+
+      .hero-meta {
+        justify-content: center;
+      }
+
+      #moviePageView .hero-actions {
+        justify-content: center;
+      }
+    }
+
+    /* The film's title artwork never runs wider than the column it sits in. */
+    .hero-copy .titleLogoImg {
+      max-width: min(100%, 620px);
+      height: auto;
+    }
+
+    @media (max-width: 639px) {
+      .hero-meta,
+      .hero-overview {
+        font-size: 15px;
+      }
+
+      /* Headings stay on one line: the region note goes, the switch keeps its words together. */
+      .wn-section .section-count {
+        display: none;
+      }
+
+      .section-head-end .wn-chip[class] {
+        white-space: nowrap;
+      }
+
+      /* Rent or buy and other services scroll sideways like the other rows, names in full. */
+      .wn-tiles {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        margin: 0 calc(var(--pad) * -1);
+        padding: 0 var(--pad) 2px;
+        scrollbar-width: none;
+      }
+
+      .wn-tiles::-webkit-scrollbar {
+        display: none;
+      }
+
+      .wn-tile {
+        flex: none;
+        padding-right: 18px;
+      }
+
+      .wn-tile-name {
+        overflow: visible;
+      }
+
+      /* Poster captions in rows: title over year, not squeezed side by side. */
+      .rail .poster-card-caption {
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .rail .poster-card-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    /* ── Film banner actions: one family, one height ──
+       "Watch on …" (primary), Trailer and the sound switch are all the same pill height;
+       the sound switch is the same pill, just square. */
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .hero-watch-slot:empty {
+      display: none;
+    }
+
+    .hero-actions .btn {
+      height: 52px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .hero-watch-btn {
+      gap: 12px;
+      padding: 0 24px 0 8px;
+    }
+
+    .hero-watch-logo {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #000;
+    }
+
+    .hero-watch-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero-actions .hero-icon-btn[class] {
+      width: 52px;
+      padding: 0;
+      justify-content: center;
+      border-radius: 999px;
+    }
+
+    .hero-icon-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    @media (max-width: 479px) {
+      .hero-watch-slot {
+        flex-basis: 100%;
+      }
+
+      .hero-watch-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* The IMDb logo: the real yellow plate, sized to sit on the line it's on. */
+    .imdb-logo {
+      display: inline-block;
+      flex: none;
+      height: 14px;
+      width: auto;
+      vertical-align: -2px;
+    }
+
+    .poster-rating-badge .imdb-logo {
+      height: 13px;
+    }
+
+    #moviePageView .imdb-rating-badge .imdb-logo {
+      height: 1.15em;
+      vertical-align: -0.2em;
+    }
+
+    /* ── The way back to your results: a sibling of the search bar ──
+       Same width, same pill, same surface and the same button height as the bar above it,
+       so the two read as one set. */
+    .landing-return {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      width: 100%;
+      max-width: none;
+      height: 76px;
+      padding: 6px 6px 6px 22px;
+      border: 1px solid var(--line);
+      border-radius: 38px;
+      background: var(--surface);
+      box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.9);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .landing-return:hover {
+        border-color: var(--line-strong);
+        background: var(--surface);
+      }
+    }
+
+    .landing-return-posters {
+      width: 64px;
+      height: 54px;
+    }
+
+    .landing-return-posters img {
+      width: 34px;
+    }
+
+    .landing-return-posters img:nth-child(2) {
+      left: 14px;
+    }
+
+    .landing-return-posters img:nth-child(3) {
+      left: 28px;
+    }
+
+    .landing-return-go {
+      height: 62px;
+      padding: 0 26px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 600;
+      transition: background-color 0.15s;
+    }
+
+    .landing-return:hover .landing-return-go {
+      background: var(--surface-2);
+    }
+
+    @media (max-width: 719px) {
+      .landing-return {
+        height: auto;
+        padding: 6px 6px 6px 14px;
+        border-radius: 24px;
+      }
+
+      .landing-return-go {
+        height: 52px;
+        padding: 0 16px;
+        font-size: 0;
+      }
+    }
+
+    /* ── Film page: cast and where to watch as a pair ──
+       Same heading row (serif title + action at the end), same top line, and the panel stretches
+       to the height of the cast cards, so the two read as one band. Phones: where to watch first. */
+    .film-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 440px;
+      gap: 40px;
+      align-items: stretch;
+    }
+
+    @media (min-width: 1536px) {
+      .film-top {
+        grid-template-columns: minmax(0, 1fr) 480px;
+      }
+    }
+
+    .film-top.no-cast {
+      grid-template-columns: minmax(0, 560px);
+    }
+
+    .film-watch {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* An action at the end of a heading row ("See all 85", the VPN switch). */
+    .section-head-end {
+      margin-left: auto;
+    }
+
+    .section-head-end:empty {
+      display: none;
+    }
+
+    .film-watch .watch-panel {
+      flex: 1;
+      padding: 14px;
+      border-radius: 22px;
+      background: var(--surface);
+      box-shadow: none;
+    }
+
+    .film-watch .wp-more {
+      margin-top: auto;
+    }
+
+    @media (max-width: 1023px) {
+      .film-top {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 44px;
+      }
+
+      .film-watch {
+        order: -1;
+      }
+    }
+
+    /* Banner: the film on the left, Trailer and sound on the right, both on the bottom line. */
+    .hero-actions-side {
+      flex: none;
+      margin: 0 0 4px;
+    }
+
+    @media (max-width: 1023px) {
+      .hero-actions-side {
+        justify-content: center;
+        margin-top: 18px;
+      }
+    }
+
+    /* ── Full pages: the back/close row floats over the page with no strip behind it (the round
+       buttons carry their own backing). The cast and person tab bars stick full width at the top. ── */
+    .page-nav.movie-page-nav {
+      height: calc(72px + env(safe-area-inset-top, 0px));
+      align-items: center;
+      padding-top: env(safe-area-inset-top, 0px) !important;
+      padding-bottom: 0 !important;
+    }
+
+    @media (max-width: 639px) {
+      .page-nav.movie-page-nav {
+        height: calc(64px + env(safe-area-inset-top, 0px));
+      }
+    }
+
+    .cast-bar[class],
+    .person-bar[class] {
+      top: calc(72px + env(safe-area-inset-top, 0px));
+      border-bottom: 0;
+      box-shadow: 0 0 0 100vmax var(--bg);
+      clip-path: inset(0 -100vmax -1px);
+    }
+
+    .cast-bar[class]::after,
+    .person-bar[class]::after {
+      content: "";
+      position: absolute;
+      left: -100vmax;
+      right: -100vmax;
+      bottom: -1px;
+      height: 1px;
+      background: var(--line);
+      pointer-events: none;
+    }
+
+    @media (max-width: 639px) {
+      .cast-bar[class],
+      .person-bar[class] {
+        top: calc(64px + env(safe-area-inset-top, 0px));
+      }
+    }
+
+    /* ── Rails show whole cards ──
+       Cards are sized from the row's own width so a whole number of them fills it exactly; the
+       arrows page by one screenful. Touch screens add a peek of the next card instead, so you
+       can tell the row scrolls. */
+    .rail-wrap {
+      container-type: inline-size;
+    }
+
+    .rail[class] {
+      --gap: 16px;
+      --n: 2;
+      --peek: 0;
+      gap: var(--gap);
+      grid-auto-columns: calc((100% - (var(--n) + var(--peek) - 1) * var(--gap)) / (var(--n) + var(--peek)));
+      scroll-snap-type: x mandatory;
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      .rail[class] {
+        --peek: 0.4;
+        scroll-snap-type: x proximity;
+      }
+    }
+
+    /* People: about 160–195px a card. */
+    @container (min-width: 512px) { .rail-people[class] { --n: 3; } }
+    @container (min-width: 688px) { .rail-people[class] { --n: 4; } }
+    @container (min-width: 864px) { .rail-people[class] { --n: 5; } }
+    @container (min-width: 1040px) { .rail-people[class] { --n: 6; } }
+    @container (min-width: 1216px) { .rail-people[class] { --n: 7; } }
+    @container (min-width: 1392px) { .rail-people[class] { --n: 8; } }
+    @container (min-width: 1568px) { .rail-people[class] { --n: 9; } }
+    @container (min-width: 1744px) { .rail-people[class] { --n: 10; } }
+    @container (min-width: 1920px) { .rail-people[class] { --n: 11; } }
+    @container (min-width: 2096px) { .rail-people[class] { --n: 12; } }
+
+    /* Posters: about 200–240px a card. */
+    @container (min-width: 632px) { .rail-posters[class] { --n: 3; } }
+    @container (min-width: 848px) { .rail-posters[class] { --n: 4; } }
+    @container (min-width: 1064px) { .rail-posters[class] { --n: 5; } }
+    @container (min-width: 1280px) { .rail-posters[class] { --n: 6; } }
+    @container (min-width: 1496px) { .rail-posters[class] { --n: 7; } }
+    @container (min-width: 1712px) { .rail-posters[class] { --n: 8; } }
+    @container (min-width: 1928px) { .rail-posters[class] { --n: 9; } }
+    @container (min-width: 2144px) { .rail-posters[class] { --n: 10; } }
+
+    @media (max-width: 639px) {
+      .rail[class] {
+        --gap: 12px;
+      }
+    }
+
+    /* ── Film page: cast | where to watch ──
+       Both heading rows are the same height, so the photos and the card start on one line. */
+    .film-top .section-head {
+      height: 44px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .film-top .section-head .section-title {
+      line-height: 1;
+    }
+
+    .film-watch .watch-panel {
+      flex: 1;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 22px;
+    }
+
+    /* The service card takes whatever height is left, so the box never has a gap. */
+    .film-watch .wp-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Your best service: name on top, Watch (and your other services' logos) at the bottom. */
+    .wp-feature {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      min-height: 0;
+      padding: 14px;
+      border-radius: 16px;
+      background: var(--surface-2);
+    }
+
+    .wp-feature-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .wp-feature-top .wp-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 15px;
+    }
+
+    .wp-feature-top .wp-name {
+      font-size: 19px;
+    }
+
+    .wp-feature-top .wp-sub {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .wp-feature-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .wp-watch {
+      flex: 1;
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: transform 0.12s ease-out, opacity 0.15s;
+    }
+
+    .wp-watch svg {
+      width: 17px;
+      height: 17px;
+      flex: none;
+      transition: transform 0.2s var(--ease-out);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .wp-watch:hover svg {
+        transform: translateX(3px);
+      }
+
+      .wp-mini:hover {
+        box-shadow: 0 0 0 2px var(--line-strong);
+      }
+    }
+
+    .wp-watch:active,
+    .wp-mini:active {
+      transform: scale(0.96);
+      transition-duration: 0.06s;
+    }
+
+    .wp-mini {
+      width: 46px;
+      height: 46px;
+      flex: none;
+      overflow: hidden;
+      border-radius: 12px;
+      background: var(--surface);
+      transition: box-shadow 0.15s, transform 0.12s ease-out;
+    }
+
+    .wp-mini img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wp-feature.is-empty {
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .wp-feature .wp-empty-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .wp-feature .wp-empty-sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Rent or buy and Other services side by side under the card. */
+    .film-watch .wp-more {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .film-watch .wp-more-btn {
+      gap: 10px;
+      padding: 8px 10px 8px 8px;
+      border-radius: 14px;
+    }
+
+    .film-watch .wp-more-btn .wp-stack {
+      width: 40px;
+    }
+
+    /* Side by side the whole button is the target; the arrow would only crowd the label. */
+    .film-watch .wp-more-btn .wp-chevron {
+      display: none;
+    }
+
+    .film-watch .wp-more-btn .wp-name {
+      font-size: 15px;
+    }
+
+    .film-watch .wp-more-btn .wp-sub {
+      font-size: 13px;
+    }
+
+    /* ── The services card in Where to watch ──
+       One service: logo, name and status, then Watch. Several: a row of tiles to pick from, each
+       with its own status under the name, and one Watch button that follows the pick. */
+    .wp-feature {
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .wp-feature-top .wp-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+    }
+
+    .wp-feature-top .wp-name {
+      font-size: 20px;
+    }
+
+    .wp-feature-top .wp-sub {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: normal;
+    }
+
+    /* A small mark before the status: a quiet grey dot when it's included, ember when it needs a VPN. */
+    .wp-feature-top .wp-sub::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      flex: none;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .wp-feature-top .wp-sub.is-vpn::before {
+      background: var(--accent);
+    }
+
+    .wp-feature.is-multi {
+      gap: 10px;
+      padding: 14px;
+    }
+
+    .wp-feature.is-multi .wp-watch {
+      height: 46px;
+    }
+
+    .wp-pick {
+      display: grid;
+      grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .wp-pick-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      min-width: 0;
+      padding: 9px 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.15s, background-color 0.15s, color 0.15s, transform 0.12s ease-out;
+    }
+
+    .wp-pick-logo {
+      width: 40px;
+      height: 40px;
+      flex: none;
+      margin-bottom: 7px;
+      overflow: hidden;
+      border-radius: 11px;
+      background: var(--surface);
+    }
+
+    .wp-pick-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wp-pick-name,
+    .wp-pick-status {
+      max-width: 100%;
+      overflow: hidden;
+      font-size: 13px;
+      line-height: 1.3;
+      font-weight: 500;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Each tile's own status: quiet when it's included, ember when it needs a VPN. */
+    .wp-pick-status {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .wp-pick-status.is-vpn {
+      color: var(--accent-soft);
+    }
+
+    .wp-pick-btn[aria-pressed="true"] {
+      border-color: var(--text);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .wp-pick-btn[aria-pressed="false"]:hover {
+        border-color: var(--line-strong);
+        color: var(--text);
+      }
+    }
+
+    .wp-pick-btn:active {
+      transform: scale(0.96);
+      transition-duration: 0.06s;
+    }
+
+    .wp-feature .wp-watch {
+      flex: none;
+      width: 100%;
+      height: 48px;
+      font-size: 16px;
+    }
+
+    /* Tab rows that scroll sideways fade at the edge with more to see (set by updateTabsFade()). */
+    .tabs.fade-end {
+      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent);
+      mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent);
+    }
+
+    .tabs.fade-start {
+      -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 44px), transparent);
+      mask-image: linear-gradient(to left, #000 calc(100% - 44px), transparent);
+    }
+
+    .tabs.fade-start.fade-end {
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 44px, #000 calc(100% - 44px), transparent);
+      mask-image: linear-gradient(to right, transparent, #000 44px, #000 calc(100% - 44px), transparent);
+    }
+
+    /* ── Cast and person pages: one top bar ──
+       When the tab bar sticks it becomes the top bar itself: back, tabs, tools and close all on
+       one line, the same height as the back/close row (72px, 64px on phones). Its sides make
+       room for the two round buttons only where the page edge would run into them. */
+    .cast-bar[class],
+    .person-bar[class] {
+      top: 0;
+      min-height: 72px;
+      align-items: center;
+      padding-top: 0;
+      padding-left: max(var(--pad), calc(84px - (100vw - 100% - 2 * var(--pad)) / 2));
+      padding-right: max(var(--pad), calc(84px - (100vw - 100% - 2 * var(--pad)) / 2));
+    }
+
+    .cast-bar .tabs .tab-btn[class],
+    .person-bar .tabs .tab-btn[class] {
+      height: 72px;
+    }
+
+    .cast-bar .results-tools,
+    .person-bar .results-tools {
+      padding-bottom: 0;
+    }
+
+    @media (max-width: 639px) {
+      .cast-bar[class],
+      .person-bar[class] {
+        min-height: 64px;
+        padding-left: var(--pad);
+        padding-right: var(--pad);
+      }
+
+      /* Only the tabs line sits between the round buttons; the tools line below gets the full width. */
+      .cast-bar .tabs,
+      .person-bar .tabs {
+        margin-left: calc(72px - var(--pad));
+        margin-right: calc(72px - var(--pad));
+        gap: 20px;
+      }
+
+      .cast-bar .filter-field[class] {
+        max-width: none;
+      }
+
+      .cast-bar .tabs .tab-btn[class],
+      .person-bar .tabs .tab-btn[class] {
+        height: 64px;
+      }
+
+      /* On a phone the tools take a second line under the tabs. */
+      .cast-bar .results-tools,
+      .person-bar .results-tools {
+        padding-bottom: 10px;
+      }
+    }
   </style>
   <link rel="stylesheet" href="./styles.css">
   <!-- Vercel Web Analytics (page views & visitors, no cookies). Enable it under the project's Analytics tab on vercel.com. -->
@@ -2097,397 +7015,234 @@
 </head>
 
 <body>
-  <div class="bg-fixed-gradient"></div>
-  <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 safe-area-wrapper relative z-10 flex flex-col min-h-screen">
-    <header class="flex flex-col md:flex-row justify-between items-center gap-6 mb-4 animate-fade relative z-[100]"
-      style="animation-delay: 0s;">
-      <div class="flex items-center gap-4 -translate-x-3 md:translate-x-0">
-        <img src="./icons/icon-1024-transparent.png" alt="Unwatchd logo" class="w-20 h-20 2xl:w-24 2xl:h-24 shrink-0">
-        <div>
-          <h1 class="text-4xl 2xl:text-5xl font-extrabold tracking-tight text-white mb-1">Unwatchd</h1>
-          <p class="text-sm 2xl:text-base text-gray-500 font-medium tracking-wide">Global Streaming Directory</p>
+  <div class="app-shell">
+    <header class="topbar">
+      <a href="/" class="brand" aria-label="Unwatchd home"><img src="./icons/icon-512-transparent.png" alt="" width="26" height="26">Unwatchd</a>
+      <div class="topbar-actions">
+        <!-- The search field itself: type for suggestions, Enter opens the best match. -->
+        <div id="quickSearchBar" class="search-field" role="search">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
+          <input id="quickSearchInput" aria-label="Search films, TV shows and people" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="Search any film or person">
+          <span class="search-field-kbd kbd-shortcut" aria-hidden="true">Ctrl K</span>
+          <button id="clearSearchBtn" type="button" aria-label="Clear search" class="hidden icon-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+          <button id="quickSearchBtn" type="button" class="sr-only" tabindex="-1">Search</button>
+          <div id="searchDropdown" class="search-dropdown hidden custom-scrollbar"></div>
         </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <button id="vpnToggleBtn" title="Also show films you could unlock by switching your VPN to another region"
-          class="h-8 sm:h-9 px-3 bg-black/40 hover:bg-white/10 border border-white/10 rounded-full flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-gray-400 shadow-lg shrink-0 transition-all active:scale-95 cursor-pointer">
-          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          VPN
-          <span id="vpnToggleDot"
-            class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
-        </button>
         <div class="relative inline-block custom-filter-dropdown-container">
           <div id="regionContainer" class="relative">
-            <button id="regionTriggerBtn" type="button" onclick="toggleCustomFilterMenu(this, 'regionPopover')" class="h-8 sm:h-9 px-3 bg-black/40 hover:bg-white/10 border border-white/10 rounded-full flex items-center gap-2 shadow-lg transition-all active:scale-95 text-xs font-bold text-gray-200 cursor-pointer">
-              <span class="text-[10px] text-gray-500 font-extrabold uppercase tracking-widest pointer-events-none">Region</span>
+            <button id="regionTriggerBtn" type="button" onclick="toggleCustomFilterMenu(this, 'regionPopover')" class="ghost-btn" aria-label="Region">
               <span id="regionActiveLabel" class="flex items-center gap-1.5">🇸🇪 <span class="hidden min-[400px]:inline">Sweden</span></span>
-              <svg class="custom-filter-chevron w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              <svg class="custom-filter-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"></path></svg>
             </button>
-            <div id="regionPopover" class="custom-filter-popover hidden space-y-1 right-0 left-auto min-w-[200px] max-h-[300px]">
-            </div>
+            <div id="regionPopover" class="custom-filter-popover hidden space-y-1 right-0 left-auto min-w-[200px] max-h-[300px]"></div>
           </div>
         </div>
       </div>
     </header>
 
-    <section
-      class="glass-panel rounded-2xl p-4 sm:p-5 mb-4 animate-fade flex flex-col md:flex-row gap-4 items-center relative z-50"
-      style="animation-delay: 0.1s;">
-      <div class="flex items-center gap-3 w-full md:w-auto shrink-0 md:pr-5 md:border-r border-white/10">
-        <div class="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-        </div>
-        <span class="text-sm font-bold text-gray-300 uppercase tracking-wide">Quick Lookup</span>
-      </div>
-      <div class="flex w-full gap-3 relative">
-        <div
-          class="flex w-full bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all">
-          <div class="flex-1 relative flex items-center">
-            <input id="quickSearchInput" aria-label="Search films, TV shows and people" type="text" autocomplete="off" spellcheck="false"
-              placeholder="Search films, TV shows, actors, directors..."
-              class="w-full h-full bg-transparent pl-4 sm:pl-5 pr-10 py-4 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 truncate" />
-            <div class="absolute right-3 flex items-center">
-              <span class="kbd-hint pointer-events-none">⌘K</span>
-              <button id="clearSearchBtn" aria-label="Clear search" class="hidden ml-2 text-gray-500 hover:text-white transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
+    <div id="quickSearchResult" class="hidden"></div>
+
+    <main>
+      <!-- Landing: the scan form (collapses into the context line once results show) -->
+      <section id="scanPanel" class="landing">
+        <div class="landing-bg" aria-hidden="true"><div id="posterWall" class="poster-wall"></div></div>
+        <div class="landing-inner">
+          <h1 class="display">What can you watch <em>tonight?</em></h1>
+          <p class="lede">Enter your Letterboxd username and we'll check your whole watchlist against the streaming services you already pay for.</p>
+
+          <!-- One bar: who (you, and optionally a friend), which services, go. Stacks into a card on phones.
+               The service list unfolds out of the bar; while scanning, the bar itself shows the progress. -->
+          <div class="ask">
+            <div class="ask-bar">
+              <label class="ask-seg ask-seg-user">
+                <span class="ask-seg-label">Your watchlist</span>
+                <span class="ask-seg-value">
+                  <span class="ask-prefix" aria-hidden="true">letterboxd.com/</span>
+                  <input id="usernameInput" aria-label="Your Letterboxd username" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="username">
+                  <button id="clearSyncBtn" type="button" aria-label="Clear username and results" class="hidden icon-btn">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </span>
+              </label>
+              <label id="friendInputWrapper" class="ask-seg ask-seg-friend">
+                <span class="ask-seg-label">Compare with</span>
+                <span class="ask-seg-value">
+                  <input id="friendInput" aria-label="A friend's Letterboxd username (optional)" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="A friend, optional">
+                  <button id="removeFriendBtn" type="button" aria-label="Remove friend" class="hidden icon-btn">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </span>
+              </label>
+              <div id="serviceSelectionWrapper" class="ask-seg ask-seg-services">
+                <button id="servicePill" type="button" class="ask-seg-btn" aria-expanded="false" aria-controls="serviceBrowser">
+                  <span class="ask-seg-label">Streaming on</span>
+                  <span id="serviceSummary" class="ask-seg-value svc-summary">Choose services</span>
+                  <svg class="ask-seg-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"></path></svg>
+                </button>
+              </div>
+              <div id="serviceBrowser" class="svc-panel hidden" role="group" aria-labelledby="serviceBrowserTitle">
+                <div class="svc-panel-clip">
+                  <div class="svc-panel-body">
+                    <div class="svc-panel-head">
+                      <p id="serviceBrowserTitle" class="svc-panel-title">Which do you pay for in <span id="serviceBrowserRegion"></span>?</p>
+                      <span id="serviceBrowserCount" class="svc-panel-count"></span>
+                    </div>
+                    <div id="serviceAllGrid" class="svc-options"></div>
+                    <div class="svc-panel-foot">
+                      <button id="serviceBrowserSave" type="button" class="btn btn-quiet">Done</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button id="startButton" type="button" class="btn btn-primary btn-lg">Find my films</button>
+
+              <div id="progressSection" class="ask-progress hidden" aria-live="polite">
+                <div id="progressBar" class="ask-progress-fill" style="width:0%"></div>
+                <div class="ask-progress-text">
+                  <p id="progressPercent" class="ask-progress-pct">0%</p>
+                  <p id="progressLabel" class="ask-progress-label">Starting…</p>
+                </div>
+                <button id="stopButton" type="button" class="btn btn-quiet ask-progress-stop">Stop</button>
+              </div>
             </div>
-          </div>
-          <button id="quickSearchBtn"
-            class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest px-8 transition-all active:scale-95 cursor-pointer border-l border-white/10">Search</button>
-        </div>
-        <div id="searchDropdown"
-          class="absolute top-full left-0 w-full mt-2 bg-[#0f172a] rounded-xl hidden flex-col z-[100] max-h-96 overflow-y-auto custom-scrollbar shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-blue-500/30">
-        </div>
-      </div>
-    </section>
-    <div id="quickSearchResult" class="mb-8 hidden relative z-10"></div>
-
-    <section class="glass-panel rounded-3xl p-5 sm:p-7 mb-6 animate-fade relative z-10" style="animation-delay: 0.2s;">
-      <div class="mb-8 border-b border-white/10 pb-6">
-        <h2 class="text-2xl font-bold text-white mb-1">Letterboxd Sync</h2>
-        <p class="text-sm text-gray-500">Select your active subscriptions and fetch your watchlist matrix.</p>
-      </div>
-
-      <!-- INLINE SERVICE FINDER MENU -->
-      <div id="serviceSelectionWrapper" class="mb-8">
-
-        <!-- EMPTY STATE (No services selected) -->
-        <div id="serviceEmptyState">
-          <button id="serviceEmptyBtn" class="add-services-btn group w-full outline-none">
-            <div
-              class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-500/10 group-hover:border-blue-500/20 transition-all">
-              <svg class="w-7 h-7 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none"
-                stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-            </div>
-            <div class="text-center">
-              <p class="text-white font-bold text-sm uppercase tracking-widest">Add streaming services</p>
-              <p class="text-gray-500 text-xs font-medium mt-1">Select your subscriptions to filter your watchlist</p>
-            </div>
-          </button>
-        </div>
-
-        <!-- SELECTED STATE -->
-        <div id="serviceSelectedContainer" class="hidden">
-          <div id="serviceSelectedGrid"
-            class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-10 2xl:grid-cols-12 gap-3 sm:gap-4"></div>
-        </div>
-
-        <!-- INLINE BROWSER -->
-        <div id="serviceBrowser" class="hidden">
-          <div class="flex flex-col gap-4">
-            <!-- Services Grid -->
-            <div id="serviceAllGrid"
-              class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-10 2xl:grid-cols-12 gap-3 sm:gap-4">
-            </div>
-
-            <!-- Bottom Bar: Cancel on left, Save on right -->
-            <div class="flex items-center justify-between gap-3 pt-2 service-unselected-fade">
-              <button id="serviceBrowserCancel"
-                class="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white px-5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition-all active:scale-95 outline-none cursor-pointer">Cancel</button>
-              <button id="serviceBrowserSave"
-                class="execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-xs rounded-xl px-6 py-2.5 shadow-[0_0_20px_rgba(255,255,255,0.1)] outline-none active:scale-95 transition-all cursor-pointer">Save</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start">
-        <div class="flex-1 flex flex-col gap-2.5">
-          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch">
-            <div
-              class="flex-1 bg-black/40 border border-white/10 blue-focus transition-all rounded-xl flex items-center relative overflow-hidden">
-              <span
-                class="pl-5 pr-1 text-gray-500 text-base font-semibold select-none z-10 whitespace-nowrap">letterboxd.com/</span>
-              <input id="usernameInput" aria-label="Your Letterboxd username" type="text" autocomplete="off" spellcheck="false" placeholder="username"
-                class="w-full h-full bg-transparent pr-10 py-4 text-base text-white font-bold focus:outline-none placeholder:text-gray-500 relative z-20" />
-              <button id="clearSyncBtn" aria-label="Clear username and results"
-                class="hidden absolute right-4 text-gray-500 hover:text-white transition-colors z-20">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-            <div id="friendInputWrapper"
-              class="hidden flex-1 bg-indigo-950/20 border border-indigo-500/30 transition-all rounded-xl flex items-center relative overflow-hidden blue-focus">
-              <span class="pl-5 pr-1 text-indigo-400/80 text-base font-semibold select-none z-10 whitespace-nowrap">+
-                Match with</span>
-              <input id="friendInput" aria-label="Friend's Letterboxd username" type="text" autocomplete="off" spellcheck="false" placeholder="friend's username"
-                class="w-full h-full bg-transparent pr-10 py-4 text-base text-indigo-100 font-bold focus:outline-none placeholder:text-indigo-400/50 relative z-20" />
-              <button id="removeFriendBtn" aria-label="Remove friend"
-                class="absolute right-4 text-indigo-500 hover:text-indigo-300 transition-colors z-20">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-            <button id="toggleFriendBtn"
-              class="text-[10px] font-bold uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors flex items-center justify-center sm:justify-start gap-1.5 bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20 w-fit shrink-0">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-              Match with a friend
-            </button>
-            <p id="formError"
-              class="text-red-400 text-[10px] font-bold uppercase tracking-widest hidden bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-1.5 flex items-center justify-center sm:justify-start gap-1.5 w-fit shrink-0">
-            </p>
-            <!-- Shown after a scan that finished but couldn't load every watchlist page -->
-            <p id="scanNotice" role="status"
-              class="text-amber-300 text-[10px] font-bold uppercase tracking-widest hidden bg-amber-950/30 border border-amber-900/50 rounded-lg px-3 py-1.5 w-fit">
-            </p>
-          </div>
-        </div>
-        <button id="startButton"
-          class="execute-btn bg-white text-black font-extrabold uppercase tracking-widest text-sm rounded-xl px-12 py-4 shadow-[0_0_20px_rgba(255,255,255,0.1)] shrink-0 disabled:opacity-50 disabled:cursor-not-allowed h-[58px] flex items-center justify-center active:scale-[0.98] transition-all cursor-pointer">Execute</button>
-      </div>
-    </section>
-    <section id="progressSection"
-      class="glass-panel rounded-2xl p-8 mb-10 hidden border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.1)] relative z-10">
-      <div class="flex justify-between items-end mb-4">
-        <div>
-          <div class="flex items-center gap-3 mb-1">
-            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest animate-pulse">Processing Data</p>
-            <button id="stopButton"
-              class="text-[9px] text-red-400 hover:bg-red-500/20 font-bold uppercase tracking-widest transition-colors flex items-center gap-1 border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded cursor-pointer">Abort
-              ✕</button>
-          </div>
-          <p id="progressLabel" class="text-base text-white font-bold">Connecting to global servers...</p>
-        </div>
-        <p id="progressPercent" class="text-2xl font-black text-white leading-none">0%</p>
-      </div>
-      <div class="w-full h-2 bg-black/80 rounded-full overflow-hidden border border-white/5">
-        <div id="progressBar" class="load-fill h-full" style="width:0%"></div>
-      </div>
-    </section>
-    <section id="resultsSection" class="hidden pb-0 relative z-10 flex-1">
-      <!-- MAIN RESULTS CONTROLS -->
-      <div id="resultsControlsCard" class="results-controls-card relative z-50 animate-fade">
-        <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
-
-          <!-- Categories Bar (Left on desktop, full width on mobile) -->
-          <div id="categoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
-            <div
-              class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full items-center">
-              <button type="button" class="tab-btn tab-btn-flexrow active" data-tab="stream" onclick="setHomeTab('stream')">Available <span id="tabCount-stream"
-                  class="tab-badge">0</span></button>
-              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="rentbuy" onclick="setHomeTab('rentbuy')">Rent / Buy <span id="tabCount-rentbuy"
-                  class="tab-badge">0</span></button>
-              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="other" onclick="setHomeTab('other')">Unsubscribed <span id="tabCount-other"
-                  class="tab-badge">0</span></button>
-              <button type="button" class="tab-btn tab-btn-flexrow" data-tab="unavailable" onclick="setHomeTab('unavailable')">Unavailable <span id="tabCount-unavailable"
-                  class="tab-badge">0</span></button>
-            </div>
-          </div>
-
-          <!-- Vertical Divider (Desktop) -->
-          <div class="hidden lg:block w-px h-6 bg-white/15 shrink-0 my-auto"></div>
-
-          <!-- Controls: Searchbar + Filter Button + VPN Button (Right on desktop) -->
-          <div class="relative flex items-center gap-2 w-full flex-1 min-w-0" id="homeControlsBarRow">
-            <!-- Search Input -->
-            <div
-              class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
-              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-              <input id="resultsSearch" aria-label="Filter results by title" type="text" autocomplete="off" spellcheck="false"
-                placeholder="Search..."
-                class="w-full bg-transparent pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors truncate">
-              <button id="clearResultsBtn" aria-label="Clear filter"
-                class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-
-            <!-- Options / Filter Toggle Button -->
-            <button id="homeFilterToggleBtn" type="button" onclick="toggleHomeFilterDropdown(event)"
-              aria-label="Filters and sorting"
-              class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 border border-white/10 text-gray-300 rounded-xl transition-all active:scale-95 font-bold text-xs cursor-pointer">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-              </svg>
-            </button>
-
-            <!-- VPN Toggle Button -->
-            <button id="vpnToggleBtnInline" title="Also show VPN unlocks"
-              class="h-[42px] shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>VPN</span> <span id="vpnToggleDotInline"
-                class="w-2 h-2 rounded-full bg-gray-600 transition-colors shrink-0 inline-block"></span>
+            <p id="formError" role="alert" class="form-error hidden"></p>
+            <!-- After "Change": what's waiting for you, and the way back to it -->
+            <button id="landingBackBtn" type="button" class="landing-return hidden">
+              <span id="landingReturnPosters" class="landing-return-posters" aria-hidden="true"></span>
+              <span class="landing-return-text">
+                <span id="landingReturnTitle" class="landing-return-title">Your results are still here</span>
+                <span id="landingReturnSub" class="landing-return-sub"></span>
+              </span>
+              <span class="landing-return-go">Back to results
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"></path></svg>
+              </span>
             </button>
           </div>
         </div>
+      </section>
 
-        <!-- Home Filter Backdrop (Mobile bottom sheet backdrop) -->
-        <div id="homeFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeHomeFilterDropdown()">
+      <section id="resultsSection" class="results hidden">
+        <!-- Context line: replaces the scan form while results are showing (see 15-results-hero.js) -->
+        <div id="scanCompactBar" class="context hidden" aria-label="Current scan">
+          <span>Watchlist <strong id="scanCompactUser"></strong></span><span class="context-dot" aria-hidden="true"></span>
+          <span id="scanCompactServices" class="context-services"></span><span class="context-dot context-services" aria-hidden="true"></span>
+          <button id="scanCompactChangeBtn" type="button" class="link-btn">Change</button>
+          <span class="context-dot" aria-hidden="true"></span>
+          <button id="scanCompactFriendBtn" type="button" class="link-btn">Compare with a friend</button>
         </div>
 
-        <!-- Responsive Filter Panel (Spans full width of the sort & filter bar on desktop, bottom sheet on mobile!) -->
-        <div id="homeFilterDropdownMenu" class="hidden filter-panel-responsive space-y-4">
-          <!-- Mobile Drag Handle -->
-          <div class="w-10 h-1 rounded-full bg-white/20 mx-auto mb-2 sm:hidden pointer-events-none"></div>
+        <h2 id="resultsHeadline" class="display display-sm"></h2>
+        <p id="resultsSubline" class="results-subline"></p>
+        <p id="scanNotice" role="status" class="scan-notice hidden"></p>
 
-          <!-- Header -->
-          <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-              </svg>
-              <span class="text-xs font-bold uppercase tracking-widest text-white">Filters &amp; Sorting</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="resetHomeFilters()"
-                class="text-xs font-bold text-gray-400 hover:text-white px-2 py-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
-                Reset all
-              </button>
-              <button type="button" onclick="closeHomeFilterDropdown()" aria-label="Close"
-                class="sm:hidden w-8 h-8 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
+        <div id="serviceChips" class="svc-chips" role="group" aria-label="Show films on one service"></div>
 
-          <!-- Full-width multi-column grid on desktop! -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-3.5 sm:gap-4" id="homeFilterGridSlots">
-            <div id="homeFilterSlot-sort" class="custom-filter-dropdown-container"></div>
-            <div id="homeFilterSlot-provider" class="custom-filter-dropdown-container"></div>
-            <div id="homeFilterSlot-genre" class="custom-filter-dropdown-container"></div>
-            <div id="homeFilterSlot-decade" class="custom-filter-dropdown-container"></div>
-            <div id="homeFilterSlot-rating" class="custom-filter-dropdown-container"></div>
-            <div id="homeFilterSlot-runtime" class="custom-filter-dropdown-container"></div>
-          </div>
-
-          <!-- Extra Tools: Insights & Roulette -->
-          <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-2.5 sm:gap-3">
-            <button id="statsBtn" type="button"
-              class="h-[42px] flex items-center justify-center gap-2 px-3.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
-              title="Insights">
-              <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                </path>
-              </svg>
-              <span>Insights</span>
-            </button>
-            <button id="rouletteBtn" type="button"
-              class="h-[42px] flex items-center justify-center gap-2 px-3.5 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
-              title="Roulette">
-              <svg class="w-4 h-4 text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                stroke-width="2">
-                <circle cx="12" cy="12" r="9"></circle>
-                <circle cx="12" cy="12" r="3"></circle>
-                <path stroke-linecap="round"
-                  d="M12 3v6m0 6v6M3 12h6m6 0h6M5.636 5.636l4.243 4.243m4.242 4.242l4.243 4.243M5.636 18.364l4.243-4.243m4.242-4.242l4.243-4.243">
-                </path>
-              </svg>
-              <span>Roulette</span>
+        <section id="tonightPick" class="pick hidden" aria-labelledby="tonightPickHeading">
+          <div class="section-head pick-head">
+            <h2 id="tonightPickHeading" class="section-title">Tonight's pick</h2>
+            <button id="tonightPickAnother" type="button" class="btn btn-quiet pick-another">
+              <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M5.6 15a7 7 0 0011.9 2.5L20 15M4 9l2.5-2.5A7 7 0 0118.4 9"></path></svg>
+              Another pick
             </button>
           </div>
+          <article class="pick-card">
+            <div class="pick-body">
+              <img id="tonightPickLogo" alt="" class="pick-logo hidden">
+              <h3 id="tonightPickTitle" class="pick-title"></h3>
+              <p id="tonightPickTagline" class="pick-tagline"></p>
+              <p id="tonightPickMeta" class="pick-meta"></p>
+              <p id="tonightPickOverview" class="pick-overview"></p>
+              <div id="tonightPickWhere" class="pick-where"></div>
+              <div class="pick-actions">
+                <a id="tonightPickWatch" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg"></a>
+                <button id="tonightPickTrailer" type="button" class="btn btn-quiet btn-lg">
+                  <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+                  Trailer
+                </button>
+                <button id="tonightPickAnotherInline" type="button" class="btn btn-quiet btn-lg pick-another pick-another-inline">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M5.6 15a7 7 0 0011.9 2.5L20 15M4 9l2.5-2.5A7 7 0 0118.4 9"></path></svg>
+                  Another pick
+                </button>
+              </div>
+            </div>
+            <button id="tonightPickArt" type="button" class="pick-art" aria-label="Open film details">
+              <img id="tonightPickBackdrop" alt="" decoding="async">
+            </button>
+          </article>
+        </section>
 
-          <!-- Mobile Close / Apply Button -->
-          <button type="button" onclick="closeHomeFilterDropdown()"
-            class="w-full sm:hidden py-3 mt-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
-            Show Results
-          </button>
-        </div>
-      </div>
-      <div id="statsBar"
-        class="hidden glass-panel rounded-2xl p-3 sm:p-4 mb-6 animate-fade text-xs font-bold uppercase tracking-widest text-gray-400">
-        <div
-          class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all">
-          <span class="text-base sm:text-lg">🎬</span>
-          <span class="text-gray-400">Total:</span>
-          <span id="stat-total" class="text-white font-extrabold">0</span>
-        </div>
-        <div
-          class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all min-w-0">
-          <span class="text-base sm:text-lg shrink-0">🍿</span>
-          <span class="text-gray-400 shrink-0">Genre:</span>
-          <span id="stat-genre" class="text-white font-extrabold truncate">-</span>
-        </div>
-        <div
-          class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all">
-          <span class="text-base sm:text-lg">🕰</span>
-          <span class="text-gray-400">Decade:</span>
-          <span id="stat-decade" class="text-white font-extrabold">-</span>
-        </div>
-        <div
-          class="flex items-center justify-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 shadow-sm hover:border-white/20 transition-all">
-          <span class="text-base sm:text-lg">⭐</span>
-          <span class="text-gray-400">Rating:</span>
-          <span id="stat-avg" class="text-white font-extrabold">-</span>
-        </div>
-      </div>
-      <div id="activeGridContainer"
-        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 perspective-1000 min-h-[300px] content-start">
-      </div>
-      <div id="paginationControls" class="flex justify-center items-center gap-2 mt-6 sm:mt-7 mb-0 hidden"></div>
-      <!-- Separator line (Only shown when results matrix is active) -->
-      <div class="w-full h-px bg-white/10 mt-8"></div>
-    </section>
+        <div id="resultsControlsCard" class="results-controls-card">
+          <div class="results-bar">
+            <div id="categoriesBar" class="tabs" role="tablist" aria-label="Availability">
+              <button type="button" role="tab" class="tab-btn active" data-tab="stream" onclick="setHomeTab('stream')">Streaming <span id="tabCount-stream" class="tab-badge">0</span></button>
+              <button type="button" role="tab" class="tab-btn" data-tab="rentbuy" onclick="setHomeTab('rentbuy')">Rent or buy <span id="tabCount-rentbuy" class="tab-badge">0</span></button>
+              <button type="button" role="tab" class="tab-btn" data-tab="other" onclick="setHomeTab('other')">Other services <span id="tabCount-other" class="tab-badge">0</span></button>
+              <button type="button" role="tab" class="tab-btn" data-tab="unavailable" onclick="setHomeTab('unavailable')">Not streaming <span id="tabCount-unavailable" class="tab-badge">0</span></button>
+            </div>
+            <div id="homeControlsBarRow" class="results-tools">
+              <label class="filter-field">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
+                <input id="resultsSearch" aria-label="Filter results by title" type="text" autocomplete="off" spellcheck="false" placeholder="Filter by title">
+                <button id="clearResultsBtn" type="button" aria-label="Clear filter" class="hidden icon-btn">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </label>
+              <button id="homeFilterToggleBtn" type="button" onclick="toggleHomeFilterDropdown(event)" class="ghost-btn" aria-label="Filters and sorting">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M7 12h10M10 17h4"></path></svg>
+                <span class="hide-narrow">Filters</span>
+              </button>
+              <button id="vpnToggleBtnInline" type="button" class="ghost-btn" title="Also show films you could unlock by switching your VPN to another region">
+                VPN <span id="vpnToggleDotInline" class="toggle-dot"></span>
+              </button>
+            </div>
+          </div>
 
-    <!-- Footer with TMDB Disclaimer (Always visible at bottom, line only appears above when results are shown) -->
-    <footer
-      class="mt-6 sm:mt-8 pb-8 sm:pb-10 flex items-center justify-center animate-fade relative z-10 w-full px-4 sm:px-8 lg:px-12 2xl:px-16 max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto">
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 max-w-lg mx-auto">
-        <a href="https://www.themoviedb.org/" target="_blank"
-          class="shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img
-            src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
-            alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
-        <p class="text-[10px] sm:text-[11px] text-gray-400 font-medium text-center sm:text-left whitespace-nowrap">
-          This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>. <a href="/privacy.html" class="underline hover:text-white">Privacy</a></p>
+          <div id="homeFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeHomeFilterDropdown()"></div>
+          <div id="homeFilterDropdownMenu" class="hidden filter-panel-responsive">
+            <div class="sheet-handle sm:hidden" aria-hidden="true"></div>
+            <div class="filter-panel-head">
+              <h3>Filters and sorting</h3>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="resetHomeFilters()" class="link-btn">Reset all</button>
+                <button type="button" onclick="closeHomeFilterDropdown()" aria-label="Close" class="icon-btn sm:hidden">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4" id="homeFilterGridSlots">
+              <div id="homeFilterSlot-sort" class="custom-filter-dropdown-container"></div>
+              <div id="homeFilterSlot-provider" class="custom-filter-dropdown-container"></div>
+              <div id="homeFilterSlot-genre" class="custom-filter-dropdown-container"></div>
+              <div id="homeFilterSlot-decade" class="custom-filter-dropdown-container"></div>
+              <div id="homeFilterSlot-rating" class="custom-filter-dropdown-container"></div>
+              <div id="homeFilterSlot-runtime" class="custom-filter-dropdown-container"></div>
+            </div>
+            <button type="button" onclick="closeHomeFilterDropdown()" class="btn btn-primary w-full sm:hidden">Show films</button>
+          </div>
+        </div>
+
+        <div id="activeGridContainer" class="poster-grid"></div>
+        <div id="paginationControls" class="pagination hidden"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a href="https://www.themoviedb.org/" target="_blank" rel="noopener" class="footer-tmdb"><img src="/icons/tmdb-logo.svg" alt="TMDB" width="92" height="12"></a>
+      <div class="page-credits">
+        <p class="credits-sources">Film data from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Streaming availability from <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.</p>
+        <p class="credits-fine">This product uses the TMDB API but is not endorsed or certified by TMDB. Not affiliated with Letterboxd or any streaming service.</p>
+        <div class="credits-links"><a href="/privacy.html">Privacy</a></div>
       </div>
     </footer>
   </div>
 
 
 
-  <div id="moviePageView" class="fixed inset-0 z-[220] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
+  <div id="moviePageView" class="fixed inset-0 z-[220] hidden bg-[#0a0a0b] overflow-y-auto overscroll-none"></div>
 
-  <div id="actorPageView" class="fixed inset-0 z-[290] hidden bg-[#0b1121] overflow-y-auto overscroll-none"></div>
+  <div id="actorPageView" class="fixed inset-0 z-[290] hidden bg-[#0a0a0b] overflow-y-auto overscroll-none"></div>
 
   <div id="genericPopupOverlay"
     class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md"
@@ -2501,99 +7256,55 @@
 
 
   <!-- ALL CAST & CREW FULL PAGE VIEW -->
-  <div id="allCastModal" class="fixed inset-0 z-[280] hidden flex-col bg-[#0b1121] overflow-y-auto overscroll-none">
-    <nav
-      class="movie-page-nav fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 lg:px-12 2xl:px-16 pointer-events-none">
-      <button
-        onclick="if(location.hash.includes('-cast') || location.hash.includes('/cast')){ history.back(); } else { closeAllCastModal(); }"
-        aria-label="Back"
-        class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
+  <!-- CAST AND CREW: everyone on a film, grouped the way credits are (09-movie-page.js renders it) -->
+  <div id="allCastModal" class="fixed inset-0 z-[280] hidden flex-col bg-[#0a0a0b] overflow-y-auto overscroll-none cast-page">
+    <nav class="movie-page-nav page-nav">
+      <button type="button" class="page-nav-btn" aria-label="Back"
+        onclick="if(location.hash.includes('-cast') || location.hash.includes('/cast')){ history.back(); } else { closeAllCastModal(); }">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"></path></svg>
       </button>
-      <button onclick="closeAllCastModal(); goHomeFromPage();" aria-label="Close"
-        class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
+      <button type="button" class="page-nav-btn" aria-label="Close" onclick="closeAllCastModal(); goHomeFromPage();">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </nav>
-    <div id="allCastBannerHero"
-      class="relative w-full h-[320px] sm:h-[400px] lg:h-[440px] shrink-0 overflow-hidden bg-[#0b1121] flex flex-col justify-end clip-mask">
-      <div id="allCastBannerArt" class="absolute inset-0"></div>
-      <div
-        class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/80 to-transparent pointer-events-none z-20">
-      </div>
 
-      <div
-        class="relative z-30 w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 pt-24 sm:pt-28 pb-6 sm:pb-8 flex flex-col gap-1.5 sm:gap-2 pointer-events-auto">
-        <span class="text-blue-400 font-extrabold uppercase tracking-widest text-xs sm:text-sm drop-shadow">Full Cast &amp; Crew</span>
-        <div id="allCastModalTitleContainer" class="flex flex-col items-start min-w-0">
-          <h1 id="allCastModalTitle"
-            class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl 2xl:text-9xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">
-          </h1>
-        </div>
-        <p id="allCastModalSubtitle" class="text-xs sm:text-sm font-semibold text-gray-400 drop-shadow-sm min-w-0">
+    <header class="cast-hero">
+      <div id="allCastBannerArt" class="cast-hero-art" aria-hidden="true"></div>
+      <div class="page-width cast-hero-inner">
+        <h1 class="display cast-title">Cast and crew</h1>
+        <p class="cast-of">
+          <button type="button" id="allCastFilmLink" class="cast-film-link"
+            onclick="if(location.hash.includes('-cast') || location.hash.includes('/cast')){ history.back(); } else { closeAllCastModal(); }"></button>
+          <span id="allCastModalSubtitle"></span>
         </p>
       </div>
-    </div>
+    </header>
 
-    <!-- MAIN CONTENT CONTAINER -->
-    <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 pt-4 pb-0 z-30 flex-1 flex flex-col">
-
-      <!-- Controls Row: Tabs on top (Row 1) & Search underneath (Row 2) on mobile/iPad portrait, side-by-side on desktop/iPad landscape -->
-      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 mb-6 animate-fade">
-        <!-- Search Input -->
-        <div
-          class="relative w-full lg:flex-1 flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px] order-2 lg:order-1">
-          <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none"
-            stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-          <input id="allCastSearchInput" aria-label="Search cast and crew" type="text" autocomplete="off" spellcheck="false"
-            placeholder="Search cast, crew, or character..." oninput="filterAllCastGrid()"
-            class="w-full bg-transparent pl-10 pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors">
-          <button id="allCastSearchClear" aria-label="Clear cast search" onclick="clearAllCastSearch()"
-            class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
+    <div class="page-width cast-body">
+      <div class="results-bar cast-bar">
+        <div id="allCastTabs" class="tabs" role="tablist" aria-label="Show">
+          <button type="button" id="allCastTabAll" class="tab-btn active" onclick="setAllCastTab('all')">All <span id="allCastTabCountAll" class="tab-badge">0</span></button>
+          <button type="button" id="allCastTabCast" class="tab-btn" onclick="setAllCastTab('cast')">Cast <span id="allCastTabCountCast" class="tab-badge">0</span></button>
+          <button type="button" id="allCastTabCrew" class="tab-btn" onclick="setAllCastTab('crew')">Crew <span id="allCastTabCountCrew" class="tab-badge">0</span></button>
         </div>
-
-        <!-- Category Tabs -->
-        <div
-          class="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl w-full lg:w-auto h-[42px] shrink-0 order-1 lg:order-2">
-          <button id="allCastTabAll" onclick="setAllCastTab('all')" class="tab-btn active flex-1 lg:flex-none">All <span
-              id="allCastTabCountAll" class="tab-badge">0</span></button>
-          <button id="allCastTabCast" onclick="setAllCastTab('cast')" class="tab-btn flex-1 lg:flex-none">Cast <span
-              id="allCastTabCountCast" class="tab-badge">0</span></button>
-          <button id="allCastTabCrew" onclick="setAllCastTab('crew')" class="tab-btn flex-1 lg:flex-none">Crew <span
-              id="allCastTabCountCrew" class="tab-badge">0</span></button>
+        <div class="results-tools">
+          <label class="filter-field">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
+            <input id="allCastSearchInput" aria-label="Find a person or role" type="text" autocomplete="off" spellcheck="false" placeholder="Find a person or role" oninput="filterAllCastGrid()">
+            <button id="allCastSearchClear" type="button" aria-label="Clear" class="hidden icon-btn" onclick="clearAllCastSearch()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </label>
         </div>
       </div>
 
-      <!-- Cast & Crew Grid -->
-      <div id="allCastGrid"
-        class="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">
-      </div>
+      <div id="allCastGrid" class="cast-sections"></div>
 
-      <!-- Footer with Top Separator & TMDB Disclaimer -->
-      <footer class="mt-6 sm:mt-7 pb-8 sm:pb-10 flex items-center justify-center animate-fade w-full">
-        <div class="w-full pt-6 border-t border-white/10 flex items-center justify-center">
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 max-w-lg mx-auto">
-            <a href="https://www.themoviedb.org/" target="_blank"
-              class="shrink-0 opacity-80 hover:opacity-100 transition-opacity">
-              <img
-                src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
-                alt="TMDB Logo" class="h-3 sm:h-3.5">
-            </a>
-            <p class="text-[10px] sm:text-[11px] text-gray-400 font-medium text-center sm:text-left sm:whitespace-nowrap">
-              This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>. <a href="/privacy.html" class="underline hover:text-white">Privacy</a>
-            </p>
-          </div>
+      <footer class="page-footer">
+        <div class="page-credits">
+          <p class="credits-sources">Film data from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Streaming availability from <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.</p>
+          <p class="credits-fine">This product uses the TMDB API but is not endorsed or certified by TMDB. Not affiliated with Letterboxd or any streaming service.</p>
+          <div class="credits-links"><a href="/privacy.html">Privacy</a></div>
         </div>
       </footer>
     </div>
@@ -2641,63 +7352,6 @@
     </div>
   </div>
 
-  <!-- WATCHLIST ROULETTE MODAL (ULTRA-MINIMAL PICKER) -->
-  <div id="rouletteModal"
-    class="fixed inset-0 z-[600] hidden items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md"
-    onclick="if(event.target===this) closeRouletteModal()" role="dialog" aria-modal="true">
-    <div id="rouletteModalContent"
-      class="premium-popup-panel rounded-3xl max-w-xs sm:max-w-sm w-full relative max-h-[90vh] flex flex-col pointer-events-auto overflow-hidden p-5 sm:p-6">
-
-      <!-- Header -->
-      <div class="modal-header-container w-full mb-4">
-        <div class="flex flex-col text-left min-w-0 pr-2">
-          <span class="modal-header-category text-purple-400">Random Pick</span>
-          <h3 class="modal-header-title">Roulette</h3>
-        </div>
-        <button type="button" onclick="closeRouletteModal()" aria-label="Close"
-          class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Poster & Buttons -->
-      <div id="rouletteCardContainer" class="w-full flex flex-col items-center gap-3.5 transition-all duration-200">
-        <!-- Poster (Clicking poster also opens movie) -->
-        <div id="roulettePosterWrapper" class="w-full aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/60 relative cursor-pointer active:scale-[0.98] transition-all">
-          <img id="roulettePosterImg" src="" alt="" class="w-full h-full object-cover">
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-2.5 w-full">
-          <button id="rouletteViewBtn"
-            class="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-            </svg>
-            Open Movie
-          </button>
-          <button id="rouletteRespinBtn" onclick="spinRoulette()"
-            class="py-3 px-4 rounded-xl liquid-glass active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider border border-white/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:text-purple-300">
-            <svg id="rouletteRespinSvg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            Shuffle
-          </button>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div id="rouletteEmptyState" class="hidden flex-col items-center justify-center text-center p-6 gap-2">
-        <span class="text-3xl opacity-60 mb-1">🎲</span>
-        <span class="font-bold uppercase tracking-widest text-sm text-gray-400">No movies available</span>
-        <span class="text-xs text-gray-500 font-medium">Sync your Letterboxd watchlist to use Roulette.</span>
-      </div>
-
-    </div>
-  </div>
 
   <!-- MOVIE DETAILS POPUP MODAL (DESKTOP / INLINE) -->
   <div id="movieModal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 sm:p-6"
@@ -2706,7 +7360,7 @@
       class="absolute inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer">
     </div>
     <div id="modalContent"
-      class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl xl:max-w-5xl 2xl:max-w-6xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]">
+      class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl xl:max-w-5xl 2xl:max-w-6xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(255,90,54,0.08)]">
     </div>
   </div>
 
@@ -2717,7 +7371,7 @@
       class="absolute inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300 opacity-0 cursor-pointer">
     </div>
     <div id="actorModalContent"
-      class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl xl:max-w-5xl 2xl:max-w-6xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(59,130,246,0.08)]">
+      class="relative z-10 premium-popup-panel rounded-3xl max-w-4xl xl:max-w-5xl 2xl:max-w-6xl w-full max-h-[90vh] overflow-y-auto transform translate-y-8 opacity-0 transition-all duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(255,90,54,0.08)]">
     </div>
   </div>
 

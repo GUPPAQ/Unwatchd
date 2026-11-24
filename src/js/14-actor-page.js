@@ -225,6 +225,7 @@
         searchInput.addEventListener('input', (e) => {
           actorFilterQuery = e.target.value;
           actorCurrentPage = 1;
+          if (clearBtn) clearBtn.classList.toggle('hidden', !e.target.value);
           refreshActorFilmographyGrid();
         });
       }
@@ -232,6 +233,7 @@
         clearBtn.addEventListener('click', () => {
           actorFilterQuery = '';
           actorCurrentPage = 1;
+          clearBtn.classList.add('hidden');
           refreshActorFilmographyGrid();
           const inp = document.getElementById('actorFilmSearch');
           if (inp) { inp.value = ''; inp.focus(); }
@@ -245,42 +247,17 @@
       grid.querySelectorAll('.tilt-card').forEach(card => apply3DTilt(card));
     }
 
-    function scrollSimilarTrack(direction, e) {
+    // Rails page by exactly one screenful of whole cards (the CSS sizes cards to fit the width).
+    function scrollRail(trackId, direction, e) {
       if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('similarMoviesTrack');
+      const track = document.getElementById(trackId);
       if (!track) return;
-      const firstCard = track.querySelector('.tilt-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
+      const gap = parseFloat(getComputedStyle(track).columnGap) || 16;
+      track.scrollBy({ left: (track.clientWidth + gap) * direction, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
     }
-
-    function scrollRelatedTrack(direction, e) {
-      if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('relatedMoviesTrack');
-      if (!track) return;
-      const firstCard = track.querySelector('.tilt-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
-    }
-
-    function scrollCastTrack(direction, e) {
-      if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('castCrewTrack');
-      if (!track) return;
-      const firstCard = track.querySelector('.cast-chip-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 12;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 4 : 3))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
-    }
-
+    function scrollSimilarTrack(direction, e) { scrollRail('similarMoviesTrack', direction, e); }
+    function scrollRelatedTrack(direction, e) { scrollRail('relatedMoviesTrack', direction, e); }
+    function scrollCastTrack(direction, e) { scrollRail('castCrewTrack', direction, e); }
     function initDynamicScrollTrack(trackId, prevBtnId, nextBtnId, isCast) {
       const track = document.getElementById(trackId);
       const prevBtn = document.getElementById(prevBtnId);
@@ -369,7 +346,7 @@
         lastT = now;
       };
 
-      track.querySelectorAll('.tilt-card, .cast-chip-card').forEach(card => {
+      track.querySelectorAll('.tilt-card, .cast-chip-card, .poster-card').forEach(card => {
         card.addEventListener('click', (e) => {
           if (isDragging || (isCast && window.isCastDragging)) {
             e.preventDefault();
@@ -379,17 +356,10 @@
       });
     }
 
+    // The watch box now sizes to its own content (it used to be pinned to the cast row's height).
     function syncWatchNowHeight() {
-      const track = document.getElementById('castCrewTrack');
       const box = document.getElementById('desktopWatchOptionsBox');
-      if (!track || !box) return;
-      const firstChip = track.querySelector('.cast-chip-card');
-      if (firstChip && firstChip.offsetHeight > 40) {
-        const exactH = Math.round(firstChip.offsetHeight);
-        box.style.height = exactH + 'px';
-        box.style.minHeight = exactH + 'px';
-        box.style.maxHeight = exactH + 'px';
-      }
+      if (box) { box.style.height = ''; box.style.minHeight = ''; box.style.maxHeight = ''; }
     }
 
     let watchNowResizeObserver = null;
@@ -475,22 +445,22 @@
           }
           const totalCountEls = container.querySelectorAll('.actor-total-count');
           if (totalCountEls.length > 0 && counts) {
-            totalCountEls.forEach(el => { el.textContent = `(${counts.all} total)`; });
+            totalCountEls.forEach(el => { el.textContent = String(counts.all); });
           }
 
           // Update Role dropdown button label, icon, and popover state
           const roleLabelEl = document.getElementById('actorRoleLabel');
           const roleIcons = {
-            'Actor': '🎭',
-            'Director': '🎬',
-            'Writer': '✍️',
-            'Producer': '💼',
-            'Composer': '🎵'
+            'Actor': '',
+            'Director': '',
+            'Writer': '',
+            'Producer': '',
+            'Composer': ''
           };
           const activeRole = activeRoleHint || 'Actor';
-          const activeIcon = roleIcons[activeRole] || '🎬';
+          const activeIcon = roleIcons[activeRole] || '';
           if (roleLabelEl) {
-            roleLabelEl.textContent = activeRole;
+            roleLabelEl.textContent = `As ${activeRole.toLowerCase()}`;
             const trigger = roleLabelEl.closest('.custom-filter-trigger');
             if (trigger) {
               const iconSpan = trigger.querySelector('.text-sm');
@@ -501,7 +471,7 @@
           if (rolePopover) {
             rolePopover.querySelectorAll('.custom-filter-item').forEach(item => {
               const itemText = item.textContent || '';
-              const isSel = itemText.includes(activeRole);
+              const isSel = itemText.toLowerCase().includes(activeRole.toLowerCase());
               item.classList.toggle('selected', isSel);
               const radio = item.querySelector('.custom-filter-radio');
               if (radio) {
@@ -523,7 +493,7 @@
       }
 
       if (isInline) {
-        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
+        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0a0a0b] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
         const closeBtn = document.getElementById('closeActorModalBtn');
         if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; currentActorId = null; };
         const backBtnRefresh = document.getElementById('backToMovieBtn');

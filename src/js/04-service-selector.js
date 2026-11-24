@@ -10,57 +10,40 @@
       return `<img src="${provider.logoPath}" alt="${escapeHTML(provider.name)}" loading="lazy" class="bg-gray-800" data-logodev="${escapeHTML(logoDev)}" data-tmdb="${escapeHTML(tmdb)}" onerror="const ld=this.dataset.logodev; const tm=this.dataset.tmdb; if(ld && this.src!==ld){this.src=ld;} else if(tm && this.src!==tm){this.src=tm;} else {this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400 rounded-[22.5%]\\'>${initials}</div>';}">`;
     }
 
-    // Fix: Rolled back to the original layout structure to prevent blurry CSS rendering and restore .png images
-    function createSelectedTile(provider) {
-      const btn = document.createElement('button');
-      btn.title = provider.name + ' - click to remove';
-      btn.className = 'service-btn service-tile selected shadow-md outline-none group';
-      const img = createTileImgHTML(provider);
-      const hoverOverlay = `<div class="hover-action-overlay"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></div>`;
-      btn.innerHTML = `<div class="logo-wrapper">${img}${hoverOverlay}</div>`;
-
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (isScanning) return;
-        selectedServiceIds.delete(provider.id);
-        localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds]));
-        saveSelectedProviderData();
-        toggleClearSyncBtn();
-        btn.remove();
-        if (selectedServiceIds.size === 0) renderSelectedView();
-        if (scannedMovies.length > 0) applyFiltersAndRender();
-      });
-      return btn;
+    // A small stack of overlapping service logos, used on the landing's "Streaming on" pill
+    // and in the results' context line. Shows up to `max` logos, then "+N".
+    function serviceStackHTML(providers, max = 4) {
+      if (!providers.length) return '';
+      const shown = providers.slice(0, max);
+      const more = providers.length - shown.length;
+      return `<span class="svc-stack">${shown.map(p => `<span class="svc-stack-logo">${createTileImgHTML(p)}</span>`).join('')}</span>${more > 0 ? `<span class="svc-stack-more">+${more}</span>` : ''}`;
     }
 
-    // Fix: Rolled back to original flat structure to guarantee clean resolution scaling
+    // One service in the panel: a chip with its logo and name (the same shape as the service
+    // chips over the results). Tapping it applies at once; the bar's logo stack follows.
+    var servicesChangedWhileOpen = false;
     function createBrowserTile(provider) {
-      const isSelected = pendingSelectedIds.has(provider.id);
       const btn = document.createElement('button');
-      btn.title = provider.name;
-      btn.className = 'service-btn service-tile shadow-md outline-none group' + (isSelected ? ' selected' : ' service-unselected-fade');
-      const img = createTileImgHTML(provider);
-      const iconSvg = isSelected
-        ? `<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>`
-        : `<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>`;
-      const hoverOverlay = `<div class="hover-action-overlay"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">${iconSvg}</svg></div>`;
-      btn.innerHTML = `<div class="logo-wrapper">${img}${hoverOverlay}</div>`;
-
+      btn.type = 'button';
+      btn.className = 'svc-option';
+      const setState = () => {
+        const on = selectedServiceIds.has(provider.id);
+        btn.classList.toggle('selected', on);
+        btn.setAttribute('aria-pressed', String(on));
+      };
+      btn.innerHTML = `<span class="svc-option-logo">${createTileImgHTML(provider)}</span><span class="svc-option-name">${escapeHTML(provider.name)}</span><svg class="svc-option-check" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"></path></svg>`;
+      setState();
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const nowSelected = !pendingSelectedIds.has(provider.id);
-        if (nowSelected) {
-          pendingSelectedIds.add(provider.id);
-          btn.classList.add('selected');
-        } else {
-          pendingSelectedIds.delete(provider.id);
-          btn.classList.remove('selected');
-        }
-        const svgPath = btn.querySelector('.hover-action-overlay svg path');
-        if (svgPath) {
-          svgPath.setAttribute('d', nowSelected ? 'M6 18L18 6M6 6l12 12' : 'M12 4v16m8-8H4');
-        }
+        if (selectedServiceIds.has(provider.id)) selectedServiceIds.delete(provider.id);
+        else selectedServiceIds.add(provider.id);
+        try { localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds])); } catch (err) { logIgnored('save services', err); }
+        saveSelectedProviderData();
+        servicesChangedWhileOpen = true;
+        setState();
+        renderSelectedView();
         updateBrowserSaveBtn();
+        if (selectedServiceIds.size > 0 && el.formError && /streaming service/.test(el.formError.textContent)) el.formError.classList.add('hidden');
       });
       return btn;
     }
@@ -137,59 +120,38 @@
       };
     });
 
+    // The selected services, in priority order, from whatever provider data is loaded so far
+    // (this region's list, the cached selection, or the built-in canonical list).
+    function getSelectedProviderList() {
+      if (selectedServiceIds.size === 0) return [];
+      const source = currentProviders.length > 0
+        ? currentProviders
+        : (cachedSelectedProviders.length > 0 ? cachedSelectedProviders : STATIC_CANONICAL_PROVIDERS);
+      let selected = source.filter(p => selectedServiceIds.has(p.id)).sort((a, b) => (a.priority || 100) - (b.priority || 100));
+      if (selected.length === 0) selected = STATIC_CANONICAL_PROVIDERS.filter(p => selectedServiceIds.has(p.id));
+      return selected;
+    }
+
+    function describeServices(list) {
+      if (list.length === 0) return 'No services chosen';
+      const names = list.map(p => p.name);
+      return names.length <= 2 ? names.join(' and ') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+    }
+
+    // The "Streaming on" pill: a logo stack (or a name when there's just one).
     function renderSelectedView() {
-      const emptyState = document.getElementById('serviceEmptyState');
-      const selectedContainer = document.getElementById('serviceSelectedContainer');
-      const selectedGrid = document.getElementById('serviceSelectedGrid');
-      const browser = document.getElementById('serviceBrowser');
-
-      if (!selectedGrid || !emptyState || !selectedContainer) return;
-
-      if (browser && !browser.classList.contains('hidden')) {
-        emptyState.classList.add('hidden');
-        selectedContainer.classList.add('hidden');
-        return;
-      }
-
-      const hasSelected = selectedServiceIds.size > 0;
-
-      if (hasSelected) {
-        // Use currentProviders if loaded, otherwise fall back to cached or static canonical provider data
-        const sourceProviders = currentProviders.length > 0
-          ? currentProviders
-          : (cachedSelectedProviders.length > 0 ? cachedSelectedProviders : STATIC_CANONICAL_PROVIDERS);
-
-        let selected = sourceProviders.filter(p => selectedServiceIds.has(p.id)).sort((a, b) => (a.priority || 100) - (b.priority || 100));
-
-        if (selected.length === 0) {
-          selected = STATIC_CANONICAL_PROVIDERS.filter(p => selectedServiceIds.has(p.id));
-        }
-
-        if (selected.length === 0) {
-          emptyState.classList.remove('hidden');
-          selectedContainer.classList.add('hidden');
-        } else {
-          emptyState.classList.add('hidden');
-          selectedContainer.classList.remove('hidden');
-          selectedGrid.innerHTML = '';
-
-          selected.forEach(provider => {
-            selectedGrid.appendChild(createSelectedTile(provider));
-          });
-
-          // Append Add button at the end
-          const addBtn = document.createElement('button');
-          addBtn.className = 'service-btn service-tile outline-none group border-2 border-dashed border-white/20 hover:border-blue-500/50 rounded-[22.5%] transition-all flex items-center justify-center bg-white/5 hover:bg-blue-500/10';
-          addBtn.title = 'Add more services';
-          addBtn.innerHTML = `<svg class="w-8 h-8 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>`;
-          addBtn.addEventListener('click', () => { if (!isScanning) openBrowser(); });
-          selectedGrid.appendChild(addBtn);
-        }
-
+      const summary = document.getElementById('serviceSummary');
+      const pill = document.getElementById('servicePill');
+      if (!summary) return;
+      const selected = getSelectedProviderList();
+      if (selected.length === 0) {
+        summary.innerHTML = '<span class="svc-summary-empty">Choose services</span>';
+      } else if (selected.length === 1) {
+        summary.innerHTML = `${serviceStackHTML(selected)}<span class="svc-summary-name">${escapeHTML(selected[0].name)}</span>`;
       } else {
-        emptyState.classList.remove('hidden');
-        selectedContainer.classList.add('hidden');
+        summary.innerHTML = serviceStackHTML(selected);
       }
+      if (pill) pill.setAttribute('aria-label', `Streaming services: ${describeServices(selected)}. Change`);
       toggleClearSyncBtn();
     }
 
@@ -198,82 +160,77 @@
       if (!grid) return;
       grid.innerHTML = '';
 
-      let list = [...currentProviders].sort((a, b) => {
-        const aSel = pendingSelectedIds.has(a.id) ? 0 : 1;
-        const bSel = pendingSelectedIds.has(b.id) ? 0 : 1;
-        if (aSel !== bSel) return aSel - bSel;
-        return (a.priority || 100) - (b.priority || 100);
-      });
-
-      list.forEach(provider => {
-        grid.appendChild(createBrowserTile(provider));
-      });
+      // A stable order (by how common the service is), so nothing jumps while you pick.
+      [...currentProviders]
+        .sort((a, b) => (a.priority || 100) - (b.priority || 100))
+        .forEach(provider => grid.appendChild(createBrowserTile(provider)));
     }
 
     function updateBrowserSaveBtn() {
-      const saveBtn = document.getElementById('serviceBrowserSave');
-      if (saveBtn) {
-        saveBtn.textContent = 'Save';
-      }
+      const n = selectedServiceIds.size;
+      const count = document.getElementById('serviceBrowserCount');
+      if (count) count.textContent = n === 0 ? 'None picked yet' : `${n} picked`;
     }
 
-    function openBrowser() {
-      pendingSelectedIds = new Set(selectedServiceIds);
-      const emptyState = document.getElementById('serviceEmptyState');
-      const selectedContainer = document.getElementById('serviceSelectedContainer');
+    // The panel unfolds out of the bar (desktop: hanging under it at full width; phones: inside
+    // the card, under the "Streaming on" row). The open/closed height is a CSS transition, so a
+    // quick second tap reverses it from wherever it is.
+    function isServiceBrowserOpen() {
       const browser = document.getElementById('serviceBrowser');
+      return !!(browser && !browser.classList.contains('hidden'));
+    }
 
-      if (emptyState) emptyState.classList.add('hidden');
-      if (selectedContainer) selectedContainer.classList.add('hidden');
-
-      if (browser) {
-        browser.classList.remove('hidden');
-      }
-
+    function openBrowser(focusFirst) {
+      if (isScanning) return;
+      const browser = document.getElementById('serviceBrowser');
+      const region = document.getElementById('serviceBrowserRegion');
+      if (region) region.textContent = REGION_META[currentRegion]?.name || currentRegion;
+      servicesChangedWhileOpen = false;
       renderBrowserGrid();
       updateBrowserSaveBtn();
+      if (browser) { browser.classList.remove('hidden'); browser.removeAttribute('inert'); }
+      document.querySelector('.ask-bar')?.classList.add('is-open');
+      document.getElementById('servicePill')?.setAttribute('aria-expanded', 'true');
+      if (focusFirst) browser?.querySelector('.svc-option')?.focus({ preventScroll: true });
     }
 
     function closeBrowser() {
       const browser = document.getElementById('serviceBrowser');
-      if (browser) browser.classList.add('hidden');
+      if (!isServiceBrowserOpen()) return;
+      const hadFocus = document.activeElement && browser.contains(document.activeElement);
+      browser.classList.add('hidden');
+      browser.setAttribute('inert', '');
+      document.querySelector('.ask-bar')?.classList.remove('is-open');
+      const pill = document.getElementById('servicePill');
+      if (pill) { pill.setAttribute('aria-expanded', 'false'); if (hadFocus) pill.focus({ preventScroll: true }); }
       renderSelectedView();
+      // Picks apply as you tap; the results (if any) catch up once, when the panel closes.
+      if (servicesChangedWhileOpen && scannedMovies.length > 0) applyFiltersAndRender();
+      servicesChangedWhileOpen = false;
     }
 
-    function saveBrowser() {
-      selectedServiceIds = new Set(pendingSelectedIds);
-      localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds]));
-      saveSelectedProviderData();
-      closeBrowser();
-      if (scannedMovies.length > 0) applyFiltersAndRender();
-    }
+    // Kept for callers from before picks applied instantly (starting a scan, changing region).
+    function saveBrowser() { closeBrowser(); }
 
-    document.getElementById('serviceEmptyBtn')?.addEventListener('click', openBrowser);
-    document.getElementById('serviceBrowserCancel')?.addEventListener('click', closeBrowser);
-    document.getElementById('serviceBrowserSave')?.addEventListener('click', saveBrowser);
-
-    const sbs = document.getElementById('serviceBrowserSearch');
-    const sbc = document.getElementById('serviceBrowserClear');
-    if (sbs && sbc) {
-      sbs.addEventListener('input', () => {
-        sbc.classList.toggle('hidden', sbs.value.trim().length === 0);
-        renderBrowserGrid();
-      });
-      sbc.addEventListener('click', () => {
-        sbs.value = '';
-        sbc.classList.add('hidden');
-        renderBrowserGrid();
-        sbs.focus();
-      });
-    }
+    document.getElementById('serviceBrowser')?.setAttribute('inert', '');
+    document.getElementById('servicePill')?.addEventListener('click', (e) => {
+      if (isServiceBrowserOpen()) closeBrowser(); else openBrowser(e.detail === 0); // keyboard: focus the first service
+    });
+    document.getElementById('serviceBrowserSave')?.addEventListener('click', () => closeBrowser());
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isServiceBrowserOpen()) closeBrowser();
+    });
+    // A tap anywhere outside the bar folds it away again.
+    document.addEventListener('pointerdown', (e) => {
+      if (!isServiceBrowserOpen()) return;
+      const bar = document.querySelector('.ask-bar');
+      if (bar && !bar.contains(e.target)) closeBrowser();
+    });
 
     // ----- END INLINE SERVICE SELECTOR LOGIC -----
 
     async function loadAndRenderProviders() {
       renderSelectedView();
-      if (el.serviceSelectedGrid && currentProviders.length === 0 && selectedServiceIds.size === 0) {
-        el.serviceSelectedGrid.innerHTML = `<div class="col-span-full py-6 flex flex-col items-center justify-center gap-2.5 text-center"><div class="w-7 h-7 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div><span class="text-blue-400 text-xs font-bold uppercase tracking-widest animate-pulse">Loading services...</span></div>`;
-      }
       try {
         currentProviders = await fetchProvidersForRegion(currentRegion);
       } catch (e) {

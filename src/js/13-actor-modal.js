@@ -282,7 +282,7 @@
 
       const createBtn = (text, disabled, page, isActive = false) => {
         if (isActive) {
-          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]">${text}</button>`;
         } else if (disabled && text !== '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
         } else if (text === '...') {
@@ -320,7 +320,7 @@
       const nextDisabled = currentPage === maxPage;
       btnsHtml += createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', nextDisabled, currentPage + 1);
 
-      return `<div class="col-span-full flex items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-6 pb-2 select-none">${btnsHtml}</div>`;
+      return `<div class="pagination grid-span-all">${btnsHtml}</div>`;
     }
 
     function buildActorFilmographyGridHtml(person, showWatchlistOnly, roleHint = '', isModal = true, isPage = false) {
@@ -337,51 +337,22 @@
       let filmographyHtml = '';
       if (moviesToShow.length === 0) {
         const isFiltered = actorFilterQuery || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (actorFilterRating && actorFilterRating !== 'all') || (actorFilterRuntime && actorFilterRuntime !== 'all');
-        let emptyIcon = isFiltered ? '🔍' : (actorMediaTypeFilter === 'watchlist' ? '📋' : (actorMediaTypeFilter === 'tv' ? '📺' : '🎬'));
-        let emptyMsg = 'No credits found';
-        let emptySub = 'Nothing landed here for your current selection.';
-        if (isFiltered) {
-          emptyMsg = 'No titles match your filters';
-          emptySub = 'Try a different search, genre, or decade.';
-        } else if (actorMediaTypeFilter === 'watchlist') {
-          emptyMsg = `No watchlist titles found`;
-          emptySub = `No titles from your scanned watchlist for this ${activeRole.toLowerCase()}.`;
-        } else if (actorMediaTypeFilter === 'movie') {
-          emptyMsg = `No films found`;
-          emptySub = `No feature films listed for this ${activeRole.toLowerCase()}.`;
-        } else if (actorMediaTypeFilter === 'tv') {
-          emptyMsg = `No series found`;
-          emptySub = `No television series listed for this ${activeRole.toLowerCase()}.`;
-        } else {
-          emptyMsg = `No credits found`;
-          emptySub = `No available credits for this ${activeRole.toLowerCase()}.`;
-        }
-        filmographyHtml = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
+        const what = { watchlist: 'from your watchlist', movie: 'films', tv: 'series' }[actorMediaTypeFilter] || 'credits';
+        const msg = isFiltered ? 'Nothing matches these filters. Try a different search, genre or decade.'
+          : actorMediaTypeFilter === 'watchlist' ? `Nothing ${what} for this ${activeRole.toLowerCase()} yet.`
+          : `No ${what} listed for this ${activeRole.toLowerCase()}.`;
+        filmographyHtml = `<p class="page-empty">${msg}</p>`;
       } else {
-        pageMovies.forEach((m, idx) => {
-          const mTitle = escapeHTML(m.title);
-          const mYear = m.release_date ? m.release_date.split('-')[0] : '';
-          const mPoster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null;
-          const mChar = m.character ? escapeHTML(m.character) : '';
-          const isInWatchlist = watchlistKeySet.has(`${m.mediaType || 'movie'}-${m.id}`);
-          const mediaBadge = m.mediaType === 'tv' ? ' · TV Series' : '';
-          const roleStr = isDirector ? 'Director' : (mChar ? mChar : '');
-          const subtext = `${mYear ? mYear : ''}${mediaBadge}${roleStr ? ' · ' + roleStr : ''}`;
-          const actorRatingHtml = renderPosterRatingBadgeHtml(m);
-          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '', '${m.mediaType || 'movie'}')` : `handleActorFilmClick(${m.id}, '', ${!isModal}, '${m.mediaType || 'movie'}')`}">
-            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 h-full" data-movie-card-id="${m.id}">
-              <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-                ${mPoster ? `<img src="${mPoster}" alt="${mTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
-                <div class="glare"></div>
-              </div>
-              ${actorRatingHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
-            </div>
-          </div>`;
-        });
+        filmographyHtml = pageMovies.map((m, idx) => {
+          const type = m.mediaType || 'movie';
+          const year = m.release_date ? m.release_date.split('-')[0] : '';
+          const role = isDirector ? 'Director' : (m.character || '');
+          const sub = [year, type === 'tv' ? 'Series' : '', role].filter(Boolean).join(' · ');
+          const open = isPage ? `openMoviePageById(${m.id}, '', '${type}')` : `handleActorFilmClick(${m.id}, '', ${!isModal}, '${type}')`;
+          return posterCardHTML(m, { onclick: open, sub, index: idx, hideWatchlist: actorMediaTypeFilter === 'watchlist' });
+        }).join('');
         filmographyHtml += renderActorPaginationHtml(actorCurrentPage, maxActorPage);
       }
-
       return { filmographyHtml, allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles, counts };
     }
 
@@ -429,8 +400,8 @@
       window.currentActorAvailableGenres = availableActorGenres;
 
       // Sort label map
-      const sortLabels = { year_desc: 'Newest First', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest Rated', rating_asc: 'Lowest Rated', year_asc: 'Oldest First' };
-      const currentSortLabel = sortLabels[actorFilterSort] || 'Newest First';
+      const sortLabels = { year_desc: 'Newest first', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest rated', rating_asc: 'Lowest rated', year_asc: 'Oldest first' };
+      const currentSortLabel = sortLabels[actorFilterSort] || 'Newest first';
 
       // Letterboxd slug
       const lbSlug = person.name ? person.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '';
@@ -444,29 +415,23 @@
 
       const hasActiveActorFilters = (actorFilterSort !== 'popularity') || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
-      const mediaFilterTabsHtml = `
-        <div class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full items-center">
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="setActorTab('watchlist')"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="setActorTab('all')"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="setActorTab('movie')"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="setActorTab('tv')"><span>Series</span> <span class="tab-badge actor-tab-badge">${safeCounts.tv}</span></button>
-        </div>`;
-
+      const tab = (key, label, count) => `<button type="button" class="tab-btn actor-tab-btn ${actorMediaTypeFilter === key ? 'active' : ''}" onclick="setActorTab('${key}')">${label} <span class="tab-badge actor-tab-badge">${count}</span></button>`;
+      const mediaFilterTabsHtml = tab('watchlist', 'On your watchlist', safeCounts.watchlist) + tab('all', 'All', safeCounts.all) + tab('movie', 'Films', safeCounts.movie) + tab('tv', 'Series', safeCounts.tv);
       const roleIcons = {
-        'Actor': '🎭',
-        'Director': '🎬',
-        'Writer': '✍️',
-        'Producer': '💼',
-        'Composer': '🎵'
+        'Actor': '',
+        'Director': '',
+        'Writer': '',
+        'Producer': '',
+        'Composer': ''
       };
-      const activeRoleIcon = roleIcons[activeRole] || '🎭';
+      const activeRoleIcon = roleIcons[activeRole] || '';
 
       const roleSelectWrapper = availableRoles.length > 1 ? `
         <div class="custom-filter-dropdown-container shrink-0 min-w-[130px] sm:min-w-[145px] max-w-[185px]">
-          <button type="button" onclick="toggleCustomFilterMenu(this, 'actorRolePopover')" class="custom-filter-trigger h-[42px] px-3">
+          <button type="button" onclick="toggleCustomFilterMenu(this, 'actorRolePopover')" class="custom-filter-trigger role-trigger h-[42px] px-4">
             <div class="flex items-center gap-2 truncate min-w-0">
               <span class="text-sm shrink-0">${activeRoleIcon}</span>
-              <span class="truncate font-bold text-xs uppercase tracking-wider text-white" id="actorRoleLabel">${activeRole}</span>
+              <span class="truncate" id="actorRoleLabel">As ${activeRole.toLowerCase()}</span>
             </div>
             <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
@@ -474,8 +439,8 @@
             ${availableRoles.map(r => `
               <button type="button" onclick="selectActorRole('${r}', event)" class="custom-filter-item ${r === activeRole ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">${roleIcons[r] || '🎬'}</span>
-                  <span class="truncate font-bold text-xs uppercase tracking-wider">${r}</span>
+                  <span class="text-sm shrink-0">${roleIcons[r] || ''}</span>
+                  <span class="truncate">As ${r.toLowerCase()}</span>
                 </div>
                 <div class="custom-filter-radio">
                   ${r === activeRole ? '<div class="custom-filter-radio-dot"></div>' : ''}
@@ -602,66 +567,34 @@
         : '';
 
       const desktopBackdropImg = knownForBackdrop || profileImg;
-      const filterPlaceholder = (typeof window !== 'undefined' && window.innerWidth < 640) ? 'Search...' : 'Filter by title...';
+      const filterPlaceholder = (typeof window !== 'undefined' && window.innerWidth < 640) ? 'Filter' : 'Filter by title';
 
       const actorControlsHtml = `
-        <div class="relative w-full z-50" id="actorControlsCard">
-          <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
-            <div id="actorCategoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
-              ${mediaFilterTabsHtml}
-            </div>
-            <div class="hidden lg:block w-px h-6 bg-white/15 shrink-0 my-auto"></div>
-            <div class="relative flex-1 min-w-0" id="actorControlsBarRow">
-              <div class="flex items-center gap-2 w-full">
-                <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
-                  <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                  <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="${filterPlaceholder}" value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors truncate">
-                  ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
-                </div>
-
-                <!-- Options / Filter Toggle Button for Actor -->
-                <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all active:scale-95 font-bold text-xs cursor-pointer">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-                  </svg>
-                </button>
-
-                ${roleSelectWrapper}
-              </div>
-            </div>
+        <div class="results-bar person-bar" id="actorControlsCard">
+          <div id="actorCategoriesBar" class="tabs" role="tablist" aria-label="Show">${mediaFilterTabsHtml}</div>
+          <div class="results-tools" id="actorControlsBarRow">
+            <label class="filter-field">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
+              <input id="actorFilmSearch" aria-label="Filter by title" type="text" autocomplete="off" spellcheck="false" placeholder="${filterPlaceholder}" value="${escapeHTML(actorFilterQuery)}">
+              <button id="actorFilmSearchClear" type="button" aria-label="Clear filter" class="icon-btn ${actorFilterQuery ? '' : 'hidden'}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </label>
+            <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" class="ghost-btn ${hasActiveActorFilters ? 'has-filters' : ''}" aria-label="Filters and sorting">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M7 12h10M10 17h4"></path></svg>
+              <span class="hide-narrow">Filters</span>
+            </button>
+            ${roleSelectWrapper}
           </div>
-
-          <!-- Actor Filter Backdrop (Mobile bottom sheet backdrop) -->
           <div id="actorFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeActorFilterDropdown()"></div>
-
-          <!-- Responsive Filter Panel for Actor (Spans full bar width on desktop, bottom sheet on mobile) -->
-          <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive space-y-4">
-            <!-- Mobile Drag Handle -->
-            <div class="w-10 h-1 rounded-full bg-white/20 mx-auto mb-2 sm:hidden pointer-events-none"></div>
-
-            <!-- Header -->
-            <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-              <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-                </svg>
-                <span class="text-xs font-bold uppercase tracking-widest text-white">Filters &amp; Sorting</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="resetActorFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
-                  Reset all
-                </button>
-                <button type="button" onclick="closeActorFilterDropdown()" aria-label="Close"
-                  class="sm:hidden w-8 h-8 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer shrink-0">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
+          <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive">
+            <div class="sheet-handle sm:hidden" aria-hidden="true"></div>
+            <div class="filter-panel-head">
+              <h3>Filters and sorting</h3>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="resetActorFilters()" class="link-btn">Reset all</button>
+                <button type="button" onclick="closeActorFilterDropdown()" aria-label="Close" class="icon-btn sm:hidden"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
               </div>
             </div>
-
-            <!-- Full-width multi-column grid on desktop! -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="actorFilterGridSlots">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4" id="actorFilterGridSlots">
               <div id="actorFilterSlot-sort" class="custom-filter-dropdown-container"></div>
               <div id="actorFilterSlot-provider" class="custom-filter-dropdown-container"></div>
               <div id="actorFilterSlot-genre" class="custom-filter-dropdown-container"></div>
@@ -669,60 +602,48 @@
               <div id="actorFilterSlot-rating" class="custom-filter-dropdown-container"></div>
               <div id="actorFilterSlot-runtime" class="custom-filter-dropdown-container"></div>
             </div>
-
-            <!-- Mobile Close / Apply Button -->
-            <button type="button" onclick="closeActorFilterDropdown()" class="w-full sm:hidden py-3 mt-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
-              Show Results
-            </button>
+            <button type="button" onclick="closeActorFilterDropdown()" class="btn btn-primary w-full sm:hidden">Show films</button>
           </div>
         </div>
       `;
 
       if (isPage) {
-        return `<nav id="actorPageNav" class="movie-page-nav fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 lg:px-12 2xl:px-16 pointer-events-none">
-            <button type="button" onclick="closeActorPage()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-            <button type="button" onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-          </nav>
-          <div class="relative w-full h-[52dvh] min-h-[380px] sm:h-[74dvh] sm:min-h-[420px] actor-hero-container">
-            <div id="actorPageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">
-              ${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}
-              <div class="absolute inset-x-0 bottom-0 h-[65%] sm:h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] sm:via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div>
-            </div>
-            <div class="absolute inset-0 z-30 flex flex-col justify-end pointer-events-none pb-6 sm:pb-14 2xl:pb-16 actor-hero-content">
-              <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 flex flex-col gap-3 sm:gap-4">
-                <div class="flex flex-row items-center gap-4 sm:gap-8">
-                  ${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async" class="w-28 min-[400px]:w-32 sm:w-48 2xl:w-56 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 pointer-events-auto">` : `<div class="w-28 min-[400px]:w-32 sm:w-48 2xl:w-56 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 flex items-center justify-center text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 pointer-events-auto">${safeName.charAt(0)}</div>`}
-                  <div class="pointer-events-auto min-w-0 flex-1 flex flex-col justify-center gap-1 sm:gap-2">
-                    <h1 class="actor-hero-name text-2xl min-[400px]:text-3xl sm:text-7xl 2xl:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[1.08] sm:leading-[0.98]">${safeName}</h1>
-                    ${knownForTitle ? `<p class="actor-hero-known-for text-xs sm:text-base 2xl:text-lg font-medium text-gray-300 drop-shadow"><span class="text-blue-400 font-extrabold uppercase text-[10px] sm:text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>` : ''}
-                    <div class="mt-1 sm:mt-2 max-w-3xl 2xl:max-w-4xl">${bio ? createHeroOverviewHtml(bio, safeName) : ''}</div>
-                  </div>
-                </div>
+        // One plain line of facts instead of labels: what they do, when and where they were born, what they're known for.
+        const fmtDate = (d) => { try { return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return d; } };
+        const dept = { Acting: 'Actor', Directing: 'Director', Writing: 'Writer', Production: 'Producer', Sound: 'Composer' }[person.known_for_department] || activeRole;
+        const facts = [
+          dept,
+          birthday ? (deathday ? `${birthday.slice(0, 4)}–${deathday.slice(0, 4)}` : `Born ${fmtDate(birthday)}${birthplace ? ` in ${birthplace}` : ''}`) : (birthplace ? `From ${birthplace}` : ''),
+          knownForTitle ? `Known for ${escapeHTML(knownForTitle)}` : ''
+        ].filter(Boolean).join(' · ');
+        const personUrl = `${window.location.origin}${window.location.pathname}?actor=${tmdbId}`;
+        const personLinks = [
+          lbSlug ? { label: 'Letterboxd', href: `https://letterboxd.com/${isDirector ? 'director' : 'actor'}/${escapeHTML(lbSlug)}/` } : null,
+          imdbId ? { label: 'IMDb', href: `https://www.imdb.com/name/${escapeHTML(imdbId)}/` } : null,
+          { label: 'TMDB', href: `https://www.themoviedb.org/person/${tmdbId}` },
+          ...socialsList.map(s => ({ label: s.name, href: s.url })),
+          { label: 'Copy link', onclick: `copyPageLink(this, '${personUrl}')` }
+        ];
+        const filmsHeading = 'Films and series';
+        return `${pageNavHTML('closeActorPage()', 'goHomeFromPage()', 'actorPageNav')}
+          <header class="person-hero">
+            <div id="actorPageHeroArt" class="person-hero-art" aria-hidden="true">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="" loading="eager" decoding="async" onload="this.classList.add('is-loaded')">` : ''}</div>
+            <div class="page-width person-hero-inner">
+              <div class="person-hero-photo">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async">` : `<span>${safeName.charAt(0)}</span>`}</div>
+              <div class="person-hero-text">
+                <h1 class="display person-name actor-hero-name">${safeName}</h1>
+                ${facts ? `<p class="person-facts">${facts}</p>` : ''}
+                ${bio ? `<div class="person-bio">${createHeroOverviewHtml(bio, safeName)}</div>` : ''}
               </div>
             </div>
-          </div>
-          <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 pt-4 sm:pt-0 pb-0 flex flex-col gap-6 sm:gap-10">
-            <div>
-              <div class="flex flex-col gap-3 mb-4 relative z-40">
-                <h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>
-                ${actorControlsHtml}
-              </div>
-              <div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div>
-            </div>
-          </div>
-          <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 mt-6 sm:mt-7 pb-8 sm:pb-10">
-            <div class="pt-6 border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              ${actorActionBtnsHtml}
-              <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
-                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5">
-                  <a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
-                  <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span>
-                </div>
-              </div>
-            </div>
+          </header>
+          <div class="page-width person-body">
+            <div class="section-head person-films-head"><h2 class="section-title">${filmsHeading}</h2><span class="section-count actor-total-count">${safeCounts.all}</span></div>
+            ${actorControlsHtml}
+            <div id="actorFilmGrid" class="poster-grid">${filmographyHtml}</div>
+            ${pageFooterHTML(personLinks)}
           </div>`;
-      }
-      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div></div></div>`;
+      }      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0a0a0b]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0a0a0b]/80 to-[#0a0a0b]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0a0a0b] via-[#0a0a0b]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0a0a0b] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0a0a0b] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="/icons/tmdb-logo.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div></div></div>`;
     }
 
     let currentActorId = null;
@@ -733,16 +654,16 @@
     let modalActiveActorRoleHint = '';
 
     const ACTOR_SORT_OPTIONS = [
-      { value: 'year_desc', label: 'Newest First' },
-      { value: 'year_asc', label: 'Oldest First' },
+      { value: 'year_desc', label: 'Newest first' },
+      { value: 'year_asc', label: 'Oldest first' },
       { value: 'popularity', label: 'Popular' },
-      { value: 'rating_desc', label: 'Highest Rated' },
+      { value: 'rating_desc', label: 'Highest rated' },
       { value: 'az', label: 'A-Z' },
       { value: 'za', label: 'Z-A' }
     ];
 
     const ACTOR_DECADE_OPTIONS = [
-      { value: 'all', label: 'All Decades' },
+      { value: 'all', label: 'All decades' },
       { value: '2020s', label: '2020s' },
       { value: '2010s', label: '2010s' },
       { value: '2000s', label: '2000s' },

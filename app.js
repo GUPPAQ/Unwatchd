@@ -30,7 +30,8 @@
     }
 
     const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
-    const IMDB_TAG_HTML = `<span class="poster-rating-tag bg-[#F5C518] text-black font-black px-1 py-0.5 rounded-[2.5px] text-[9px] leading-none select-none tracking-tighter shrink-0" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span>`;
+    // The IMDb logo (yellow plate, black letters) as a crisp vector, used wherever a rating shows.
+    const IMDB_TAG_HTML = `<svg class="imdb-logo" viewBox="0 0 62 30" role="img" aria-label="IMDb"><rect width="62" height="30" rx="4" fill="#F5C518"/><path fill="#000" d="M7.5 6h4.6v18H7.5zM14.6 6h5.9l1.2 8.6L22.9 6h5.9v18h-3.9V12.2L23.2 24h-3l-1.8-11.8V24h-3.8zM31.4 6h6.4c3.7 0 5.5 1.7 5.5 5.2v7.6c0 3.5-1.8 5.2-5.5 5.2h-6.4zm4.6 3.3v11.4h1.1c1.3 0 1.7-.5 1.7-1.8v-7.8c0-1.3-.4-1.8-1.7-1.8zM45.3 6h4.4v5.5c.7-.8 1.6-1.2 2.8-1.2 2.3 0 3.4 1.3 3.4 3.8v6.2c0 2.6-1.1 3.9-3.4 3.9-1.2 0-2.2-.5-2.9-1.4l-.3 1.2h-4zm5.6 7.6c-.6 0-1 .3-1.2.9v6c.2.6.6.9 1.2.9.7 0 .9-.4.9-1.3v-5.2c0-.9-.3-1.3-.9-1.3z"/></svg>`;
 
 
     // All TMDB requests go through here: at most TMDB_MAX_CONCURRENT in flight, and
@@ -919,6 +920,61 @@
       const key = (providerName || '').toLowerCase().trim();
       return KNOWN_DEEPLINKS[key] || null;
     }
+
+    // ── Direct links to a title on each service, from JustWatch (via /api/justwatch) ──
+    // Asked once per title and country; until the answer arrives (or when JustWatch has nothing)
+    // the Watch buttons fall back to the service's search or home page above.
+    var justWatchLinks = new Map(); // `${type}_${id}_${country}` -> { status: 'loading' | 'done', offers: [] }
+    // JustWatch names some stores differently: Prime Video's rentals are "Amazon Video", Apple's are
+    // "Apple TV Store" (technical name "itunes"). Map both sides onto one key.
+    const justWatchNameKey = (name) => {
+      let k = cleanNormalize(name || '').replace(/plus$/, '');
+      if (k === 'amazon' || k === 'amazonvideo' || k === 'amazonprimevideo' || k === 'primevideo') return 'primevideo';
+      if (k === 'itunes' || k.startsWith('appletv')) return 'appletv';
+      return k.replace(/^amazon/, '');
+    };
+    function getJustWatchLink(movieObj, country, providerName, rentOrBuy) {
+      if (!movieObj || !movieObj.id || !country) return null;
+      const type = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
+      const key = `${type}_${movieObj.id}_${country}`;
+      const entry = justWatchLinks.get(key);
+      if (!entry) { requestJustWatchLinks(movieObj, country); return null; }
+      if (entry.status !== 'done') return null;
+      const want = justWatchNameKey(providerName);
+      const offers = entry.offers.filter(o => justWatchNameKey(o.name) === want || justWatchNameKey(o.key) === want);
+      if (!offers.length) return null;
+      const preferred = rentOrBuy
+        ? offers.find(o => o.type === 'RENT' || o.type === 'BUY')
+        : offers.find(o => o.type === 'FLATRATE' || o.type === 'FREE' || o.type === 'ADS');
+      return (preferred || offers[0]).url;
+    }
+    function requestJustWatchLinks(movieObj, country) {
+      const type = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
+      const key = `${type}_${movieObj.id}_${country}`;
+      const title = (movieObj.title || movieObj.name || '').trim();
+      if (!title || !REGION_META[country]) { justWatchLinks.set(key, { status: 'done', offers: [] }); return; }
+      justWatchLinks.set(key, { status: 'loading', offers: [] });
+      const original = (movieObj.originalTitle || movieObj.original_title || movieObj.original_name || '').trim();
+      const url = `/api/justwatch?tmdb=${encodeURIComponent(movieObj.id)}&type=${type}&country=${country}&title=${encodeURIComponent(title)}${original && original !== title ? `&alt=${encodeURIComponent(original)}` : ''}`;
+      fetch(url)
+        .then(r => (r.ok ? r.json() : { offers: [] }))
+        .then(d => {
+          justWatchLinks.set(key, { status: 'done', offers: Array.isArray(d.offers) ? d.offers : [] });
+          if (d.offers && d.offers.length) refreshWatchLinksFor(movieObj);
+        })
+        .catch(e => { logIgnored('justwatch links', e); justWatchLinks.set(key, { status: 'done', offers: [] }); });
+    }
+    // Redraw whatever is showing this title's Watch buttons, now that direct links are known.
+    function refreshWatchLinksFor(movieObj) {
+      const view = document.getElementById('moviePageView');
+      if (view && !view.classList.contains('hidden') && window.currentMoviePageObj && window.currentMoviePageObj.id === movieObj.id) {
+        refreshMovieVpnView();
+      }
+      if (typeof currentTonightPick !== 'undefined' && currentTonightPick && currentTonightPick.id === movieObj.id) {
+        const pool = (currentGroupedResults && currentGroupedResults.stream) || [];
+        fillTonightPick(currentTonightPick, pool.length);
+      }
+    }
     let scannedMovies = [];
     let selectedServiceIds = new Set();
     try {
@@ -941,7 +997,6 @@
       vpnToggleBtnInline: document.getElementById('vpnToggleBtnInline'),
       vpnToggleDotInline: document.getElementById('vpnToggleDotInline'),
       regionContainer: document.getElementById('regionContainer'),
-      serviceSelectedGrid: document.getElementById('serviceSelectedGrid'),
       usernameInput: document.getElementById('usernameInput'),
       clearSyncBtn: document.getElementById('clearSyncBtn'),
       startButton: document.getElementById('startButton'),
@@ -968,11 +1023,7 @@
       paginationControls: document.getElementById('paginationControls'),
       friendInputWrapper: document.getElementById('friendInputWrapper'),
       friendInput: document.getElementById('friendInput'),
-      toggleFriendBtn: document.getElementById('toggleFriendBtn'),
-      removeFriendBtn: document.getElementById('removeFriendBtn'),
-      rouletteBtn: document.getElementById('rouletteBtn'),
-      statsBtn: document.getElementById('statsBtn'),
-      statsBar: document.getElementById('statsBar')
+      removeFriendBtn: document.getElementById('removeFriendBtn')
     };
 
     const savedRegion = localStorage.getItem('ps_region');
@@ -1012,8 +1063,8 @@
       // Fix: Refresh the service browser if it's currently open
       const browser = document.getElementById('serviceBrowser');
       if (browser && !browser.classList.contains('hidden')) {
-        const availableIds = new Set(currentProviders.map(p => p.id));
-        pendingSelectedIds = new Set([...pendingSelectedIds].filter(id => availableIds.has(id)));
+        const name = document.getElementById('serviceBrowserRegion');
+        if (name) name.textContent = REGION_META[currentRegion]?.name || currentRegion;
         renderBrowserGrid();
         updateBrowserSaveBtn();
       }
@@ -1057,11 +1108,11 @@
         if (!btn) return;
         if (vpnModeEnabled) {
           btn.classList.add('vpn-active'); btn.classList.remove('text-gray-500', 'text-gray-400');
-          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-blue-400'); dot.classList.remove('shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.remove('bg-gray-600'); dot.classList.add('bg-blue-400'); dot.classList.remove('shadow-[0_0_6px_rgba(255,122,92,0.8)]'); }
         } else {
           btn.classList.remove('vpn-active');
           if (btn.id === 'vpnToggleBtn') btn.classList.add('text-gray-500'); else btn.classList.add('text-gray-400');
-          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-blue-400', 'shadow-[0_0_6px_rgba(96,165,250,0.8)]'); }
+          if (dot) { dot.classList.add('bg-gray-600'); dot.classList.remove('bg-blue-400', 'shadow-[0_0_6px_rgba(255,122,92,0.8)]'); }
         }
       });
       // Also update any inline Watch Now VPN toggle buttons currently visible
@@ -1129,135 +1180,15 @@
       } catch (e) { logIgnored('refreshMovieVpnView', e); }
     }
 
-    // =========================================================================
-    // WATCHLIST ROULETTE (Simple & Elegant Random Picker)
-    // =========================================================================
-    let isRouletteSpinning = false;
-    let rouletteSpinGeneration = 0;
-
-    function openRouletteModal() {
-      const modal = document.getElementById('rouletteModal');
-      const content = document.getElementById('rouletteModalContent');
-      if (!modal || !content) return;
-
-      modal.classList.remove('hidden', 'popup-overlay-out');
-      modal.classList.add('flex');
-
-      requestAnimationFrame(() => {
-        modal.classList.add('popup-overlay-in');
-        content.classList.remove('popup-animate-out');
-        content.classList.add('popup-animate-in');
-      });
-
-      spinRoulette(true);
-    }
-
-    function closeRouletteModal() {
-      const modal = document.getElementById('rouletteModal');
-      const content = document.getElementById('rouletteModalContent');
-      if (!modal) return;
-
-      isRouletteSpinning = false;
-      rouletteSpinGeneration++;
-
-      if (content) {
-        content.classList.remove('popup-animate-in');
-        content.classList.add('popup-animate-out');
-      }
-      modal.classList.remove('popup-overlay-in');
-      modal.classList.add('popup-overlay-out');
-
-      setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex', 'popup-overlay-out');
-        if (content) content.classList.remove('popup-animate-out');
-      }, 220);
-    }
-
-    async function spinRoulette(isInitial = false) {
-      if (isRouletteSpinning) return;
-      isRouletteSpinning = true;
-      rouletteSpinGeneration++;
-      const myGeneration = rouletteSpinGeneration;
-
-      const cardContainer = document.getElementById('rouletteCardContainer');
-      const emptyState = document.getElementById('rouletteEmptyState');
-      const posterWrapper = document.getElementById('roulettePosterWrapper');
-      const posterImg = document.getElementById('roulettePosterImg');
-      const viewBtn = document.getElementById('rouletteViewBtn');
-      const respinBtn = document.getElementById('rouletteRespinBtn');
-      const respinSvg = document.getElementById('rouletteRespinSvg');
-
-      if (respinBtn) respinBtn.disabled = true;
-      if (respinSvg) respinSvg.classList.add('roulette-spin-active');
-
-      let candidatePool = currentGroupedResults[activeTab] || [];
-      if (!candidatePool || candidatePool.length === 0) {
-        candidatePool = currentGroupedResults.stream.length > 0 ? currentGroupedResults.stream : scannedMovies;
-      }
-
-      if (!candidatePool || candidatePool.length === 0) {
-        if (cardContainer) cardContainer.classList.add('hidden');
-        if (emptyState) {
-          emptyState.classList.remove('hidden');
-          emptyState.classList.add('flex');
-        }
-        isRouletteSpinning = false;
-        if (respinBtn) respinBtn.disabled = false;
-        if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
-        return;
-      }
-
-      if (emptyState) {
-        emptyState.classList.add('hidden');
-        emptyState.classList.remove('flex');
-      }
-      if (cardContainer) cardContainer.classList.remove('hidden');
-
-      // Subtle quick shuffle transition
-      if (!isInitial && cardContainer) {
-        cardContainer.style.opacity = '0.35';
-        cardContainer.style.transform = 'scale(0.97)';
-        await new Promise(r => setTimeout(r, 150));
-      }
-
-      if (myGeneration !== rouletteSpinGeneration) return;
-
-      const winnerMovie = candidatePool[Math.floor(Math.random() * candidatePool.length)];
-
-      if (posterImg) {
-        posterImg.src = winnerMovie.poster || '';
-        posterImg.alt = winnerMovie.title || 'Movie Poster';
-      }
-
-      const openFn = () => {
-        closeRouletteModal();
-        openMoviePage(winnerMovie, true);
-      };
-
-      if (posterWrapper) posterWrapper.onclick = openFn;
-      if (viewBtn) {
-        viewBtn.disabled = false;
-        viewBtn.onclick = openFn;
-      }
-
-      if (cardContainer) {
-        cardContainer.style.opacity = '1';
-        cardContainer.style.transform = 'scale(1)';
-      }
-
-      if (respinBtn) respinBtn.disabled = false;
-      if (respinSvg) respinSvg.classList.remove('roulette-spin-active');
-      isRouletteSpinning = false;
-    }
-
+    // The old roulette modal is gone: "Another pick" on Tonight's pick (15-results-hero.js) does its job.
     const savedUsername = localStorage.getItem('ps_username'); if (savedUsername && el.usernameInput) el.usernameInput.value = savedUsername;
-    const savedFriend = localStorage.getItem('ps_friend_username'); if (savedFriend && el.friendInput) { el.friendInput.value = savedFriend; if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); }
-    if (el.toggleFriendBtn) { el.toggleFriendBtn.addEventListener('click', () => { if (el.friendInputWrapper) el.friendInputWrapper.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); if (el.friendInput) el.friendInput.focus(); }); }
-    if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', () => { if (el.friendInput) el.friendInput.value = ''; localStorage.removeItem('ps_friend_username'); if (el.friendInputWrapper) el.friendInputWrapper.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } if (isFriendMatchActive) { if (el.resultsSection) el.resultsSection.classList.add('hidden'); scannedMovies = []; clearScanStorage(); isFriendMatchActive = false; if (el.activeGridContainer) el.activeGridContainer.innerHTML = ''; if (el.statsBar) el.statsBar.classList.add('hidden'); if (el.paginationControls) el.paginationControls.classList.add('hidden'); } }); }
-    if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); }); }
-    if (el.statsBtn) { el.statsBtn.addEventListener('click', () => { closeHomeFilterDropdown(); if (scannedMovies.length > 0) { openInsightsPopup(); } el.statsBtn.blur(); }); }
-    if (el.rouletteBtn) { el.rouletteBtn.addEventListener('click', () => { closeHomeFilterDropdown(); openRouletteModal(); el.rouletteBtn.blur(); }); }
+    // The friend field is always there ("Compare with", optional); a name in it means a joint scan.
+    // Its clear button shows only while there's something to clear.
+    function syncFriendClearBtn() { if (el.removeFriendBtn && el.friendInput) el.removeFriendBtn.classList.toggle('hidden', !el.friendInput.value || isScanning); }
+    const savedFriend = localStorage.getItem('ps_friend_username'); if (savedFriend && el.friendInput) el.friendInput.value = savedFriend;
+    syncFriendClearBtn();
+    if (el.removeFriendBtn) { el.removeFriendBtn.addEventListener('click', (e) => { e.preventDefault(); if (el.friendInput) { el.friendInput.value = ''; el.friendInput.focus(); } localStorage.removeItem('ps_friend_username'); syncFriendClearBtn(); if (el.formError) { el.formError.classList.add('hidden'); el.formError.textContent = ''; } }); }
+    if (el.friendInput) { el.friendInput.addEventListener('input', (e) => { localStorage.setItem('ps_friend_username', e.target.value); syncFriendClearBtn(); }); }
     let trailerPlayer = null;
     let isTrailerPaused = false;
 
@@ -1289,7 +1220,7 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if (el.quickSearchInput) el.quickSearchInput.focus(); }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openQuickSearch(); }
       const trailerModal = document.getElementById('trailerModal');
       const trailerModalOpen = trailerModal && !trailerModal.classList.contains('hidden');
       if (trailerModalOpen) {
@@ -1368,11 +1299,8 @@
       }
       const allCastModal = document.getElementById('allCastModal');
       const allCastModalOpen = allCastModal && !allCastModal.classList.contains('hidden');
-      const rouletteModal = document.getElementById('rouletteModal');
-      const rouletteModalOpen = rouletteModal && !rouletteModal.classList.contains('hidden');
       const actorModal = document.getElementById('actorModal'); const actorModalOpen = actorModal && !actorModal.classList.contains('hidden'); const modal = document.getElementById('movieModal'); const isModalOpen = !!modal && !modal.classList.contains('hidden');
       if (e.key === 'Escape') {
-        if (rouletteModalOpen) { closeRouletteModal(); return; }
         if (allCastModalOpen) { closeAllCastModal(); return; }
         if (actorModalOpen) { closeActorModal(); return; }
         if (el.searchDropdown) el.searchDropdown.classList.add('hidden');
@@ -1428,57 +1356,40 @@
       return `<img src="${provider.logoPath}" alt="${escapeHTML(provider.name)}" loading="lazy" class="bg-gray-800" data-logodev="${escapeHTML(logoDev)}" data-tmdb="${escapeHTML(tmdb)}" onerror="const ld=this.dataset.logodev; const tm=this.dataset.tmdb; if(ld && this.src!==ld){this.src=ld;} else if(tm && this.src!==tm){this.src=tm;} else {this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400 rounded-[22.5%]\\'>${initials}</div>';}">`;
     }
 
-    // Fix: Rolled back to the original layout structure to prevent blurry CSS rendering and restore .png images
-    function createSelectedTile(provider) {
-      const btn = document.createElement('button');
-      btn.title = provider.name + ' - click to remove';
-      btn.className = 'service-btn service-tile selected shadow-md outline-none group';
-      const img = createTileImgHTML(provider);
-      const hoverOverlay = `<div class="hover-action-overlay"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></div>`;
-      btn.innerHTML = `<div class="logo-wrapper">${img}${hoverOverlay}</div>`;
-
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (isScanning) return;
-        selectedServiceIds.delete(provider.id);
-        localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds]));
-        saveSelectedProviderData();
-        toggleClearSyncBtn();
-        btn.remove();
-        if (selectedServiceIds.size === 0) renderSelectedView();
-        if (scannedMovies.length > 0) applyFiltersAndRender();
-      });
-      return btn;
+    // A small stack of overlapping service logos, used on the landing's "Streaming on" pill
+    // and in the results' context line. Shows up to `max` logos, then "+N".
+    function serviceStackHTML(providers, max = 4) {
+      if (!providers.length) return '';
+      const shown = providers.slice(0, max);
+      const more = providers.length - shown.length;
+      return `<span class="svc-stack">${shown.map(p => `<span class="svc-stack-logo">${createTileImgHTML(p)}</span>`).join('')}</span>${more > 0 ? `<span class="svc-stack-more">+${more}</span>` : ''}`;
     }
 
-    // Fix: Rolled back to original flat structure to guarantee clean resolution scaling
+    // One service in the panel: a chip with its logo and name (the same shape as the service
+    // chips over the results). Tapping it applies at once; the bar's logo stack follows.
+    var servicesChangedWhileOpen = false;
     function createBrowserTile(provider) {
-      const isSelected = pendingSelectedIds.has(provider.id);
       const btn = document.createElement('button');
-      btn.title = provider.name;
-      btn.className = 'service-btn service-tile shadow-md outline-none group' + (isSelected ? ' selected' : ' service-unselected-fade');
-      const img = createTileImgHTML(provider);
-      const iconSvg = isSelected
-        ? `<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>`
-        : `<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>`;
-      const hoverOverlay = `<div class="hover-action-overlay"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">${iconSvg}</svg></div>`;
-      btn.innerHTML = `<div class="logo-wrapper">${img}${hoverOverlay}</div>`;
-
+      btn.type = 'button';
+      btn.className = 'svc-option';
+      const setState = () => {
+        const on = selectedServiceIds.has(provider.id);
+        btn.classList.toggle('selected', on);
+        btn.setAttribute('aria-pressed', String(on));
+      };
+      btn.innerHTML = `<span class="svc-option-logo">${createTileImgHTML(provider)}</span><span class="svc-option-name">${escapeHTML(provider.name)}</span><svg class="svc-option-check" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"></path></svg>`;
+      setState();
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const nowSelected = !pendingSelectedIds.has(provider.id);
-        if (nowSelected) {
-          pendingSelectedIds.add(provider.id);
-          btn.classList.add('selected');
-        } else {
-          pendingSelectedIds.delete(provider.id);
-          btn.classList.remove('selected');
-        }
-        const svgPath = btn.querySelector('.hover-action-overlay svg path');
-        if (svgPath) {
-          svgPath.setAttribute('d', nowSelected ? 'M6 18L18 6M6 6l12 12' : 'M12 4v16m8-8H4');
-        }
+        if (selectedServiceIds.has(provider.id)) selectedServiceIds.delete(provider.id);
+        else selectedServiceIds.add(provider.id);
+        try { localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds])); } catch (err) { logIgnored('save services', err); }
+        saveSelectedProviderData();
+        servicesChangedWhileOpen = true;
+        setState();
+        renderSelectedView();
         updateBrowserSaveBtn();
+        if (selectedServiceIds.size > 0 && el.formError && /streaming service/.test(el.formError.textContent)) el.formError.classList.add('hidden');
       });
       return btn;
     }
@@ -1555,59 +1466,38 @@
       };
     });
 
+    // The selected services, in priority order, from whatever provider data is loaded so far
+    // (this region's list, the cached selection, or the built-in canonical list).
+    function getSelectedProviderList() {
+      if (selectedServiceIds.size === 0) return [];
+      const source = currentProviders.length > 0
+        ? currentProviders
+        : (cachedSelectedProviders.length > 0 ? cachedSelectedProviders : STATIC_CANONICAL_PROVIDERS);
+      let selected = source.filter(p => selectedServiceIds.has(p.id)).sort((a, b) => (a.priority || 100) - (b.priority || 100));
+      if (selected.length === 0) selected = STATIC_CANONICAL_PROVIDERS.filter(p => selectedServiceIds.has(p.id));
+      return selected;
+    }
+
+    function describeServices(list) {
+      if (list.length === 0) return 'No services chosen';
+      const names = list.map(p => p.name);
+      return names.length <= 2 ? names.join(' and ') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+    }
+
+    // The "Streaming on" pill: a logo stack (or a name when there's just one).
     function renderSelectedView() {
-      const emptyState = document.getElementById('serviceEmptyState');
-      const selectedContainer = document.getElementById('serviceSelectedContainer');
-      const selectedGrid = document.getElementById('serviceSelectedGrid');
-      const browser = document.getElementById('serviceBrowser');
-
-      if (!selectedGrid || !emptyState || !selectedContainer) return;
-
-      if (browser && !browser.classList.contains('hidden')) {
-        emptyState.classList.add('hidden');
-        selectedContainer.classList.add('hidden');
-        return;
-      }
-
-      const hasSelected = selectedServiceIds.size > 0;
-
-      if (hasSelected) {
-        // Use currentProviders if loaded, otherwise fall back to cached or static canonical provider data
-        const sourceProviders = currentProviders.length > 0
-          ? currentProviders
-          : (cachedSelectedProviders.length > 0 ? cachedSelectedProviders : STATIC_CANONICAL_PROVIDERS);
-
-        let selected = sourceProviders.filter(p => selectedServiceIds.has(p.id)).sort((a, b) => (a.priority || 100) - (b.priority || 100));
-
-        if (selected.length === 0) {
-          selected = STATIC_CANONICAL_PROVIDERS.filter(p => selectedServiceIds.has(p.id));
-        }
-
-        if (selected.length === 0) {
-          emptyState.classList.remove('hidden');
-          selectedContainer.classList.add('hidden');
-        } else {
-          emptyState.classList.add('hidden');
-          selectedContainer.classList.remove('hidden');
-          selectedGrid.innerHTML = '';
-
-          selected.forEach(provider => {
-            selectedGrid.appendChild(createSelectedTile(provider));
-          });
-
-          // Append Add button at the end
-          const addBtn = document.createElement('button');
-          addBtn.className = 'service-btn service-tile outline-none group border-2 border-dashed border-white/20 hover:border-blue-500/50 rounded-[22.5%] transition-all flex items-center justify-center bg-white/5 hover:bg-blue-500/10';
-          addBtn.title = 'Add more services';
-          addBtn.innerHTML = `<svg class="w-8 h-8 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>`;
-          addBtn.addEventListener('click', () => { if (!isScanning) openBrowser(); });
-          selectedGrid.appendChild(addBtn);
-        }
-
+      const summary = document.getElementById('serviceSummary');
+      const pill = document.getElementById('servicePill');
+      if (!summary) return;
+      const selected = getSelectedProviderList();
+      if (selected.length === 0) {
+        summary.innerHTML = '<span class="svc-summary-empty">Choose services</span>';
+      } else if (selected.length === 1) {
+        summary.innerHTML = `${serviceStackHTML(selected)}<span class="svc-summary-name">${escapeHTML(selected[0].name)}</span>`;
       } else {
-        emptyState.classList.remove('hidden');
-        selectedContainer.classList.add('hidden');
+        summary.innerHTML = serviceStackHTML(selected);
       }
+      if (pill) pill.setAttribute('aria-label', `Streaming services: ${describeServices(selected)}. Change`);
       toggleClearSyncBtn();
     }
 
@@ -1616,82 +1506,77 @@
       if (!grid) return;
       grid.innerHTML = '';
 
-      let list = [...currentProviders].sort((a, b) => {
-        const aSel = pendingSelectedIds.has(a.id) ? 0 : 1;
-        const bSel = pendingSelectedIds.has(b.id) ? 0 : 1;
-        if (aSel !== bSel) return aSel - bSel;
-        return (a.priority || 100) - (b.priority || 100);
-      });
-
-      list.forEach(provider => {
-        grid.appendChild(createBrowserTile(provider));
-      });
+      // A stable order (by how common the service is), so nothing jumps while you pick.
+      [...currentProviders]
+        .sort((a, b) => (a.priority || 100) - (b.priority || 100))
+        .forEach(provider => grid.appendChild(createBrowserTile(provider)));
     }
 
     function updateBrowserSaveBtn() {
-      const saveBtn = document.getElementById('serviceBrowserSave');
-      if (saveBtn) {
-        saveBtn.textContent = 'Save';
-      }
+      const n = selectedServiceIds.size;
+      const count = document.getElementById('serviceBrowserCount');
+      if (count) count.textContent = n === 0 ? 'None picked yet' : `${n} picked`;
     }
 
-    function openBrowser() {
-      pendingSelectedIds = new Set(selectedServiceIds);
-      const emptyState = document.getElementById('serviceEmptyState');
-      const selectedContainer = document.getElementById('serviceSelectedContainer');
+    // The panel unfolds out of the bar (desktop: hanging under it at full width; phones: inside
+    // the card, under the "Streaming on" row). The open/closed height is a CSS transition, so a
+    // quick second tap reverses it from wherever it is.
+    function isServiceBrowserOpen() {
       const browser = document.getElementById('serviceBrowser');
+      return !!(browser && !browser.classList.contains('hidden'));
+    }
 
-      if (emptyState) emptyState.classList.add('hidden');
-      if (selectedContainer) selectedContainer.classList.add('hidden');
-
-      if (browser) {
-        browser.classList.remove('hidden');
-      }
-
+    function openBrowser(focusFirst) {
+      if (isScanning) return;
+      const browser = document.getElementById('serviceBrowser');
+      const region = document.getElementById('serviceBrowserRegion');
+      if (region) region.textContent = REGION_META[currentRegion]?.name || currentRegion;
+      servicesChangedWhileOpen = false;
       renderBrowserGrid();
       updateBrowserSaveBtn();
+      if (browser) { browser.classList.remove('hidden'); browser.removeAttribute('inert'); }
+      document.querySelector('.ask-bar')?.classList.add('is-open');
+      document.getElementById('servicePill')?.setAttribute('aria-expanded', 'true');
+      if (focusFirst) browser?.querySelector('.svc-option')?.focus({ preventScroll: true });
     }
 
     function closeBrowser() {
       const browser = document.getElementById('serviceBrowser');
-      if (browser) browser.classList.add('hidden');
+      if (!isServiceBrowserOpen()) return;
+      const hadFocus = document.activeElement && browser.contains(document.activeElement);
+      browser.classList.add('hidden');
+      browser.setAttribute('inert', '');
+      document.querySelector('.ask-bar')?.classList.remove('is-open');
+      const pill = document.getElementById('servicePill');
+      if (pill) { pill.setAttribute('aria-expanded', 'false'); if (hadFocus) pill.focus({ preventScroll: true }); }
       renderSelectedView();
+      // Picks apply as you tap; the results (if any) catch up once, when the panel closes.
+      if (servicesChangedWhileOpen && scannedMovies.length > 0) applyFiltersAndRender();
+      servicesChangedWhileOpen = false;
     }
 
-    function saveBrowser() {
-      selectedServiceIds = new Set(pendingSelectedIds);
-      localStorage.setItem('ps_services', JSON.stringify([...selectedServiceIds]));
-      saveSelectedProviderData();
-      closeBrowser();
-      if (scannedMovies.length > 0) applyFiltersAndRender();
-    }
+    // Kept for callers from before picks applied instantly (starting a scan, changing region).
+    function saveBrowser() { closeBrowser(); }
 
-    document.getElementById('serviceEmptyBtn')?.addEventListener('click', openBrowser);
-    document.getElementById('serviceBrowserCancel')?.addEventListener('click', closeBrowser);
-    document.getElementById('serviceBrowserSave')?.addEventListener('click', saveBrowser);
-
-    const sbs = document.getElementById('serviceBrowserSearch');
-    const sbc = document.getElementById('serviceBrowserClear');
-    if (sbs && sbc) {
-      sbs.addEventListener('input', () => {
-        sbc.classList.toggle('hidden', sbs.value.trim().length === 0);
-        renderBrowserGrid();
-      });
-      sbc.addEventListener('click', () => {
-        sbs.value = '';
-        sbc.classList.add('hidden');
-        renderBrowserGrid();
-        sbs.focus();
-      });
-    }
+    document.getElementById('serviceBrowser')?.setAttribute('inert', '');
+    document.getElementById('servicePill')?.addEventListener('click', (e) => {
+      if (isServiceBrowserOpen()) closeBrowser(); else openBrowser(e.detail === 0); // keyboard: focus the first service
+    });
+    document.getElementById('serviceBrowserSave')?.addEventListener('click', () => closeBrowser());
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isServiceBrowserOpen()) closeBrowser();
+    });
+    // A tap anywhere outside the bar folds it away again.
+    document.addEventListener('pointerdown', (e) => {
+      if (!isServiceBrowserOpen()) return;
+      const bar = document.querySelector('.ask-bar');
+      if (bar && !bar.contains(e.target)) closeBrowser();
+    });
 
     // ----- END INLINE SERVICE SELECTOR LOGIC -----
 
     async function loadAndRenderProviders() {
       renderSelectedView();
-      if (el.serviceSelectedGrid && currentProviders.length === 0 && selectedServiceIds.size === 0) {
-        el.serviceSelectedGrid.innerHTML = `<div class="col-span-full py-6 flex flex-col items-center justify-center gap-2.5 text-center"><div class="w-7 h-7 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div><span class="text-blue-400 text-xs font-bold uppercase tracking-widest animate-pulse">Loading services...</span></div>`;
-      }
       try {
         currentProviders = await fetchProvidersForRegion(currentRegion);
       } catch (e) {
@@ -1731,22 +1616,22 @@
     // Bespoke Glassmorphism Custom Filter Engine (Home & Actor)
     // -------------------------------------------------------------
     const GENRE_ICON_MAP = {
-      'Action': '💥', 'Adventure': '🗺️', 'Animation': '🎨', 'Comedy': '😂', 'Crime': '🕵️',
-      'Documentary': '📹', 'Drama': '🎭', 'Family': '👨‍👩‍👧‍👦', 'Fantasy': '🧙', 'History': '📜',
-      'Horror': '👻', 'Music': '🎵', 'Mystery': '🔍', 'Romance': '❤️', 'Science Fiction': '🚀',
-      'TV Movie': '📺', 'Thriller': '😱', 'War': '⚔️', 'Western': '🤠'
+      'Action': '', 'Adventure': '', 'Animation': '', 'Comedy': '', 'Crime': '',
+      'Documentary': '', 'Drama': '', 'Family': '', 'Fantasy': '', 'History': '',
+      'Horror': '', 'Music': '', 'Mystery': '', 'Romance': '', 'Science Fiction': '',
+      'TV Movie': '', 'Thriller': '', 'War': '', 'Western': ''
     };
 
     const DECADE_ICON_MAP = {
-      'all': '📅', '2020': '✨', '2010': '📼', '2000': '💿', '1990': '🕹️',
-      '1980': '📻', '1970': '🎞️', '1960': '📽️', '1950': '🎙️', 'older': '🕰️',
-      '2020s': '✨', '2010s': '📼', '2000s': '💿', '1990s': '🕹️', '1980s': '📻',
-      '1970s': '🎞️', '1960s': '📽️', '1950s': '🎙️'
+      'all': '', '2020': '', '2010': '', '2000': '', '1990': '',
+      '1980': '', '1970': '', '1960': '', '1950': '', 'older': '',
+      '2020s': '', '2010s': '', '2000s': '', '1990s': '', '1980s': '',
+      '1970s': '', '1960s': '', '1950s': ''
     };
 
     const SORT_ICON_MAP = {
-      'year_desc': '⏳', 'year_asc': '🕰️', 'popularity': '🔥',
-      'rating_desc': '⭐', 'az': '🔤', 'za': '🔤'
+      'year_desc': '', 'year_asc': '', 'popularity': '',
+      'rating_desc': '', 'az': '', 'za': ''
     };
 
     // Home Filter State
@@ -1968,18 +1853,18 @@
         const cur = isHome ? homeFilterSort : actorFilterSort;
         const defaultSort = isHome ? 'year_desc' : 'popularity';
         const options = [
-          { value: 'year_desc', label: 'Newest First', icon: '⏳' },
-          { value: 'year_asc', label: 'Oldest First', icon: '🕰️' },
-          { value: 'popularity', label: 'Popular', icon: '🔥' },
-          { value: 'rating_desc', label: 'Highest Rated', icon: '⭐' },
-          { value: 'az', label: 'A-Z', icon: '🔤' },
-          { value: 'za', label: 'Z-A', icon: '🔤' }
+          { value: 'year_desc', label: 'Newest first', icon: '' },
+          { value: 'year_asc', label: 'Oldest first', icon: '' },
+          { value: 'popularity', label: 'Popular', icon: '' },
+          { value: 'rating_desc', label: 'Highest rated', icon: '' },
+          { value: 'az', label: 'A-Z', icon: '' },
+          { value: 'za', label: 'Z-A', icon: '' }
         ];
         const selected = options.find(o => o.value === cur) || options.find(o => o.value === defaultSort) || options[0];
         const isCustom = cur !== defaultSort;
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort By</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Sort by</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -2011,7 +1896,7 @@
         const isCustom = !isAll;
 
         const provList = [];
-        provList.push({ id: 'all', name: isHome ? 'All My Services' : 'All Services', icon: '🍿' });
+        provList.push({ id: 'all', name: isHome ? 'All my services' : 'All services', icon: '' });
         if (vpnModeEnabled) {
           provList.push({ id: 'vpn', name: 'VPN Available 🌐', icon: '🌐' });
         }
@@ -2030,7 +1915,7 @@
           otherAvail.forEach(cp => provList.push({ id: cp.name, name: cp.name, logo: getProviderLogoUrl(cp.name) }));
         }
 
-        let previewText = isHome ? 'All My Services' : 'All Services';
+        let previewText = isHome ? 'All my services' : 'All services';
         if (!isAll) {
           const arr = Array.from(curSet).map(id => id === 'vpn' ? 'VPN Available' : id);
           if (arr.length === 1) previewText = arr[0];
@@ -2039,25 +1924,25 @@
         }
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming Platform</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Streaming service</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">🍿</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
             <div id="${popoverId}" class="custom-filter-popover hidden space-y-1">
               <div class="flex items-center justify-between px-2 py-1.5 border-b border-white/10 mb-1 text-[10px] font-extrabold uppercase tracking-wider text-gray-400">
-                <span>Streaming Services</span>
+                <span>Streaming services</span>
                 <button type="button" onclick="onCustomFilterBulk('${scope}', 'provider', 'clear', event)" class="text-blue-400 hover:text-blue-300 font-bold">Reset</button>
               </div>
               ${provList.map(p => {
           const isSelected = p.id === 'all' ? isAll : curSet.has(p.id);
           const logoHtml = p.logo
-            ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'>📺</span>'" />`
-            : `<span class="text-sm shrink-0">${p.icon || '📺'}</span>`;
+            ? `<img src="${p.logo}" alt="${escapeHTML(p.name)}" class="w-5 h-5 rounded-md object-contain shrink-0 bg-black/40 p-0.5 border border-white/10" onerror="this.outerHTML='<span class=\\'text-sm shrink-0\\'></span>'" />`
+            : `<span class="text-sm shrink-0">${p.icon || ''}</span>`;
           return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'provider', '${escapeHTML(p.id)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
@@ -2092,7 +1977,7 @@
           genreNames = (window.currentActorAvailableGenres && window.currentActorAvailableGenres.length > 0) ? window.currentActorAvailableGenres : Object.values(GENRE_MAP).filter((v, i, a) => a.indexOf(v) === i).sort();
         }
 
-        let previewText = 'All Genres';
+        let previewText = 'All genres';
         if (!isAll) {
           const arr = Array.from(curSet);
           if (arr.length === 1) previewText = arr[0];
@@ -2105,7 +1990,7 @@
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">🎭</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -2117,8 +2002,8 @@
               </div>
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">🎭</span>
-                  <span class="truncate">All Genres</span>
+                  <span class="text-sm shrink-0"></span>
+                  <span class="truncate">All genres</span>
                 </div>
                 <div class="custom-filter-checkbox">
                   ${isAll ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
@@ -2126,7 +2011,7 @@
               </button>
               ${genreNames.map(g => {
           const isSelected = !isAll && curSet.has(g);
-          const icon = GENRE_ICON_MAP[g] || '🎬';
+          const icon = GENRE_ICON_MAP[g] || '';
           return `
                   <button type="button" onclick="onCustomFilterSelect('${scope}', 'genre', '${escapeHTML(g)}', event)" class="custom-filter-item ${isSelected ? 'selected' : ''}">
                     <div class="flex items-center gap-2.5 truncate min-w-0">
@@ -2150,18 +2035,18 @@
         const isCustom = !isAll;
 
         const decadeOptions = [
-          { value: '2020', label: '2020s', icon: '✨' },
-          { value: '2010', label: '2010s', icon: '📼' },
-          { value: '2000', label: '2000s', icon: '💿' },
-          { value: '1990', label: '1990s', icon: '🕹️' },
-          { value: '1980', label: '1980s', icon: '📻' },
-          { value: '1970', label: '1970s', icon: '🎞️' },
-          { value: '1960', label: '1960s', icon: '📽️' },
-          { value: '1950', label: '1950s', icon: '🎙️' },
-          { value: 'older', label: 'Older (< 1950)', icon: '🕰️' }
+          { value: '2020', label: '2020s', icon: '' },
+          { value: '2010', label: '2010s', icon: '' },
+          { value: '2000', label: '2000s', icon: '' },
+          { value: '1990', label: '1990s', icon: '' },
+          { value: '1980', label: '1980s', icon: '' },
+          { value: '1970', label: '1970s', icon: '' },
+          { value: '1960', label: '1960s', icon: '' },
+          { value: '1950', label: '1950s', icon: '' },
+          { value: 'older', label: 'Older (< 1950)', icon: '' }
         ];
 
-        let previewText = 'All Decades';
+        let previewText = 'All decades';
         if (!isAll) {
           const arr = Array.from(curSet).map(d => d === 'older' ? 'Older' : `${d}s`);
           if (arr.length === 1) previewText = arr[0];
@@ -2170,11 +2055,11 @@
         }
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release Period</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Release period</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
-                <span class="text-sm shrink-0">📅</span>
+                <span class="text-sm shrink-0"></span>
                 <span class="truncate">${escapeHTML(previewText)}</span>
               </div>
               <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -2186,8 +2071,8 @@
               </div>
               <button type="button" onclick="onCustomFilterSelect('${scope}', 'decade', 'all', event)" class="custom-filter-item ${isAll ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">📅</span>
-                  <span class="truncate">All Decades</span>
+                  <span class="text-sm shrink-0"></span>
+                  <span class="truncate">All decades</span>
                 </div>
                 <div class="custom-filter-checkbox">
                   ${isAll ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
@@ -2216,17 +2101,17 @@
         const cur = isHome ? homeFilterRating : actorFilterRating;
         const isCustom = cur && cur !== 'all';
         const ratingOptions = [
-          { value: 'all', label: 'Any Rating', icon: '🌟' },
-          { value: '6', label: 'IMDb 6.0+', icon: '⭐' },
-          { value: '7', label: 'IMDb 7.0+', icon: '⭐' },
-          { value: '8', label: 'IMDb 8.0+', icon: '⭐' },
-          { value: '8.5', label: 'IMDb 8.5+', icon: '⭐' },
-          { value: '9', label: 'IMDb 9.0+', icon: '🏆' }
+          { value: 'all', label: 'Any rating', icon: '' },
+          { value: '6', label: 'IMDb 6.0+', icon: '' },
+          { value: '7', label: 'IMDb 7.0+', icon: '' },
+          { value: '8', label: 'IMDb 8.0+', icon: '' },
+          { value: '8.5', label: 'IMDb 8.5+', icon: '' },
+          { value: '9', label: 'IMDb 9.0+', icon: '' }
         ];
         const selected = ratingOptions.find(r => r.value === cur) || ratingOptions[0];
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum IMDb Rating</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Minimum IMDb rating</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -2256,15 +2141,15 @@
         const cur = isHome ? homeFilterRuntime : actorFilterRuntime;
         const isCustom = cur && cur !== 'all';
         const runtimeOptions = [
-          { value: 'all', label: 'Any Length', icon: '⏱️' },
-          { value: 'short', label: 'Short (< 90 min)', icon: '⚡' },
-          { value: 'medium', label: 'Medium (90 - 120 min)', icon: '⏳' },
-          { value: 'long', label: 'Long (> 120 min)', icon: '🎬' }
+          { value: 'all', label: 'Any length', icon: '' },
+          { value: 'short', label: 'Short (< 90 min)', icon: '' },
+          { value: 'medium', label: 'Medium (90 - 120 min)', icon: '' },
+          { value: 'long', label: 'Long (> 120 min)', icon: '' }
         ];
         const selected = runtimeOptions.find(r => r.value === cur) || runtimeOptions[0];
 
         return `
-          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film Length</label>
+          <label class="block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 whitespace-nowrap truncate">Film length</label>
           <div class="relative">
             <button type="button" onclick="toggleCustomFilterMenu(this, '${popoverId}')" class="custom-filter-trigger ${isCustom ? 'active-custom' : ''}">
               <div class="flex items-center gap-2 truncate min-w-0">
@@ -2459,12 +2344,12 @@
     if (el.clearResultsBtn) { el.clearResultsBtn.addEventListener('click', () => { if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden'); currentPage = 1; applyFiltersAndRender(); if (el.filterSearch) el.filterSearch.focus(); }); }
     function updateSearchPlaceholders() {
       const isMobile = window.innerWidth < 640;
-      const ph = isMobile ? 'Search...' : 'Filter by title...';
+      const ph = isMobile ? 'Filter' : 'Filter by title';
       if (el.filterSearch) el.filterSearch.placeholder = ph;
       const aSearch = document.getElementById('actorFilmSearch');
       if (aSearch) aSearch.placeholder = ph;
       const qSearch = document.getElementById('quickSearchInput');
-      if (qSearch) qSearch.placeholder = isMobile ? 'Search films, shows...' : 'Search films, TV shows, actors, directors...';
+      if (qSearch) qSearch.placeholder = isMobile ? 'Search' : 'Search any film or person';
     }
     updateSearchPlaceholders();
     window.addEventListener('resize', updateSearchPlaceholders);
@@ -2490,7 +2375,7 @@
         });
       }
     });
-    [el.statsBtn, el.rouletteBtn, el.vpnToggleBtnInline].forEach(btn => {
+    [el.vpnToggleBtnInline].forEach(btn => {
       if (btn) {
         btn.addEventListener('click', (e) => {
           try { e.currentTarget.blur(); } catch (err) { console.warn('[Button Element Blur]', err); }
@@ -2801,7 +2686,6 @@
         const renderCachedGallery = () => {
           try {
             populateFilterDropdowns();
-            updateStats();
             applyFiltersAndRender();
             if (el.resultsSection) el.resultsSection.classList.remove('hidden');
             toggleClearSyncBtn();
@@ -3176,7 +3060,7 @@
       const imdbAttr = data.imdbId ? ` data-imdb-id="${data.imdbId}"` : '';
       const sourceAttr = ' data-rating-source="imdb"';
       const titleAttr = `IMDb Rating: ${data.rating}/10`;
-      return `<div class="poster-corner-badge poster-rating-badge" data-movie-id="${movieObj.id}"${imdbAttr}${sourceAttr} title="${titleAttr}">${tagHtml}<span class="poster-rating-val font-black text-white text-[11px] sm:text-xs leading-none tracking-tight">${data.rating}</span></div>`;
+      return `<div class="poster-corner-badge poster-rating-badge" data-movie-id="${movieObj.id}"${imdbAttr}${sourceAttr} title="${titleAttr}">${tagHtml}<span class="poster-rating-val">${data.rating}</span></div>`;
     }
 
     let debouncedApplyFiltersTimer = null;
@@ -3298,7 +3182,6 @@
 
         if (anyNewSynced) {
           saveScanToStorage(movies, isFriendMatchActive);
-          updateStats();
           if ((window.homeFilterRating && window.homeFilterRating !== 'all') || (homeFilterSort === 'rating_desc')) {
             debouncedApplyFilters();
           }
@@ -3754,6 +3637,8 @@
 
     function renderMovieWatchOptionsBox(movieObj, details, isDesktop = false, isModal = false) {
       if (!movieObj) return '';
+      // JustWatch sometimes knows a film only by its original title (see requestJustWatchLinks).
+      if (details && !movieObj.originalTitle) movieObj.originalTitle = details.original_title || details.original_name || '';
 
       // Resolve full providers dictionary across all available regions
       const allProvidersMap = movieObj.allProviders
@@ -3873,61 +3758,50 @@
         let link = getRegionServiceUrl(safeName, effectiveRegion, movieObj.title);
 
         const deeplink = getDeeplinkFor(safeName);
-        const appLink = deeplink && deeplink.appUrl ? deeplink.appUrl(movieObj.title) : null;
+        let appLink = deeplink && deeplink.appUrl ? deeplink.appUrl(movieObj.title) : null;
 
         if (deeplink && deeplink.searchUrl) {
           link = deeplink.searchUrl(movieObj.title);
         }
+        // The title's own page on the service, when JustWatch knows it (these also open the app on
+        // phones by themselves, so the app-search fallback isn't needed).
+        const isRentBuyLink = mode === 'popup' && /Rent|Buy/.test(extraText || (modeExtra && modeExtra.type) || '');
+        const directLink = getJustWatchLink(movieObj, effectiveRegion, safeName, isRentBuyLink);
+        if (directLink) { link = directLink; appLink = null; }
 
+        const appAttr = appLink ? `data-app-link="${escapeHTML(appLink)}"` : '';
+        const openApp = `onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }"`;
+        const logoHtml = logoSrc ? `<img src="${logoSrc}" alt="" loading="lazy">` : `<span>${escapeHTML(safeName.slice(0, 2))}</span>`;
+        const vpnText = isVpnProvider ? `In ${vpnArticle}${escapeHTML(vpnRegionName)} with a VPN` : '';
+
+        // Just the logo, for the little logo stacks on the panel's buttons.
+        if (mode === 'logo') return `<span class="wp-stack-logo">${logoHtml}</span>`;
+
+        // A row in the "Rent or buy" and "Other services" popups.
         if (mode === 'popup') {
           const actionLabel = extraText || (modeExtra && modeExtra.type ? modeExtra.type : 'Stream');
-          const isRentBuy = actionLabel === 'Rent' || actionLabel === 'Buy' || actionLabel === 'Rent/Buy';
-
-          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-white/10 active:scale-[0.98] w-full shadow-md">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-[22.5%] overflow-hidden shrink-0 shadow-md group-hover/prov:scale-105 transition-transform pointer-events-none">
-                ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
-              </div>
-              <div class="flex flex-col min-w-0">
-                <span class="truncate text-sm sm:text-base font-extrabold text-white group-hover/prov:text-blue-300 transition-colors leading-tight">${escapeHTML(safeName)}</span>
-                ${isVpnProvider ? `<span class="text-[11px] sm:text-xs text-blue-300 font-semibold leading-tight mt-0.5 flex items-center gap-1 whitespace-nowrap min-w-0"><span class="text-xs leading-none shrink-0" aria-hidden="true">${vpnRegionFlag}</span><span class="truncate">Available in ${vpnArticle}<strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
-              </div>
-            </div>
-            <div class="shrink-0 flex items-center gap-2">
-              ${isRentBuy ? `<span class="px-2.5 py-1 rounded-lg bg-white/10 text-gray-300 text-[10.5px] font-extrabold uppercase tracking-wider">${actionLabel}</span>` : ''}
-              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-            </div>
+          const tag = { 'Rent': 'Rent', 'Buy': 'Buy', 'Rent/Buy': 'Rent or buy', 'Unsubscribed': 'Needs a subscription', 'Subscription': 'Included with your subscription', 'Subscription (VPN)': 'Included with your subscription' }[actionLabel] || actionLabel;
+          return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wp-row wp-row-pop">
+            <span class="wp-logo">${logoHtml}</span>
+            <span class="wp-text"><span class="wp-name">${escapeHTML(safeName)}</span><span class="wp-sub${vpnText ? ' is-vpn' : ''}">${vpnText || escapeHTML(tag)}</span></span>
+            <svg class="wp-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"></path></svg>
           </a>`;
         }
 
-        if (mode === 'single') {
-          return `<a href="${escapeHTML(link)}" target="_blank" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov flex items-center justify-between gap-4 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-blue-500/50 hover:bg-white/10 shadow-md">
-            <div class="flex items-center gap-3.5 sm:gap-4 min-w-0">
-              <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-[22.5%] overflow-hidden shrink-0 shadow-md group-hover/prov:scale-105 transition-transform pointer-events-none">
-                ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-sm font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
-              </div>
-              <div class="flex flex-col min-w-0 justify-center">
-                <span class="truncate min-w-0 text-lg sm:text-xl font-black text-white group-hover/prov:text-blue-300 transition-colors tracking-tight leading-tight">${escapeHTML(safeName)}${extraText}</span>
-                ${isVpnProvider ? `<span class="text-[11.5px] sm:text-xs text-blue-300 font-semibold leading-tight mt-0.5 flex items-center gap-1.5 whitespace-nowrap min-w-0"><span class="text-xs leading-none shrink-0" aria-hidden="true">${vpnRegionFlag}</span><span class="truncate">Available in ${vpnArticle}<strong class="text-white font-extrabold">${escapeHTML(vpnRegionName)}</strong> via VPN*</span></span>` : ''}
-              </div>
-            </div>
-            <svg class="w-6 h-6 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1.5 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-          </a>`;
+        // Pieces of the Where to watch card.
+        const statusText = vpnText ? `Needs a VPN set to ${vpnArticle}${escapeHTML(vpnRegionName)}` : 'Included with your subscription';
+        if (mode === 'feature-top') {
+          return `<span class="wp-logo">${logoHtml}</span><span class="wp-text"><span class="wp-name">${escapeHTML(safeName)}</span><span class="wp-sub${vpnText ? ' is-vpn' : ''}">${statusText}</span></span>`;
         }
-
-        return `<a href="${escapeHTML(link)}" target="_blank" title="${escapeHTML(safeName)}${isVpnProvider ? ` (Available in ${vpnArticle}${escapeHTML(vpnRegionName)} via VPN)` : ''}" ${appLink ? `data-app-link="${escapeHTML(appLink)}"` : ''} onclick="const app = this.getAttribute('data-app-link'); if(app && app !== 'null') { event.preventDefault(); openStreamingService(this.href, app); }" class="provider-glass group/prov relative flex items-center justify-between gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl transition-all text-gray-200 hover:text-white w-full h-full border border-white/10 hover:border-blue-500/50 hover:bg-white/10 active:scale-[0.98] shadow-md min-w-0">
-          <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
-            <div class="w-12 h-12 sm:w-14 sm:h-14 md:w-15 md:h-15 rounded-[22.5%] overflow-hidden shrink-0 shadow-md group-hover/prov:scale-105 transition-transform pointer-events-none">
-              ${logoSrc ? `<img src="${logoSrc}" alt="${escapeHTML(safeName)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-sm font-black text-gray-300">${escapeHTML(safeName.slice(0, 2).toUpperCase())}</div>`}
-            </div>
-            ${isVpnProvider ? `<span class="px-1.5 py-0.5 rounded-full bg-blue-500/30 border border-blue-400/40 text-[10px] font-bold text-blue-300 flex items-center gap-0.5 shadow-sm pointer-events-none"><span>${vpnRegionFlag}</span><span class="text-[9px] font-extrabold hidden lg:inline">VPN</span></span>` : ''}
-          </div>
-          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/prov:text-blue-400 group-hover/prov:translate-x-1 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-        </a>`;
-      };
-
-      let streamingHtml = '';
-      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'VPN unlocks are on — tap to turn off' : 'Also show titles you could unlock by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="watchnow-vpn-toggle w-full py-2 px-1.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white${vpnModeEnabled ? ' vpn-active' : ''} text-xs font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm min-w-0"><span class="flex items-center gap-1 sm:gap-1.5 truncate min-w-0"><svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="truncate">VPN</span></span><span class="watchnow-vpn-dot shrink-0 ml-0.5"></span></button>`;
+        if (mode === 'watch') {
+          return `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" ${appAttr} ${openApp} class="wp-watch"><span class="wp-watch-label">Watch on ${escapeHTML(safeName)}</span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"></path></svg></a>`;
+        }
+        // 'pick': one of your services as a tile, with its own status under the name; picking it
+        // points the Watch button at it.
+        const tileStatus = vpnText ? `VPN · ${escapeHTML(vpnRegionName)}` : 'Included';
+        return `<button type="button" class="wp-pick-btn" aria-pressed="${extraText === 'picked' ? 'true' : 'false'}" title="${statusText}" aria-label="${escapeHTML(safeName)}: ${statusText}" data-link="${escapeHTML(link)}" data-app="${appLink ? escapeHTML(appLink) : ''}" data-name="${escapeHTML(safeName)}" onclick="selectWatchService(this)"><span class="wp-pick-logo">${logoHtml}</span><span class="wp-pick-name">${escapeHTML(safeName)}</span><span class="wp-pick-status${vpnText ? ' is-vpn' : ''}">${tileStatus}</span></button>`;
+      };      let streamingHtml = '';
+      const vpnToggleBtnHtml = `<button type="button" onclick="toggleWatchNowVpn()" title="${vpnModeEnabled ? 'Turn off VPN unlocks' : 'Also show where you could watch it by switching your VPN'}" aria-pressed="${vpnModeEnabled ? 'true' : 'false'}" class="wp-vpn watchnow-vpn-toggle${vpnModeEnabled ? ' vpn-active' : ''}">VPN <span class="watchnow-vpn-dot"></span></button>`;
 
       // Rent / Buy: ALWAYS use local home region if available. Only fallback to VPN if unavailable locally.
       const localRent = filterAndDeduplicateProviders(homeRegionData?.rent || [], true);
@@ -3986,35 +3860,39 @@
 
       // Subscribed streaming: if unlocked via VPN, show ONLY ONE as main (Netflix or HBO first), rest in More popup
       const userFlatrate = isVpnUnlocked ? vpnMatchedProviders : userHomeFlatrate;
-      const visibleFlatrate = isVpnUnlocked ? vpnMatchedProviders.slice(0, 1) : userHomeFlatrate.slice(0, 3);
+
+      // The card: your best service with its Watch button, and any other services you have as
+      // small logo buttons beside it, so the box keeps one shape however many services you have.
+      const best = isVpnUnlocked ? vpnMatchedProviders[0] : userHomeFlatrate[0];
+      const yoursElse = (isVpnUnlocked ? vpnMatchedProviders : userHomeFlatrate).filter(p => p !== best);
       const cleanFlatrate = isVpnUnlocked ? vpnMatchedProviders : homeFlatrate;
+      const namesOf = (list) => [...new Set(list.map(p => (p.provider_name || p.name || '').replace('with Ads', '').trim()))];
+      const regionName = REGION_META[currentRegion]?.name || currentRegion;
+      const listNames = (names) => names.length <= 2 ? names.join(' and ') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+      const emptyCard = (title, sub) => `<div class="wp-feature is-empty"><p class="wp-empty-title">${escapeHTML(title)}</p>${sub ? `<p class="wp-empty-sub">${escapeHTML(sub)}</p>` : ''}</div>`;
 
-      const streamingGridClass = visibleFlatrate.length === 3 ? 'grid grid-cols-3 gap-1.5 sm:gap-2' : (visibleFlatrate.length === 2 ? 'grid grid-cols-2 gap-2' : 'flex flex-col');
-      const streamingGridClassHFull = visibleFlatrate.length === 3 ? 'grid grid-cols-3 gap-1.5 sm:gap-2 h-full' : (visibleFlatrate.length === 2 ? 'grid grid-cols-2 gap-2 h-full' : 'flex flex-col h-full');
-
-      if (visibleFlatrate.length === 1) {
-        streamingHtml = makeProviderLink(visibleFlatrate[0], '', 'single');
-      } else if (visibleFlatrate.length > 1) {
-        streamingHtml = visibleFlatrate.map(p => makeProviderLink(p, '', 'pill')).join('');
+      if (best) {
+        const yours = [best, ...yoursElse].slice(0, 4);
+        if (yours.length === 1) {
+          streamingHtml = `<div class="wp-feature"><div class="wp-feature-top">${makeProviderLink(best, '', 'feature-top')}</div>${makeProviderLink(best, '', 'watch')}</div>`;
+        } else {
+          const picks = yours.map((p, i) => makeProviderLink(p, i === 0 ? 'picked' : '', 'pick')).join('');
+          streamingHtml = `<div class="wp-feature is-multi"><div class="wp-pick" style="--cols:${yours.length}" role="group" aria-label="Your services with this film">${picks}</div>${makeProviderLink(best, '', 'watch')}</div>`;
+        }
       } else if (otherFlatrate.length > 0) {
-        const noSubText = 'Not on your active subscriptions';
-        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
+        const names = namesOf(otherFlatrate);
+        streamingHtml = emptyCard('Not on your services', `In ${regionName} it's on ${listNames(names.slice(0, 3))}${names.length > 3 ? ' and more' : ''}.${vpnModeEnabled ? '' : ' Turn on VPN to check other countries.'}`);
       } else if (rbMap.size > 0) {
-        const noSubText = isVpnRentBuy ? `Available to rent or buy via VPN (${REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion})` : 'Only available to rent or buy';
-        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
+        streamingHtml = emptyCard('Not streaming', isVpnRentBuy ? `You can rent or buy it in ${REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion} with a VPN.` : `You can rent or buy it in ${regionName}.${vpnModeEnabled ? '' : ' Turn on VPN to check streaming elsewhere.'}`);
       } else {
-        const noSubText = 'Not available to stream';
-        streamingHtml = `<div class="w-full h-full bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center"><p class="text-xs font-black uppercase tracking-widest text-gray-400">${noSubText}</p></div>`;
+        streamingHtml = emptyCard(`Not streaming in ${regionName}`, vpnModeEnabled ? 'Not on your services in any country we check either.' : 'Turn on VPN to check other countries.');
       }
 
-      let userFlatrateLinksHtml = '';
-      userFlatrate.forEach(p => { userFlatrateLinksHtml += makeProviderLink(p, isVpnUnlocked ? 'Subscription (VPN)' : 'Subscription', 'popup'); });
+      const userFlatrateLinksHtml = '';
       let otherFlatrateLinksHtml = '';
       otherFlatrate.forEach(p => { otherFlatrateLinksHtml += makeProviderLink(p, 'Unsubscribed', 'popup'); });
       let rbLinksHtml = '';
       rbMap.forEach(val => { rbLinksHtml += makeProviderLink(val.p, val.type, 'popup', { type: val.type }); });
-
-      const extraStreamingCount = Math.max(0, userFlatrate.length - visibleFlatrate.length);
 
       if (!window.moviePopupDataCache) window.moviePopupDataCache = new Map();
       window.moviePopupDataCache.set(movieObj.id, {
@@ -4024,23 +3902,27 @@
         rbLinksHtml,
         rentBuyCount: rbMap.size,
         streamingCount: cleanFlatrate.length,
-        extraCount: extraStreamingCount,
+        extraCount: 0,
+        rbRegion: isVpnRentBuy ? (REGION_META[vpnRentBuyRegion]?.name || vpnRentBuyRegion) : '',
         hasVpnLinks: !!(vpnModeEnabled && (isVpnUnlocked || isVpnRentBuy))
       });
 
-      const displayExtraCount = extraStreamingCount > 0 ? `+${extraStreamingCount}` : (otherFlatrate.length > 0 ? `+${otherFlatrate.length}` : (cleanFlatrate.length > 0 ? `${cleanFlatrate.length}` : ''));
-      const extraBtnHtml = `<button type="button" onclick="openExtraStreamingPopup(${movieObj.id})" class="w-full py-2 px-1.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white text-xs font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm min-w-0"><span class="flex items-center gap-1 sm:gap-1.5 truncate min-w-0"><svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg><span class="truncate">More</span></span>${displayExtraCount ? `<span class="bg-white/10 px-1.5 py-0.5 rounded-md text-[10px] sm:text-[10.5px] font-black text-gray-300 shrink-0 ml-0.5">${displayExtraCount}</span>` : `<svg class="w-3 h-3 text-gray-400 shrink-0 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>`}</button>`;
-      const rentBuyBtnHtml = `<button type="button" onclick="openRentBuyPopup(${movieObj.id})" class="w-full py-2 px-1.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-gray-300 hover:text-white text-xs font-extrabold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-sm min-w-0"><span class="flex items-center gap-1 sm:gap-1.5 truncate min-w-0"><svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg><span class="truncate">Rent / Buy</span></span><span class="bg-white/10 px-1.5 py-0.5 rounded-md text-[10px] sm:text-[10.5px] font-black text-gray-300 shrink-0 ml-0.5">${rbMap.size}</span></button>`;
-      const rentBuyDropdownHtml = `<div class="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2 border-t border-white/10 shrink-0">${extraBtnHtml}${rentBuyBtnHtml}${vpnToggleBtnHtml}</div>`;
+      // Rent or buy, and services you don't have: two buttons side by side, each opening a list.
+      const stack = (list) => `<span class="wp-stack">${list.slice(0, 3).map(p => makeProviderLink(p, '', 'logo')).join('')}</span>`;
+      const chevron = '<svg class="wp-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"></path></svg>';
+      const rbList = [...rbMap.values()].map(v => v.p);
+      const moreBtns = [
+        rbList.length ? `<button type="button" class="wp-more-btn" onclick="openRentBuyPopup(${movieObj.id})">${stack(rbList)}<span class="wp-text"><span class="wp-name">Rent or buy</span><span class="wp-sub">${rbList.length} ${rbList.length === 1 ? 'service' : 'services'}</span></span>${chevron}</button>` : '',
+        otherFlatrate.length ? `<button type="button" class="wp-more-btn" onclick="openExtraStreamingPopup(${movieObj.id})">${stack(otherFlatrate)}<span class="wp-text"><span class="wp-name">Other services</span><span class="wp-sub">${otherFlatrate.length} ${otherFlatrate.length === 1 ? 'service' : 'services'}</span></span>${chevron}</button>` : ''
+      ].join('');
 
-      if (isModal) {
-        return `<div class="${streamingGridClass}">${streamingHtml}</div>${rentBuyDropdownHtml}`;
-      }
+      // The VPN switch sits in the section heading; re-renders refresh it there.
+      movieObj._wnToggleHtml = vpnToggleBtnHtml;
+      const headSlot = typeof document !== 'undefined' ? document.getElementById('wnHeadToggle') : null;
+      if (headSlot) headSlot.innerHTML = vpnToggleBtnHtml;
 
-      return `<div class="${isDesktop ? 'flex-1 flex flex-col min-h-0 pb-2.5' : 'flex-1 flex flex-col min-h-0 pb-1'}"><div class="${streamingGridClassHFull}">${streamingHtml}</div></div>${rentBuyDropdownHtml}`;
-    }
-
-    function isMovieVpnActive(movieObj, details) {
+      return `<div class="wp-main">${streamingHtml}</div>${moreBtns ? `<div class="wp-more">${moreBtns}</div>` : ''}`;
+    }    function isMovieVpnActive(movieObj, details) {
       if (!vpnModeEnabled || !movieObj) return false;
       if (typeof movieObj._hasVpnActive === 'boolean') return movieObj._hasVpnActive;
       if (movieObj.vpnInfo) return true;
@@ -4101,7 +3983,7 @@
         const seasons = details.number_of_seasons;
         const episodes = details.number_of_episodes;
         if (seasons && episodes) {
-          runtime = `${seasons} ${seasons === 1 ? 'Season' : 'Seasons'} • ${episodes} ${episodes === 1 ? 'Episode' : 'Episodes'}`;
+          runtime = `${seasons} ${seasons === 1 ? 'season' : 'seasons'}, ${episodes} ${episodes === 1 ? 'episode' : 'episodes'}`;
         } else if (episodes) {
           runtime = `${episodes} ${episodes === 1 ? 'Episode' : 'Episodes'}`;
         } else if (seasons) {
@@ -4109,7 +3991,7 @@
         }
       } else if (details && details.runtime) {
         runtime = `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m`;
-      } const genres = details && details.genres ? details.genres.map(g => escapeHTML(g.name)).slice(0, 3).join(' • ') : ''; const overview = details && details.overview ? escapeHTML(details.overview) : 'No synopsis available.';
+      } const genres = details && details.genres ? details.genres.map(g => escapeHTML(g.name)).slice(0, 3).join(', ') : ''; const overview = details && details.overview ? escapeHTML(details.overview) : 'No synopsis available.';
       const titleLogo = getBestTitleLogo(details);
       const titleHeaderHtml = titleLogo
         ? `<img src="${titleLogo}" alt="${safeTitle}" loading="eager" decoding="async" class="titleLogoImg max-h-20 sm:max-h-28 max-w-[280px] sm:max-w-[440px] object-contain mb-2 shrink-0" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`
@@ -4122,9 +4004,9 @@
       const cachedImdbRating = imdbId ? imdbRatingCache.get(imdbId) : null;
       let modalRatingBadgeHtml = '';
       if (cachedImdbRating) {
-        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" title="IMDb Rating: ${cachedImdbRating}/10"><span class="bg-[#F5C518] text-black font-black px-1.5 py-0.5 rounded-[3px] text-[10px] sm:text-[11px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">${cachedImdbRating}</span></div>`;
+        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" title="IMDb Rating: ${cachedImdbRating}/10">${IMDB_TAG_HTML}<span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">${cachedImdbRating}</span></div>`;
       } else if (imdbId) {
-        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" title="Loading IMDb rating..."><span class="bg-[#F5C518] text-black font-black px-1.5 py-0.5 rounded-[3px] text-[10px] sm:text-[11px] leading-none select-none tracking-tighter" style="font-family: Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.04em;">IMDb</span><span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none animate-pulse">...</span></div>`;
+        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" title="Loading IMDb rating...">${IMDB_TAG_HTML}<span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none animate-pulse">...</span></div>`;
         setTimeout(() => { resolveImdbRatingBadges(imdbId, isTvMedia); }, 0);
 
       }
@@ -4170,49 +4052,19 @@
       const totalCastCount = directors.length + allCast.length;
       let castCrewHtml = '';
       if (crewAndCast.length > 0) {
-        let chips = crewAndCast.map(p => {
-          const pImg = p.profile_path ? `https://image.tmdb.org/t/p/w185${p.profile_path}` : null;
-          const pName = escapeHTML(p.name);
-          const pRole = escapeHTML(p._role);
-          const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
-          return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging) { openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint); }" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 shrink-0 group/person cursor-pointer select-none relative">
-            <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
-              <div class="w-full h-full rounded-full overflow-hidden">
-                ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" draggable="false" ondragstart="return false;" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-lg font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
-              </div>
-            </div>
-            <div class="spotify-marquee-container w-full pointer-events-none">
-              <span class="spotify-marquee-text text-[13px] sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">${pName}</span>
-            </div>
-            ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-0.5"><span class="spotify-marquee-text text-[11.5px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
-          </div>`;
-        }).join('');
-
-        const seeAllChip = `<div onclick="if(!window.isCastDragging) openFullCastModal(${isPage ? 'true' : 'false'})" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 shrink-0 group/person cursor-pointer select-none relative">
-          <div class="glow-card w-full aspect-square rounded-full border border-white/10 shadow-lg bg-gray-800 shrink-0 relative flex items-center justify-center">
-            <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-          </div>
-          <div class="spotify-marquee-container w-full pointer-events-none">
-            <span class="spotify-marquee-text text-[13px] sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">View All</span>
-          </div>
-          <div class="spotify-marquee-container w-full pointer-events-none -mt-0.5">
-            <span class="spotify-marquee-text text-[11.5px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${totalCastCount} People</span>
-          </div>
-        </div>`;
-
-        chips += seeAllChip;
-
-        castCrewHtml = `<div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Cast &amp; Crew</h3></div><div class="relative group/cast"><button id="castPrevBtn" type="button" onclick="scrollCastTrack(-1, event)" aria-label="Scroll cast left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="castNextBtn" type="button" onclick="scrollCastTrack(1, event)" aria-label="Scroll cast right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/cast:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button><div id="castCrewTrack" class="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-0 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${chips}</div></div></div>`;
-      }
-      const bestTrailer = getBestTrailer(details);
+        const chips = crewAndCast.map((p, i) => personCardHTML(p, { role: p._role, index: i })).join('')
+          + `<button type="button" class="person-card person-card-more cast-chip-card" onclick="if(!window.isCastDragging) openFullCastModal(${isPage ? 'true' : 'false'})"><span class="person-card-photo"><span class="person-card-more-count">${totalCastCount}</span></span><span class="person-card-name">Everyone</span><span class="person-card-role">Full cast and crew</span></button>`;
+        const arrow = (id, dir, label) => `<button id="${id}" type="button" onclick="scrollCastTrack(${dir}, event)" aria-label="${label}" class="rail-arrow rail-arrow-${dir < 0 ? 'prev' : 'next'}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="${dir < 0 ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'}"></path></svg></button>`;
+        castCrewHtml = `<section class="page-section"><div class="section-head"><h2 class="section-title">Cast and crew</h2><button type="button" class="link-btn" onclick="openFullCastModal(${isPage ? 'true' : 'false'})">See all ${totalCastCount}</button></div><div class="rail-wrap">${arrow('castPrevBtn', -1, 'Scroll cast left')}${arrow('castNextBtn', 1, 'Scroll cast right')}<div id="castCrewTrack" class="rail rail-people">${chips}</div></div></section>`;
+      }      const bestTrailer = getBestTrailer(details);
       const isMobileDevice = isMobile || (typeof window !== 'undefined' && window.innerWidth < 640);
       const heroTrailer = (!isMobileDevice && bestTrailer && bestTrailer.official && /trailer/i.test(bestTrailer.name || '')) ? bestTrailer : null;
       const btnClass = "w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 rounded-xl sm:rounded-2xl transition-all text-white shadow-sm shrink-0 cursor-pointer";
       const actionBtnClass = "w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 sm:w-12 sm:h-12 rounded-[22.5%] overflow-hidden shadow-sm shrink-0 active:scale-95 hover:brightness-110 transition-all block cursor-pointer";
       const socialBtnClass = `${actionBtnClass} grayscale hover:grayscale-0`;
-      const trailerBtnClass = "flex items-center justify-center gap-2 sm:gap-2.5 liquid-glass px-4 py-2.5 sm:px-5 sm:py-3.5 rounded-xl transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-white w-full sm:w-auto sm:min-w-[150px] whitespace-nowrap shadow-md cursor-pointer active:scale-95";
+      const trailerBtnClass = "btn btn-quiet hero-trailer-btn";
       
-      const watchNowHeaderHtml = `<div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div>`;
+      const watchNowHeaderHtml = `<div class="section-head"><h2 class="section-title">Watch now</h2></div>`;
 
       const hasMovieHistory = isModal ? watchlistModalHistoryStack.length > 0 : quickSearchHistoryStack.length > 0;
       const movieBackBtn = hasMovieHistory ? `<button id="movieBackBtn" type="button" onclick="navGoBack()" aria-label="Go back" class="pointer-events-auto mt-[max(1rem,calc(env(safe-area-inset-top,0px)+0.5rem))] ml-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>` : '';
@@ -4252,8 +4104,8 @@
         `;
       }
       const trailerHeaderBtn = bestTrailer
-        ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${trailerBtnClass} cursor-pointer"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></button>`
-        : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${trailerBtnClass}"><svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0 text-blue-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Watch Trailer</span></a>`;
+        ? `<button data-trailer-key="${escapeHTML(bestTrailer.key)}" data-movie-title="${safeTitle}" onclick="openTrailerModal(this.dataset.trailerKey, this.dataset.movieTitle)" class="${trailerBtnClass} cursor-pointer"><svg class="hero-trailer-icon" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span>Trailer</span></button>`
+        : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(movieObj.title + ' official trailer')}" target="_blank" class="${trailerBtnClass}"><svg class="hero-trailer-icon" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span>Trailer</span></a>`;
       const pageTrailerBtnHtml = trailerHeaderBtn;
       const shareParam = movieObj.mediaType === 'tv' ? 'tv' : 'movie';
       const shareBtn = `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}'); const t=this; const old=t.innerHTML; t.innerHTML='<svg class=\\'w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 text-green-400\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M5 13l4 4L19 7\\'/></svg>'; setTimeout(()=>t.innerHTML=old, 2000);" title="Copy Link" aria-label="Copy Link" class="${btnClass} cursor-pointer"><svg class="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></button>`;
@@ -4262,6 +4114,14 @@
         ? '<div class="w-px h-5 sm:h-6 bg-white/10 my-auto shrink-0 mx-0.5 sm:mx-1"></div>'
         : '';
       const movieActionBtns = [...primaryFilmBtns, divider, shareBtn, socialsDrawerHtml].filter(Boolean);
+      const pageUrl = `${window.location.origin}${window.location.pathname}?${shareParam}=${movieObj.id}`;
+      const filmFooterLinks = [
+        { label: 'Letterboxd', href: `https://letterboxd.com/tmdb/${movieObj.id}` },
+        imdbId ? { label: 'IMDb', href: `https://www.imdb.com/title/${escapeHTML(imdbId)}/` } : null,
+        { label: 'TMDB', href: `https://www.themoviedb.org/${tmdbMediaType}/${movieObj.id}` },
+        ...socialsList.map(s => ({ label: s.name, href: s.url })),
+        { label: 'Copy link', onclick: `copyPageLink(this, '${pageUrl}')` }
+      ];
       const movieActionBtnsHtml = `<div class="flex items-center justify-center lg:justify-start gap-1.5 min-[360px]:gap-2 sm:gap-3 flex-nowrap w-full lg:w-auto overflow-x-auto max-w-full no-scrollbar">${movieActionBtns.join('')}</div>`;
 
       const overviewHtml = createExpandableTextHtml(overview, 'movieOverviewText');
@@ -4307,170 +4167,96 @@
         });
         const watchlistIds = new Set(scannedMovies.map(m => m.id));
         const collectionName = (collectionData && collectionData.name) || (details && details.belongs_to_collection && details.belongs_to_collection.name) || 'Related Movies, Series & Franchises';
-        const relatedCards = collectionParts.map((m) => {
-          const mTitle = escapeHTML(m.title || m.name || '');
-          const mMediaType = m.mediaType || m.media_type || (m.name && !m.title ? 'tv' : (movieObj.mediaType === 'tv' ? 'tv' : 'movie'));
-          m.mediaType = mMediaType;
-          const mPoster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : (m.poster || null);
-          const mDate = m.release_date || m.first_air_date || m.releaseDate || '';
-          const mYear = mDate ? mDate.split('-')[0] : '';
-          const isInWatchlist = watchlistIds.has(m.id);
-          const isCurrentMovie = m.id === movieObj.id;
-          const activeBorderClass = isCurrentMovie ? 'border border-blue-500' : 'border border-white/5';
-          const ratingBadgeHtml = isCurrentMovie
-            ? `<div class="poster-corner-badge absolute top-2.5 right-2.5 bg-blue-600/95 text-white font-extrabold text-[10px] uppercase tracking-wider">Viewing</div>`
-            : renderPosterRatingBadgeHtml(m);
-          return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 ${isCurrentMovie ? '' : 'sm:hover:scale-[1.03]'}" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isCurrentMovie ? '' : (isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`)}">
-            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 ${activeBorderClass} h-full" data-movie-card-id="${m.id}">
-              <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-                ${mPoster ? `<img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
-                <div class="glare"></div>
-              </div>
-              ${ratingBadgeHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
-            </div>
-          </div>`;
-        }).join('');
-
-        const hasRelatedScroll = collectionParts.length > 5;
-        const relatedScrollBtns = hasRelatedScroll
-          ? `<button id="relatedPrevBtn" type="button" onclick="scrollRelatedTrack(-1, event)" aria-label="Scroll related films left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/related:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="relatedNextBtn" type="button" onclick="scrollRelatedTrack(1, event)" aria-label="Scroll related films right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/related:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button>`
-          : '';
-
         const isTvItem = movieObj.mediaType === 'tv';
-        const sectionTitle = isTvItem ? (collectionName.includes('Franchise') || collectionName.includes('Series') ? collectionName : `Related Movies, Series & Franchises`) : collectionName;
-        const countLabel = isTvItem ? (collectionParts.length === 1 ? 'Series' : 'Series') : (collectionParts.length === 1 ? 'Film' : 'Films');
-
-        relatedHtml = `<div class="space-y-3"><div class="flex items-center gap-2.5 flex-wrap"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400 flex items-center gap-2"><svg class="w-5 h-5 fill-current text-blue-400 shrink-0" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg><span>${escapeHTML(sectionTitle)}</span></h3><span class="hidden sm:inline-flex bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>${collectionParts.length} ${countLabel}</span></div><div class="relative group/related">${relatedScrollBtns}<div id="relatedMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${relatedCards}</div></div></div>`;
+        const relatedCards = collectionParts.map((m, i) => {
+          const mMediaType = m.mediaType || m.media_type || (m.name && !m.title ? 'tv' : (isTvItem ? 'tv' : 'movie'));
+          m.mediaType = mMediaType;
+          const open = isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`;
+          return posterCardHTML(m, { onclick: open, current: m.id === movieObj.id, index: i });
+        }).join('');
+        const arrow = (id, dir, fn, label) => `<button id="${id}" type="button" onclick="${fn}(${dir}, event)" aria-label="${label}" class="rail-arrow rail-arrow-${dir < 0 ? 'prev' : 'next'}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="${dir < 0 ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'}"></path></svg></button>`;
+        const sectionTitle = isTvItem && !/Franchise|Series/.test(collectionName) ? 'Related films and series' : collectionName;
+        const countLabel = isTvItem ? `${collectionParts.length} titles` : `${collectionParts.length} films`;
+        relatedHtml = `<section class="page-section"><div class="section-head"><h2 class="section-title">${escapeHTML(sectionTitle)}</h2><span class="section-count">${countLabel}</span></div><div class="rail-wrap">${arrow('relatedPrevBtn', -1, 'scrollRelatedTrack', 'Scroll left')}${arrow('relatedNextBtn', 1, 'scrollRelatedTrack', 'Scroll right')}<div id="relatedMoviesTrack" class="rail rail-posters">${relatedCards}</div></div></section>`;
       }
-
-
-
       // Filter out any movies that are already present in the Collection track from Similar Movies
       const collectionMovieIds = new Set(collectionParts.map(m => m.id));
       const recs = combinedRecs.filter(m => !collectionMovieIds.has(m.id)).slice(0, 28);
       let similarHtml = '';
       if (recs.length > 0) {
-        const watchlistIds = new Set(scannedMovies.map(m => m.id));
-        const recCards = recs.map((m, idx) => {
-          const mTitle = escapeHTML(m.title || m.name || '');
+        const recCards = recs.map((m, i) => {
           const mMediaType = m.mediaType || m.media_type || (m.name && !m.title ? 'tv' : (movieObj.mediaType === 'tv' ? 'tv' : 'movie'));
           m.mediaType = mMediaType;
-          const mPoster = `https://image.tmdb.org/t/p/w500${m.poster_path}`;
-          const mDate = m.release_date || m.first_air_date || '';
-          const mYear = mDate ? mDate.split('-')[0] : '';
-          const isInWatchlist = watchlistIds.has(m.id);
-          const ratingBadgeHtml = renderPosterRatingBadgeHtml(m);
-          return `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative transition-transform duration-200 sm:hover:scale-[1.03]" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`}">
-            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full" data-movie-card-id="${m.id}">
-              <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-                <img src="${mPoster}" alt="${mTitle}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.3s ease-out;" class="w-full h-full object-cover">
-                <div class="glare"></div>
-              </div>
-              ${ratingBadgeHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
-            </div>
-          </div>`;
+          const open = isPage ? `openMoviePageById(${m.id}, '', '${mMediaType}')` : `handleSimilarMovieClick(${m.id}, '', ${isModal ? 'false' : 'true'}, '${mMediaType}')`;
+          return posterCardHTML(m, { onclick: open, index: i });
         }).join('');
-        const hasSimilarScroll = recs.length > 5;
-        const similarScrollBtns = hasSimilarScroll
-          ? `<button id="similarPrevBtn" type="button" onclick="scrollSimilarTrack(-1, event)" aria-label="Scroll similar films left" class="hidden sm:flex absolute -left-7 sm:-left-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/similar:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4L4 18L11 32"></path></svg></button><button id="similarNextBtn" type="button" onclick="scrollSimilarTrack(1, event)" aria-label="Scroll similar films right" class="hidden sm:flex absolute -right-7 sm:-right-8 inset-y-0 z-40 w-6 hover:scale-110 active:scale-95 text-white/70 hover:text-white items-center justify-center transition-all duration-200 cursor-pointer opacity-0 group-hover/similar:opacity-100"><svg class="w-4 h-9" fill="none" stroke="currentColor" viewBox="0 0 16 36" style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9))"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 4L12 18L5 32"></path></svg></button>`
-          : '';
-        similarHtml = `<div class="space-y-3"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">More Like This</h3><div class="relative group/similar">${similarScrollBtns}<div id="similarMoviesTrack" class="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent cursor-grab select-none scroll-smooth">${recCards}</div></div></div>`;
+        const arrow = (id, dir, label) => `<button id="${id}" type="button" onclick="scrollSimilarTrack(${dir}, event)" aria-label="${label}" class="rail-arrow rail-arrow-${dir < 0 ? 'prev' : 'next'}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="${dir < 0 ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'}"></path></svg></button>`;
+        similarHtml = `<section class="page-section"><div class="section-head"><h2 class="section-title">More like this</h2></div><div class="rail-wrap">${arrow('similarPrevBtn', -1, 'Scroll left')}${arrow('similarNextBtn', 1, 'Scroll right')}<div id="similarMoviesTrack" class="rail rail-posters">${recCards}</div></div></section>`;
       }
-
       const initialMuteParam = isHeroVideoMuted ? 1 : 0;
       const soundIconsInnerHtml = `<svg class="heroSoundIconMuted w-4 h-4 sm:w-5 sm:h-5 ${isHeroVideoMuted ? '' : 'hidden'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg><svg class="heroSoundIconUnmuted w-4 h-4 sm:w-5 sm:h-5 ${isHeroVideoMuted ? 'hidden' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>`;
-      const soundBtnInlineHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn liquid-glass shrink-0 w-8 h-8 sm:w-12 sm:h-12 rounded-full sm:rounded-xl flex items-center justify-center active:scale-95 text-gray-300 hover:text-white transition-all cursor-pointer">${soundIconsInnerHtml}</button>` : '';
+      const soundBtnInlineHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Sound on or off" class="heroSoundToggleBtn btn btn-quiet btn-lg hero-icon-btn">${soundIconsInnerHtml}</button>` : '';
       const soundBtnHtml = heroTrailer ? `<button type="button" onclick="toggleHeroVideoSound()" title="${isHeroVideoMuted ? 'Unmute' : 'Mute'}" aria-label="Toggle sound" class="heroSoundToggleBtn liquid-glass hidden sm:flex absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full items-center justify-center active:scale-95 text-white transition-all cursor-pointer pointer-events-auto">${soundIconsInnerHtml}</button>` : '';
       const heroVideoHtml = heroTrailer ? `<div class="absolute inset-0 overflow-hidden pointer-events-none z-10 clip-mask"><iframe id="heroVideoIframe" src="https://www.youtube.com/embed/${heroTrailer.key}?autoplay=1&mute=${initialMuteParam}&controls=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&modestbranding=1&iv_load_policy=3&rel=0&vq=hd1080&cc_load_policy=0&cc_lang_pref=none&hl=en" title="${safeTitle} preview" allow="autoplay; encrypted-media" class="absolute pointer-events-none opacity-0 transition-opacity duration-700 transform-gpu" onload="onHeroVideoLoad(this)"></iframe></div><div id="heroFadeOverlay" class="absolute inset-0 bg-black opacity-0 transition-opacity duration-500 pointer-events-none z-15"></div>` : '';
 
 
       if (isPage) {
+        const watchBoxHtml = renderMovieWatchOptionsBox(movieObj, details, true, false);
+        const metaSep = '<span class="hero-meta-sep" aria-hidden="true">·</span>';
+        const heroMetaHtml = `<div class="hero-meta">${[modalRatingBadgeHtml, year && year !== 'N/A' ? `<span>${year}</span>` : '', runtime ? `<span>${runtime}</span>` : '', genres ? `<span>${genres}</span>` : ''].filter(Boolean).join(metaSep)}</div>`;
+        const heroActionsHtml = `${pageTrailerBtnHtml}${soundBtnInlineHtml}`;
         const heroBackdropUrl = movieObj.backdrop ? movieObj.backdrop.replace('/t/p/w1280/', '/t/p/original/') : null;
         const hasHero = !!(heroBackdropUrl || heroTrailer);
         const heroPosterUrl = getTextlessPosterUrl(details, movieObj.poster);
         const heroBannerSectionHtml = hasHero
           ? `<div class="relative w-full hero-mobile-aspect">
-              <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">
+              <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0a0a0b] clip-mask">
                 ${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-landscape-block w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}
                 ${heroPosterUrl ? `<img src="${heroPosterUrl}" alt="${safeTitle} poster" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : `<div class="hero-portrait-block w-full h-full bg-gray-900"></div>`}
-                ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] lg:h-[70%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] via-15% via-[#0b1121]/80 via-40% via-[#0b1121]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div>
+                ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] lg:h-[70%] bg-gradient-to-t from-[#0a0a0b] from-0% via-[#0a0a0b] via-15% via-[#0a0a0b]/80 via-40% via-[#0a0a0b]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div>
               </div>
               <!-- Content overlay: sits directly over the bottom of the poster/backdrop on all screens -->
               <div class="absolute inset-x-0 bottom-0 z-30 pointer-events-none pb-5 sm:pb-10 lg:pb-12">
-                <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-6">
-                  <div class="w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl min-w-0 pointer-events-auto flex flex-col items-center lg:items-start gap-2 sm:gap-2.5 mx-auto lg:mx-0">
+                <div class="page-width hero-layout">
+                  <div class="hero-copy">
                     ${pageTitleHeaderHtml}
-                    <!-- Rating, Year, Runtime & Genres (Single unbroken row) -->
-                    <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg 2xl:text-xl font-bold text-gray-200 whitespace-nowrap overflow-hidden max-w-full">
-                      ${modalRatingBadgeHtml}
-                      ${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}
-                      <span class="text-white font-extrabold shrink-0">${year}</span>
-                      ${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}
-                      ${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}
-                    </div>
-                    <div class="mt-1 w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
+                    ${heroMetaHtml}
+                    ${createHeroOverviewHtml(overview, safeTitle)}
                   </div>
-                  <div class="hidden lg:flex items-center gap-2.5 sm:gap-3 pointer-events-auto shrink-0 mt-1 lg:mt-0">
-                    ${pageTrailerBtnHtml}
-                    ${soundBtnInlineHtml ? soundBtnInlineHtml.replace('sm:hidden', '') : ''}
-                  </div>
+                  <div class="hero-actions hero-actions-side pointer-events-auto">${heroActionsHtml}</div>
                 </div>
               </div>
             </div>`
-          : `<div class="relative w-full pt-24 pb-8 sm:pb-12 bg-gradient-to-b from-[#111827] via-[#0f172a] to-[#0b1121] border-b border-white/5">
-              <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-                <div class="w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl min-w-0 flex flex-col items-center lg:items-start mx-auto lg:mx-0">
+          : `<div class="relative w-full pt-24 pb-8 sm:pb-12 bg-gradient-to-b from-[#151517] via-[#151517] to-[#0a0a0b] border-b border-white/5">
+              <div class="page-width hero-layout">
+                <div class="hero-copy">
                   ${pageTitleHeaderHtml}
-                  <div class="flex flex-nowrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg 2xl:text-xl font-bold text-gray-200 mt-2 whitespace-nowrap overflow-hidden max-w-full">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold shrink-0">${year}</span>${runtime ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="shrink-0">${runtime}</span>` : ''}${genres ? `<span class="text-gray-500 shrink-0">&bull;</span><span class="text-white font-semibold truncate">${genres}</span>` : ''}</div>
-                  <div class="mt-3 w-full max-w-full lg:max-w-3xl 2xl:max-w-4xl text-left">${createHeroOverviewHtml(overview, safeTitle)}</div>
+                  ${heroMetaHtml}
+                  ${createHeroOverviewHtml(overview, safeTitle)}
                 </div>
-                <div class="hidden lg:flex items-center gap-2.5 sm:gap-3 pointer-events-auto shrink-0">${pageTrailerBtnHtml}${soundBtnInlineHtml ? soundBtnInlineHtml.replace('sm:hidden', '') : ''}</div>
+                <div class="hero-actions hero-actions-side pointer-events-auto">${heroActionsHtml}</div>
               </div>
             </div>`;
 
-        return `<nav id="moviePageNav" class="movie-page-nav fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 lg:px-12 2xl:px-16 pointer-events-none">
-            <button type="button" onclick="closeMoviePage()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-            <button type="button" onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-          </nav>
+        return `${pageNavHTML('closeMoviePage()', 'goHomeFromPage()', 'moviePageNav')}
           ${heroBannerSectionHtml}
-          <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 ${hasHero ? 'pt-0' : 'pt-8'} pb-0 flex flex-col gap-7 sm:gap-9 lg:gap-11">
-            <div class="lg:hidden space-y-3">
-              ${watchNowHeaderHtml}
-              <div id="mobileWatchOptionsBox" class="watch-options-box p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col justify-between gap-2.5">
-                ${renderMovieWatchOptionsBox(movieObj, details, false, false)}
-              </div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px] 2xl:grid-cols-[1fr_440px] gap-x-8 xl:gap-x-10 items-start">
-              <div class="min-w-0">${castCrewHtml}</div>
-              <aside class="hidden lg:flex flex-col space-y-3">
-                ${watchNowHeaderHtml}
-                <div id="desktopWatchOptionsBox" class="watch-options-box p-3 sm:p-3.5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col justify-between" style="height: 146px; min-height: 146px;">
-                  ${renderMovieWatchOptionsBox(movieObj, details, true, false)}
-                </div>
-              </aside>
+          <div class="page-width film-body">
+            <div class="film-top${castCrewHtml ? '' : ' no-cast'}">
+              ${castCrewHtml}
+              <section class="page-section film-watch" aria-label="Where to watch">
+                <div class="section-head"><h2 class="section-title">Where to watch</h2><div id="wnHeadToggle" class="section-head-end">${movieObj._wnToggleHtml || ''}</div></div>
+                <div id="desktopWatchOptionsBox" class="watch-panel">${watchBoxHtml}</div>
+              </section>
             </div>
             ${relatedHtml ? `<div class="min-w-0">${relatedHtml}</div>` : ''}
             ${similarHtml ? `<div class="min-w-0">${similarHtml}</div>` : ''}
           </div>
-          <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 mt-6 sm:mt-7 pb-8 sm:pb-10">
-            <div class="pt-6 border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              ${movieActionBtnsHtml}
-              <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
-                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5">
-                  <a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
-                  <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span>
-                </div>
-                <p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p>
-              </div>
-            </div>
-          </div>`;
+          <div class="page-width">${pageFooterHTML(filmFooterLinks, `<p id="moviePageVpnFootnote" class="page-note movie-page-vpn-footnote ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">Some streaming services may detect or block VPN connections.</p>`)}</div>`;
       }
       const hasModalHero = !!(movieObj.backdrop || heroTrailer);
       const modalHeaderHeight = hasModalHero ? 'h-[360px] sm:h-[460px]' : 'h-auto pt-16 pb-6';
       const modalMobilePoster = getTextlessPosterUrl(details, movieObj.poster);
-      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0b1121] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] via-15% via-[#0b1121]/80 via-40% via-[#0b1121]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-7 sm:gap-9 bg-[#0b1121] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-white font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div>${overviewHtml}</div><div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch Now</h3></div><div id="modalWatchOptionsBox" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-black/40 border border-blue-500/25 shadow-lg flex flex-col gap-2.5">${renderMovieWatchOptionsBox(movieObj, details, false, true)}</div></div>${castCrewHtml}${relatedHtml}${similarHtml}</div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div><p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p></div></div>`;
+      return `${closeBtn}<div class="relative w-full ${modalHeaderHeight} shrink-0 rounded-t-3xl"><div class="absolute inset-0 rounded-t-3xl overflow-hidden bg-[#0a0a0b] clip-mask">${modalMobilePoster ? `<img src="${modalMobilePoster}" alt="${safeTitle} poster" loading="eager" decoding="async" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : ""}${movieObj.backdrop ? `<img src="${movieObj.backdrop}" alt="${safeTitle} backdrop" loading="eager" decoding="async" class="hero-landscape-block w-full h-full object-cover object-[center_15%] transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] bg-gradient-to-t from-[#0a0a0b] from-0% via-[#0a0a0b] via-15% via-[#0a0a0b]/80 via-40% via-[#0a0a0b]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div></div><div class="absolute inset-0 p-6 sm:p-8 flex items-end justify-between gap-6 z-30 pointer-events-none"><div class="flex flex-col justify-end items-start h-auto max-w-[calc(100%-4rem)] min-w-0 pointer-events-auto">${titleHeaderHtml}</div></div></div><div class="relative p-6 sm:p-8 pt-4 sm:pt-6 flex flex-col gap-7 sm:gap-9 bg-[#0a0a0b] z-0"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-4"><div class="flex flex-wrap items-center gap-3 text-sm font-bold text-gray-200">${modalRatingBadgeHtml}${modalRatingBadgeHtml ? `<span class="text-gray-500 shrink-0 rating-sep">&bull;</span>` : ''}<span class="text-white font-extrabold">${year}</span>${runtime ? `<span class="text-gray-500">&bull;</span><span>${runtime}</span>` : ''}${genres ? `<span class="text-gray-500">&bull;</span><span class="text-white font-semibold text-sm sm:text-base">${genres}</span>` : ''}</div><div class="flex items-center gap-3">${trailerHeaderBtn ? `<div class="flex-1 sm:flex-none sm:shrink-0">${trailerHeaderBtn}</div>` : ''}${soundBtnInlineHtml}</div></div><div>${overviewHtml}</div><div class="space-y-3"><div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-blue-400">Watch now</h3></div><div id="modalWatchOptionsBox" class="watch-options-box wn-box">${renderMovieWatchOptionsBox(movieObj, details, false, true)}</div></div>${castCrewHtml}${relatedHtml}${similarHtml}</div><div class="bg-[#0a0a0b] p-5 sm:px-8 sm:py-5 ${isModal ? 'rounded-b-3xl' : 'rounded-b-2xl sm:rounded-b-3xl'} border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 z-10">${movieActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="/icons/tmdb-logo.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div><p id="moviePageVpnFootnote" class="movie-page-vpn-footnote text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center lg:text-right w-full lg:w-auto ${isMovieVpnActive(movieObj, details) ? '' : 'hidden'}">*Some streaming services may detect or restrict VPN connections</p></div></div>`;
     }
 
     function getShortText(text, limit = 195) {
@@ -4480,8 +4266,7 @@
       return lastSpace > 90 ? sub.slice(0, lastSpace) : sub;
     }
 
-    // ---- Generic popup (Insights, full description text, etc.) ----
-    let statsBarOriginalParent = null;
+    // ---- Generic popup (full description text, etc.) ----
     function closeGenericPopup() {
       const overlay = document.getElementById('genericPopupOverlay');
       const content = document.getElementById('genericPopupContent');
@@ -4500,14 +4285,6 @@
         overlay.classList.remove('flex', 'popup-overlay-out');
         if (content) content.classList.remove('popup-animate-out');
 
-        const bar = document.getElementById('statsBar');
-        if (bar && statsBarOriginalParent) {
-          statsBarOriginalParent.appendChild(bar);
-          statsBarOriginalParent = null;
-          bar.classList.add('hidden');
-          bar.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-4', 'gap-2.5', 'sm:gap-3');
-          if (el.statsBtn) el.statsBtn.classList.remove('vpn-active');
-        }
       }, 220);
     }
     function handleSpotifyMarqueeEnter(cardEl) {
@@ -4628,60 +4405,27 @@
       _openGenericPopupAnimated();
     }
 
+    // "Other services" and "Rent or buy": the same rows as the Where to watch panel, in a list.
+    const vpnNote = '<p class="wp-pop-note">Some streaming services may detect or block VPN connections.</p>';
     window.openExtraStreamingPopup = function (movieId) {
       const data = window.moviePopupDataCache ? window.moviePopupDataCache.get(movieId) : null;
       if (!data) return;
-      const hasUser = !!data.userFlatrateLinksHtml;
-      const hasOther = !!data.otherFlatrateLinksHtml;
-      const hasAny = hasUser || hasOther || (data.streamingCount > 0);
-
-      let html = '';
-      if (!hasAny) {
-        const fallbackMsg = (data && data.rentBuyCount > 0) ? 'Only available to rent or buy' : 'Not available to stream';
-        html = `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1">📺</span>
-          <span class="font-bold uppercase tracking-widest text-sm text-gray-400">${fallbackMsg}</span>
-          <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No streaming options found in this region.</span>
-        </div>`;
-      } else {
-        html = `<div class="space-y-6">
-          ${hasUser ? `
-            <div>
-              <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
-                Your Subscriptions
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.userFlatrateLinksHtml}</div>
-            </div>
-          ` : ''}
-          ${hasOther ? `
-            <div>
-              <h4 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-gray-500"></span>
-                Unsubscribed
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.otherFlatrateLinksHtml}</div>
-            </div>
-          ` : ''}
-          ${(data.hasVpnLinks || data.userFlatrateLinksHtml?.includes('via VPN*')) ? `<p class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center pt-2">*Some streaming services may detect or restrict VPN connections</p>` : ''}
-        </div>`;
-      }
-      openCustomPopup(data.title, html, 'Streaming Options');
+      const group = (title, rows) => rows ? `<div class="wp-pop-group">${title ? `<h4 class="wp-pop-group-title">${title}</h4>` : ''}<div class="wp-pop-list">${rows}</div></div>` : '';
+      const both = data.userFlatrateLinksHtml && data.otherFlatrateLinksHtml;
+      const html = (data.userFlatrateLinksHtml || data.otherFlatrateLinksHtml)
+        ? `<div class="wp-pop">${group(both ? 'Your services' : '', data.userFlatrateLinksHtml)}${group(both ? 'Needs a subscription' : '', data.otherFlatrateLinksHtml)}${data.hasVpnLinks ? vpnNote : ''}</div>`
+        : '<p class="wp-pop-empty">No other streaming services have it here.</p>';
+      openCustomPopup(data.userFlatrateLinksHtml && !data.otherFlatrateLinksHtml ? 'More of your services' : 'Other services', html);
     };
 
     window.openRentBuyPopup = function (movieId) {
       const data = window.moviePopupDataCache ? window.moviePopupDataCache.get(movieId) : null;
       if (!data) return;
       const html = data.rentBuyCount > 0
-        ? `<div class="space-y-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">${data.rbLinksHtml}</div>${(data.hasVpnLinks || data.rbLinksHtml?.includes('via VPN*')) ? `<p class="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-tight text-center pt-2">*Some streaming services may detect or restrict VPN connections</p>` : ''}</div>`
-        : `<div class="w-full bg-white/5 border border-white/10 px-6 py-10 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <span class="text-3xl opacity-60 mb-1">🛒</span>
-          <span class="font-bold uppercase tracking-widest text-sm text-gray-400">Not available to rent or buy</span>
-          <span class="text-xs text-gray-500 font-medium normal-case tracking-normal">No digital purchase or rental options found in this region.</span>
-        </div>`;
-      openCustomPopup(data.title, html, 'Rent & Buy Options');
+        ? `<div class="wp-pop"><div class="wp-pop-list">${data.rbLinksHtml}</div>${data.hasVpnLinks ? vpnNote : ''}</div>`
+        : '<p class="wp-pop-empty">Nobody rents or sells it here yet.</p>';
+      openCustomPopup(data.rbRegion ? `Rent or buy in ${escapeHTML(data.rbRegion)}` : 'Rent or buy', html);
     };
-
     function openTextPopup(title, text) {
       const body = document.getElementById('genericPopupBody');
       if (!body) return;
@@ -4691,53 +4435,6 @@
       body.scrollTop = 0;
     }
 
-    function openInsightsPopup() {
-      const bar = document.getElementById('statsBar');
-      const body = document.getElementById('genericPopupBody');
-      if (!bar || !body) return;
-      statsBarOriginalParent = bar.parentElement;
-
-      // Read current stat values
-      const total = document.getElementById('stat-total')?.textContent || '0';
-      const genre = document.getElementById('stat-genre')?.textContent || '-';
-      const decade = document.getElementById('stat-decade')?.textContent || '-';
-      const avg = document.getElementById('stat-avg')?.textContent || '-';
-
-      const statsHtml = `
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div class="insight-stat-card">
-            <span class="stat-icon">🎬</span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Total Films</span>
-              <span class="stat-value">${escapeHTML(total)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon">🍿</span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Top Genre</span>
-              <span class="stat-value">${escapeHTML(genre)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon">🕰</span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Top Decade</span>
-              <span class="stat-value">${escapeHTML(decade)}</span>
-            </div>
-          </div>
-          <div class="insight-stat-card">
-            <span class="stat-icon">⭐</span>
-            <div class="flex flex-col gap-0.5">
-              <span class="stat-label">Avg Rating</span>
-              <span class="stat-value">${escapeHTML(avg)}</span>
-            </div>
-          </div>
-        </div>`;
-
-      if (el.statsBtn) el.statsBtn.classList.add('vpn-active');
-      openCustomPopup('Watchlist Insights', statsHtml, 'Analytics');
-    }
     // 2-line-clamped hero description with a "More" link that opens the full text in the popup
     // above, instead of expanding inline (used on the full-page movie/actor hero).
     let heroOverviewCounter = 0;
@@ -4747,7 +4444,7 @@
       const id = 'heroOverview_' + (++heroOverviewCounter);
       heroOverviewTextStore[id] = { text: escapedText, popupTitle };
       setTimeout(() => clampHeroOverview(id), 0);
-      return `<p id="${id}" class="w-full max-w-full lg:max-w-2xl text-gray-200 text-base sm:text-lg leading-snug font-medium line-clamp-2">${escapedText}</p>`;
+      return `<p id="${id}" class="hero-overview w-full max-w-full lg:max-w-2xl line-clamp-3">${escapedText}</p>`;
     }
     // Measures the actual rendered paragraph and binary-searches for the longest prefix that still
     // fits on 2 lines once "… More" is appended — guarantees "More" lands as the real last word on
@@ -4756,10 +4453,10 @@
       const p = document.getElementById(id);
       const data = heroOverviewTextStore[id];
       if (!p || !data) return;
-      p.classList.remove('line-clamp-2');
+      p.classList.remove('line-clamp-3');
       const lineHeight = parseFloat(getComputedStyle(p).lineHeight) || 24;
-      const maxHeight = lineHeight * 2 + 2;
-      const moreSpan = `<span class="text-blue-400 font-extrabold">more</span>`;
+      const maxHeight = lineHeight * 3 + 2;
+      const moreSpan = `<span class="hero-overview-more">more</span>`;
       p.innerHTML = data.text;
       if (p.scrollHeight <= maxHeight) return;
       let lo = 0, hi = data.text.length;
@@ -4771,8 +4468,11 @@
         p.innerHTML = data.text.slice(0, mid).trim() + '… ' + moreSpan;
         if (p.scrollHeight <= maxHeight) lo = mid; else hi = mid - 1;
       }
-      const truncated = data.text.slice(0, lo).trim();
-      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="text-blue-400 font-extrabold cursor-pointer hover:text-blue-300 transition-colors">more</span>`;
+      // Never stop mid-word: back up to the last whole word that fits, and drop trailing punctuation.
+      let cut = data.text.slice(0, lo);
+      if (lo < data.text.length && /\S/.test(data.text[lo] || '')) cut = cut.replace(/\s+\S*$/, '');
+      const truncated = cut.trim().replace(/[,;:.\-–—]+$/, '');
+      p.innerHTML = `${truncated}… <span role="button" tabindex="0" onclick="openTextPopup('${escapeHTML(data.popupTitle).replace(/'/g, "\\'")}', heroOverviewTextStore['${id}'].text)" onkeydown="if(event.key==='Enter')this.click()" class="hero-overview-more">more</span>`;
     }
 
     function createExpandableTextHtml(text, id = '') {
@@ -4946,10 +4646,25 @@
 
     let heroRevealTimeout = null;
     let heroVideoFailed = false;
+    // The trailer replaces the backdrop only once YouTube reports it actually playing. Revealing
+    // on the timer alone covered the backdrop with a black, spinning player whenever autoplay was
+    // blocked (power saving, data saver, some browsers) or the video was slow.
+    let heroVideoPlaying = false;
+    let heroRevealDue = false;
+    let heroRevealed = false;
+    function tryRevealHeroVideo() {
+      const iframeEl = document.getElementById('heroVideoIframe');
+      if (!heroRevealDue || !heroVideoPlaying || heroRevealed || heroVideoFailed || !iframeEl) return;
+      heroRevealed = true;
+      revealHeroVideo(iframeEl);
+    }
 
     window.onHeroVideoLoad = function (iframeEl) {
       if (!iframeEl) return;
       heroVideoFailed = false;
+      heroVideoPlaying = false;
+      heroRevealDue = false;
+      heroRevealed = false;
       fitHeroVideoCover(iframeEl);
       setTimeout(() => fitHeroVideoCover(iframeEl), 600);
       try {
@@ -4961,9 +4676,8 @@
       if (heroRevealTimeout) clearTimeout(heroRevealTimeout);
       // Wait the full 6.6s delay before revealing the video (as long as no error occurred)
       heroRevealTimeout = setTimeout(() => {
-        if (!heroVideoFailed) {
-          revealHeroVideo(iframeEl);
-        }
+        heroRevealDue = true;
+        tryRevealHeroVideo();
       }, 6600);
     };
 
@@ -5023,6 +4737,8 @@
         const state = data.event === 'onStateChange' ? data.info : data.info.playerState;
         if (state === 1) {
           isTrailerPaused = false;
+          heroVideoPlaying = true;
+          tryRevealHeroVideo();
         } else if (state === 2 || state === 0) {
           isTrailerPaused = true;
         }
@@ -5563,7 +5279,7 @@
           if (details && details.belongs_to_collection && details.belongs_to_collection.id) {
             collectionData = await getCollectionDetails(details.belongs_to_collection.id);
           }
-          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup', false, collectionData)}</div>`;
+          el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0a0a0b] overflow-hidden relative">${generateFullMovieHTML(movieObj, details, false, 'lookup', false, collectionData)}</div>`;
           const closeBtn = document.getElementById('closeModalBtn');
           if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; window.currentActiveMovieObj = null; };
           const backBtn = document.getElementById('movieBackBtn');
@@ -5599,7 +5315,7 @@
 
       content.dataset.movieId = movieObj.id;
       if (!isAlreadyCached && !preserveScroll) {
-        content.innerHTML = `<div class="p-20 flex flex-col items-center justify-center w-full min-h-[300px]"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-blue-400 font-bold uppercase tracking-widest text-xs animate-pulse">Decrypting Data...</p></div>`;
+        content.innerHTML = `<div class="p-20 flex flex-col items-center justify-center w-full min-h-[300px]"><div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-blue-400 font-bold uppercase tracking-widest text-xs animate-pulse">Loading…</p></div>`;
       }
 
       modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.classList.add('modal-open'); requestAnimationFrame(() => { backdrop.classList.remove('opacity-0'); content.classList.remove('translate-y-8', 'opacity-0'); });
@@ -5815,9 +5531,7 @@
         if (!modalWrapper) return;
         modalWrapper.innerHTML = `
           <div class="w-full h-full flex flex-col items-center justify-center bg-black/90 p-6 text-center rounded-2xl gap-3">
-            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl">
-              🎬
-            </div>
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl"><svg class="w-6 h-6 text-red-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></div>
             <div class="flex flex-col gap-1">
               <span class="text-white font-extrabold text-sm sm:text-base">Trailer can't play here</span>
               <span class="text-gray-400 text-xs sm:text-sm max-w-sm">YouTube didn't load, or the uploader doesn't allow this video to play outside YouTube.</span>
@@ -5911,7 +5625,7 @@
 
       const createBtn = (text, disabled, page, isActive = false) => {
         if (isActive) {
-          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]">${text}</button>`;
         } else if (disabled && text !== '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
         } else if (text === '...') {
@@ -5978,31 +5692,14 @@
       if (searchInput) searchInput.value = '';
 
       const { movieTitle, backdrop, titleLogo, cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
-      const totalCount = directors.length + cast.length;
 
       const bannerArtEl = document.getElementById('allCastBannerArt');
-      if (bannerArtEl) {
-        bannerArtEl.innerHTML = backdrop
-          ? `<img src="${backdrop}" alt="${escapeHTML(movieTitle)} banner" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">`
-          : `<div class="w-full h-full bg-gradient-to-br from-blue-950/40 via-gray-900 to-[#0b1121]"></div>`;
-      }
-
-      const titleContainer = document.getElementById('allCastModalTitleContainer');
-      const titleEl = document.getElementById('allCastModalTitle');
+      if (bannerArtEl) bannerArtEl.innerHTML = backdrop ? `<img src="${backdrop}" alt="" decoding="async">` : '';
+      const filmLink = document.getElementById('allCastFilmLink');
+      if (filmLink) filmLink.textContent = movieTitle;
       const subEl = document.getElementById('allCastModalSubtitle');
-
-      if (titleContainer) {
-        if (titleLogo) {
-          titleContainer.innerHTML = `<img src="${titleLogo}" alt="${escapeHTML(movieTitle)}" loading="eager" decoding="async" class="titleLogoImg pageTitleImg max-h-20 min-[400px]:max-h-24 sm:max-h-36 max-w-[280px] min-[400px]:max-w-[340px] sm:max-w-[560px] object-contain mb-2 shrink-0 drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)]" onerror="onTitleLogoError(this)" onload="if(this.naturalWidth===0)onTitleLogoError(this)">`;
-        } else {
-          titleContainer.innerHTML = `<h1 id="allCastModalTitle" class="text-3xl min-[400px]:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${escapeHTML(movieTitle)}</h1>`;
-        }
-      } else if (titleEl) {
-        titleEl.textContent = movieTitle;
-      }
-
-      if (subEl) subEl.textContent = `${totalCount} actors, directors & crew members`;
-
+      const people = new Set([...directors, ...cast, ...crew].map(p => p.id)).size;
+      if (subEl) subEl.textContent = `· ${people.toLocaleString()} ${people === 1 ? 'person' : 'people'}`;
       updateAllCastTabsUI();
       renderAllCastGrid();
 
@@ -6058,7 +5755,7 @@
         if (countCrewEl) countCrewEl.textContent = countCrew;
         if (infoEl) {
           const currentCount = currentAllCastActiveTab === 'cast' ? countCast : (currentAllCastActiveTab === 'crew' ? countCrew : countAll);
-          infoEl.textContent = `${currentCount} Total`;
+          infoEl.textContent = String(currentCount);
         }
       }
     }
@@ -6085,75 +5782,71 @@
       renderAllCastGrid();
     }
 
+    // Credits grouped the way a film's credits read: who made it, who's in it, then the crew by
+    // department. Directors, writers and cast get portraits; the wider crew is a compact list.
+    const CAST_DEPT_ORDER = ['Directing', 'Writing', 'Cast', 'Directing team', 'Production', 'Camera', 'Editing', 'Sound', 'Art', 'Costume & Make-Up', 'Visual Effects', 'Lighting', 'Crew'];
+    const CAST_DEPT_NAMES = { 'Directing': 'Directed by', 'Writing': 'Written by', 'Cast': 'Cast', 'Directing team': 'Assistant directors and script', 'Production': 'Production', 'Camera': 'Camera', 'Editing': 'Editing', 'Sound': 'Sound and music', 'Art': 'Art and design', 'Costume & Make-Up': 'Costume and make-up', 'Visual Effects': 'Visual effects', 'Lighting': 'Lighting', 'Crew': 'Crew' };
+    function groupFullCredits() {
+      const { cast = [], crew = [], directors = [] } = window.currentMovieFullCredits || {};
+      const groups = new Map();
+      const add = (dept, person, role) => {
+        if (!groups.has(dept)) groups.set(dept, new Map());
+        const g = groups.get(dept);
+        const prev = g.get(person.id);
+        if (prev) { if (role && !prev.roles.includes(role)) prev.roles.push(role); return; }
+        g.set(person.id, { ...person, roles: role ? [role] : [] });
+      };
+      directors.forEach(d => add('Directing', d, d._role || d.job || 'Director'));
+      cast.forEach(c => add('Cast', c, c.character || ''));
+      // "Directed by" is the director(s) only; the rest of the directing department (assistant
+      // directors, script supervisor) gets its own list further down.
+      crew.forEach(c => {
+        let dept = CAST_DEPT_ORDER.includes(c.department) ? c.department : 'Crew';
+        if (dept === 'Directing' && c.job !== 'Director') dept = 'Directing team';
+        add(dept, c, c.job || '');
+      });
+      return CAST_DEPT_ORDER.filter(d => groups.has(d)).map(d => ({ dept: d, people: [...groups.get(d).values()] }));
+    }
+
     function renderAllCastGrid() {
       const grid = document.getElementById('allCastGrid');
       if (!grid || !window.currentMovieFullCredits) return;
-
-      const { cast = [], crew = [], directors = [] } = window.currentMovieFullCredits;
       const searchInput = document.getElementById('allCastSearchInput');
       const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
-      let list = [];
-      if (currentAllCastActiveTab === 'cast') {
-        list = cast.map(c => ({ ...c, _role: c.character || 'Cast' }));
-      } else if (currentAllCastActiveTab === 'crew') {
-        list = [...directors.map(d => ({ ...d, _role: 'Director' })), ...crew.map(c => ({ ...c, _role: c.job || 'Crew' }))];
-      } else {
-        const seenIds = new Set();
-        directors.forEach(d => { seenIds.add(d.id); list.push({ ...d, _role: 'Director' }); });
-        cast.forEach(c => {
-          if (!seenIds.has(c.id)) {
-            seenIds.add(c.id);
-            list.push({ ...c, _role: c.character || 'Actor' });
-          }
-        });
-        crew.forEach(cr => {
-          if (!seenIds.has(cr.id)) {
-            seenIds.add(cr.id);
-            list.push({ ...cr, _role: cr.job || 'Crew' });
-          }
-        });
-      }
+      let groups = groupFullCredits();
+      if (currentAllCastActiveTab === 'cast') groups = groups.filter(g => g.dept === 'Cast');
+      else if (currentAllCastActiveTab === 'crew') groups = groups.filter(g => g.dept !== 'Cast');
+
+      const roleText = (p) => p.roles.filter(Boolean).join(', ');
+      const portrait = (p, i) => personCardHTML(p, { role: roleText(p), index: i });
+      const row = (p) => {
+        const img = p.profile_path ? `https://image.tmdb.org/t/p/w92${p.profile_path}` : null;
+        const name = escapeHTML(p.name || 'Unknown');
+        return `<button type="button" class="crew-row" data-person-id="${p.id}" data-person-name="${name}" data-role-hint="Actor" onclick="openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)"><span class="crew-row-photo">${img ? `<img src="${img}" alt="" loading="lazy" decoding="async">` : name.charAt(0)}</span><span class="crew-row-text"><span class="crew-row-name">${name}</span><span class="crew-row-role">${escapeHTML(roleText(p))}</span></span></button>`;
+      };
 
       if (query) {
-        list = list.filter(p => (p.name || '').toLowerCase().includes(query) || (p._role || '').toLowerCase().includes(query));
-      }
-
-      if (list.length === 0) {
-        const emptyIcon = query ? '🔍' : '👥';
-        const emptyMsg = query ? 'No people match your search' : 'No cast or crew found';
-        const emptySub = query ? 'Try searching for a different name or department.' : 'Nothing listed for this selection.';
-        grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
+        const seen = new Set();
+        const matches = [];
+        groups.forEach(g => g.people.forEach(p => {
+          if (seen.has(p.id)) return;
+          if ((p.name || '').toLowerCase().includes(query) || roleText(p).toLowerCase().includes(query)) { seen.add(p.id); matches.push(p); }
+        }));
+        grid.innerHTML = matches.length
+          ? `<section class="page-section"><div class="section-head"><h2 class="section-title">${matches.length === 1 ? '1 match' : `${matches.length} matches`}</h2></div><div class="people-grid">${matches.map(portrait).join('')}</div></section>`
+          : `<p class="page-empty">Nobody on this film matches “${escapeHTML(query)}”.</p>`;
         return;
       }
+      if (!groups.length) { grid.innerHTML = '<p class="page-empty">No credits listed for this yet.</p>'; return; }
 
-      const maxPage = Math.ceil(list.length / ALL_CAST_PER_PAGE);
-      if (allCastCurrentPage > maxPage) allCastCurrentPage = maxPage || 1;
-      const start = (allCastCurrentPage - 1) * ALL_CAST_PER_PAGE;
-      const pageItems = list.slice(start, start + ALL_CAST_PER_PAGE);
-
-      const isPage = currentAllCastMovieContext;
-      const cardsHtml = pageItems.map(p => {
-        const pImg = p.profile_path ? `https://image.tmdb.org/t/p/w185${p.profile_path}` : null;
-        const pName = escapeHTML(p.name || 'Unknown');
-        const pRole = escapeHTML(p._role || '');
-        const roleHint = p._role === 'Director' ? 'Director' : 'Actor';
-
-        return `<div data-person-id="${p.id}" data-person-name="${pName}" data-role-hint="${roleHint}" onclick="${isPage ? 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)' : 'closeAllCastModal(); openActorModal(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint, true)'};" onmouseenter="handleSpotifyMarqueeEnter(this)" onmouseleave="handleSpotifyMarqueeLeave(this)" class="cast-chip-card flex flex-col items-center gap-1.5 w-full shrink-0 group/person cursor-pointer select-none relative">
-          <div class="glow-card w-full aspect-square rounded-full border ${p._role === 'Director' ? 'border-blue-400 ring-2 ring-blue-500/50 shadow-[inset_0_0_8px_rgba(59,130,246,0.6)]' : 'border-white/10'} shadow-lg bg-gray-800 shrink-0 relative">
-            <div class="w-full h-full rounded-full overflow-hidden">
-              ${pImg ? `<img src="${pImg}" alt="${pName}" loading="lazy" decoding="async" class="w-full h-full object-cover pointer-events-none">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500 pointer-events-none">${pName.charAt(0)}</div>`}
-            </div>
-          </div>
-          <div class="spotify-marquee-container w-full pointer-events-none text-center">
-            <span class="spotify-marquee-text text-xs sm:text-sm text-gray-200 font-bold text-center leading-snug pointer-events-none">${pName}</span>
-          </div>
-          ${pRole ? `<div class="spotify-marquee-container w-full pointer-events-none -mt-0.5 text-center"><span class="spotify-marquee-text text-[11px] sm:text-xs text-gray-400 font-medium text-center leading-tight pointer-events-none">${pRole}</span></div>` : ''}
-        </div>`;
+      grid.innerHTML = groups.map(g => {
+        const big = g.dept === 'Directing' || g.dept === 'Writing' || g.dept === 'Cast';
+        const body = big
+          ? `<div class="people-grid${g.dept === 'Cast' ? '' : ' people-grid-key'}">${g.people.map(portrait).join('')}</div>`
+          : `<div class="crew-list">${g.people.map(row).join('')}</div>`;
+        return `<section class="page-section cast-dept"><div class="section-head"><h2 class="section-title">${CAST_DEPT_NAMES[g.dept] || g.dept}</h2><span class="section-count">${g.people.length}</span></div>${body}</section>`;
       }).join('');
-
-      const pagHtml = renderAllCastPaginationHtml(allCastCurrentPage, maxPage);
-      grid.innerHTML = cardsHtml + pagHtml;
     }
     let touchStartX = 0; let touchStartY = 0; let touchEndX = 0; let touchEndY = 0; let isSwipingModal = false;
     const modalContentEl = document.getElementById('modalContent');
@@ -6274,23 +5967,20 @@
       const safeTitle = escapeHTML(movieObj.title);
       const safeSubtext = escapeHTML(movieObj.subtext);
       const wrapper = document.createElement('div');
-      wrapper.className = `tilt-card animate-fade h-full cursor-pointer z-10 hover:z-30 relative`;
-      wrapper.style.animationDelay = `${delayIndex * 0.02}s`;
+      wrapper.className = 'poster-card';
+      wrapper.style.setProperty('--i', Math.min(delayIndex, 24));
       const a = document.createElement('a');
       a.href = movieObj.url;
       a.dataset.movieCardId = movieObj.id;
       a.addEventListener('click', (e) => { e.preventDefault(); openMoviePage(movieObj, true); });
-      a.className = 'tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 border border-white/5 h-full';
+      a.className = 'poster-card-art';
       const innerClip = document.createElement('div');
-      innerClip.className = 'absolute inset-0 rounded-2xl overflow-hidden pointer-events-none';
+      innerClip.className = 'poster-card-clip';
       if (movieObj.poster) {
-        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="${safeTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
+        innerClip.innerHTML = `<img src="${movieObj.poster}" alt="" loading="lazy" decoding="async">`;
       } else {
-        innerClip.innerHTML = `<div class="absolute inset-0 flex items-center justify-center p-4 text-center font-bold text-gray-500 text-xs">${safeTitle}</div>`;
+        innerClip.innerHTML = `<div class="poster-card-fallback">${safeTitle}</div>`;
       }
-      const glare = document.createElement('div');
-      glare.className = 'glare';
-      innerClip.appendChild(glare);
       a.appendChild(innerClip);
 
       const badgeHtml = renderPosterRatingBadgeHtml(movieObj);
@@ -6304,21 +5994,39 @@
         }
       }
 
-      if (movieObj.vpnInfo) {
-        const vpnBadge = document.createElement('div');
-        vpnBadge.className = 'poster-corner-badge poster-vpn-badge';
-        vpnBadge.title = `Requires switching your VPN to ${REGION_META[movieObj.vpnInfo.region].name}`;
-        vpnBadge.innerHTML = `${REGION_META[movieObj.vpnInfo.region].flag} VPN`;
-        a.appendChild(vpnBadge);
+      // Where it's available, as small service logos along the bottom of the poster.
+      // `subtext` is "Netflix, Max" (or "Netflix · 🇺🇸 VPN" for a VPN unlock).
+      // A VPN unlock gets a small "VPN" chip at the end of that row (with the country's flag), so
+      // the top of the poster stays free for the rating, however narrow the card.
+      // At most two logos (one beside a VPN chip) and a "+N" for the rest, so the row fits the
+      // narrowest phone cards; the film page lists every service.
+      const serviceNames = (movieObj.subtext || '').split(' · ')[0].split(', ').map(s => s.trim()).filter(s => s && s !== 'Not streaming in region');
+      const vpnRegion = movieObj.vpnInfo && REGION_META[movieObj.vpnInfo.region];
+      const maxLogos = vpnRegion ? 1 : 2;
+      const logos = serviceNames.slice(0, maxLogos).map(name => {
+        const src = getProviderLogoUrl(name);
+        return src ? `<img src="${escapeHTML(src)}" alt="${escapeHTML(name)}" loading="lazy" onerror="this.remove()">` : '';
+      }).join('');
+      const vpnChip = vpnRegion
+        ? `<span class="poster-vpn-chip" title="Requires switching your VPN to ${escapeHTML(vpnRegion.name)}">${vpnRegion.flag} VPN</span>`
+        : '';
+      if (logos || vpnChip) {
+        const row = document.createElement('div');
+        row.className = 'poster-services';
+        row.innerHTML = logos + (logos && !vpnChip && serviceNames.length > maxLogos ? `<span class="poster-services-more">+${serviceNames.length - maxLogos}</span>` : '') + vpnChip;
+        a.appendChild(row);
       }
 
-      a.title = safeTitle;
+      a.setAttribute('aria-label', movieObj.title || 'Film');
       wrapper.appendChild(a);
-      apply3DTilt(wrapper);
+      const year = (movieObj.releaseDate || '').slice(0, 4);
+      const caption = document.createElement('div');
+      caption.className = 'poster-card-caption';
+      caption.innerHTML = `<span class="poster-card-title">${safeTitle}</span>${year ? `<span class="poster-card-year">${year}</span>` : ''}`;
+      wrapper.appendChild(caption);
       return wrapper;
     }
-    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
-    function updateStats() { if (scannedMovies.length === 0) { if (el.statsBar) el.statsBar.classList.add('hidden'); return; } document.getElementById('stat-total').textContent = scannedMovies.length; let genreCounts = {}; let decadeCounts = {}; let totalRating = 0; let ratedCount = 0; scannedMovies.forEach(m => { if (m.genreIds) m.genreIds.forEach(id => { if (GENRE_MAP[id]) genreCounts[GENRE_MAP[id]] = (genreCounts[GENRE_MAP[id]] || 0) + 1; }); if (m.releaseDate) { const dec = Math.floor(parseInt(m.releaseDate.split('-')[0]) / 10) * 10; if (!isNaN(dec)) decadeCounts[dec] = (decadeCounts[dec] || 0) + 1; } const rVal = getCachedRating(m); if (rVal) { const r = parseFloat(rVal); if (!isNaN(r) && r > 0) { totalRating += r; ratedCount++; } } }); const topG = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a])[0] || '-'; const topD = Object.keys(decadeCounts).sort((a, b) => decadeCounts[b] - decadeCounts[a])[0]; const avg = ratedCount ? (totalRating / ratedCount).toFixed(1) : '-'; document.getElementById('stat-genre').textContent = topG; document.getElementById('stat-decade').innerHTML = topD ? `${topD}S` : '-'; const avgEl = document.getElementById('stat-avg'); if (avgEl) avgEl.textContent = avg; }
+    function renderPagination(maxPage) { const pagDiv = el.paginationControls; if (!pagDiv) return; pagDiv.innerHTML = ''; if (maxPage <= 1) { pagDiv.classList.add('hidden'); return; } pagDiv.classList.remove('hidden'); const createBtn = (text, disabled, onClick, isActive = false) => { const btn = document.createElement('button'); btn.innerHTML = text; btn.disabled = disabled; if (isActive) { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]'; } else if (disabled && text !== '...') { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed'; } else if (text === '...') { btn.className = 'w-9 h-9 flex items-center justify-center bg-transparent text-gray-500 font-bold text-sm pointer-events-none'; } else { btn.className = 'w-9 h-9 flex items-center justify-center rounded-full liquid-glass text-white font-bold text-sm transition-all cursor-pointer'; btn.onclick = onClick; } return btn; }; const goToPage = (p) => { currentPage = p; renderActiveGrid(); window.scrollTo({ top: el.resultsSection.offsetTop - 100, behavior: 'smooth' }); }; pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>', currentPage === 1, () => goToPage(currentPage - 1))); const addPage = (p) => { pagDiv.appendChild(createBtn(p, false, () => goToPage(p), p === currentPage)); }; if (maxPage <= 5) { for (let i = 1; i <= maxPage; i++) addPage(i); } else { if (currentPage <= 3) { for (let i = 1; i <= 4; i++) addPage(i); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } else if (currentPage >= maxPage - 2) { addPage(1); pagDiv.appendChild(createBtn('...', true)); for (let i = maxPage - 3; i <= maxPage; i++) addPage(i); } else { addPage(1); pagDiv.appendChild(createBtn('...', true)); addPage(currentPage - 1); addPage(currentPage); addPage(currentPage + 1); pagDiv.appendChild(createBtn('...', true)); addPage(maxPage); } } pagDiv.appendChild(createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', currentPage === maxPage, () => goToPage(currentPage + 1))); }
     function populateFilterDropdowns() {
       renderAllCustomFilters('home');
     }
@@ -6474,13 +6182,24 @@
         if (sort === 'year_asc') return (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999');
         return 0;
       });
-      currentGroupedResults = { stream: [], rentbuy: [], other: [], unavailable: [] };
+      currentGroupedResults = groupMoviesByAvailability(filtered, isSubscribedScan);
+      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
+      renderActiveGrid();
+      renderResultsHero();
+    }
 
-      filtered.forEach(movie => {
+    // Sorts movies into the four home tabs (stream / rentbuy / other / unavailable) for the
+    // current region, selected services and VPN mode. Used for the visible (filtered) grid and,
+    // unfiltered, for the results headline.
+    function groupMoviesByAvailability(movies, isSubscribedScan = buildSubscribedMatcher()) {
+      const getMovieVpnMatch = (m) => findVpnMatch(m, isSubscribedScan);
+      const groups = { stream: [], rentbuy: [], other: [], unavailable: [] };
+
+      movies.forEach(movie => {
         const localData = movie.allProviders ? (movie.allProviders[currentRegion] || null) : movie.regionData;
         const vpnInfo = getMovieVpnMatch(movie);
         const baseObj = { ...movie, regionData: localData, vpnInfo };
-        if (!localData && !vpnInfo) { baseObj.subtext = 'Not streaming in region'; currentGroupedResults.unavailable.push(baseObj); return; }
+        if (!localData && !vpnInfo) { baseObj.subtext = 'Not streaming in region'; groups.unavailable.push(baseObj); return; }
 
         const localFlatrate = (localData?.flatrate || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
         const localRent = (localData?.rent || []).filter(p => p.provider_name !== "Amazon Prime Video with Ads");
@@ -6491,19 +6210,19 @@
 
         if (matchedSubscribed.length > 0) {
           baseObj.subtext = matchedSubscribed.map(s => s.provider_name).join(', ');
-          currentGroupedResults.stream.push(baseObj);
+          groups.stream.push(baseObj);
         } else if (vpnInfo && movie.allProviders && movie.allProviders[vpnInfo.region]) {
           const vpnFlat = (movie.allProviders[vpnInfo.region]?.flatrate || []).filter(isSubscribedScan);
           baseObj.subtext = `${vpnInfo.services[0]?.label || vpnFlat[0]?.provider_name || 'VPN'} · ${REGION_META[vpnInfo.region]?.flag || ''} VPN`;
-          currentGroupedResults.stream.push(baseObj);
+          groups.stream.push(baseObj);
         } else if (matchedUnsubscribed.length > 0) {
           baseObj.subtext = matchedUnsubscribed.map(s => s.provider_name).join(', ');
-          currentGroupedResults.other.push(baseObj);
+          groups.other.push(baseObj);
         } else if (localRent.length > 0 || localBuy.length > 0) {
           const p = [...localRent, ...localBuy];
           const rawNames = [...new Set(p.map(x => x.provider_name))];
           baseObj.subtext = rawNames.slice(0, 2).join(', ');
-          currentGroupedResults.rentbuy.push(baseObj);
+          groups.rentbuy.push(baseObj);
         } else if (vpnModeEnabled && movie.allProviders) {
           let vpnRb = null;
           let vpnRbCode = null;
@@ -6520,25 +6239,24 @@
           if (vpnRb && vpnRbCode) {
             const rawNames = [...new Set(vpnRb.map(x => x.provider_name))];
             baseObj.subtext = `${rawNames.slice(0, 2).join(', ')} · ${REGION_META[vpnRbCode]?.flag || ''} VPN`;
-            currentGroupedResults.rentbuy.push(baseObj);
+            groups.rentbuy.push(baseObj);
           } else {
             baseObj.subtext = 'Not streaming in region';
-            currentGroupedResults.unavailable.push(baseObj);
+            groups.unavailable.push(baseObj);
           }
         } else {
           baseObj.subtext = 'Not streaming in region';
-          currentGroupedResults.unavailable.push(baseObj);
+          groups.unavailable.push(baseObj);
         }
       });
-      const streamC = document.getElementById('tabCount-stream'); if (streamC) streamC.textContent = currentGroupedResults.stream.length; const rentC = document.getElementById('tabCount-rentbuy'); if (rentC) rentC.textContent = currentGroupedResults.rentbuy.length; const otherC = document.getElementById('tabCount-other'); if (otherC) otherC.textContent = currentGroupedResults.other.length; const unavC = document.getElementById('tabCount-unavailable'); if (unavC) unavC.textContent = currentGroupedResults.unavailable.length;
-      renderActiveGrid();
+      return groups;
     }
     function renderActiveGrid() {
       const container = el.activeGridContainer; if (!container) return; container.innerHTML = ''; const currentData = currentGroupedResults[activeTab] || [];
-      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const count = serviceTally[topService]; const countText = count === 1 ? '1 film' : `${count} films`; const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${countText}</strong> from your watchlist.</p></div><div class="text-3xl opacity-80">💡</div>`; container.appendChild(banner); } }
+      if (activeTab === 'other' && currentData.length > 0 && currentPage === 1) { let serviceTally = {}; currentData.forEach(m => { const flatrate = m.regionData?.flatrate || []; flatrate.filter(p => !selectedServiceIds.has(p.provider_id)).forEach(p => { serviceTally[p.provider_name] = (serviceTally[p.provider_name] || 0) + 1; }); }); const topService = Object.keys(serviceTally).sort((a, b) => serviceTally[b] - serviceTally[a])[0]; if (topService) { const count = serviceTally[topService]; const countText = count === 1 ? '1 film' : `${count} films`; const banner = document.createElement('div'); banner.className = 'col-span-full mb-2 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-5 flex items-center justify-between shadow-lg'; banner.innerHTML = `<div><h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Subscription Optimizer</h3><p class="text-sm text-gray-300 font-medium">Subscribe to <strong class="text-white">${escapeHTML(topService)}</strong> to instantly unlock <strong class="text-white">${countText}</strong> from your watchlist.</p></div><div class="text-3xl opacity-80"></div>`; container.appendChild(banner); } }
       if (currentData.length === 0) {
         const hasActiveFilter = (el.filterSearch && el.filterSearch.value.trim() !== '') || (el.filterGenre && el.filterGenre.value !== 'all') || (el.filterDecade && el.filterDecade.value !== 'all');
-        const emptyIcon = hasActiveFilter ? '🔍' : '🎬';
+        const emptyIcon = hasActiveFilter ? '' : '';
         const emptyMsg = hasActiveFilter ? 'No titles match your filters' : 'No films in this category';
         const emptySub = hasActiveFilter ? 'Try a different search, genre, or decade.' : 'Nothing landed here for your current selection.';
         container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center min-h-[300px] text-gray-500 gap-2"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
@@ -6551,7 +6269,7 @@
     if (el.quickSearchInput) {
       el.quickSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim(); if (query.length > 0) { if (el.clearSearchBtn) el.clearSearchBtn.classList.remove('hidden'); } else { if (el.clearSearchBtn) el.clearSearchBtn.classList.add('hidden'); if (el.quickSearchResult) { el.quickSearchResult.classList.add('hidden'); } } if (query.length < 2) { if (el.searchDropdown) el.searchDropdown.classList.add('hidden'); return; } clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => {
-          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<div class="p-6 flex flex-col items-center justify-center gap-1.5 text-center"><span class="text-2xl opacity-60">🔍</span><span class="font-bold uppercase tracking-widest text-xs text-gray-400">No results found</span><span class="text-[11px] text-gray-500 font-medium normal-case tracking-normal">Try searching for a different title or person.</span></div>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
+          const results = await searchMultiMedia(query); if (results.length === 0) { if (el.searchDropdown) { el.searchDropdown.innerHTML = `<p class="search-empty">Nothing matches “${escapeHTML(query)}” yet. Keep typing, or try a person's name.</p>`; el.searchDropdown.classList.remove('hidden'); } return; } if (el.searchDropdown) {
             el.searchDropdown.innerHTML = '';
             results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query)).slice(0, 15).forEach(item => {
               const isPerson = item.__mediaType === 'person';
@@ -6560,34 +6278,17 @@
               const year = date ? date.split('-')[0] : '';
               const imagePath = isPerson ? item.profile_path : item.poster_path;
               const poster = imagePath ? `https://image.tmdb.org/t/p/w92${imagePath}` : '';
-              const row = document.createElement('div');
-              row.className = 'flex items-center gap-4 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors last:border-0';
+              const row = document.createElement('button');
+              row.type = 'button';
+              row.className = 'search-row';
               const safeTitle = escapeHTML(displayTitle);
-              let badgeLabel = '';
-              let badgeColor = '';
-              if (item.__mediaType === 'tv') {
-                badgeLabel = 'TV';
-                badgeColor = 'text-blue-400 border-blue-500/30';
-              } else if (item.__mediaType === 'person') {
-                const dept = item.known_for_department;
-                if (dept === 'Directing') badgeLabel = 'DIRECTOR';
-                else if (dept === 'Writing') badgeLabel = 'WRITER';
-                else if (dept === 'Production') badgeLabel = 'PRODUCER';
-                else if (dept === 'Sound') badgeLabel = 'COMPOSER';
-                else badgeLabel = 'ACTOR';
-                badgeColor = 'text-purple-400 border-purple-500/30';
-              } else {
-                badgeLabel = 'FILM';
-                badgeColor = 'text-gray-400 border-gray-500/30';
-              }
+              const dept = item.known_for_department;
+              const kind = item.__mediaType === 'tv' ? 'TV series'
+                : isPerson ? (dept === 'Directing' ? 'Director' : dept === 'Writing' ? 'Writer' : dept === 'Production' ? 'Producer' : dept === 'Sound' ? 'Composer' : 'Actor')
+                : 'Film';
               const searchImdbRating = isPerson ? null : getRatingInfo({ ...item }).rating;
-              const searchYear = (item.release_date || item.first_air_date || '').slice(0, 4);
-              const ratingOrYear = searchImdbRating ? `IMDb ${searchImdbRating}` : searchYear;
-              const ratingOrDept = item.matchedRole
-                ? `${item.matchedRole}${searchImdbRating ? ` • IMDb ${searchImdbRating}` : ''}`
-                : (isPerson ? (item.known_for_department || 'Person') : ratingOrYear);
-              const subtitleColor = item.matchedRole ? 'text-amber-400 font-extrabold' : 'text-blue-400';
-              row.innerHTML = `<div class="w-10 h-14 bg-black/50 rounded overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">${poster ? `<img src="${poster}" alt="${safeTitle}" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-500 text-xs">${safeTitle.charAt(0)}</div>`}</div><div class="flex-1 min-w-0"><h4 class="text-white text-sm font-bold truncate">${safeTitle} ${year ? `<span class="text-gray-500 font-normal ml-1">(${year})</span>` : ''}<span class="${badgeColor} font-bold text-[9px] uppercase tracking-widest border rounded px-1 py-0.5 ml-1.5">${badgeLabel}</span></h4><span class="${subtitleColor} text-[10px]">${escapeHTML(ratingOrDept)}</span></div>`;
+              const sub = [item.matchedRole || kind, !isPerson && year ? year : null, searchImdbRating ? `IMDb ${searchImdbRating}` : null].filter(Boolean).join(' · ');
+              row.innerHTML = `<span class="search-row-thumb${isPerson ? ' is-person' : ''}">${poster ? `<img src="${poster}" alt="" loading="lazy" decoding="async">` : `<span>${safeTitle.charAt(0)}</span>`}</span><span class="search-row-text"><span class="search-row-title">${safeTitle}</span><span class="search-row-sub">${escapeHTML(sub)}</span></span>`;
               row.addEventListener('click', () => {
                 el.quickSearchInput.value = displayTitle;
                 el.searchDropdown.classList.add('hidden');
@@ -6617,12 +6318,13 @@
         if (!query) return;
         const results = await searchMultiMedia(query);
         if (results.length === 0) {
-          if (el.quickSearchResult) {
-            el.quickSearchResult.innerHTML = `<div class="bg-red-950/20 border border-red-900/30 p-5 rounded-2xl"><p class="text-red-400 text-sm text-center font-bold">Target not found.</p></div>`;
-            el.quickSearchResult.classList.remove('hidden');
+          if (el.searchDropdown) {
+            el.searchDropdown.innerHTML = `<p class="search-empty">Nothing matches “${escapeHTML(query)}”. Try the original title, or a person's name.</p>`;
+            el.searchDropdown.classList.remove('hidden');
           }
           return;
         }
+        if (el.quickSearchInput) el.quickSearchInput.blur();
         results.sort((a, b) => scoreSearchResult(b, query) - scoreSearchResult(a, query));
         const topResult = results[0];
         if (topResult.__mediaType === 'person') {
@@ -6644,11 +6346,11 @@
           if (el.progressBar) el.progressBar.style.width = '0%';
           if (el.progressPercent) el.progressPercent.textContent = '0%';
           if (el.formError) {
-            el.formError.textContent = 'Scan aborted by user.';
+            el.formError.textContent = 'Scan stopped.';
             el.formError.classList.remove('hidden');
           }
           if (el.resultsSection) el.resultsSection.classList.add('hidden');
-          if (el.statsBar) el.statsBar.classList.add('hidden');
+         
           resetUI();
         }
       });
@@ -7201,8 +6903,10 @@
       }
     };
 
-    const fetchWatchlist = async (targetUser, labelPrefix) => {
-      if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix} (Verifying)...`;
+    // Reading pages fills the first stretch of the progress bar ([from, to] percent).
+    const setScanProgress = (pct) => { if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%'; };
+    const fetchWatchlist = async (targetUser, labelPrefix, range = [0, 15]) => {
+      if (el.progressLabel) el.progressLabel.textContent = `${labelPrefix}…`;
       // No cache-busting query on these URLs: our proxy drops it anyway and caches pages for
       // two minutes, so repeat scans don't hit Letterboxd again.
 
@@ -7262,12 +6966,13 @@
           if (cancelRequested) return [];
           const chunk = pages.slice(i, i + PARALLEL_PAGE_BATCH);
           if (el.progressLabel) el.progressLabel.textContent = retrying
-            ? `${labelPrefix} (Retrying ${pages.length} page${pages.length === 1 ? '' : 's'})...`
-            : `${labelPrefix} (Pages ${chunk[0]}-${chunk[chunk.length - 1]} of ${totalPages})...`;
+            ? `${labelPrefix}, trying ${pages.length} page${pages.length === 1 ? '' : 's'} again…`
+            : `${labelPrefix}, page ${chunk[chunk.length - 1]} of ${totalPages}…`;
           const chunkHtmls = await Promise.all(chunk.map(p => fetchSinglePage(p)));
           chunkHtmls.forEach((html, k) => {
             if (html) pageHtmlByNumber.set(chunk[k], html); else failed.push(chunk[k]);
           });
+          if (!retrying) setScanProgress(range[0] + (range[1] - range[0]) * Math.min(1, chunk[chunk.length - 1] / totalPages));
           if (chunkHtmls.every(html => !html)) return failed.concat(pages.slice(i + PARALLEL_PAGE_BATCH));
           await new Promise(r => setTimeout(r, 100));
         }
@@ -7463,10 +7168,10 @@
     function resetUI() {
       isScanning = false; cancelRequested = false;
       const startBtn = document.getElementById('startButton');
-      if (startBtn) { startBtn.disabled = false; startBtn.innerHTML = 'Execute'; }
+      if (startBtn) { startBtn.disabled = false; startBtn.innerHTML = 'Find my films'; }
       if (el.usernameInput) el.usernameInput.disabled = false; if (el.friendInput) el.friendInput.disabled = false; if (el.regionSelect) el.regionSelect.disabled = false; if (el.regionContainer) el.regionContainer.classList.remove('opacity-50', 'pointer-events-none');
-      if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('pointer-events-none', 'opacity-50'); document.querySelectorAll('.service-btn').forEach(b => b.classList.remove('locked'));
-      const friendWrapperVisible = el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden'); if (friendWrapperVisible) { if (el.removeFriendBtn) el.removeFriendBtn.classList.remove('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('hidden'); } else { if (el.toggleFriendBtn) el.toggleFriendBtn.classList.remove('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); } toggleClearSyncBtn();
+      const pill = document.getElementById('servicePill'); if (pill) pill.disabled = false;
+      syncFriendClearBtn(); toggleClearSyncBtn();
     }
     if (el.startButton) {
       el.startButton.addEventListener('click', async () => {
@@ -7484,33 +7189,31 @@
         };
         const isValidLetterboxdUser = (u) => /^[a-z0-9_]{1,40}$/.test(u);
         const username = normalizeLetterboxdUser(el.usernameInput ? el.usernameInput.value : ''); let friendName = normalizeLetterboxdUser(el.friendInput ? el.friendInput.value : '');
-        if ((username && !isValidLetterboxdUser(username)) || (friendName && !isValidLetterboxdUser(friendName))) { if (el.formError) { el.formError.textContent = 'ERROR: Letterboxd usernames can only contain letters, numbers and underscores.'; el.formError.classList.remove('hidden'); } return; }
-        if (el.friendInputWrapper && !el.friendInputWrapper.classList.contains('hidden') && friendName === '') { if (el.removeFriendBtn) el.removeFriendBtn.click(); friendName = ''; }
-        if (selectedServiceIds.size === 0) { if (el.formError) { el.formError.textContent = 'ERROR: Minimum one network subscription required.'; el.formError.classList.remove('hidden'); } return; }
-        if (!username && friendName) { if (el.formError) { el.formError.textContent = 'ERROR: Enter your own username to match with a friend.'; el.formError.classList.remove('hidden'); } return; }
-        if (!username) { if (el.formError) { el.formError.textContent = 'ERROR: Letterboxd username required.'; el.formError.classList.remove('hidden'); } return; }
-        if (username === friendName) { if (el.formError) { el.formError.textContent = 'ERROR: You cannot match with yourself.'; el.formError.classList.remove('hidden'); } return; }
-        const myScanSessionId = ++activeScanSessionId;
-        isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.toggleFriendBtn) el.toggleFriendBtn.classList.add('pointer-events-none', 'opacity-50'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); document.querySelectorAll('.service-btn').forEach(b => b.classList.add('locked')); if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
-        scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden'); if (el.statsBar) el.statsBar.classList.add('hidden');
+        if ((username && !isValidLetterboxdUser(username)) || (friendName && !isValidLetterboxdUser(friendName))) { if (el.formError) { el.formError.textContent = 'Letterboxd usernames only use letters, numbers and underscores.'; el.formError.classList.remove('hidden'); } return; }
+        if (selectedServiceIds.size === 0) { if (el.formError) { el.formError.textContent = 'Pick at least one streaming service first.'; el.formError.classList.remove('hidden'); } return; }
+        if (!username && friendName) { if (el.formError) { el.formError.textContent = 'Enter your own username too, to compare with a friend.'; el.formError.classList.remove('hidden'); } return; }
+        if (!username) { if (el.formError) { el.formError.textContent = 'Enter your Letterboxd username.'; el.formError.classList.remove('hidden'); } return; }
+        if (username === friendName) { if (el.formError) { el.formError.textContent = 'That\'s your own username. Enter a friend\'s to compare.'; el.formError.classList.remove('hidden'); } return; }
+        const myScanSessionId = ++activeScanSessionId; scanPanelExpanded = false; tonightPickKey = null;
+        isScanning = true; cancelRequested = false; if (el.startButton) el.startButton.disabled = true; if (el.usernameInput) el.usernameInput.disabled = true; if (el.friendInput) el.friendInput.disabled = true; if (el.clearSyncBtn) el.clearSyncBtn.classList.add('hidden'); if (el.removeFriendBtn) el.removeFriendBtn.classList.add('hidden'); { const pill = document.getElementById('servicePill'); if (pill) pill.disabled = true; } if (el.startButton) el.startButton.innerHTML = '<span class="animate-pulse">Scanning...</span>';
+        scannedMovies = []; if (el.resultsSection) el.resultsSection.classList.add('hidden');
         if (el.filterSearch) el.filterSearch.value = ''; if (el.clearResultsBtn) el.clearResultsBtn.classList.add('hidden');
         if (el.filterSort) el.filterSort.value = 'year_desc'; if (el.filterGenre) el.filterGenre.value = 'all'; if (el.filterDecade) el.filterDecade.value = 'all'; if (el.filterRuntime) el.filterRuntime.value = 'all';
         try {
           if (el.progressSection) el.progressSection.classList.remove('hidden'); if (el.progressBar) el.progressBar.style.width = `0%`; if (el.progressPercent) el.progressPercent.textContent = '0%';
-          const myScan = await fetchWatchlist(username, 'Pinging your servers');
+          const myScan = await fetchWatchlist(username, 'Reading your watchlist', friendName ? [0, 8] : [0, 15]);
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
           const myTitles = myScan.films;
           if (myTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${username}`);
           const incompleteNotes = describeIncompleteScan('your', myScan);
           let titlesToProcess = myTitles;
           if (friendName) {
-            if (el.progressBar) el.progressBar.style.width = `10%`; if (el.progressPercent) el.progressPercent.textContent = '10%';
-            const friendScan = await fetchWatchlist(friendName, 'Pinging friend servers');
+            const friendScan = await fetchWatchlist(friendName, 'Reading your friend\'s watchlist', [8, 15]);
             if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
             const friendTitles = friendScan.films;
             if (friendTitles.length === 0) throw new Error(`WATCHLIST_EMPTY:${friendName}`);
             incompleteNotes.push(...describeIncompleteScan(`${friendName}'s`, friendScan));
-            const friendKeys = new Set(friendTitles.map(getFilmKey)); titlesToProcess = myTitles.filter(t => friendKeys.has(getFilmKey(t))); if (titlesToProcess.length === 0) { throw new Error('NO MATCHES: You and your friend have no movies in common!'); }
+            const friendKeys = new Set(friendTitles.map(getFilmKey)); titlesToProcess = myTitles.filter(t => friendKeys.has(getFilmKey(t))); if (titlesToProcess.length === 0) { throw new Error('You and your friend don\'t have any films in common on your watchlists.'); }
           }
           titlesToProcess.forEach((t, idx) => { t.extractedIndex = idx; }); // watchlist order, used to order the saved scan
           // Films are resolved by a rolling pool of workers: when one film finishes, that worker
@@ -7520,7 +7223,7 @@
           let nextFilmIndex = 0; let filmsDone = 0;
           const showScanProgress = () => {
             const pct = 15 + ((filmsDone / totalFilms) * 85);
-            if (el.progressLabel) el.progressLabel.textContent = `Cross-referencing global database (${Math.min(filmsDone + 1, totalFilms)} of ${totalFilms})...`; if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%';
+            if (el.progressLabel) el.progressLabel.textContent = `Finding where your films stream (${Math.min(filmsDone + 1, totalFilms)} of ${totalFilms})…`; if (el.progressBar) el.progressBar.style.width = `${pct}%`; if (el.progressPercent) el.progressPercent.textContent = Math.round(pct) + '%';
           };
           showScanProgress();
           const processFilm = async (qObj) => {
@@ -7604,7 +7307,7 @@
           };
           await Promise.all(Array.from({ length: Math.min(SCAN_CONCURRENCY, totalFilms) }, scanWorker));
           if (myScanSessionId !== activeScanSessionId || cancelRequested) return;
-          if (el.progressLabel) el.progressLabel.textContent = 'Rendering Visual Matrix...'; if (el.progressBar) el.progressBar.style.width = '100%'; if (el.progressPercent) el.progressPercent.textContent = '100%';
+          if (el.progressLabel) el.progressLabel.textContent = 'Almost done…'; if (el.progressBar) el.progressBar.style.width = '100%'; if (el.progressPercent) el.progressPercent.textContent = '100%';
           isFriendMatchActive = friendName !== ''; localStorage.setItem('ps_is_friend_match_active', isFriendMatchActive);
 
           // Deduplicate scannedMovies before sorting and storing
@@ -7628,7 +7331,6 @@
             try {
               populateFilterDropdowns();
               applyFiltersAndRender();
-              updateStats();
             } catch (err) { console.warn('[Post-Scan Render]', err); }
             resetUI();
             setScanNotice(incompleteNotes);
@@ -7640,7 +7342,7 @@
           let msg = err.message || '';
           if (msg.startsWith('USER_NOT_FOUND:')) {
             const u = msg.split(':')[1];
-            msg = `Profile not found: ${u}. Make sure the username is spelled correctly and is public.`;
+            msg = `Couldn't find a Letterboxd profile called ${u}. Check the spelling.`;
           } else if (msg.startsWith('PROXY_FAILURE:')) {
             msg = `Couldn't reach Letterboxd right now. That's a problem on our side, not your privacy settings. Please try again in a moment.`;
           } else if (msg.startsWith('WATCHLIST_EMPTY:')) {
@@ -7942,7 +7644,7 @@
 
       const createBtn = (text, disabled, page, isActive = false) => {
         if (isActive) {
-          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(59,130,246,0.6)]">${text}</button>`;
+          return `<button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,90,54,0.6)]">${text}</button>`;
         } else if (disabled && text !== '...') {
           return `<button type="button" disabled class="w-9 h-9 flex items-center justify-center rounded-full bg-transparent text-gray-600 font-bold text-sm cursor-not-allowed">${text}</button>`;
         } else if (text === '...') {
@@ -7980,7 +7682,7 @@
       const nextDisabled = currentPage === maxPage;
       btnsHtml += createBtn('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>', nextDisabled, currentPage + 1);
 
-      return `<div class="col-span-full flex items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-6 pb-2 select-none">${btnsHtml}</div>`;
+      return `<div class="pagination grid-span-all">${btnsHtml}</div>`;
     }
 
     function buildActorFilmographyGridHtml(person, showWatchlistOnly, roleHint = '', isModal = true, isPage = false) {
@@ -7997,51 +7699,22 @@
       let filmographyHtml = '';
       if (moviesToShow.length === 0) {
         const isFiltered = actorFilterQuery || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (actorFilterRating && actorFilterRating !== 'all') || (actorFilterRuntime && actorFilterRuntime !== 'all');
-        let emptyIcon = isFiltered ? '🔍' : (actorMediaTypeFilter === 'watchlist' ? '📋' : (actorMediaTypeFilter === 'tv' ? '📺' : '🎬'));
-        let emptyMsg = 'No credits found';
-        let emptySub = 'Nothing landed here for your current selection.';
-        if (isFiltered) {
-          emptyMsg = 'No titles match your filters';
-          emptySub = 'Try a different search, genre, or decade.';
-        } else if (actorMediaTypeFilter === 'watchlist') {
-          emptyMsg = `No watchlist titles found`;
-          emptySub = `No titles from your scanned watchlist for this ${activeRole.toLowerCase()}.`;
-        } else if (actorMediaTypeFilter === 'movie') {
-          emptyMsg = `No films found`;
-          emptySub = `No feature films listed for this ${activeRole.toLowerCase()}.`;
-        } else if (actorMediaTypeFilter === 'tv') {
-          emptyMsg = `No series found`;
-          emptySub = `No television series listed for this ${activeRole.toLowerCase()}.`;
-        } else {
-          emptyMsg = `No credits found`;
-          emptySub = `No available credits for this ${activeRole.toLowerCase()}.`;
-        }
-        filmographyHtml = `<div class="col-span-full flex flex-col items-center justify-center min-h-[260px] text-gray-500 gap-2 text-center py-10"><span class="text-3xl opacity-60">${emptyIcon}</span><span class="font-bold uppercase tracking-widest text-sm text-gray-400">${emptyMsg}</span><span class="text-xs text-gray-600 font-medium normal-case tracking-normal">${emptySub}</span></div>`;
+        const what = { watchlist: 'from your watchlist', movie: 'films', tv: 'series' }[actorMediaTypeFilter] || 'credits';
+        const msg = isFiltered ? 'Nothing matches these filters. Try a different search, genre or decade.'
+          : actorMediaTypeFilter === 'watchlist' ? `Nothing ${what} for this ${activeRole.toLowerCase()} yet.`
+          : `No ${what} listed for this ${activeRole.toLowerCase()}.`;
+        filmographyHtml = `<p class="page-empty">${msg}</p>`;
       } else {
-        pageMovies.forEach((m, idx) => {
-          const mTitle = escapeHTML(m.title);
-          const mYear = m.release_date ? m.release_date.split('-')[0] : '';
-          const mPoster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null;
-          const mChar = m.character ? escapeHTML(m.character) : '';
-          const isInWatchlist = watchlistKeySet.has(`${m.mediaType || 'movie'}-${m.id}`);
-          const mediaBadge = m.mediaType === 'tv' ? ' · TV Series' : '';
-          const roleStr = isDirector ? 'Director' : (mChar ? mChar : '');
-          const subtext = `${mYear ? mYear : ''}${mediaBadge}${roleStr ? ' · ' + roleStr : ''}`;
-          const actorRatingHtml = renderPosterRatingBadgeHtml(m);
-          filmographyHtml += `<div class="tilt-card animate-fade shrink-0 cursor-pointer z-10 hover:z-30 relative" style="animation-delay: ${idx * 0.02}s" title="${mTitle}${mYear ? ' (' + mYear + ')' : ''}" onclick="${isPage ? `openMoviePageById(${m.id}, '', '${m.mediaType || 'movie'}')` : `handleActorFilmClick(${m.id}, '', ${!isModal}, '${m.mediaType || 'movie'}')`}">
-            <div class="tilt-card-inner glow-card block relative rounded-2xl aspect-[2/3] bg-gray-900 shadow-[0_10px_25px_rgba(0,0,0,0.6)] border border-white/5 h-full" data-movie-card-id="${m.id}">
-              <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-                ${mPoster ? `<img src="${mPoster}" alt="${mTitle} poster" loading="lazy" decoding="async" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center p-3 text-center font-bold text-gray-500 text-xs">${mTitle}</div>`}
-                <div class="glare"></div>
-              </div>
-              ${actorRatingHtml}
-              ${isInWatchlist ? `<div class="poster-badge-glass absolute top-2.5 left-2.5 bg-[#030712]/92 w-7.5 h-7.5 rounded-[7px] text-blue-400 border border-blue-400/30 shadow-md flex items-center justify-center z-20" title="In Watchlist"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path></svg></div>` : ''}
-            </div>
-          </div>`;
-        });
+        filmographyHtml = pageMovies.map((m, idx) => {
+          const type = m.mediaType || 'movie';
+          const year = m.release_date ? m.release_date.split('-')[0] : '';
+          const role = isDirector ? 'Director' : (m.character || '');
+          const sub = [year, type === 'tv' ? 'Series' : '', role].filter(Boolean).join(' · ');
+          const open = isPage ? `openMoviePageById(${m.id}, '', '${type}')` : `handleActorFilmClick(${m.id}, '', ${!isModal}, '${type}')`;
+          return posterCardHTML(m, { onclick: open, sub, index: idx, hideWatchlist: actorMediaTypeFilter === 'watchlist' });
+        }).join('');
         filmographyHtml += renderActorPaginationHtml(actorCurrentPage, maxActorPage);
       }
-
       return { filmographyHtml, allMovies, watchlistMovies, moviesToShow, activeRole, availableRoles, counts };
     }
 
@@ -8089,8 +7762,8 @@
       window.currentActorAvailableGenres = availableActorGenres;
 
       // Sort label map
-      const sortLabels = { year_desc: 'Newest First', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest Rated', rating_asc: 'Lowest Rated', year_asc: 'Oldest First' };
-      const currentSortLabel = sortLabels[actorFilterSort] || 'Newest First';
+      const sortLabels = { year_desc: 'Newest first', popularity: 'Popular', az: 'A-Z', za: 'Z-A', rating_desc: 'Highest rated', rating_asc: 'Lowest rated', year_asc: 'Oldest first' };
+      const currentSortLabel = sortLabels[actorFilterSort] || 'Newest first';
 
       // Letterboxd slug
       const lbSlug = person.name ? person.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '';
@@ -8104,29 +7777,23 @@
 
       const hasActiveActorFilters = (actorFilterSort !== 'popularity') || (!actorFilterProviders.has('all') && actorFilterProviders.size > 0) || (!actorFilterGenres.has('all') && actorFilterGenres.size > 0) || (!actorFilterDecades.has('all') && actorFilterDecades.size > 0) || (window.actorFilterRating && window.actorFilterRating !== 'all') || (window.actorFilterRuntime && window.actorFilterRuntime !== 'all');
 
-      const mediaFilterTabsHtml = `
-        <div class="filter-tabs-scroll flex gap-1.5 p-1.5 bg-black/40 border border-white/10 rounded-xl w-full items-center">
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'watchlist' ? 'active' : ''}" onclick="setActorTab('watchlist')"><span>Watchlist</span> <span class="tab-badge actor-tab-badge">${safeCounts.watchlist}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'all' ? 'active' : ''}" onclick="setActorTab('all')"><span>All</span> <span class="tab-badge actor-tab-badge">${safeCounts.all}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'movie' ? 'active' : ''}" onclick="setActorTab('movie')"><span>Films</span> <span class="tab-badge actor-tab-badge">${safeCounts.movie}</span></button>
-          <button type="button" class="tab-btn actor-tab-btn tab-btn-flexrow font-bold flex items-center justify-center ${actorMediaTypeFilter === 'tv' ? 'active' : ''}" onclick="setActorTab('tv')"><span>Series</span> <span class="tab-badge actor-tab-badge">${safeCounts.tv}</span></button>
-        </div>`;
-
+      const tab = (key, label, count) => `<button type="button" class="tab-btn actor-tab-btn ${actorMediaTypeFilter === key ? 'active' : ''}" onclick="setActorTab('${key}')">${label} <span class="tab-badge actor-tab-badge">${count}</span></button>`;
+      const mediaFilterTabsHtml = tab('watchlist', 'On your watchlist', safeCounts.watchlist) + tab('all', 'All', safeCounts.all) + tab('movie', 'Films', safeCounts.movie) + tab('tv', 'Series', safeCounts.tv);
       const roleIcons = {
-        'Actor': '🎭',
-        'Director': '🎬',
-        'Writer': '✍️',
-        'Producer': '💼',
-        'Composer': '🎵'
+        'Actor': '',
+        'Director': '',
+        'Writer': '',
+        'Producer': '',
+        'Composer': ''
       };
-      const activeRoleIcon = roleIcons[activeRole] || '🎭';
+      const activeRoleIcon = roleIcons[activeRole] || '';
 
       const roleSelectWrapper = availableRoles.length > 1 ? `
         <div class="custom-filter-dropdown-container shrink-0 min-w-[130px] sm:min-w-[145px] max-w-[185px]">
-          <button type="button" onclick="toggleCustomFilterMenu(this, 'actorRolePopover')" class="custom-filter-trigger h-[42px] px-3">
+          <button type="button" onclick="toggleCustomFilterMenu(this, 'actorRolePopover')" class="custom-filter-trigger role-trigger h-[42px] px-4">
             <div class="flex items-center gap-2 truncate min-w-0">
               <span class="text-sm shrink-0">${activeRoleIcon}</span>
-              <span class="truncate font-bold text-xs uppercase tracking-wider text-white" id="actorRoleLabel">${activeRole}</span>
+              <span class="truncate" id="actorRoleLabel">As ${activeRole.toLowerCase()}</span>
             </div>
             <svg class="custom-filter-chevron w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
@@ -8134,8 +7801,8 @@
             ${availableRoles.map(r => `
               <button type="button" onclick="selectActorRole('${r}', event)" class="custom-filter-item ${r === activeRole ? 'selected' : ''}">
                 <div class="flex items-center gap-2.5 truncate min-w-0">
-                  <span class="text-sm shrink-0">${roleIcons[r] || '🎬'}</span>
-                  <span class="truncate font-bold text-xs uppercase tracking-wider">${r}</span>
+                  <span class="text-sm shrink-0">${roleIcons[r] || ''}</span>
+                  <span class="truncate">As ${r.toLowerCase()}</span>
                 </div>
                 <div class="custom-filter-radio">
                   ${r === activeRole ? '<div class="custom-filter-radio-dot"></div>' : ''}
@@ -8262,66 +7929,34 @@
         : '';
 
       const desktopBackdropImg = knownForBackdrop || profileImg;
-      const filterPlaceholder = (typeof window !== 'undefined' && window.innerWidth < 640) ? 'Search...' : 'Filter by title...';
+      const filterPlaceholder = (typeof window !== 'undefined' && window.innerWidth < 640) ? 'Filter' : 'Filter by title';
 
       const actorControlsHtml = `
-        <div class="relative w-full z-50" id="actorControlsCard">
-          <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 lg:gap-3">
-            <div id="actorCategoriesBar" class="flex shrink-0 w-full lg:w-auto lg:min-w-[460px] xl:min-w-[490px]">
-              ${mediaFilterTabsHtml}
-            </div>
-            <div class="hidden lg:block w-px h-6 bg-white/15 shrink-0 my-auto"></div>
-            <div class="relative flex-1 min-w-0" id="actorControlsBarRow">
-              <div class="flex items-center gap-2 w-full">
-                <div class="flex-1 relative flex bg-black/40 border border-white/10 rounded-xl overflow-hidden blue-focus transition-all h-[42px]">
-                  <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                  <input id="actorFilmSearch" type="text" autocomplete="off" spellcheck="false" placeholder="${filterPlaceholder}" value="${escapeHTML(actorFilterQuery)}" class="w-full bg-transparent pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 text-sm text-white font-medium focus:outline-none placeholder:text-gray-500 transition-colors truncate">
-                  ${actorFilterQuery ? `<button id="actorFilmSearchClear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
-                </div>
-
-                <!-- Options / Filter Toggle Button for Actor -->
-                <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" aria-label="Filters and sorting" class="shrink-0 h-[42px] px-3.5 flex items-center justify-center bg-black/40 border ${hasActiveActorFilters ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-white/10 text-gray-300'} rounded-xl transition-all active:scale-95 font-bold text-xs cursor-pointer">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-                  </svg>
-                </button>
-
-                ${roleSelectWrapper}
-              </div>
-            </div>
+        <div class="results-bar person-bar" id="actorControlsCard">
+          <div id="actorCategoriesBar" class="tabs" role="tablist" aria-label="Show">${mediaFilterTabsHtml}</div>
+          <div class="results-tools" id="actorControlsBarRow">
+            <label class="filter-field">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="M20 20l-3.5-3.5"></path></svg>
+              <input id="actorFilmSearch" aria-label="Filter by title" type="text" autocomplete="off" spellcheck="false" placeholder="${filterPlaceholder}" value="${escapeHTML(actorFilterQuery)}">
+              <button id="actorFilmSearchClear" type="button" aria-label="Clear filter" class="icon-btn ${actorFilterQuery ? '' : 'hidden'}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </label>
+            <button id="actorFilterToggleBtn" type="button" onclick="toggleActorFilterDropdown(event)" class="ghost-btn ${hasActiveActorFilters ? 'has-filters' : ''}" aria-label="Filters and sorting">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M7 12h10M10 17h4"></path></svg>
+              <span class="hide-narrow">Filters</span>
+            </button>
+            ${roleSelectWrapper}
           </div>
-
-          <!-- Actor Filter Backdrop (Mobile bottom sheet backdrop) -->
           <div id="actorFilterBackdrop" class="hidden filter-backdrop-responsive" onclick="closeActorFilterDropdown()"></div>
-
-          <!-- Responsive Filter Panel for Actor (Spans full bar width on desktop, bottom sheet on mobile) -->
-          <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive space-y-4">
-            <!-- Mobile Drag Handle -->
-            <div class="w-10 h-1 rounded-full bg-white/20 mx-auto mb-2 sm:hidden pointer-events-none"></div>
-
-            <!-- Header -->
-            <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-              <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path>
-                </svg>
-                <span class="text-xs font-bold uppercase tracking-widest text-white">Filters &amp; Sorting</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="resetActorFilters()" class="text-xs font-bold text-gray-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
-                  Reset all
-                </button>
-                <button type="button" onclick="closeActorFilterDropdown()" aria-label="Close"
-                  class="sm:hidden w-8 h-8 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer shrink-0">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
+          <div id="actorFilterDropdownMenu" class="hidden filter-panel-responsive">
+            <div class="sheet-handle sm:hidden" aria-hidden="true"></div>
+            <div class="filter-panel-head">
+              <h3>Filters and sorting</h3>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="resetActorFilters()" class="link-btn">Reset all</button>
+                <button type="button" onclick="closeActorFilterDropdown()" aria-label="Close" class="icon-btn sm:hidden"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
               </div>
             </div>
-
-            <!-- Full-width multi-column grid on desktop! -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="actorFilterGridSlots">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4" id="actorFilterGridSlots">
               <div id="actorFilterSlot-sort" class="custom-filter-dropdown-container"></div>
               <div id="actorFilterSlot-provider" class="custom-filter-dropdown-container"></div>
               <div id="actorFilterSlot-genre" class="custom-filter-dropdown-container"></div>
@@ -8329,60 +7964,48 @@
               <div id="actorFilterSlot-rating" class="custom-filter-dropdown-container"></div>
               <div id="actorFilterSlot-runtime" class="custom-filter-dropdown-container"></div>
             </div>
-
-            <!-- Mobile Close / Apply Button -->
-            <button type="button" onclick="closeActorFilterDropdown()" class="w-full sm:hidden py-3 mt-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg active:scale-98 transition-all">
-              Show Results
-            </button>
+            <button type="button" onclick="closeActorFilterDropdown()" class="btn btn-primary w-full sm:hidden">Show films</button>
           </div>
         </div>
       `;
 
       if (isPage) {
-        return `<nav id="actorPageNav" class="movie-page-nav fixed top-0 inset-x-0 z-[70] flex items-center justify-between gap-4 px-4 sm:px-8 lg:px-12 2xl:px-16 pointer-events-none">
-            <button type="button" onclick="closeActorPage()" aria-label="Back" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-            <button type="button" onclick="goHomeFromPage()" aria-label="Close" class="pointer-events-auto shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center liquid-glass active:scale-95 text-white transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-          </nav>
-          <div class="relative w-full h-[52dvh] min-h-[380px] sm:h-[74dvh] sm:min-h-[420px] actor-hero-container">
-            <div id="actorPageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0b1121] clip-mask">
-              ${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}
-              <div class="absolute inset-x-0 bottom-0 h-[65%] sm:h-[56%] bg-gradient-to-t from-[#0b1121] from-0% via-[#0b1121] sm:via-[#0b1121]/85 via-40% to-transparent to-100% pointer-events-none z-20"></div>
-            </div>
-            <div class="absolute inset-0 z-30 flex flex-col justify-end pointer-events-none pb-6 sm:pb-14 2xl:pb-16 actor-hero-content">
-              <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 flex flex-col gap-3 sm:gap-4">
-                <div class="flex flex-row items-center gap-4 sm:gap-8">
-                  ${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async" class="w-28 min-[400px]:w-32 sm:w-48 2xl:w-56 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 pointer-events-auto">` : `<div class="w-28 min-[400px]:w-32 sm:w-48 2xl:w-56 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 flex items-center justify-center text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 pointer-events-auto">${safeName.charAt(0)}</div>`}
-                  <div class="pointer-events-auto min-w-0 flex-1 flex flex-col justify-center gap-1 sm:gap-2">
-                    <h1 class="actor-hero-name text-2xl min-[400px]:text-3xl sm:text-7xl 2xl:text-8xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-[1.08] sm:leading-[0.98]">${safeName}</h1>
-                    ${knownForTitle ? `<p class="actor-hero-known-for text-xs sm:text-base 2xl:text-lg font-medium text-gray-300 drop-shadow"><span class="text-blue-400 font-extrabold uppercase text-[10px] sm:text-xs tracking-wider">Known for</span> <span class="text-white font-bold ml-1">${escapeHTML(knownForTitle)}</span></p>` : ''}
-                    <div class="mt-1 sm:mt-2 max-w-3xl 2xl:max-w-4xl">${bio ? createHeroOverviewHtml(bio, safeName) : ''}</div>
-                  </div>
-                </div>
+        // One plain line of facts instead of labels: what they do, when and where they were born, what they're known for.
+        const fmtDate = (d) => { try { return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return d; } };
+        const dept = { Acting: 'Actor', Directing: 'Director', Writing: 'Writer', Production: 'Producer', Sound: 'Composer' }[person.known_for_department] || activeRole;
+        const facts = [
+          dept,
+          birthday ? (deathday ? `${birthday.slice(0, 4)}–${deathday.slice(0, 4)}` : `Born ${fmtDate(birthday)}${birthplace ? ` in ${birthplace}` : ''}`) : (birthplace ? `From ${birthplace}` : ''),
+          knownForTitle ? `Known for ${escapeHTML(knownForTitle)}` : ''
+        ].filter(Boolean).join(' · ');
+        const personUrl = `${window.location.origin}${window.location.pathname}?actor=${tmdbId}`;
+        const personLinks = [
+          lbSlug ? { label: 'Letterboxd', href: `https://letterboxd.com/${isDirector ? 'director' : 'actor'}/${escapeHTML(lbSlug)}/` } : null,
+          imdbId ? { label: 'IMDb', href: `https://www.imdb.com/name/${escapeHTML(imdbId)}/` } : null,
+          { label: 'TMDB', href: `https://www.themoviedb.org/person/${tmdbId}` },
+          ...socialsList.map(s => ({ label: s.name, href: s.url })),
+          { label: 'Copy link', onclick: `copyPageLink(this, '${personUrl}')` }
+        ];
+        const filmsHeading = 'Films and series';
+        return `${pageNavHTML('closeActorPage()', 'goHomeFromPage()', 'actorPageNav')}
+          <header class="person-hero">
+            <div id="actorPageHeroArt" class="person-hero-art" aria-hidden="true">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="" loading="eager" decoding="async" onload="this.classList.add('is-loaded')">` : ''}</div>
+            <div class="page-width person-hero-inner">
+              <div class="person-hero-photo">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="eager" decoding="async">` : `<span>${safeName.charAt(0)}</span>`}</div>
+              <div class="person-hero-text">
+                <h1 class="display person-name actor-hero-name">${safeName}</h1>
+                ${facts ? `<p class="person-facts">${facts}</p>` : ''}
+                ${bio ? `<div class="person-bio">${createHeroOverviewHtml(bio, safeName)}</div>` : ''}
               </div>
             </div>
-          </div>
-          <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 pt-4 sm:pt-0 pb-0 flex flex-col gap-6 sm:gap-10">
-            <div>
-              <div class="flex flex-col gap-3 mb-4 relative z-40">
-                <h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>
-                ${actorControlsHtml}
-              </div>
-              <div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div>
-            </div>
-          </div>
-          <div class="w-full max-w-[1400px] xl:max-w-[1760px] 2xl:max-w-[2160px] min-[2500px]:max-w-[2400px] mx-auto px-4 sm:px-8 lg:px-12 2xl:px-16 mt-6 sm:mt-7 pb-8 sm:pb-10">
-            <div class="pt-6 border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              ${actorActionBtnsHtml}
-              <div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right">
-                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5">
-                  <a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a>
-                  <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span>
-                </div>
-              </div>
-            </div>
+          </header>
+          <div class="page-width person-body">
+            <div class="section-head person-films-head"><h2 class="section-title">${filmsHeading}</h2><span class="section-count actor-total-count">${safeCounts.all}</span></div>
+            ${actorControlsHtml}
+            <div id="actorFilmGrid" class="poster-grid">${filmographyHtml}</div>
+            ${pageFooterHTML(personLinks)}
           </div>`;
-      }
-      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0b1121]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0b1121]/80 to-[#0b1121]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0b1121] via-[#0b1121]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0b1121] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0b1121] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div></div></div>`;
+      }      return `${closeBtn}<div class="relative w-full h-56 sm:h-72 shrink-0 rounded-t-3xl overflow-hidden"><div class="absolute inset-0 overflow-hidden clip-mask bg-[#0a0a0b]">${desktopBackdropImg ? `<img src="${desktopBackdropImg}" alt="${safeName} backdrop" loading="eager" decoding="async" class="w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="w-full h-full bg-gradient-to-b from-blue-900/30 via-[#0a0a0b]/80 to-[#0a0a0b]"></div>`}<div class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0a0a0b] via-[#0a0a0b]/70 to-transparent pointer-events-none z-10"></div></div><div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 flex items-center gap-3.5 sm:gap-6 z-20">${profileImg ? `<img src="${profileImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 aspect-[2/3] object-cover shrink-0 z-20">` : `<div class="flex w-24 sm:w-36 rounded-xl sm:rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8)] border border-white/10 bg-gray-800 items-center justify-center text-2xl sm:text-3xl font-bold text-gray-500 aspect-[2/3] shrink-0 z-20">${safeName.charAt(0)}</div>`}<div class="flex flex-col justify-center items-start flex-1 min-w-0 z-20"><h2 class="text-2xl min-[400px]:text-3xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)] leading-tight mb-0.5">${safeName}</h2>${knownForSubtitle}</div></div></div><div class="relative p-5 sm:p-8 flex flex-col gap-5 sm:gap-6 bg-[#0a0a0b] z-0">${bioHtml ? `<div class="space-y-3">${bioHtml}</div>` : ''}<div><div class="flex flex-col gap-3 mb-4 relative z-40"><h3 class="text-base sm:text-lg font-extrabold uppercase tracking-widest text-gray-400">Filmography &amp; Series <span class="actor-total-count text-gray-500 text-xs sm:text-sm normal-case tracking-normal">(${safeCounts.all} total)</span></h3>${actorControlsHtml}</div><div id="actorFilmGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2200px]:grid-cols-8 gap-4 sm:gap-5 lg:gap-5 xl:gap-5 2xl:gap-6 min-[2200px]:gap-7 content-start">${filmographyHtml}</div></div></div><div class="bg-[#0a0a0b] p-5 sm:px-8 sm:py-5 rounded-b-3xl border-t border-white/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">${actorActionBtnsHtml}<div class="flex flex-col items-center lg:items-end gap-1.5 w-full lg:w-auto text-center lg:text-right"><div class="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-1.5 sm:gap-2.5"><a href="https://www.themoviedb.org/" target="_blank" class="hidden lg:inline-block shrink-0 opacity-80 hover:opacity-100 transition-opacity"><img src="/icons/tmdb-logo.svg" alt="TMDB Logo" class="h-3 sm:h-3.5"></a><span class="text-[10px] sm:text-[11px] text-gray-400 font-medium sm:whitespace-nowrap">This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Streaming availability data provided by <a href="https://www.justwatch.com" target="_blank" rel="noopener" class="underline hover:text-white">JustWatch</a>.</span></div></div></div>`;
     }
 
     let currentActorId = null;
@@ -8393,16 +8016,16 @@
     let modalActiveActorRoleHint = '';
 
     const ACTOR_SORT_OPTIONS = [
-      { value: 'year_desc', label: 'Newest First' },
-      { value: 'year_asc', label: 'Oldest First' },
+      { value: 'year_desc', label: 'Newest first' },
+      { value: 'year_asc', label: 'Oldest first' },
       { value: 'popularity', label: 'Popular' },
-      { value: 'rating_desc', label: 'Highest Rated' },
+      { value: 'rating_desc', label: 'Highest rated' },
       { value: 'az', label: 'A-Z' },
       { value: 'za', label: 'Z-A' }
     ];
 
     const ACTOR_DECADE_OPTIONS = [
-      { value: 'all', label: 'All Decades' },
+      { value: 'all', label: 'All decades' },
       { value: '2020s', label: '2020s' },
       { value: '2010s', label: '2010s' },
       { value: '2000s', label: '2000s' },
@@ -8911,6 +8534,7 @@
         searchInput.addEventListener('input', (e) => {
           actorFilterQuery = e.target.value;
           actorCurrentPage = 1;
+          if (clearBtn) clearBtn.classList.toggle('hidden', !e.target.value);
           refreshActorFilmographyGrid();
         });
       }
@@ -8918,6 +8542,7 @@
         clearBtn.addEventListener('click', () => {
           actorFilterQuery = '';
           actorCurrentPage = 1;
+          clearBtn.classList.add('hidden');
           refreshActorFilmographyGrid();
           const inp = document.getElementById('actorFilmSearch');
           if (inp) { inp.value = ''; inp.focus(); }
@@ -8931,42 +8556,17 @@
       grid.querySelectorAll('.tilt-card').forEach(card => apply3DTilt(card));
     }
 
-    function scrollSimilarTrack(direction, e) {
+    // Rails page by exactly one screenful of whole cards (the CSS sizes cards to fit the width).
+    function scrollRail(trackId, direction, e) {
       if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('similarMoviesTrack');
+      const track = document.getElementById(trackId);
       if (!track) return;
-      const firstCard = track.querySelector('.tilt-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
+      const gap = parseFloat(getComputedStyle(track).columnGap) || 16;
+      track.scrollBy({ left: (track.clientWidth + gap) * direction, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
     }
-
-    function scrollRelatedTrack(direction, e) {
-      if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('relatedMoviesTrack');
-      if (!track) return;
-      const firstCard = track.querySelector('.tilt-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 3 : 2))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
-    }
-
-    function scrollCastTrack(direction, e) {
-      if (e) { e.stopPropagation(); e.preventDefault(); }
-      const track = document.getElementById('castCrewTrack');
-      if (!track) return;
-      const firstCard = track.querySelector('.cast-chip-card');
-      if (!firstCard) return;
-      const gap = parseFloat(window.getComputedStyle(track).gap) || 12;
-      const cardWidth = firstCard.getBoundingClientRect().width + gap;
-      const visibleCount = window.innerWidth >= 2200 ? 8 : (window.innerWidth >= 1536 ? 7 : (window.innerWidth >= 1280 ? 6 : (window.innerWidth >= 1024 ? 5 : (window.innerWidth >= 640 ? 4 : 3))));
-      track.scrollBy({ left: cardWidth * visibleCount * direction, behavior: 'smooth' });
-    }
-
+    function scrollSimilarTrack(direction, e) { scrollRail('similarMoviesTrack', direction, e); }
+    function scrollRelatedTrack(direction, e) { scrollRail('relatedMoviesTrack', direction, e); }
+    function scrollCastTrack(direction, e) { scrollRail('castCrewTrack', direction, e); }
     function initDynamicScrollTrack(trackId, prevBtnId, nextBtnId, isCast) {
       const track = document.getElementById(trackId);
       const prevBtn = document.getElementById(prevBtnId);
@@ -9055,7 +8655,7 @@
         lastT = now;
       };
 
-      track.querySelectorAll('.tilt-card, .cast-chip-card').forEach(card => {
+      track.querySelectorAll('.tilt-card, .cast-chip-card, .poster-card').forEach(card => {
         card.addEventListener('click', (e) => {
           if (isDragging || (isCast && window.isCastDragging)) {
             e.preventDefault();
@@ -9065,17 +8665,10 @@
       });
     }
 
+    // The watch box now sizes to its own content (it used to be pinned to the cast row's height).
     function syncWatchNowHeight() {
-      const track = document.getElementById('castCrewTrack');
       const box = document.getElementById('desktopWatchOptionsBox');
-      if (!track || !box) return;
-      const firstChip = track.querySelector('.cast-chip-card');
-      if (firstChip && firstChip.offsetHeight > 40) {
-        const exactH = Math.round(firstChip.offsetHeight);
-        box.style.height = exactH + 'px';
-        box.style.minHeight = exactH + 'px';
-        box.style.maxHeight = exactH + 'px';
-      }
+      if (box) { box.style.height = ''; box.style.minHeight = ''; box.style.maxHeight = ''; }
     }
 
     let watchNowResizeObserver = null;
@@ -9161,22 +8754,22 @@
           }
           const totalCountEls = container.querySelectorAll('.actor-total-count');
           if (totalCountEls.length > 0 && counts) {
-            totalCountEls.forEach(el => { el.textContent = `(${counts.all} total)`; });
+            totalCountEls.forEach(el => { el.textContent = String(counts.all); });
           }
 
           // Update Role dropdown button label, icon, and popover state
           const roleLabelEl = document.getElementById('actorRoleLabel');
           const roleIcons = {
-            'Actor': '🎭',
-            'Director': '🎬',
-            'Writer': '✍️',
-            'Producer': '💼',
-            'Composer': '🎵'
+            'Actor': '',
+            'Director': '',
+            'Writer': '',
+            'Producer': '',
+            'Composer': ''
           };
           const activeRole = activeRoleHint || 'Actor';
-          const activeIcon = roleIcons[activeRole] || '🎬';
+          const activeIcon = roleIcons[activeRole] || '';
           if (roleLabelEl) {
-            roleLabelEl.textContent = activeRole;
+            roleLabelEl.textContent = `As ${activeRole.toLowerCase()}`;
             const trigger = roleLabelEl.closest('.custom-filter-trigger');
             if (trigger) {
               const iconSpan = trigger.querySelector('.text-sm');
@@ -9187,7 +8780,7 @@
           if (rolePopover) {
             rolePopover.querySelectorAll('.custom-filter-item').forEach(item => {
               const itemText = item.textContent || '';
-              const isSel = itemText.includes(activeRole);
+              const isSel = itemText.toLowerCase().includes(activeRole.toLowerCase());
               item.classList.toggle('selected', isSel);
               const radio = item.querySelector('.custom-filter-radio');
               if (radio) {
@@ -9209,7 +8802,7 @@
       }
 
       if (isInline) {
-        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0b1121] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
+        el.quickSearchResult.innerHTML = `<div class="glass-panel rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-blue-500/20 animate-fade flex flex-col bg-[#0a0a0b] overflow-hidden relative">${generateActorHTML(person, actorModalWatchlistMode, currentActorRoleHint, false)}</div>`;
         const closeBtn = document.getElementById('closeActorModalBtn');
         if (closeBtn) closeBtn.onclick = () => { el.quickSearchResult.classList.add('hidden'); el.quickSearchResult.innerHTML = ''; quickSearchHistoryStack.length = 0; currentActorId = null; };
         const backBtnRefresh = document.getElementById('backToMovieBtn');
@@ -9386,3 +8979,730 @@
       }).observe(document.body, { childList: true, subtree: true });
     })();
 
+    // =========================================================================
+    // RESULTS HEADLINE, TONIGHT'S PICK AND THE SLIM SCAN BAR
+    // renderResultsHero() runs at the end of every applyFiltersAndRender().
+    // =========================================================================
+    // `var` and function declarations (not let/const) on purpose: applyFiltersAndRender() in
+    // 10-home-results.js can run before this file's lines have executed during page load.
+    var tonightPickKey = null;        // `${mediaType}_${id}` of the film the pick card shows
+    var currentTonightPick = null;
+    var scanPanelExpanded = false;    // true after "Change" is pressed, until the next scan starts
+
+    function movieKeyOf(m) { return `${m.mediaType || 'movie'}_${m.id}`; }
+    function filmsCount(n) { return n === 1 ? '1 film' : `${n.toLocaleString()} films`; }
+    function cleanProviderName(p) { return (p.provider_name || p.name || '').replace('with Ads', '').trim(); }
+
+    function renderResultsHero() {
+      const headline = document.getElementById('resultsHeadline');
+      const subline = document.getElementById('resultsSubline');
+      if (!headline || !subline) return;
+      if (!scannedMovies.length) {
+        headline.textContent = '';
+        subline.textContent = '';
+        renderTonightPick();
+        updateScanPanelMode();
+        return;
+      }
+
+      // Counts come from the whole watchlist, not the filtered grid, so typing in the
+      // title search doesn't turn the headline into "1 of your 617 films".
+      const isSubscribed = buildSubscribedMatcher();
+      const all = groupMoviesByAvailability(scannedMovies, isSubscribed);
+      const total = scannedMovies.length;
+      const streaming = all.stream.length;
+
+      const perService = {};
+      all.stream.forEach(m => {
+        const names = (m.regionData?.flatrate || []).filter(isSubscribed).map(cleanProviderName);
+        if (names.length === 0 && m.vpnInfo) names.push(`${m.vpnInfo.services[0]?.label || 'Other region'} via VPN`);
+        new Set(names).forEach(n => { perService[n] = (perService[n] || 0) + 1; });
+      });
+      const breakdown = Object.keys(perService)
+        .sort((a, b) => perService[b] - perService[a])
+        .slice(0, 4)
+        .map(n => `${n} ${perService[n]}`)
+        .join(' · ');
+
+      const whose = isFriendMatchActive ? `the ${filmsCount(total)} you both want to see` : `your ${filmsCount(total)}`;
+      if (streaming > 0) {
+        headline.innerHTML = `<em>${streaming.toLocaleString()}</em> of ${whose} ${streaming === 1 ? 'is' : 'are'} yours to watch tonight.`;
+      } else {
+        headline.textContent = `None of ${whose} are on your services tonight.`;
+      }
+      renderServiceChips(perService, streaming);
+
+      const rentbuy = all.rentbuy.length;
+      const other = all.other.length;
+      const parts = [];
+      if (streaming > 0) {
+        // The per-service counts live on the service chips; here only when there are no chips.
+        const chipsShown = currentProviders.filter(cp => selectedServiceIds.has(cp.id) && perService[cp.name] > 0).length >= 2;
+        if (!chipsShown && Object.keys(perService).length > 1) parts.push(`${breakdown}.`);
+        if (rentbuy > 0) parts.push(`${rentbuy.toLocaleString()} more can be rented or bought.`);
+      } else {
+        if (rentbuy > 0) parts.push(`${filmsCount(rentbuy)} can be rented or bought.`);
+        if (other > 0) parts.push(`${filmsCount(other)} ${other === 1 ? 'is' : 'are'} on services you don't have.`);
+      }
+      subline.textContent = parts.join(' ');
+
+      renderTonightPick();
+      updateScanPanelMode();
+    }
+
+    // The pick comes from the visible "Streaming" tab, so filters (genre, length...) shape it.
+    // It stays put while it's still in that list, and only changes on "Another pick".
+    function renderTonightPick() {
+      const card = document.getElementById('tonightPick');
+      if (!card) return;
+      const pool = (currentGroupedResults && currentGroupedResults.stream) || [];
+      if (!scannedMovies.length || pool.length === 0) {
+        card.classList.add('hidden');
+        currentTonightPick = null;
+        return;
+      }
+      let pick = pool.find(m => movieKeyOf(m) === tonightPickKey);
+      if (!pick) {
+        pick = pool[Math.floor(Math.random() * pool.length)];
+        tonightPickKey = movieKeyOf(pick);
+      }
+      fillTonightPick(pick, pool.length);
+      card.classList.remove('hidden');
+    }
+
+    // One TMDB request per pick: the film's own title logo (the artwork streaming apps show), its
+    // tagline and its synopsis. The scan doesn't keep those, so the pick fetches them itself.
+    var tonightPickInfoCache = new Map();
+    async function loadTonightPickInfo(m) {
+      const key = movieKeyOf(m);
+      if (tonightPickInfoCache.has(key)) return tonightPickInfoCache.get(key);
+      const info = { logo: null, tagline: '', overview: '' };
+      try {
+        const type = m.mediaType === 'tv' ? 'tv' : 'movie';
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/${type}/${m.id}?api_key=${TMDB_API_KEY}&append_to_response=images&include_image_language=en`);
+        const data = await res.json();
+        const logos = ((data.images && data.images.logos) || []).filter(l => l.file_path && !l.file_path.endsWith('.svg'));
+        logos.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0) || (b.width || 0) - (a.width || 0));
+        if (logos[0]) info.logo = `https://image.tmdb.org/t/p/w500${logos[0].file_path}`;
+        info.tagline = (data.tagline || '').trim();
+        info.overview = (data.overview || '').trim();
+      } catch (e) { logIgnored('loadTonightPickInfo', e); }
+      tonightPickInfoCache.set(key, info);
+      return info;
+    }
+
+    // Tagline and synopsis for the pick shown now (filled in when the lookup lands).
+    function fillTonightPickText(m, info) {
+      if (currentTonightPick !== m) return;
+      const tagline = document.getElementById('tonightPickTagline');
+      const overview = document.getElementById('tonightPickOverview');
+      if (tagline) tagline.textContent = info ? info.tagline : '';
+      if (overview) overview.textContent = info ? info.overview : '';
+    }
+
+    function fillTonightPick(m, poolSize) {
+      currentTonightPick = m;
+      const card = document.getElementById('tonightPick');
+      const img = document.getElementById('tonightPickBackdrop');
+      if (img) {
+        const src = m.backdrop || m.poster || '';
+        if (src) { img.src = src; img.classList.remove('hidden'); } else { img.removeAttribute('src'); img.classList.add('hidden'); }
+      }
+
+      // Title artwork: the plain title stays invisible until we know whether there's a logo,
+      // so it never flashes up in text first. Re-renders of the same film leave it alone.
+      const logo = document.getElementById('tonightPickLogo');
+      const key = movieKeyOf(m);
+      if (logo && card && logo.dataset.key !== key) {
+        logo.dataset.key = key;
+        logo.classList.add('hidden'); logo.removeAttribute('src'); card.classList.remove('has-logo');
+        const known = tonightPickInfoCache.has(key) && !tonightPickInfoCache.get(key).logo;
+        card.classList.toggle('logo-pending', !known);
+        fillTonightPickText(m, tonightPickInfoCache.get(key));
+        const settle = () => { if (currentTonightPick === m) card.classList.remove('logo-pending'); };
+        setTimeout(settle, 1500); // a slow lookup never hides the title for long
+        loadTonightPickInfo(m).then((info) => {
+          if (currentTonightPick !== m) return; // a newer pick replaced this one meanwhile
+          fillTonightPickText(m, info);
+          const url = info.logo;
+          if (!url) { settle(); return; }
+          logo.onload = () => { if (currentTonightPick === m) { logo.classList.remove('hidden'); card.classList.add('has-logo'); settle(); } };
+          logo.onerror = settle;
+          logo.alt = m.title || '';
+          logo.src = url;
+        });
+      }
+      const title = document.getElementById('tonightPickTitle');
+      if (title) title.textContent = m.title || '';
+
+      const meta = [];
+      const year = (m.releaseDate || '').slice(0, 4);
+      if (year) meta.push(year);
+      if (m.runtime > 0) meta.push(m.runtime >= 60 ? `${Math.floor(m.runtime / 60)}h ${m.runtime % 60}m` : `${m.runtime}m`);
+      const genres = (m.genreIds || []).map(id => GENRE_MAP[id]).filter(Boolean).slice(0, 2).join(', ');
+      if (genres) meta.push(genres);
+      const rating = getCachedRating(m);
+      const metaEl = document.getElementById('tonightPickMeta');
+      if (metaEl) {
+        const parts = meta.map(t => `<span>${escapeHTML(t)}</span>`);
+        if (rating) parts.unshift(`<span class="pick-rating">${IMDB_TAG_HTML}<span>${escapeHTML(String(rating))}</span></span>`);
+        metaEl.innerHTML = parts.join('<span class="pick-dot" aria-hidden="true">·</span>');
+      }
+
+      // Which of the viewer's services has it: a local one first, otherwise the VPN region.
+      const local = (m.regionData?.flatrate || []).filter(buildSubscribedMatcher());
+      let serviceName = local.length ? cleanProviderName(local[0]) : null;
+      let region = currentRegion;
+      let viaVpn = false;
+      if (!serviceName && m.vpnInfo) {
+        serviceName = m.vpnInfo.services[0]?.label || null;
+        region = m.vpnInfo.region;
+        viaVpn = true;
+      }
+      // Where it streams: the service's logo and name, and whether it's included or needs a VPN.
+      const where = document.getElementById('tonightPickWhere');
+      if (where) {
+        if (!serviceName) where.innerHTML = '';
+        else {
+          const logoUrl = getProviderLogoUrl(serviceName);
+          const others = viaVpn ? [] : [...new Set(local.map(cleanProviderName))].filter(n => n !== serviceName);
+          const name = others.length ? `${serviceName} and ${others.length === 1 ? others[0] : `${others.length} more`}` : serviceName;
+          const status = viaVpn
+            ? `<span class="pick-where-status is-vpn">Needs a VPN set to ${escapeHTML(REGION_META[region]?.name || region)}</span>`
+            : `<span class="pick-where-status">Included with your subscription</span>`;
+          where.innerHTML = `<span class="pick-where-logo">${logoUrl ? `<img src="${escapeHTML(logoUrl)}" alt="">` : ''}</span><span class="pick-where-text"><span class="pick-where-name">On ${escapeHTML(name)}</span>${status}</span>`;
+        }
+      }
+
+      const watch = document.getElementById('tonightPickWatch');
+      if (watch) {
+        if (serviceName) {
+          let link = getRegionServiceUrl(serviceName, region, m.title);
+          const deeplink = getDeeplinkFor(serviceName);
+          if (deeplink && deeplink.searchUrl) link = deeplink.searchUrl(m.title);
+          let appLink = deeplink && deeplink.appUrl ? deeplink.appUrl(m.title) : null;
+          const directLink = getJustWatchLink(m, region, serviceName, false); // the film's own page, once known
+          if (directLink) { link = directLink; appLink = null; }
+          watch.href = link;
+          watch.textContent = `Watch on ${serviceName}`;
+          watch.onclick = (e) => { if (appLink) { e.preventDefault(); openStreamingService(link, appLink); } };
+          watch.classList.remove('hidden');
+        } else {
+          watch.classList.add('hidden');
+        }
+      }
+
+      document.querySelectorAll('.pick-another').forEach(b => { b.disabled = poolSize <= 1; });
+    }
+
+    function showAnotherTonightPick() {
+      const pool = (currentGroupedResults && currentGroupedResults.stream) || [];
+      const others = pool.filter(m => movieKeyOf(m) !== tonightPickKey);
+      if (others.length === 0) return;
+      const pick = others[Math.floor(Math.random() * others.length)];
+      tonightPickKey = movieKeyOf(pick);
+      // Start loading the next film's still at once; when it's ready (or after a short wait),
+      // swap title, details and image in the same frame and fade the old still out on top.
+      // Tapping again before it lands just retargets to the newer pick.
+      const img = document.getElementById('tonightPickBackdrop');
+      const art = document.getElementById('tonightPickArt');
+      if (!img || !art) { fillTonightPick(pick, pool.length); return; }
+      const swapId = (showAnotherTonightPick.swapId || 0) + 1;
+      showAnotherTonightPick.swapId = swapId;
+      let swapped = false;
+      const swap = () => {
+        if (swapped || showAnotherTonightPick.swapId !== swapId) return;
+        swapped = true;
+        art.querySelectorAll('.pick-ghost').forEach(g => g.remove());
+        if (img.getAttribute('src') && !prefersReducedMotion.matches) {
+          const ghost = img.cloneNode(false);
+          ghost.removeAttribute('id'); ghost.className = 'pick-ghost'; ghost.alt = '';
+          art.appendChild(ghost);
+          requestAnimationFrame(() => requestAnimationFrame(() => { ghost.style.opacity = '0'; }));
+          setTimeout(() => ghost.remove(), 500);
+        }
+        fillTonightPick(pick, pool.length);
+      };
+      // Wait for the still and the title logo together, so both land in the same frame.
+      const loadImage = (url) => new Promise((resolve) => {
+        if (!url) { resolve(); return; }
+        const i = new Image(); i.onload = i.onerror = () => resolve(); i.src = url;
+      });
+      Promise.all([
+        loadImage(pick.backdrop || pick.poster),
+        loadTonightPickInfo(pick).then(info => loadImage(info.logo))
+      ]).then(swap);
+      setTimeout(swap, 900); // a slow image never holds the new pick back for long
+    }
+
+    async function playTonightPickTrailer() {
+      const m = currentTonightPick;
+      if (!m) return;
+      const btn = document.getElementById('tonightPickTrailer');
+      if (btn) btn.disabled = true;
+      try {
+        const type = m.mediaType === 'tv' ? 'tv' : 'movie';
+        const res = await tmdbFetch(`https://api.themoviedb.org/3/${type}/${m.id}/videos?api_key=${TMDB_API_KEY}`);
+        const data = await res.json();
+        const trailer = getBestTrailer({ videos: data });
+        if (trailer && trailer.key) { openTrailerModal(trailer.key, m.title); return; }
+      } catch (e) {
+        logIgnored('playTonightPickTrailer', e);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+      openMoviePage(m, true); // no trailer found: the film page still has everything else
+    }
+
+    // Once results are showing, the big scan form collapses into a one-line bar.
+    function updateScanPanelMode() {
+      const full = document.getElementById('scanPanel');
+      const bar = document.getElementById('scanCompactBar');
+      if (!full || !bar) return;
+      const resultsVisible = !!(el.resultsSection && !el.resultsSection.classList.contains('hidden'));
+      const hasResults = resultsVisible && scannedMovies.length > 0 && !isScanning;
+      const compact = hasResults && !scanPanelExpanded;
+      full.classList.toggle('hidden', compact);
+      bar.classList.toggle('hidden', !compact);
+      // "Change" opens a clean start page: the results wait behind "Back to your results".
+      const landingMode = hasResults && scanPanelExpanded;
+      document.body.classList.toggle('landing-mode', landingMode);
+      const back = document.getElementById('landingBackBtn');
+      if (back) {
+        back.classList.toggle('hidden', !landingMode);
+        if (landingMode) fillLandingReturn();
+      }
+      if (!compact) return;
+
+      const user = (localStorage.getItem('ps_username') || (el.usernameInput && el.usernameInput.value) || '').trim();
+      const friend = isFriendMatchActive ? (localStorage.getItem('ps_friend_username') || '').trim() : '';
+      const userEl = document.getElementById('scanCompactUser');
+      if (userEl) userEl.textContent = friend ? `${user} and ${friend}` : user;
+
+      const servicesEl = document.getElementById('scanCompactServices');
+      if (servicesEl) {
+        const selected = getSelectedProviderList();
+        servicesEl.innerHTML = serviceStackHTML(selected, 5);
+        servicesEl.title = describeServices(selected);
+      }
+
+      const friendBtn = document.getElementById('scanCompactFriendBtn');
+      if (friendBtn) friendBtn.classList.toggle('hidden', isFriendMatchActive);
+    }
+
+    // One chip per selected service with films on it, plus "All". A chip narrows the grid
+    // (and Tonight's pick) to that service, through the same provider filter the Filters panel sets.
+    function renderServiceChips(perService, streamingTotal) {
+      const box = document.getElementById('serviceChips');
+      if (!box) return;
+      const services = currentProviders.filter(cp => selectedServiceIds.has(cp.id) && perService[cp.name] > 0);
+      if (services.length < 2) { box.innerHTML = ''; box.classList.add('hidden'); return; }
+      const only = (!homeFilterProviders.has('all') && homeFilterProviders.size === 1) ? [...homeFilterProviders][0] : null;
+      const chip = (name, count, logo) => `<button type="button" class="svc-chip" data-service="${escapeHTML(name)}" aria-pressed="${(only === name) || (!only && !name)}">${logo ? `<img src="${escapeHTML(logo)}" alt="" onerror="this.remove()">` : ''}<span class="svc-chip-name">${name ? escapeHTML(name) : 'All'}</span><span class="svc-chip-count">${count.toLocaleString()}</span></button>`;
+      box.innerHTML = chip('', streamingTotal, null) + services.sort((a, b) => perService[b.name] - perService[a.name]).map(cp => chip(cp.name, perService[cp.name], getProviderLogoUrl(cp.name))).join('');
+      box.classList.remove('hidden');
+    }
+
+    function selectServiceChip(name) {
+      homeFilterProviders = name ? new Set([name]) : new Set(['all']);
+      tonightPickKey = null; // a new service gets its own pick
+      currentPage = 1;
+      if (activeTab !== 'stream') setHomeTab('stream');
+      renderAllCustomFilters('home');
+      applyFiltersAndRender();
+    }
+
+    // Quick search lives behind the Search button in the top bar (and ⌘K / Ctrl+K).
+    // Search is the field in the top bar; Ctrl/⌘K just puts you in it.
+    function openQuickSearch() {
+      if (!el.quickSearchInput) return;
+      el.quickSearchInput.focus();
+      el.quickSearchInput.select();
+    }
+    function closeQuickSearch() {
+      if (el.searchDropdown) el.searchDropdown.classList.add('hidden');
+      if (el.quickSearchInput) el.quickSearchInput.blur();
+    }
+
+    // The landing's poster wall: the visitor's own watchlist when we have it, otherwise
+    // this week's most talked-about films.
+    // Four columns that drift slowly (CSS), each holding its posters twice for a seamless loop;
+    // the speeds differ a little so the columns never line up.
+    async function fillPosterWall() {
+      const wall = document.getElementById('posterWall');
+      if (!wall || wall.childElementCount) return;
+      const COLS = 4, PER_COL = 7;
+      let posters = scannedMovies.filter(m => m.poster).sort(() => Math.random() - 0.5).slice(0, COLS * PER_COL).map(m => m.poster.replace('/w500/', '/w342/'));
+      if (posters.length < 16) {
+        try {
+          const pages = await Promise.all([1, 2].map(page => tmdbFetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}&page=${page}`).then(r => r.json())));
+          posters = pages.flatMap(d => d.results || []).filter(f => f.poster_path).slice(0, COLS * PER_COL).map(f => `https://image.tmdb.org/t/p/w342${f.poster_path}`);
+        } catch (e) { logIgnored('fillPosterWall', e); return; }
+      }
+      if (posters.length < COLS) return;
+      const perCol = Math.floor(posters.length / COLS);
+      const speeds = [170, 140, 190, 155];
+      wall.innerHTML = Array.from({ length: COLS }, (_, c) => {
+        const col = posters.slice(c * perCol, (c + 1) * perCol);
+        const imgs = col.map(src => `<img src="${src}" alt="" decoding="async">`).join('');
+        return `<div class="wall-col"><div class="wall-track" style="--drift:${speeds[c % speeds.length]}s;animation-delay:-${c * 23}s">${imgs}${imgs}</div></div>`;
+      }).join('');
+    }
+
+    function expandScanPanel() {
+      scanPanelExpanded = true;
+      updateScanPanelMode();
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
+    }
+
+    // The way back after "Change": a few of the posters waiting, how many, and whose watchlist.
+    function fillLandingReturn() {
+      const stream = (currentGroupedResults && currentGroupedResults.stream) || [];
+      const posters = document.getElementById('landingReturnPosters');
+      if (posters) {
+        posters.innerHTML = stream.filter(m => m.poster).slice(0, 3)
+          .map(m => `<img src="${m.poster.replace('/w500/', '/w154/')}" alt="" decoding="async">`).join('');
+      }
+      const title = document.getElementById('landingReturnTitle');
+      if (title) title.textContent = stream.length ? `${filmsCount(stream.length)} to watch tonight` : 'Your results are still here';
+      const user = (localStorage.getItem('ps_username') || '').trim();
+      const friend = isFriendMatchActive ? (localStorage.getItem('ps_friend_username') || '').trim() : '';
+      const sub = document.getElementById('landingReturnSub');
+      if (sub) sub.textContent = user ? (friend ? `In both ${user}'s and ${friend}'s watchlists` : `From ${user}'s watchlist`) : '';
+    }
+
+    function collapseScanPanel() {
+      scanPanelExpanded = false;
+      if (typeof closeBrowser === 'function') closeBrowser();
+      updateScanPanelMode();
+      window.scrollTo({ top: 0 });
+    }
+
+    (() => {
+      const on = (id, fn) => { const node = document.getElementById(id); if (node) node.addEventListener('click', fn); };
+      const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+      document.querySelectorAll('.kbd-shortcut').forEach(k => { k.textContent = isMac ? '⌘K' : 'Ctrl K'; });
+      if (el.quickSearchInput) {
+        el.quickSearchInput.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeQuickSearch(); });
+        // Tapping the pill's icon or padding still puts you in the field.
+        document.getElementById('quickSearchBar')?.addEventListener('mousedown', (e) => {
+          if (e.target === el.quickSearchInput || e.target.closest('button, #searchDropdown')) return;
+          e.preventDefault(); el.quickSearchInput.focus();
+        });
+      }
+      const chips = document.getElementById('serviceChips');
+      if (chips) chips.addEventListener('click', (e) => { const b = e.target.closest('.svc-chip'); if (b) selectServiceChip(b.dataset.service || null); });
+      setTimeout(fillPosterWall, 400); // after the saved scan (if any) has had a chance to load
+      on('tonightPickAnother', showAnotherTonightPick);
+      on('tonightPickAnotherInline', showAnotherTonightPick);
+      on('tonightPickTrailer', playTonightPickTrailer);
+      on('tonightPickArt', () => { if (currentTonightPick) openMoviePage(currentTonightPick, true); });
+      on('scanCompactChangeBtn', () => { expandScanPanel(); if (el.usernameInput) el.usernameInput.focus({ preventScroll: true }); });
+      on('scanCompactFriendBtn', () => { expandScanPanel(); if (el.friendInput) el.friendInput.focus({ preventScroll: true }); });
+      on('landingBackBtn', collapseScanPanel);
+      // Results are shown and hidden from many places (scan, restore, clear, friend removal...),
+      // so follow the section itself rather than hooking each of them.
+      if (el.resultsSection) {
+        new MutationObserver(updateScanPanelMode).observe(el.resultsSection, { attributes: true, attributeFilter: ['class'] });
+      }
+      updateScanPanelMode();
+    })();
+    // =========================================================================
+    // MOTION: springs, the draggable filter sheet, popover origins, press feedback
+    // Principles (Apple, "Designing Fluid Interfaces"): respond on press, track the
+    // finger 1:1, animate from the on-screen value so anything can be interrupted,
+    // hand the release velocity to the spring, and leave the way you came in.
+    // =========================================================================
+    var prefersReducedMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+
+    // Damped spring on one number, driven by requestAnimationFrame.
+    // `response` (s) is how fast it gets there, `dampingRatio` 1 means no overshoot.
+    // Returns { stop() }; `velocity` is in units per second.
+    // Next display frame, or a timer if frames stall (background tab, throttled window), so a
+    // spring always finishes instead of leaving the sheet stranded mid-way.
+    function nextFrame(cb) {
+      let fired = false;
+      const run = (t) => { if (fired) return; fired = true; cb(t); };
+      requestAnimationFrame(run);
+      setTimeout(() => run(performance.now()), 50);
+      return () => { fired = true; };
+    }
+
+    function springTo(from, to, { response = 0.35, dampingRatio = 1, velocity = 0 } = {}, onUpdate, onDone) {
+      const stiffness = Math.pow((2 * Math.PI) / response, 2);
+      const damping = (4 * Math.PI * dampingRatio) / response;
+      let x = from, v = velocity, last = performance.now(), cancel = null, stopped = false;
+      const step = (now) => {
+        if (stopped) return;
+        let dt = Math.min((now - last) / 1000, 1 / 30); last = now;
+        // a few sub-steps keep stiff springs stable at 60 Hz
+        for (let i = 0; i < 4; i++) {
+          const h = dt / 4;
+          const a = -stiffness * (x - to) - damping * v;
+          v += a * h; x += v * h;
+        }
+        if (Math.abs(x - to) < 0.5 && Math.abs(v) < 5) { onUpdate(to); if (onDone) onDone(); return; }
+        onUpdate(x);
+        cancel = nextFrame(step);
+      };
+      cancel = nextFrame(step);
+      return { stop() { stopped = true; if (cancel) cancel(); } };
+    }
+
+    // Where a flick would come to rest (Apple's projection, scroll-like deceleration).
+    function projectMomentum(velocity, decelerationRate = 0.998) {
+      return (velocity / 1000) * decelerationRate / (1 - decelerationRate);
+    }
+
+    // Resistance past an edge: the further you pull, the less it follows.
+    function rubberband(overshoot, dimension, constant = 0.55) {
+      return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
+    }
+
+    // ── Bottom sheets (phones): the filter panel ────────────────────────────
+    // A sheet slides up on open, slides back down on close (same path), and can be
+    // dragged down by its top area, grabbed mid-animation, and flicked closed.
+    // `isActive()` says whether the panel is currently showing as a sheet; `grabZone`
+    // is where a drag may start (the content below keeps scrolling normally).
+    function createSheet({ menuId, backdropId, isActive, grabZone }) {
+      const s = { y: 0, anim: null, closing: false, lastVelocity: 0, close: null };
+      const menu = () => document.getElementById(menuId);
+      const backdrop = () => document.getElementById(backdropId);
+      s.height = () => (menu() ? menu().offsetHeight : 0);
+      s.setY = (y) => {
+        const m = menu(), b = backdrop();
+        s.y = y;
+        if (m) m.style.transform = `translate3d(0, ${y}px, 0)`;
+        if (b && m) b.style.opacity = String(Math.max(0, Math.min(1, 1 - y / m.offsetHeight)));
+      };
+      s.clear = () => {
+        const m = menu(), b = backdrop();
+        if (m) m.style.transform = '';
+        if (b) b.style.opacity = '';
+        s.y = 0;
+      };
+      s.animate = (target, velocity, onDone) => {
+        if (s.anim) s.anim.stop();
+        // Settling back after a drag is a momentum moment, so a touch of bounce; closing never overshoots.
+        const opts = target === 0 ? { response: 0.3, dampingRatio: 0.85, velocity } : { response: 0.3, dampingRatio: 1, velocity };
+        s.anim = springTo(s.y, target, opts, s.setY, () => { s.anim = null; if (onDone) onDone(); });
+      };
+      // Wrap instant open/close functions so every way in and out animates.
+      // `reopenRuns`: call the open function again when reopened mid-close (it re-renders safely).
+      s.wrap = (openInstant, closeInstant, reopenRuns) => {
+        const open = function (...args) {
+          const wasMoving = !!s.anim; // reopened while closing: reverse from where it is
+          s.closing = false;
+          if (s.anim) { s.anim.stop(); s.anim = null; }
+          if (!wasMoving || reopenRuns) openInstant.apply(this, args);
+          if (!isActive() || prefersReducedMotion.matches) { s.clear(); return; }
+          s.setY(wasMoving ? s.y : s.height());
+          s.animate(0, 0);
+        };
+        const close = function (...args) {
+          if (!isActive() || prefersReducedMotion.matches) { s.clear(); closeInstant.apply(this, args); return; }
+          if (s.closing) return;
+          s.closing = true;
+          s.animate(s.height(), s.lastVelocity || 0, () => {
+            s.closing = false; s.lastVelocity = 0;
+            s.clear(); closeInstant.apply(this, args);
+          });
+        };
+        s.close = close;
+        return { open, close };
+      };
+      (() => {
+        const m = menu();
+        if (!m) return;
+        let drag = null;
+        const isGrabZone = (target) => !!target.closest(grabZone) && !target.closest('button');
+        m.addEventListener('pointerdown', (e) => {
+          if (!isActive() || !isGrabZone(e.target) || e.button > 0) return;
+          if (s.anim) { s.anim.stop(); s.anim = null; } // grab it mid-flight
+          s.closing = false;
+          drag = { id: e.pointerId, startY: e.clientY, baseY: s.y, active: false, history: [{ y: e.clientY, t: e.timeStamp }] };
+          try { m.setPointerCapture(e.pointerId); } catch (err) { logIgnored('sheet pointer capture', err); }
+        });
+        m.addEventListener('pointermove', (e) => {
+          if (!drag || e.pointerId !== drag.id) return;
+          const dy = e.clientY - drag.startY;
+          if (!drag.active && Math.abs(dy) < 8) return; // a little hysteresis before committing
+          drag.active = true;
+          drag.history.push({ y: e.clientY, t: e.timeStamp });
+          if (drag.history.length > 6) drag.history.shift();
+          const raw = drag.baseY + dy;
+          s.setY(raw < 0 ? rubberband(raw, m.offsetHeight) : raw);
+        });
+        const end = (e) => {
+          if (!drag || e.pointerId !== drag.id) return;
+          const d = drag; drag = null;
+          if (!d.active) return;
+          const first = d.history[0], lastPt = d.history[d.history.length - 1];
+          const dt = Math.max(1, lastPt.t - first.t);
+          const velocity = ((lastPt.y - first.y) / dt) * 1000; // px/s, positive = downwards
+          const projected = s.y + projectMomentum(velocity);
+          const shouldClose = projected > m.offsetHeight * 0.5;
+          if (prefersReducedMotion.matches) {
+            // No spring: settle at once (closing is already instant in this mode).
+            if (shouldClose && s.close) s.close(); else s.clear();
+          } else if (shouldClose && s.close) {
+            s.lastVelocity = velocity;
+            s.close();
+          } else {
+            s.animate(0, velocity);
+          }
+        };
+        m.addEventListener('pointerup', end);
+        m.addEventListener('pointercancel', end);
+      })();
+      return s;
+    }
+
+    // The filter panel is a sheet when it has been moved to <body> (phones).
+    var sheetState = createSheet({
+      menuId: 'homeFilterDropdownMenu',
+      backdropId: 'homeFilterBackdrop',
+      grabZone: '.sheet-handle, .filter-panel-head',
+      isActive: () => {
+        const menu = document.getElementById('homeFilterDropdownMenu');
+        return !!(menu && menu.parentElement === document.body && !menu.classList.contains('hidden'));
+      }
+    });
+    ({ open: openHomeFilterDropdown, close: closeHomeFilterDropdown } = sheetState.wrap(openHomeFilterDropdown, closeHomeFilterDropdown, false));
+
+    // ── Popovers grow out of the button that opened them ────────────────────
+    const toggleCustomFilterMenuInstant = toggleCustomFilterMenu;
+    toggleCustomFilterMenu = function (btn, popoverId) {
+      toggleCustomFilterMenuInstant(btn, popoverId);
+      const pop = document.getElementById(popoverId);
+      if (!pop || pop.classList.contains('hidden') || !btn) return;
+      const b = btn.getBoundingClientRect(), p = pop.getBoundingClientRect();
+      pop.style.transformOrigin = `${Math.round(b.left + b.width / 2 - p.left)}px ${b.top < p.top ? 0 : p.height}px`;
+      pop.classList.remove('pop-in'); void pop.offsetWidth; pop.classList.add('pop-in');
+    };
+
+    // iOS Safari only applies :active (our press feedback) when a touch listener exists.
+    document.addEventListener('touchstart', () => {}, { passive: true });
+    // =========================================================================
+    // SHARED PAGE PIECES: the poster card, the person card, the page nav and footer.
+    // The home grid, film pages, person pages and the cast page all draw from these,
+    // so a film or a person looks the same wherever it appears.
+    // =========================================================================
+
+    // A poster card as HTML (same look as createMovieCard() in the home grid).
+    // `m` is a TMDB-style item ({ id, title|name, poster_path|poster, release_date|first_air_date }).
+    function posterCardHTML(m, { onclick = '', sub = '', current = false, index = 0, hideWatchlist = false } = {}) {
+      const title = m.title || m.name || '';
+      const safeTitle = escapeHTML(title);
+      const poster = m.poster_path ? `https://image.tmdb.org/t/p/w342${m.poster_path}` : (m.poster ? m.poster.replace('/w500/', '/w342/') : '');
+      const year = (m.release_date || m.first_air_date || m.releaseDate || '').slice(0, 4);
+      const mediaType = m.mediaType || m.media_type || 'movie';
+      const inWatchlist = scannedMovies.some(s => s.id === m.id && (s.mediaType || 'movie') === mediaType);
+      const badges = [
+        current ? '' : renderPosterRatingBadgeHtml(m),
+        inWatchlist && !current && !hideWatchlist ? '<span class="poster-corner-badge poster-wl-badge" title="On your watchlist">Watchlist</span>' : '',
+        current ? '<span class="poster-corner-badge poster-wl-badge">Viewing</span>' : ''
+      ].join('');
+      const caption = sub
+        ? `<div class="poster-card-caption is-stacked"><span class="poster-card-title">${safeTitle}</span><span class="poster-card-sub">${escapeHTML(sub)}</span></div>`
+        : `<div class="poster-card-caption"><span class="poster-card-title">${safeTitle}</span>${year ? `<span class="poster-card-year">${year}</span>` : ''}</div>`;
+      return `<div class="poster-card${current ? ' is-current' : ''}" style="--i:${Math.min(index, 24)}">
+        <a href="#" class="poster-card-art" aria-label="${safeTitle}${year ? ` (${year})` : ''}" data-movie-card-id="${m.id}" onclick="event.preventDefault();${current ? '' : onclick}">
+          <div class="poster-card-clip">${poster ? `<img src="${poster}" alt="" loading="lazy" decoding="async">` : `<div class="poster-card-fallback">${safeTitle}</div>`}</div>
+          ${badges}
+        </a>
+        ${caption}
+      </div>`;
+    }
+
+    // A person as a portrait card: photo, name, and their part (character or job).
+    // Keeps the cast-chip-card class so the cast rail's drag guard and the watch box sizing find it.
+    function personCardHTML(p, { role = '', onclick = '', index = 0 } = {}) {
+      const name = escapeHTML(p.name || 'Unknown');
+      const img = p.profile_path ? `https://image.tmdb.org/t/p/w185${p.profile_path}` : null;
+      const roleHint = /director|creator/i.test(role) ? 'Director' : 'Actor';
+      return `<button type="button" class="person-card cast-chip-card" style="--i:${Math.min(index, 24)}" data-person-id="${p.id}" data-person-name="${name}" data-role-hint="${roleHint}" onclick="if(!window.isCastDragging){${onclick || 'openActorPage(Number(this.dataset.personId), this.dataset.personName, this.dataset.roleHint)'}}">
+        <span class="person-card-photo">${img ? `<img src="${img}" alt="" loading="lazy" decoding="async" draggable="false">` : `<span class="person-card-initial">${name.charAt(0)}</span>`}</span>
+        <span class="person-card-name">${name}</span>
+        ${role ? `<span class="person-card-role">${escapeHTML(role)}</span>` : ''}
+      </button>`;
+    }
+
+    // Back and close, the same on every full page.
+    function pageNavHTML(backOnclick, closeOnclick, id = '') {
+      const chevron = '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"></path></svg>';
+      const cross = '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"></path></svg>';
+      return `<nav ${id ? `id="${id}" ` : ''}class="movie-page-nav page-nav">
+        <button type="button" class="page-nav-btn" onclick="${backOnclick}" aria-label="Back">${chevron}</button>
+        <button type="button" class="page-nav-btn" onclick="${closeOnclick}" aria-label="Close">${cross}</button>
+      </nav>`;
+    }
+
+    // Outside links as plain text pills, then the attribution line (TMDB and JustWatch).
+    // `links` is [{ label, href }] or [{ label, onclick }].
+    function pageFooterHTML(links = [], extraNote = '') {
+      const items = links.filter(Boolean).map(l => l.href
+        ? `<a class="page-link" href="${l.href}" target="_blank" rel="noopener">${escapeHTML(l.label)}</a>`
+        : `<button type="button" class="page-link" onclick="${l.onclick}">${escapeHTML(l.label)}</button>`).join('');
+      return `<footer class="page-footer">
+        ${items ? `<div class="page-links">${items}</div>` : ''}
+        ${extraNote}
+        ${creditsHTML()}
+      </footer>`;
+    }
+
+    // Where the data comes from, the required TMDB notice, and Privacy: one block, the same in
+    // every footer (the home footer in index.html has the same markup).
+    function creditsHTML() {
+      return `<div class="page-credits">
+          <p class="credits-sources">Film data from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Streaming availability from <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.</p>
+          <p class="credits-fine">This product uses the TMDB API but is not endorsed or certified by TMDB. Not affiliated with Letterboxd or any streaming service.</p>
+          <div class="credits-links"><a href="/privacy.html">Privacy</a></div>
+        </div>`;
+    }
+
+    // "Copy link" for the footer: copies, then says so for a moment.
+    function copyPageLink(btn, url) {
+      try { navigator.clipboard.writeText(url); } catch (e) { logIgnored('copyPageLink', e); }
+      const old = btn.textContent;
+      btn.textContent = 'Link copied';
+      setTimeout(() => { btn.textContent = old; }, 1800);
+    }
+
+    // Where to watch, several of your services: picking a tile points the Watch button at that service.
+    function selectWatchService(btn) {
+      const card = btn.closest('.wp-feature');
+      if (!card) return;
+      card.querySelectorAll('.wp-pick-btn').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      const watch = card.querySelector('.wp-watch');
+      if (watch) {
+        watch.href = btn.dataset.link;
+        if (btn.dataset.app) watch.setAttribute('data-app-link', btn.dataset.app); else watch.removeAttribute('data-app-link');
+        const label = watch.querySelector('.wp-watch-label');
+        if (label) label.textContent = `Watch on ${btn.dataset.name}`;
+      }
+    }
+    // A row of tabs that's wider than the screen scrolls sideways; its edges fade where there's
+    // more to scroll to, so a cut-off tab reads as "more this way" rather than as clipped text.
+    function updateTabsFade(tabs) {
+      const max = tabs.scrollWidth - tabs.clientWidth;
+      tabs.classList.toggle('fade-end', max > 1 && tabs.scrollLeft < max - 1);
+      tabs.classList.toggle('fade-start', max > 1 && tabs.scrollLeft > 1);
+    }
+    (() => {
+      const watched = new WeakSet();
+      const watch = (tabs) => {
+        if (watched.has(tabs)) return;
+        watched.add(tabs);
+        const update = () => updateTabsFade(tabs);
+        tabs.addEventListener('scroll', update, { passive: true });
+        if (typeof ResizeObserver === 'function') new ResizeObserver(update).observe(tabs);
+        new MutationObserver(update).observe(tabs, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
+        update();
+      };
+      const scan = () => document.querySelectorAll('.tabs').forEach(watch);
+      scan();
+      // Tab rows that pages build later (the person page's) are picked up as they appear.
+      new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
+      window.addEventListener('resize', () => document.querySelectorAll('.tabs').forEach(updateTabsFade), { passive: true });
+    })();
