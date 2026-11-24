@@ -886,7 +886,7 @@
               <div id="moviePageHeroArt" class="absolute inset-0 overflow-hidden bg-[#0a0a0b] clip-mask">
                 ${heroBackdropUrl ? `<img src="${heroBackdropUrl}" alt="${safeTitle} backdrop" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-landscape-block w-full h-full object-cover object-[center_20%] scale-105 transform-gpu">` : `<div class="hero-landscape-block w-full h-full bg-gray-900"></div>`}
                 ${heroPosterUrl ? `<img src="${heroPosterUrl}" alt="${safeTitle} poster" loading="eager" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition: opacity 0.35s ease-out;" class="hero-portrait-block absolute inset-0 w-full h-full object-cover object-top transform-gpu">` : `<div class="hero-portrait-block w-full h-full bg-gray-900"></div>`}
-                ${heroVideoHtml}<div class="absolute inset-x-0 bottom-0 h-[62%] sm:h-[65%] lg:h-[70%] bg-gradient-to-t from-[#0a0a0b] from-0% via-[#0a0a0b] via-15% via-[#0a0a0b]/80 via-40% via-[#0a0a0b]/30 via-70% to-transparent to-100% pointer-events-none z-20"></div>
+                ${heroVideoHtml}<div class="film-hero-fade" aria-hidden="true"></div>
               </div>
               <!-- Content overlay: sits directly over the bottom of the poster/backdrop on all screens -->
               <div class="absolute inset-x-0 bottom-0 z-30 pointer-events-none pb-5 sm:pb-10 lg:pb-12">

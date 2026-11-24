@@ -5278,9 +5278,9 @@
     .cast-hero-art {
       position: absolute;
       inset: 0;
-      opacity: 0.32;
-      -webkit-mask-image: linear-gradient(to bottom, #000 10%, transparent);
-      mask-image: linear-gradient(to bottom, #000 10%, transparent);
+      opacity: 0.5;
+      -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0.18) 82%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0.18) 82%, transparent 100%);
     }
 
     .cast-hero-art img {
@@ -5462,9 +5462,21 @@
         linear-gradient(to top, var(--bg) 0%, rgba(10, 10, 11, 0.9) 8%, rgba(10, 10, 11, 0.72) 18%, rgba(10, 10, 11, 0.5) 30%, rgba(10, 10, 11, 0.3) 42%, rgba(10, 10, 11, 0.14) 55%, rgba(10, 10, 11, 0.05) 68%, rgba(10, 10, 11, 0) 80%);
     }
 
+    /* The film banner gets the same fade: gradual, low, with a light shade behind the text. */
+    .film-hero-fade {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+      background:
+        linear-gradient(to right, rgba(10, 10, 11, 0.55) 0%, rgba(10, 10, 11, 0.22) 40%, rgba(10, 10, 11, 0) 65%),
+        linear-gradient(to top, var(--bg) 0%, rgba(10, 10, 11, 0.9) 8%, rgba(10, 10, 11, 0.72) 18%, rgba(10, 10, 11, 0.5) 30%, rgba(10, 10, 11, 0.3) 42%, rgba(10, 10, 11, 0.14) 55%, rgba(10, 10, 11, 0.05) 68%, rgba(10, 10, 11, 0) 80%);
+    }
+
     /* On phones the text covers more of the still, so the fade reaches a little higher. */
     @media (max-width: 639px) {
-      .person-hero-art::after {
+      .person-hero-art::after,
+      .film-hero-fade {
         background: linear-gradient(to top, var(--bg) 0%, rgba(10, 10, 11, 0.92) 12%, rgba(10, 10, 11, 0.75) 26%, rgba(10, 10, 11, 0.5) 42%, rgba(10, 10, 11, 0.25) 58%, rgba(10, 10, 11, 0.08) 74%, rgba(10, 10, 11, 0) 88%);
       }
     }
