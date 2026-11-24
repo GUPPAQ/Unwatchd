@@ -97,3 +97,27 @@
         if (label) label.textContent = `Watch on ${btn.dataset.name}`;
       }
     }
+    // A row of tabs that's wider than the screen scrolls sideways; its edges fade where there's
+    // more to scroll to, so a cut-off tab reads as "more this way" rather than as clipped text.
+    function updateTabsFade(tabs) {
+      const max = tabs.scrollWidth - tabs.clientWidth;
+      tabs.classList.toggle('fade-end', max > 1 && tabs.scrollLeft < max - 1);
+      tabs.classList.toggle('fade-start', max > 1 && tabs.scrollLeft > 1);
+    }
+    (() => {
+      const watched = new WeakSet();
+      const watch = (tabs) => {
+        if (watched.has(tabs)) return;
+        watched.add(tabs);
+        const update = () => updateTabsFade(tabs);
+        tabs.addEventListener('scroll', update, { passive: true });
+        if (typeof ResizeObserver === 'function') new ResizeObserver(update).observe(tabs);
+        new MutationObserver(update).observe(tabs, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
+        update();
+      };
+      const scan = () => document.querySelectorAll('.tabs').forEach(watch);
+      scan();
+      // Tab rows that pages build later (the person page's) are picked up as they appear.
+      new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
+      window.addEventListener('resize', () => document.querySelectorAll('.tabs').forEach(updateTabsFade), { passive: true });
+    })();

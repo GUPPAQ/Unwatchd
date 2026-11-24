@@ -94,26 +94,25 @@
 
       // Where it's available, as small service logos along the bottom of the poster.
       // `subtext` is "Netflix, Max" (or "Netflix · 🇺🇸 VPN" for a VPN unlock).
+      // A VPN unlock gets a small "VPN" chip at the end of that row (with the country's flag), so
+      // the top of the poster stays free for the rating, however narrow the card.
+      // At most two logos (one beside a VPN chip) and a "+N" for the rest, so the row fits the
+      // narrowest phone cards; the film page lists every service.
       const serviceNames = (movieObj.subtext || '').split(' · ')[0].split(', ').map(s => s.trim()).filter(s => s && s !== 'Not streaming in region');
-      if (serviceNames.length > 0) {
-        const logos = serviceNames.slice(0, 3).map(name => {
-          const src = getProviderLogoUrl(name);
-          return src ? `<img src="${escapeHTML(src)}" alt="${escapeHTML(name)}" loading="lazy" onerror="this.remove()">` : '';
-        }).join('');
-        if (logos) {
-          const row = document.createElement('div');
-          row.className = 'poster-services';
-          row.innerHTML = logos + (serviceNames.length > 3 ? `<span class="poster-services-more">+${serviceNames.length - 3}</span>` : '');
-          a.appendChild(row);
-        }
-      }
-
-      if (movieObj.vpnInfo) {
-        const vpnBadge = document.createElement('div');
-        vpnBadge.className = 'poster-corner-badge poster-vpn-badge';
-        vpnBadge.title = `Requires switching your VPN to ${REGION_META[movieObj.vpnInfo.region].name}`;
-        vpnBadge.innerHTML = `${REGION_META[movieObj.vpnInfo.region].flag} VPN`;
-        a.appendChild(vpnBadge);
+      const vpnRegion = movieObj.vpnInfo && REGION_META[movieObj.vpnInfo.region];
+      const maxLogos = vpnRegion ? 1 : 2;
+      const logos = serviceNames.slice(0, maxLogos).map(name => {
+        const src = getProviderLogoUrl(name);
+        return src ? `<img src="${escapeHTML(src)}" alt="${escapeHTML(name)}" loading="lazy" onerror="this.remove()">` : '';
+      }).join('');
+      const vpnChip = vpnRegion
+        ? `<span class="poster-vpn-chip" title="Requires switching your VPN to ${escapeHTML(vpnRegion.name)}">${vpnRegion.flag} VPN</span>`
+        : '';
+      if (logos || vpnChip) {
+        const row = document.createElement('div');
+        row.className = 'poster-services';
+        row.innerHTML = logos + (logos && !vpnChip && serviceNames.length > maxLogos ? `<span class="poster-services-more">+${serviceNames.length - maxLogos}</span>` : '') + vpnChip;
+        a.appendChild(row);
       }
 
       a.setAttribute('aria-label', movieObj.title || 'Film');
