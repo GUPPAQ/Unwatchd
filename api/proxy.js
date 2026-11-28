@@ -43,6 +43,11 @@ export default async function handler(req, res) {
       return res.status(403).send('Redirected away from letterboxd.com');
     }
     const text = await r.text();
+    // A successful first page = one watchlist scanned. Counted here, server-side, so ad
+    // blockers can't hide it (they do hide Web Analytics).
+    if (r.status === 200 && /\/page\/1\/?$/.test(parsed.pathname)) {
+      await countScan(parsed.pathname.split('/')[1].toLowerCase());
+    }
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     // Cache real pages and real 404s at the edge; never cache blocks or errors.
     if (r.status === 200) {
@@ -57,5 +62,34 @@ export default async function handler(req, res) {
     console.error('[Vercel Serverless Proxy Error]', e);
     res.setHeader('Cache-Control', 'no-store');
     return res.status(500).send('Upstream fetch failed');
+  }
+}
+
+// Anonymous usage counter in Upstash Redis (Vercel Storage). Stores only numbers: a scan
+// count per day, and HyperLogLog sketches for unique watchlists. A HyperLogLog keeps an
+// estimate of how many different values it has seen, not the values themselves, and the
+// username is hashed before it gets there, so no username or IP is ever stored.
+// Does nothing if the store isn't connected, and never holds up or breaks a scan.
+async function countScan(username) {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return;
+  try {
+    const { createHash } = await import('node:crypto');
+    const id = createHash('sha256').update(`unwatchd:${username}`).digest('hex').slice(0, 16);
+    const day = new Date().toISOString().slice(0, 10);
+    await fetch(`${url}/pipeline`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify([
+        ['INCR', 'scans:total'],
+        ['INCR', `scans:${day}`],
+        ['PFADD', 'watchlists:all', id],
+        ['PFADD', `watchlists:${day}`, id]
+      ]),
+      signal: AbortSignal.timeout(1500)
+    });
+  } catch (e) {
+    console.warn('[usage counter] skipped', e?.name || e);
   }
 }

@@ -88,7 +88,7 @@
   <main>
     <a href="/">&larr; Back to Unwatchd</a>
     <h1>Privacy</h1>
-    <p class="muted">Last updated 16 November 2026</p>
+    <p class="muted">Last updated 28 November 2026</p>
 
     <p>Unwatchd has no accounts, sets no cookies and shows no ads. It is a personal, non-commercial project. This page explains what happens with your data when you use it.</p>
 
@@ -98,6 +98,7 @@
     <h2>What is sent, and to whom</h2>
     <ul>
       <li><strong>Our server (hosted by Vercel).</strong> When you scan, the Letterboxd username you entered is sent to our server, which fetches that public watchlist from Letterboxd and passes it back. Watchlist pages are cached for up to two minutes. Vercel, as the host, processes technical request data such as your IP address.</li>
+      <li><strong>Usage counter.</strong> When a scan starts, our server adds one to an anonymous count of scans per day and to an estimate of how many different watchlists have been scanned. Only these numbers are stored (with Upstash, through Vercel): not your username, not your IP address, nothing that identifies you.</li>
       <li><strong>TMDB.</strong> Your browser asks The Movie Database directly for film details, posters and streaming availability.</li>
       <li><strong>JustWatch, through our server.</strong> When you open a film, our server asks JustWatch for the links to that film on each streaming service, so the Watch buttons can open it directly. Only the film's TMDB id, its title and the country are sent; your browser never contacts JustWatch, and nothing about you is included. Answers are cached for a few hours.</li>
       <li><strong>Cinemeta (Stremio).</strong> Your browser asks this service directly for IMDb ratings.</li>
