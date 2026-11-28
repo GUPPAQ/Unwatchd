@@ -722,7 +722,8 @@
       };
       const topCast = allCast.slice(0, 14);
       const crewAndCast = [...directors, ...topCast.map(c => ({ ...c, _role: c.character || '' }))];
-      const totalCastCount = directors.length + allCast.length;
+      // Everyone on the full cast and crew page, counted the same way it counts them.
+      const totalCastCount = new Set([...directors, ...allCast, ...allCrew].map(p => p.id)).size;
       let castCrewHtml = '';
       if (crewAndCast.length > 0) {
         const chips = crewAndCast.map((p, i) => personCardHTML(p, { role: p._role, index: i })).join('')
