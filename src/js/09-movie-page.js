@@ -296,6 +296,7 @@
     function leaveFilmPath() {
       if (/^\/(film|series)\//.test(window.location.pathname)) {
         try { history.replaceState({}, '', '/' + window.location.search); } catch (e) { logIgnored('leaveFilmPath', e); }
+        document.title = "Unwatchd: what's streaming on your Letterboxd watchlist";
       }
     }
 
