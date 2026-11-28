@@ -887,8 +887,10 @@
         cast.forEach(c => seenAll.add(c.id));
         crew.forEach(cr => seenAll.add(cr.id));
         const countAll = seenAll.size || (directors.length + cast.length + crew.length);
-        const countCast = cast.length;
-        const countCrew = directors.length + crew.length;
+        // People, not credits: someone with several jobs (director, writer, editor…) counts once,
+        // the same way "All" counts them.
+        const countCast = new Set(cast.map(p => p.id)).size;
+        const countCrew = new Set([...directors, ...crew].map(p => p.id)).size;
         const countAllEl = document.getElementById('allCastTabCountAll');
         const countCastEl = document.getElementById('allCastTabCountCast');
         const countCrewEl = document.getElementById('allCastTabCountCrew');
