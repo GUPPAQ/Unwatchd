@@ -72,7 +72,7 @@
       return `<div class="page-credits">
           <p class="credits-sources">Film data from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Streaming availability from <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.</p>
           <p class="credits-fine">This product uses the TMDB API but is not endorsed or certified by TMDB. Not affiliated with Letterboxd or any streaming service.</p>
-          <div class="credits-links"><a href="/privacy.html">Privacy</a></div>
+          <div class="credits-links"><a href="/about.html">How it works</a><a href="/privacy.html">Privacy</a></div>
         </div>`;
     }
 
