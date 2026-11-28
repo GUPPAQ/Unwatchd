@@ -9270,7 +9270,9 @@
             setTimeout(done, 500);
           }
         }
-        requestAnimationFrame(() => { if (showAnotherTonightPick.swapId === swapId && section) section.classList.remove('is-changing'); });
+        const fadeIn = () => { if (showAnotherTonightPick.swapId === swapId && section) section.classList.remove('is-changing'); };
+        requestAnimationFrame(fadeIn);
+        setTimeout(fadeIn, 120); // a background tab pauses animation frames
       };
       // Wait for the still and the title logo together, so both land in the same frame.
       const loadImage = (url) => new Promise((resolve) => {
