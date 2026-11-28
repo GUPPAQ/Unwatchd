@@ -4718,14 +4718,18 @@
       line-height: 1.5;
     }
 
+    /* Logo on its own line above the credits, everything on one left edge (side by side, the
+       empty space under the logo made the text look indented). */
     .site-footer {
+      flex-direction: column;
       align-items: flex-start;
-      gap: 14px 28px;
+      gap: 14px;
     }
 
     .footer-tmdb {
       flex: none;
-      margin-top: 5px;
+      display: block;
+      line-height: 0;
       opacity: 0.8;
     }
 
