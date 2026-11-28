@@ -15,8 +15,12 @@ const files = readdirSync(srcDir).filter(f => f.endsWith('.js')).sort();
 
 const header = '// GENERATED FILE – do not edit. Edit src/js/*.js and run `npm run build:assets`.\n';
 const body = files.map(f => readFileSync(join(srcDir, f), 'utf8')).join('');
-writeFileSync(join(root, 'app.js'), header + body);
-console.log(`app.js: ${files.length} files, ${body.length} bytes`);
+// Minified for download size: whitespace, syntax, and local names only. Top-level names stay as
+// they are, so the shared globals and the inline onclick= handlers keep working.
+const { transformSync } = await import('esbuild');
+const { code } = transformSync(body, { minifyWhitespace: true, minifySyntax: true, minifyIdentifiers: true, target: 'es2020', legalComments: 'none' });
+writeFileSync(join(root, 'app.js'), header + code);
+console.log(`app.js: ${files.length} files, ${body.length} bytes -> ${code.length} minified`);
 
 // Run Tailwind's CLI with this same node binary: node_modules/.bin/tailwindcss is a shell
 // script that Windows can't execute directly.
