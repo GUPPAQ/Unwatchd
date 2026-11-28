@@ -291,6 +291,14 @@
       } catch (e) { console.error('[Movie Page By Id]', e); }
     }
 
+    // A visit that started on a film's own address (/film/<slug>, served by api/film-page.js):
+    // once that page is closed, the address goes back to the home page.
+    function leaveFilmPath() {
+      if (/^\/(film|series)\//.test(window.location.pathname)) {
+        try { history.replaceState({}, '', '/' + window.location.search); } catch (e) { logIgnored('leaveFilmPath', e); }
+      }
+    }
+
     function goHomeFromPage() {
       clearQuickSearchInput();
       hideMoviePageView();
@@ -298,6 +306,7 @@
       if (window.location.hash) {
         try { history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch (e) { logIgnored('goHomeFromPage', e); }
       }
+      leaveFilmPath();
     }
 
     function closeMoviePage() {
@@ -306,6 +315,7 @@
         history.back();
       } else {
         hideMoviePageView();
+        leaveFilmPath();
       }
     }
 

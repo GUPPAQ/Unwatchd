@@ -3,3 +3,4 @@ Allow: /
 Disallow: /api/
 
 Sitemap: https://www.unwatchd.online/sitemap.xml
+Sitemap: https://www.unwatchd.online/sitemap-films.xml
