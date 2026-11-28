@@ -395,8 +395,13 @@
           }
           badge.title = `IMDb Rating: ${rating}/10`;
         } else {
-          badge.remove();
-          document.querySelectorAll('.rating-sep').forEach(s => s.remove());
+          const numEl = badge.querySelector('.imdb-rating-num');
+          if (numEl) {
+            numEl.textContent = NO_RATING_TEXT;
+            numEl.classList.remove('animate-pulse');
+          }
+          badge.classList.add('is-empty');
+          badge.title = NO_RATING_TITLE;
         }
       });
       if (rating) {
@@ -446,6 +451,7 @@
           b.dataset.ratingSource = 'imdb';
           if (imdbIdStr) b.dataset.imdbId = imdbIdStr;
           b.title = `IMDb Rating: ${rating}/10`;
+          b.classList.remove('is-empty');
           const valEl = b.querySelector('.poster-rating-val');
           if (valEl) valEl.textContent = rating;
         });
@@ -592,7 +598,10 @@
     function renderPosterRatingBadgeHtml(movieObj) {
       if (!movieObj) return '';
       const data = getPosterRatingData(movieObj);
-      if (!data || !data.rating) return '';
+      if (!data || !data.rating) {
+        // No rating (yet): a quiet placeholder. If one arrives later, the badge is filled in place.
+        return `<div class="poster-corner-badge poster-rating-badge is-empty" data-movie-id="${movieObj.id}" data-rating-source="imdb" title="${NO_RATING_TITLE}">${IMDB_TAG_HTML}<span class="poster-rating-val">${NO_RATING_TEXT}</span></div>`;
+      }
       const tagHtml = IMDB_TAG_HTML;
       const imdbAttr = data.imdbId ? ` data-imdb-id="${data.imdbId}"` : '';
       const sourceAttr = ' data-rating-source="imdb"';

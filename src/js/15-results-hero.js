@@ -164,7 +164,9 @@
       const metaEl = document.getElementById('tonightPickMeta');
       if (metaEl) {
         const parts = meta.map(t => `<span>${escapeHTML(t)}</span>`);
-        if (rating) parts.unshift(`<span class="pick-rating">${IMDB_TAG_HTML}<span>${escapeHTML(String(rating))}</span></span>`);
+        parts.unshift(rating
+          ? `<span class="pick-rating">${IMDB_TAG_HTML}<span>${escapeHTML(String(rating))}</span></span>`
+          : `<span class="pick-rating is-empty" title="${NO_RATING_TITLE}">${IMDB_TAG_HTML}<span>${NO_RATING_TEXT}</span></span>`);
         metaEl.innerHTML = parts.join('<span class="pick-dot" aria-hidden="true">·</span>');
       }
 

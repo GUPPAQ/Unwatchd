@@ -43,6 +43,9 @@
 
     const TMDB_API_KEY = "774f07552749a1ca68245403367e3218";
     // The IMDb logo (yellow plate, black letters) as a crisp vector, used wherever a rating shows.
+    // Shown in place of a rating that IMDb doesn't have (yet), so the badge isn't just missing.
+    const NO_RATING_TEXT = '–';
+    const NO_RATING_TITLE = 'No IMDb rating yet';
     const IMDB_TAG_HTML = `<svg class="imdb-logo" viewBox="0 0 62 30" role="img" aria-label="IMDb"><rect width="62" height="30" rx="4" fill="#F5C518"/><path fill="#000" d="M7.5 6h4.6v18H7.5zM14.6 6h5.9l1.2 8.6L22.9 6h5.9v18h-3.9V12.2L23.2 24h-3l-1.8-11.8V24h-3.8zM31.4 6h6.4c3.7 0 5.5 1.7 5.5 5.2v7.6c0 3.5-1.8 5.2-5.5 5.2h-6.4zm4.6 3.3v11.4h1.1c1.3 0 1.7-.5 1.7-1.8v-7.8c0-1.3-.4-1.8-1.7-1.8zM45.3 6h4.4v5.5c.7-.8 1.6-1.2 2.8-1.2 2.3 0 3.4 1.3 3.4 3.8v6.2c0 2.6-1.1 3.9-3.4 3.9-1.2 0-2.2-.5-2.9-1.4l-.3 1.2h-4zm5.6 7.6c-.6 0-1 .3-1.2.9v6c.2.6.6.9 1.2.9.7 0 .9-.4.9-1.3v-5.2c0-.9-.3-1.3-.9-1.3z"/></svg>`;
 
 
