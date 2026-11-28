@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How Unwatchd works: what's streaming on your Letterboxd watchlist</title>
+  <meta name="description" content="How Unwatchd checks your Letterboxd watchlist against the streaming services you pay for, in 28 countries, and answers to common questions.">
+  <link rel="canonical" href="https://www.unwatchd.online/about.html">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is Unwatchd?", "acceptedAnswer": {"@type": "Answer", "text": "A free tool for Letterboxd users. Enter your username and it checks every film on your watchlist against the streaming services you pay for, so you can see what you can watch tonight without searching film by film."}}, {"@type": "Question", "name": "Which streaming services does it check?", "acceptedAnswer": {"@type": "Answer", "text": "All the major ones, including Netflix, HBO Max, Disney+, Prime Video, Apple TV+ and the local services in each country. You pick the ones you subscribe to. Films you can only rent or buy are shown separately."}}, {"@type": "Question", "name": "Which countries does it work in?", "acceptedAnswer": {"@type": "Answer", "text": "28 countries, including the United States, United Kingdom, Canada, Australia, Germany, Austria, Switzerland, France, Belgium, Spain, Portugal, Italy, the Netherlands, Sweden, Norway, Denmark, Finland, Poland, Turkey, Brazil, Argentina, Mexico, India, Japan, South Korea and the Philippines. Availability is checked for each country separately."}}, {"@type": "Question", "name": "Can I compare my watchlist with a friend's?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Add a friend's Letterboxd username and Unwatchd shows the films on both watchlists that you can stream together."}}, {"@type": "Question", "name": "Do I need an account or to log in to Letterboxd?", "acceptedAnswer": {"@type": "Answer", "text": "No. Your watchlist just needs to be public on Letterboxd. Unwatchd has no accounts and sets no cookies."}}, {"@type": "Question", "name": "Where does the streaming data come from?", "acceptedAnswer": {"@type": "Answer", "text": "Film details come from TMDB and streaming availability from JustWatch. Ratings are IMDb ratings."}}]}</script>
+  <link rel="icon" href="/icons/favicon.ico" sizes="any">
+  <style>
+    @font-face {
+      font-family: 'DM Sans';
+      font-weight: 300 900;
+      font-display: swap;
+      src: url(/fonts/dm-sans-latin.woff2) format('woff2');
+    }
+
+    @font-face {
+      font-family: 'DM Serif Display';
+      font-weight: 400;
+      font-display: swap;
+      src: url(/fonts/dm-serif-display-latin.woff2) format('woff2');
+    }
+
+    /* The site's film-night palette: near-black ground, warm type, one ember accent. */
+    body {
+      margin: 0;
+      background: #0a0a0b;
+      color: #d8d3c9;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    h1,
+    h2 {
+      color: #f4f0e8;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-weight: 400;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      line-height: 1.05;
+      margin: 28px 0 8px;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      line-height: 1.15;
+      margin: 40px 0 8px;
+    }
+
+    strong {
+      color: #f4f0e8;
+      font-weight: 600;
+    }
+
+    a {
+      color: #f4f0e8;
+      text-decoration-color: rgba(255, 255, 255, 0.3);
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: #ff5a36;
+      text-decoration-color: currentColor;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .muted {
+      color: #a5a097;
+      font-size: 15px;
+    }
+
+    ol {
+      padding-left: 1.2em;
+    }
+
+    details {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+    }
+
+    details:first-of-type {
+      border-top: 1px solid rgba(255, 255, 255, 0.11);
+    }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+      color: #f4f0e8;
+      font-weight: 500;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "+";
+      color: #a5a097;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    details[open] summary::after {
+      content: "\2212";
+    }
+
+    details p {
+      margin: 0 0 18px;
+      color: #a5a097;
+    }
+
+    .cta {
+      display: inline-block;
+      margin-top: 36px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      background: #f4f0e8;
+      color: #0a0a0b;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .cta:hover {
+      background: #ff5a36;
+      color: #0a0a0b;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <a href="/">&larr; Back to Unwatchd</a>
+    <h1>How it works</h1>
+    <ol>
+      <li><strong>Enter your Letterboxd username.</strong> Unwatchd reads your public watchlist.</li>
+      <li><strong>Pick the services you pay for.</strong> Netflix, HBO Max, Disney+, Prime Video and more, in your country.</li>
+      <li><strong>See what you can stream tonight.</strong> Every film on your watchlist, sorted into streaming, rent or buy, and not streaming.</li>
+    </ol>
+
+    <h2>Questions</h2>
+    <details>
+      <summary>What is Unwatchd?</summary>
+      <p>A free tool for Letterboxd users. Enter your username and it checks every film on your watchlist against the streaming services you pay for, so you can see what you can watch tonight without searching film by film.</p>
+    </details>
+    <details>
+      <summary>Which streaming services does it check?</summary>
+      <p>All the major ones, including Netflix, HBO Max, Disney+, Prime Video, Apple TV+ and the local services in each country. You pick the ones you subscribe to. Films you can only rent or buy are shown separately.</p>
+    </details>
+    <details>
+      <summary>Which countries does it work in?</summary>
+      <p>28 countries, including the United States, United Kingdom, Canada, Australia, Germany, Austria, Switzerland, France, Belgium, Spain, Portugal, Italy, the Netherlands, Sweden, Norway, Denmark, Finland, Poland, Turkey, Brazil, Argentina, Mexico, India, Japan, South Korea and the Philippines. Availability is checked for each country separately.</p>
+    </details>
+    <details>
+      <summary>Can I compare my watchlist with a friend&#x27;s?</summary>
+      <p>Yes. Add a friend&#x27;s Letterboxd username and Unwatchd shows the films on both watchlists that you can stream together.</p>
+    </details>
+    <details>
+      <summary>Do I need an account or to log in to Letterboxd?</summary>
+      <p>No. Your watchlist just needs to be public on Letterboxd. Unwatchd has no accounts and sets no cookies.</p>
+    </details>
+    <details>
+      <summary>Where does the streaming data come from?</summary>
+      <p>Film details come from TMDB and streaming availability from JustWatch. Ratings are IMDb ratings.</p>
+    </details>
+
+    <a class="cta" href="/">Find my films</a>
+  </main>
+</body>
+
+</html>
