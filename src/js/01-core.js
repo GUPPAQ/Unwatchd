@@ -1,3 +1,16 @@
+    // Saved provider lists from before icon paths became root-relative hold "./icons/x.png",
+    // which breaks on /film/<slug> pages (it points at /film/icons/). Rewrite them once.
+    (() => {
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key || !key.startsWith('ps_')) continue;
+          const value = localStorage.getItem(key);
+          if (value && value.includes('./icons/')) localStorage.setItem(key, value.split('./icons/').join('/icons/'));
+        }
+      } catch (e) { /* storage unavailable: nothing saved to fix */ }
+    })();
+
     const decodeHTMLEntities = (str) => {
       if (typeof str !== 'string') return str;
       return str
