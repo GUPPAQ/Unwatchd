@@ -228,10 +228,18 @@
       if (!img || !art) { fillTonightPick(pick, pool.length); return; }
       const swapId = (showAnotherTonightPick.swapId || 0) + 1;
       showAnotherTonightPick.swapId = swapId;
+      const section = document.getElementById('tonightPick');
+      const cardEl = section && section.querySelector('.pick-card');
+      const reduced = prefersReducedMotion.matches;
+      // The current words fade out right away, while the next film loads.
+      if (section && !reduced) section.classList.add('is-changing');
+      const fadedOut = new Promise(r => setTimeout(r, reduced ? 0 : 170));
       let swapped = false;
       const swap = () => {
         if (swapped || showAnotherTonightPick.swapId !== swapId) return;
         swapped = true;
+        // Hold the card at its current height, fill in the new film, then glide to its height.
+        const from = cardEl && !reduced ? cardEl.getBoundingClientRect().height : 0;
         art.querySelectorAll('.pick-ghost').forEach(g => g.remove());
         if (img.getAttribute('src') && !prefersReducedMotion.matches) {
           const ghost = img.cloneNode(false);
@@ -241,6 +249,21 @@
           setTimeout(() => ghost.remove(), 500);
         }
         fillTonightPick(pick, pool.length);
+        if (from && cardEl) {
+          cardEl.classList.remove('is-resizing');
+          cardEl.style.height = '';
+          const to = cardEl.getBoundingClientRect().height;
+          if (Math.abs(to - from) > 1) {
+            cardEl.style.height = `${from}px`;
+            void cardEl.offsetHeight;
+            cardEl.classList.add('is-resizing');
+            cardEl.style.height = `${to}px`;
+            const done = () => { if (showAnotherTonightPick.swapId === swapId) { cardEl.classList.remove('is-resizing'); cardEl.style.height = ''; } };
+            cardEl.addEventListener('transitionend', done, { once: true });
+            setTimeout(done, 500);
+          }
+        }
+        requestAnimationFrame(() => { if (showAnotherTonightPick.swapId === swapId && section) section.classList.remove('is-changing'); });
       };
       // Wait for the still and the title logo together, so both land in the same frame.
       const loadImage = (url) => new Promise((resolve) => {
@@ -249,7 +272,8 @@
       });
       Promise.all([
         loadImage(pick.backdrop || pick.poster),
-        loadTonightPickInfo(pick).then(info => loadImage(info.logo))
+        loadTonightPickInfo(pick).then(info => loadImage(info.logo)),
+        fadedOut
       ]).then(swap);
       setTimeout(swap, 900); // a slow image never holds the new pick back for long
     }
