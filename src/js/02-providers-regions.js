@@ -10,6 +10,7 @@
         .replace(/[+]/g, 'plus')
         .replace(/[^a-z0-9]/g, '');
 
+      if (norm === 'vrtmax' || norm.startsWith('vivamax')) return norm; // not HBO Max
       if (norm.includes('hbomax') || norm.includes('max')) norm = 'max';
       if (norm.includes('peacock')) norm = 'peacock';
       if (norm.includes('disney')) norm = 'disneyplus';
@@ -78,7 +79,37 @@
       'criterionchannel': 'Criterion Channel',
       'starz': 'Starz',
       'hoopla': 'Hoopla',
-      'kanopy': 'Kanopy'
+      'kanopy': 'Kanopy',
+      // Austria, Switzerland, Belgium, Portugal, Argentina, Turkey, Philippines
+      'magentatv': 'MagentaTV',
+      'skygo': 'Sky Go',
+      'sky': 'Sky',
+      'joyn': 'Joyn',
+      'bluetv': 'blue TV',
+      'playsuisse': 'Play Suisse',
+      'betvgo': 'Be tv Go',
+      'vrtmax': 'VRT MAX',
+      'rtbfauvio': 'RTBF Auvio',
+      'streamz': 'Streamz',
+      'goplay': 'GoPlay',
+      'rtlplay': 'RTL Play',
+      'sooner': 'Sooner',
+      'lacinetek': 'LaCinetek',
+      'rtpplay': 'RTP Play',
+      'filmin': 'Filmin',
+      'movistartv': 'Movistar TV',
+      'clarovideo': 'Claro video',
+      'vix': 'ViX',
+      'directvgo': 'DIRECTV GO',
+      'puhutv': 'puhutv',
+      'tvplus': 'TV+',
+      'exxen': 'Exxen',
+      'gain': 'Gain',
+      'tabii': 'tabii',
+      'viu': 'Viu',
+      'iwant': 'iWant',
+      'iwanttfc': 'iWantTFC',
+      'vivamax': 'Vivamax'
     };
 
     const getCanonicalDisplayName = (rawName) => {
@@ -105,7 +136,14 @@
       "Vudu", "Fandango at Home", "Crave", "CBC Gem", "The Roku Channel", "MUBI",
       "BBC iPlayer", "ITVX", "Channel 4", "My5", "Now TV", "Now", "BritBox", "BFI Player", "BFI Player Amazon Channel",
       "Stan", "BINGE", "SBS On Demand", "ABC iview", "7plus", "9Now", "10 play", "Neon", "ThreeNow",
-      "RTL+", "Movistar+", "Canal+", "M6+", "FlixOlé", "TIMVISION", "RaiPlay", "U-Next", "Wavve", "Watcha", "Joyn"
+      "RTL+", "Movistar+", "Canal+", "M6+", "FlixOlé", "TIMVISION", "RaiPlay", "U-Next", "Wavve", "Watcha", "Joyn",
+      // Austria / Switzerland / Belgium / Portugal / Argentina / Turkey / Philippines
+      "Magenta TV", "Sky Go", "Sky", "blue TV", "Play Suisse",
+      "Be TV Go", "VRT MAX", "RTBF Auvio", "Streamz", "GoPlay", "RTL Play", "Sooner", "LaCinetek",
+      "RTPplay", "Filmin", "Filmin Plus",
+      "MovistarTV", "Claro video", "VIX", "DIRECTV GO",
+      "puhutv", "TV+", "Exxen", "Gain", "tabii",
+      "Viu", "iWant", "iWantTFC", "Vivamax"
     ];
 
     const NORMALIZED_WHITELIST = ALLOWED_SERVICES.map(s => cleanNormalize(s));
@@ -267,7 +305,7 @@
         const regionTldMap = {
           se: '.se', no: '.no', dk: '.dk', fi: '.fi', de: '.de', fr: '.fr', it: '.it', es: '.es',
           gb: '.co.uk', uk: '.co.uk', jp: '.co.jp', ca: '.ca', au: '.com.au', nz: '.co.nz',
-          nl: '.nl', pl: '.pl'
+          nl: '.nl', pl: '.pl', at: '.at', ch: '.ch', be: '.be', pt: '.pt', ar: '.com.ar', tr: '.com.tr', ph: '.ph'
         };
         const tld = regionTldMap[r] || '.com';
         domain = norm + tld;
@@ -284,13 +322,27 @@
       return LOCAL_ICON_OVERRIDES[norm] || null;
     };
 
+    // A service's icon: our own file where we have one (they're tuned by hand), otherwise
+    // TMDB's logo for it. TMDB keeps a 332px original for every service in every country;
+    // w154 is plenty for the ~44px the site shows (3x on retina) at a fraction of the bytes.
+    // With neither, a quiet letter tile instead of a guessed logo.
+    const tmdbProviderLogo = (logoPath) => {
+      if (!logoPath) return null;
+      if (logoPath.startsWith('http')) return logoPath;
+      return `https://image.tmdb.org/t/p/w154${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
+    };
+    const letterTile = (name) => {
+      const ch = escapeHTML(String(name || '?').trim().charAt(0).toUpperCase() || '?');
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#151517"/><text x="32" y="41" text-anchor="middle" font-family="DM Sans,Arial,sans-serif" font-size="28" font-weight="600" fill="#a5a097">${ch}</text></svg>`;
+      return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    };
+    const providerIconFor = (name, logoPath) => localIconFor(name) || tmdbProviderLogo(logoPath) || letterTile(name);
+
     const domainFor = (name) => {
       const norm = cleanNormalize(name);
       return KNOWN_DOMAINS[norm] || null;
     };
 
-    const LOGO_DEV_TOKEN = 'pk_MV3eG1YwSxC6c5sSZyG0JA';
-    const logoDevIcon = (domain) => `https://img.logo.dev/${domain}?token=${LOGO_DEV_TOKEN}&size=256&format=png`;
 
     const REGION_ONLY_SERVICES = {
       'bfiplayer': ['GB'],
@@ -308,7 +360,14 @@
       'binge': ['AU'],
       'abciview': ['AU'],
       'neon': ['NZ'],
-      'hulu': ['US']
+      'hulu': ['US'],
+      'playsuisse': ['CH'],
+      'vrtmax': ['BE'],
+      'rtbfauvio': ['BE'],
+      'rtpplay': ['PT'],
+      'puhutv': ['TR'],
+      'iwant': ['PH'],
+      'iwanttfc': ['PH']
     };
 
     // `region` is the region the provider entry belongs to. It defaults to the region being
@@ -331,11 +390,7 @@
       }
       const rawClean = p.provider_name.replace(/^Amazon\s+/i, '').replace(TIER_SUFFIX_RE, '').trim();
       const cleanName = getCanonicalDisplayName(rawClean);
-      const local = localIconFor(cleanName);
-      const rawLogo = p.logo_path || p.logoPath;
-      const tmdbLogo = rawLogo ? (rawLogo.startsWith('http') ? rawLogo : `https://image.tmdb.org/t/p/original${rawLogo.startsWith('/') ? '' : '/'}${rawLogo}`) : null;
-      const logoDev = logoDevIcon(domainFor(cleanName) || cleanNormalize(cleanName) + '.com');
-      const logoPath = local || tmdbLogo || logoDev;
+      const logoPath = providerIconFor(cleanName, p.logo_path || p.logoPath);
 
       return { provider_name: cleanName, provider_id: p.provider_id, logoPath, logo_path: p.logo_path };
     }
@@ -473,21 +528,15 @@
           const rawClean = p.__key.replace(/^Amazon\s+/i, '');
           const cleanName = getCanonicalDisplayName(rawClean);
           const local = localIconFor(cleanName);
-
-          // EXCLUSIVE SELECTION RULE: Only show services in the selector grid if we have a local PNG icon!
-          if (!local) return null;
-
-          const normCleanName = cleanNormalize(cleanName);
-          const domain = domainFor(cleanName) || `${normCleanName}.com`;
-          const logoDev = domain ? logoDevIcon(domain) : null;
-          const tmdbLogoPath = p.logo_path ? `https://image.tmdb.org/t/p/original${p.logo_path}` : null;
+          const tmdbLogoPath = tmdbProviderLogo(p.logo_path);
+          // A service needs a proper logo to be offered in the picker: ours or TMDB's.
+          if (!local && !tmdbLogoPath) return null;
 
           return {
             id: p.provider_id,
             name: cleanName,
-            logoPath: local,
+            logoPath: local || tmdbLogoPath,
             localPath: local,
-            logoDevPath: logoDev,
             tmdbLogoPath: tmdbLogoPath,
             priority: p.__priority
           };

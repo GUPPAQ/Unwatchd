@@ -37,8 +37,7 @@
       if (meta && meta.logoPath) return meta.logoPath;
       const local = (typeof localIconFor === 'function') ? localIconFor(safe) : null;
       if (local) return local;
-      const domain = (typeof domainFor === 'function') ? domainFor(safe) : null;
-      return (typeof logoDevIcon === 'function') ? logoDevIcon(domain || `${cleanNormalize(safe)}.com`) : null;
+      return providerIconFor(safe, null);
     }
 
     function closeAllCustomFilterPopovers() {

@@ -2,12 +2,11 @@
 
     function createTileImgHTML(provider) {
       const initials = escapeHTML(provider.name.slice(0, 2).toUpperCase());
-      const logoDev = provider.logoDevPath || '';
       const tmdb = provider.tmdbLogoPath || '';
       if (!provider.logoPath) {
         return `<div class="w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400 rounded-[22.5%]">${initials}</div>`;
       }
-      return `<img src="${provider.logoPath}" alt="${escapeHTML(provider.name)}" loading="lazy" class="bg-gray-800" data-logodev="${escapeHTML(logoDev)}" data-tmdb="${escapeHTML(tmdb)}" onerror="const ld=this.dataset.logodev; const tm=this.dataset.tmdb; if(ld && this.src!==ld){this.src=ld;} else if(tm && this.src!==tm){this.src=tm;} else {this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400 rounded-[22.5%]\\'>${initials}</div>';}">`;
+      return `<img src="${provider.logoPath}" alt="${escapeHTML(provider.name)}" loading="lazy" class="bg-gray-800" data-tmdb="${escapeHTML(tmdb)}" onerror="const tm=this.dataset.tmdb; if(tm && this.src!==tm){this.src=tm;} else {this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-gray-800 text-[9px] font-bold text-gray-400 rounded-[22.5%]\\'>${initials}</div>';}">`;
     }
 
     // A small stack of overlapping service logos, used on the landing's "Streaming on" pill
@@ -116,7 +115,7 @@
       return {
         ...p,
         name: cleanName,
-        logoPath: localIconFor(cleanName) || logoDevIcon(cleanNormalize(cleanName) + '.com')
+        logoPath: providerIconFor(cleanName, null)
       };
     });
 
@@ -249,9 +248,7 @@
 
             if (!NORMALIZED_WHITELIST.includes(normCleanName)) return null;
 
-            const domain = KNOWN_DOMAINS[normCleanName] || `${normCleanName}.com`;
-            const local = LOCAL_ICON_OVERRIDES[normCleanName] || null;
-            const logoPath = local || logoDevIcon(domain);
+            const logoPath = providerIconFor(cleanName, p.logo_path);
 
             return { id: p.provider_id, name: cleanName, logoPath, priority: 100 };
           }).filter(Boolean);

@@ -413,12 +413,7 @@
         const providerMeta = currentProviders.find(cp => cp.id === (p.provider_id || p.id)) || null;
         let logoSrc = providerMeta ? providerMeta.logoPath : (p.logoPath || null);
         if (!logoSrc) {
-          const local = localIconFor(safeName);
-          const rawPath = p.logo_path || p.tmdbLogoPath;
-          const tmdbLogo = rawPath ? (rawPath.startsWith('http') ? rawPath : `https://image.tmdb.org/t/p/original${rawPath.startsWith('/') ? '' : '/'}${rawPath}`) : null;
-          const domain = domainFor(safeName) || (cleanNormalize(safeName) + '.com');
-          const logoDev = domain ? logoDevIcon(domain) : null;
-          logoSrc = local || tmdbLogo || logoDev;
+          logoSrc = providerIconFor(safeName, p.logo_path || p.tmdbLogoPath);
         }
 
         const isVpnProvider = !!p.__isVpn;
