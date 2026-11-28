@@ -507,6 +507,8 @@
 
         // Whitelist check
         if (!NORMALIZED_WHITELIST.includes(normName)) return;
+        // Amazon's rent-and-buy store, not the Prime Video subscription.
+        if (/^amazon video$/i.test(p.provider_name.trim())) return;
         if (JUNK_SUFFIX_RE.test(p.provider_name)) return;
 
         const key = normalizeProviderName(p.provider_name);
