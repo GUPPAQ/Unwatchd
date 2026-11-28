@@ -839,9 +839,14 @@
     }
 
     /* Results Controls Card: Unboxed & Clean on all screen sizes */
+    /* The tabs + filter bar stays at the top while you scroll the films. The card around it is
+       what sticks (a sticky element can't leave its own parent, and the bar's parent is this
+       card), so the bar's outer spacing moves onto the card. */
     .results-controls-card {
-      margin-bottom: 1.5rem;
-      position: relative;
+      margin-top: 40px;
+      margin-bottom: calc(22px + 1.5rem);
+      position: sticky;
+      top: 0;
       z-index: 50;
       background: transparent !important;
       border: none !important;
@@ -3796,7 +3801,8 @@
     }
 
     #scanCompactFriendBtn.hidden,
-    #scanCompactFriendBtn.hidden + .context-dot {
+    #scanCompactFriendBtn.hidden + .context-dot,
+    .context-dot:has(+ #scanCompactFriendBtn.hidden) {
       display: none;
     }
 
@@ -4256,6 +4262,12 @@
       padding: 10px var(--pad) 0;
       background: var(--bg);
       border-bottom: 1px solid var(--line);
+    }
+
+    .results-controls-card > .results-bar {
+      position: relative;
+      margin-top: 0;
+      margin-bottom: 0;
     }
 
     .tabs[id] {
