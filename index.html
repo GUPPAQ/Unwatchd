@@ -4186,6 +4186,14 @@
       }
     }
 
+    /* A rating IMDb doesn't have (yet): the logo stays, the number is a muted dash. */
+    .poster-rating-badge.is-empty .poster-rating-val,
+    .imdb-rating-badge.is-empty .imdb-rating-num,
+    .pick-rating.is-empty > span {
+      color: var(--muted) !important;
+      font-weight: 500;
+    }
+
     .pick-actions {
       display: flex;
       flex-wrap: wrap;

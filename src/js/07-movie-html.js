@@ -681,6 +681,8 @@
       } else if (imdbId) {
         modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge inline-flex items-center gap-1.5 shrink-0" data-imdb-id="${imdbId}" data-is-tv="${isTvMedia ? '1' : '0'}" title="Loading IMDb rating...">${IMDB_TAG_HTML}<span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none animate-pulse">...</span></div>`;
         setTimeout(() => { resolveImdbRatingBadges(imdbId, isTvMedia); }, 0);
+      } else {
+        modalRatingBadgeHtml = `<div id="modalRatingBadge" class="modal-rating-badge imdb-rating-badge is-empty inline-flex items-center gap-1.5 shrink-0" title="${NO_RATING_TITLE}">${IMDB_TAG_HTML}<span class="imdb-rating-num font-extrabold text-white text-sm sm:text-base tracking-tight leading-none">${NO_RATING_TEXT}</span></div>`;
 
       }
 
