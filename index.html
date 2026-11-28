@@ -6750,12 +6750,33 @@
       }
     }
 
+    /* The bar's background runs the full width of the page. It's drawn by ::before rather than a
+       box-shadow + clip-path: a clip-path also cut off the Filters and "As actor" menus that open
+       below the bar. */
     .cast-bar[class],
     .person-bar[class] {
       top: calc(72px + env(safe-area-inset-top, 0px));
       border-bottom: 0;
-      box-shadow: 0 0 0 100vmax var(--bg);
-      clip-path: inset(0 -100vmax -1px);
+    }
+
+    /* Those full-width layers reach past the sides of the page; never let them make it scroll sideways. */
+    #moviePageView,
+    #actorPageView,
+    #allCastModal {
+      overflow-x: hidden;
+    }
+
+    .cast-bar[class]::before,
+    .person-bar[class]::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -100vmax;
+      right: -100vmax;
+      background: var(--bg);
+      z-index: -1;
+      pointer-events: none;
     }
 
     .cast-bar[class]::after,
