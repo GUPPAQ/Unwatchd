@@ -4039,6 +4039,10 @@
       font-size: clamp(1.15rem, 1.5vw, 1.4rem);
       line-height: 1.25;
       text-wrap: balance;
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
 
     .pick-meta {
@@ -4073,6 +4077,7 @@
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       max-width: 38rem;
+      min-height: calc(1.55em * 3);
     }
 
     .pick-tagline:empty,
@@ -4125,6 +4130,54 @@
 
     .pick-where-status.is-vpn {
       color: var(--accent-soft);
+    }
+
+    /* Steady size: the logo or title always gets the same slot (title at most two lines), so
+       changing pick doesn't make the card jump. What's left over glides (see .pick-card). */
+    .pick-name {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      min-height: clamp(76px, 8.4vw, 124px);
+    }
+
+    .pick-name .pick-title {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      padding-bottom: 0.06em;
+    }
+
+    .pick-name .pick-logo {
+      margin-bottom: 0;
+    }
+
+    /* Changing pick: the words fade out, the new film's fade in; the card's height, if it
+       differs at all, glides to the new one instead of snapping. */
+    .pick-body {
+      transition: opacity 0.22s ease-out, transform 0.32s var(--ease-out);
+    }
+
+    .pick.is-changing .pick-body {
+      opacity: 0;
+      transform: translateY(6px);
+      transition-duration: 0.16s;
+    }
+
+    .pick-card.is-resizing {
+      transition: height 0.38s var(--ease-out);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pick-body,
+      .pick-card.is-resizing {
+        transition: none;
+      }
+
+      .pick.is-changing .pick-body {
+        transform: none;
+      }
     }
 
     .pick-actions {
@@ -7323,8 +7376,10 @@
           </div>
           <article class="pick-card">
             <div class="pick-body">
-              <img id="tonightPickLogo" alt="" class="pick-logo hidden">
-              <h3 id="tonightPickTitle" class="pick-title"></h3>
+              <div class="pick-name">
+                <img id="tonightPickLogo" alt="" class="pick-logo hidden">
+                <h3 id="tonightPickTitle" class="pick-title"></h3>
+              </div>
               <p id="tonightPickTagline" class="pick-tagline"></p>
               <p id="tonightPickMeta" class="pick-meta"></p>
               <p id="tonightPickOverview" class="pick-overview"></p>
